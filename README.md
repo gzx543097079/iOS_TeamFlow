@@ -14,7 +14,7 @@ python3 scripts/package_release.py
 
 分发时将 ZIP 内容合入项目 Git 根目录，包含 AGENTS.md、.agents 和 .github。工程、workflow、requirements、logs、scripts 同级。完整规则见 [工作流](workflow/WORKFLOW.md)，参考项目与官方资料见 [调研记录](workflow/SOURCES.md)。
 
-采用项目级独立安装：使用 `ios-team-flow-skill-v1.0.0.zip`，将完整目录放入目标项目 `.agents/skills/`，再从项目根目录运行一次：
+采用项目级独立安装：使用 `ios-team-flow-skill-v1.1.0.zip`，将完整目录放入目标项目 `.agents/skills/`，再从项目根目录运行一次：
 
 ```sh
 python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .

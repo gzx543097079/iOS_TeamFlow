@@ -1,0 +1,42 @@
+{
+  "fingerprint": "7df442c2317a5fa3a87df7ae602777e25c7c80224e0c1dfaf8ffeff40bcc5a97",
+  "base": "69fb50799161640db30c4bac2d488b333a8a7d5d",
+  "scope": "staged",
+  "created_at": "2026-09-11T05:05:27.954824+00:00",
+  "reviewer": "Codex",
+  "completed_at": "2026-09-11T05:07:50.609329+00:00",
+  "summary": "仅审查本次暂存的 1.1.0 文档、模板、版本及同步资源改动；未发现阻塞问题。未涉及实际 iOS 业务代码，不声称完成设备运行验证。",
+  "previous_review": null,
+  "checks": {
+    "correctness": {
+      "status": "通过",
+      "evidence": "模板覆盖项目身份、默认 Swift + UIKit / iOS 14、权限、语言及目录归属；保留团队确认后生成工程的流程。版本与安装示例一致；17 项行为测试、资源同步和内部链接校验通过。"
+    },
+    "standards": {
+      "status": "通过",
+      "evidence": "Apple 文件、Target、Package 与配置机制和团队 MVVM 目录约定明确区分；不同语言按对应规范加载；未把文件夹等同编译模块。"
+    },
+    "subscription": {
+      "status": "不适用",
+      "evidence": "本次没有 App 订阅产品或购买代码；已检查模板保留产品 ID、周期、价格来源和各语言 CTA 的对应关系，并要求 StoreKit 本地化价格。"
+    },
+    "memory": {
+      "status": "不适用",
+      "evidence": "仅文档与版本资源修改，无运行时闭包、Task、代理或对象生命周期代码，不能据此证明 App 无内存泄漏。"
+    },
+    "analytics": {
+      "status": "不适用",
+      "evidence": "没有运行时打点改动；模板仍要求事件时机、参数、去重、隐私与验收契约，不自动加入 SDK。"
+    },
+    "test_artifacts": {
+      "status": "通过",
+      "evidence": "示例名称、Bundle ID、权限文案及占位配置均标明需确认或替换；未添加生产 Target、测试账号或硬编码购买价格。"
+    },
+    "security": {
+      "status": "通过",
+      "evidence": "权限仅依据确认的首版功能启用，区分用途配置与运行时授权；包含 Target、多语言、拒绝及部分授权和 SDK 访问核对。未发现凭据或真实用户数据。"
+    }
+  },
+  "findings": [],
+  "blockers": []
+}
