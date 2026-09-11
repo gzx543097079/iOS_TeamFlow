@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "requirement": "REQ-20260911-014",
+  "linked_commits": [],
+  "prs": [],
+  "development": {
+    "state": "未登记"
+  },
+  "events": [
+    {
+      "at": "2026-09-11T08:49:11.645225+00:00",
+      "action": "finish",
+      "snapshot": {
+        "commits": [
+          "28ecaeb653747f067812515deeb76c7eadb66fea"
+        ],
+        "committed": true,
+        "merged": "未确认全部合并",
+        "releases": [
+          {
+            "tag": "teamflow-v1.4.0",
+            "commit": "9186c7d63af80e199c5e5f1df864f2123e8e1b73",
+            "url": "https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v1.4.0",
+            "published_at": "2026-09-11T08:33:54Z"
+          }
+        ],
+        "release_status": "✅ 已发布",
+        "prs": [],
+        "warnings": [],
+        "development": "未登记",
+        "checked_at": "2026-09-11T08:49:11.644390+00:00"
+      }
+    }
+  ],
+  "snapshot": {
+    "commits": [
+      "28ecaeb653747f067812515deeb76c7eadb66fea"
+    ],
+    "committed": true,
+    "merged": "未确认全部合并",
+    "releases": [
+      {
+        "tag": "teamflow-v1.4.0",
+        "commit": "9186c7d63af80e199c5e5f1df864f2123e8e1b73",
+        "url": "https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v1.4.0",
+        "published_at": "2026-09-11T08:33:54Z"
+      }
+    ],
+    "release_status": "✅ 已发布",
+    "prs": [],
+    "warnings": [],
+    "development": "未登记",
+    "checked_at": "2026-09-11T08:49:11.644390+00:00"
+  },
+  "card_history": [
+    {
+      "at": "2026-09-11T08:51:56.965520+00:00",
+      "previous_git_status": null
+    }
+  ]
+}

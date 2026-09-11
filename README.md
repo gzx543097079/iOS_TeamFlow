@@ -46,7 +46,7 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
 
 ## 升级与目录
 
-保存团队定制及当前版本后，替换项目内完整 Skill，再运行同一条接入命令。脚本采用托管基线合并，真实冲突会停止。新版支持写入失败回滚与中断恢复，详见 [接入中断与恢复](.agents/skills/ios-team-flow/references/INSTALL.md#接入中断与恢复)。恢复托管入口不等于回退手动替换的 Skill。
+完整升级优先按 [完整 Skill 包升级](.agents/skills/ios-team-flow/references/INSTALL.md#完整-skill-包升级默认预览) 使用原包三方比较，先预览再应用并备份整个 Skill。旧版手动替换方式仍可使用接入命令，但不能回退替换阶段的文件。脚本采用托管基线合并，真实冲突会停止。新版支持写入失败回滚与中断恢复，详见 [接入中断与恢复](.agents/skills/ios-team-flow/references/INSTALL.md#接入中断与恢复)。恢复托管入口不等于回退手动替换的 Skill。
 
 ```text
 项目根目录/
@@ -66,9 +66,9 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
 
 业务项目使用独立 Skill 包。`iOS-TeamFlow-vX.Y.Z.zip` 是包含源仓库校验、测试和工作流发布 CI 的完整分发包，不要将其中发布流水线直接覆盖进业务仓库。
 
-当前版本为 **1.4.0**，本版包含构建测试入口、交付追踪、可选 Git 检查、团队验收、升级恢复及 App 发布流程。详见 [版本记录](.agents/skills/ios-team-flow/references/CHANGELOG.md)。已发布 ZIP 与对应标签一致，历史 1.3.0 附件保持原样。
+当前版本为 **1.5.0**，包含暂存报告门禁、测试源码指纹、iOS CI、交付收尾、完整 Skill 升级恢复及 override 入口支持。详见 [版本记录](.agents/skills/ios-team-flow/references/CHANGELOG.md)。旧版 Release 附件保持原样。
 
-真实 iOS 测试工程见 `App/TeamFlowDemo/README.md`，在源仓库运行 `python3 .agents/skills/ios-team-flow/scripts/project_checks.py --project . run --profile ios-demo` 可执行模拟器构建、单测和 UI 测试。该工程仅随源码提供，不打入 Skill 分发包。
+真实 iOS 测试工程见 `App/TeamFlowDemo/README.md`，在源仓库运行 `python3 .agents/skills/ios-team-flow/scripts/project_checks.py --project . run --profile ios-demo` 可执行模拟器构建、单测和 UI 测试。该工程仅随源码提供，不打入 Skill 分发包。源码的 `.github/workflows/ios-demo-tests.yml` 会在 App、运行脚本或验证配置变化时执行 macOS 模拟器测试并上传证据。
 
 源仓库验证与打包：
 

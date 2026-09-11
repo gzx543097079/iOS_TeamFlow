@@ -14,9 +14,9 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
 
 也可以在放好文件后请 Codex “接入当前项目的 iOS 工作流”。不需要每次提需求都重复这句话。
 
-脚本会追加 AGENTS.md 的带标记区块，明确引用项目内 Skill，生成 .agents/teamflow.json 与 scripts/review_gate.py，创建 requirements/、logs/reviews/。保留原 AGENTS.md 正文；相同版本重复运行不重复追加。脚本拒绝从其他项目或用户级安装目录直接接入本项目。
+脚本会在实际生效的指令文件中追加带标记区块（非空 AGENTS.override.md 优先，否则 AGENTS.md），明确引用项目内 Skill，生成 .agents/teamflow.json 与 scripts/review_gate.py，创建 requirements/、logs/reviews/。保留原 AGENTS.md 正文；相同版本重复运行不重复追加。脚本拒绝从其他项目或用户级安装目录直接接入本项目。
 
-脚本支持版本升级：未修改的托管内容自动更新，新版未修改的内容保留团队定制；双方都修改同一托管部分且内容不同才报告冲突。来源未知的同名脚本、损坏的标记/接入记录、降级或符号链接会在写入前退出。非空 AGENTS.override.md 会覆盖普通入口，所以也先报告冲突，需要将入口合入实际生效的指令文件。项目需要使用 Git 审查时应已是 Git 仓库，脚本不自动 git init。
+脚本支持版本升级：未修改的托管内容自动更新，新版未修改的内容保留团队定制；双方都修改同一托管部分且内容不同才报告冲突。来源未知的同名脚本、损坏的标记/接入记录、降级或符号链接会在写入前退出。非空 AGENTS.override.md 存在时自动接入该文件，版本记录保存 instruction_file。后续入口切换时重新运行接入，保留旧文件正文，不主动删除旧规则；有效入口的托管标记损坏仍需修复。项目需要使用 Git 审查时应已是 Git 仓库，脚本不自动 git init。
 
 ## 空项目接入（没有 .agents/skills 时）
 
@@ -80,7 +80,7 @@ git init
 
 将 `.agents/skills/ios-team-flow/`、AGENTS.md、.agents/teamflow.json、scripts/review_gate.py 及脱敏需求日志一同提交。确认项目的 .gitignore 没有忽略 `.agents/`、requirements/ 或整个 logs/。团队成员克隆项目后即可获得同一份规范，不需要额外个人安装。
 
-升级只针对当前项目，继续使用同一条命令，无需额外 `--upgrade` 参数：
+以下为兼容旧版的手动更新方式，只负责已替换 Skill 的入口接入；需要完整备份和定制保护时使用后面的“完整 Skill 包升级”，不要提前覆盖项目内 Skill。手动更新后仍运行：
 
 ```sh
 python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
@@ -118,4 +118,20 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project . --reco
 
 将路径换成实际提示的记录。恢复会先预检全部目标；发现人工修改时停止，先将差异另存并人工合并，不能强行覆盖。自动恢复失败时保留记录，修复磁盘/权限原因后重试。成功恢复可重复执行；保留创建的空目录，避免删除团队文件。
 
-恢复范围仅是 AGENTS.md、版本记录和根门禁入口，不包含手动替换的 Skill 文件。回退整个版本时还需从 Git 或原 ZIP 恢复对应 Skill；先保存团队定制。备份可能含项目内部规则，请按项目访问范围保管。旧版无 transaction.json 的备份需要人工对比恢复，不能使用此命令。
+setup_project.py 普通接入事务恢复范围仅是实际指令入口、版本记录和根门禁入口，不包含手动替换的 Skill 文件。回退整个版本时还需从 Git 或原 ZIP 恢复对应 Skill；先保存团队定制。备份可能含项目内部规则，请按项目访问范围保管。旧版无 transaction.json 的备份需要人工对比恢复，不能使用此命令。
+
+## 完整 Skill 包升级（默认预览）
+
+此能力自 1.5.0 起提供。旧版项目没有升级脚本时，先将新版独立 Skill 包解压到项目外临时目录，使用其中 scripts/upgrade_skill.py。保留项目内旧 Skill，先核对下载包来自可信 Release 并用其 SHA256 文件验证完整性。原包是可执行工具；预检会在临时项目运行新版 setup 的只读计划，不应使用未知来源的包。
+
+```sh
+python3 /临时目录/ios-team-flow/scripts/upgrade_skill.py --project /项目根目录 --archive /下载/ios-team-flow-skill-v新版.zip --base-archive /下载/ios-team-flow-skill-v旧版.zip
+```
+
+首次完整升级必须提供与当前版本匹配的旧版原包作为三方比较基线，不能拿团队定制目录冒充原包。输出新增/更新/删除与冲突；默认不改项目文件。核对后给同一命令加 `--apply` 执行。首次成功后保存 `.agents/teamflow-skill-baseline.json`，后续可省略 --base-archive。
+
+团队单独修改、新版未修改的文件保留；项目未修改的文件跟随新版更新或删除；双方同时修改则停止。冲突先在项目外副本中合并，然后加 `--resolutions /合并目录`，目录内保持 Skill 相对路径，例如 references/standards/swift.md。只对冲突项采用显式提供的合并文件，基线仍记录新版原包，下一次升级继续识别团队定制。
+
+`--apply` 在同一事务中备份完整 Skill、两种指令入口、根门禁入口和版本/基线，再应用更新。写入失败自动恢复；恢复入口仍为 setup_project.py --project ... --recover <transaction.json>，此时恢复范围包含完整 Skill。恢复也会检查升级后是否有人工修改，不强制覆盖。
+
+始终保留新版临时工具直到升级验收完成。恢复到旧版本后如需再次执行恢复，使用临时新版 scripts/setup_project.py；旧版本可能不支持完整事务格式。强制中断时，先确认无升级进程，使用新版恢复工具处理 prepared 事务，再移除 `.agents/teamflow-upgrade.lock` 空锁目录。备份留在项目 .agents/teamflow-backups，不进入通用包；升级不会安装或覆盖 Git Hook/CI。

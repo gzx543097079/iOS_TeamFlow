@@ -149,9 +149,13 @@ def save(root, path, data, action):
     safe_path(root, str(temp.relative_to(root)))
     temp.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n')
     temp.replace(path)
+    safe_path(root, 'requirements/DELIVERY.md').write_text(overview(root))
+
+
+def overview(root):
     lines = ['# 需求交付概览', '', '由 delivery.py 生成；开发、提交、合并与发布分开记录。GitHub 状态以最近核对时间为准。', '',
              '| 需求 | 开发 | 提交 | PR 合并 | Release | 最近核对 |', '| --- | --- | --- | --- | --- | --- |']
-    for item in sorted(path.parent.glob('REQ-*.json')):
+    for item in sorted(safe_path(root, 'requirements/delivery').glob('REQ-*.json')):
         if item.is_symlink():
             continue
         row = json.loads(item.read_text())
@@ -161,14 +165,67 @@ def save(root, path, data, action):
                      + ' | ' + ('✅ ' + str(len(snap['commits'])) + ' 个提交' if snap.get('commits') else '⬜ 未关联')
                      + ' | ' + snap.get('merged', '未核实') + ' | ' + snap.get('release_status', '未核实')
                      + ' | ' + snap.get('checked_at', '—') + ' |')
-    (root / 'requirements/DELIVERY.md').write_text('\n'.join(lines) + '\n')
+    return '\n'.join(lines) + '\n'
+
+
+def finish(root, requirements, github=False, check=False):
+    """统一收尾：核对提交与交付记录，刷新当前卡片字段；不批准开发验收。"""
+    stale = []
+    unlinked = []
+    for requirement in requirements:
+        path, data = load(root, requirement)
+        old = data.get('snapshot', {})
+        refresh(root, data, github)
+        snapshot = data['snapshot']
+        if not snapshot['commits']:
+            unlinked.append(requirement)
+        card = safe_path(root, 'requirements/' + requirement + '.md')
+        text = card.read_text()
+        state = ('已提交：' + ', '.join(snapshot['commits']) if snapshot['commits'] else '未关联实施提交')
+        state += '；Release：' + snapshot['release_status'] + '；详见 delivery/' + requirement + '.json'
+        line = '- Git 状态：' + state
+        pattern = r'^- Git 状态：.*$'
+        updated = re.sub(pattern, lambda _: line, text, count=1, flags=re.M)
+        if not re.search(pattern, text, re.M):
+            updated = text.rstrip() + '\n\n' + line + '\n'
+        # checked_at 本身变化不意味着记录过期；其他事实和查询范围变化需要归档。
+        strip_time = lambda value: {k: v for k, v in value.items() if k != 'checked_at'}
+        dirty = not path.exists() or strip_time(old) != strip_time(snapshot) or updated != text
+        if dirty:
+            stale.append(requirement)
+            if not check:
+                previous = re.search(pattern, text, re.M)
+                if updated != text:
+                    data.setdefault('card_history', []).append({'at': datetime.now(timezone.utc).isoformat(),
+                                                               'previous_git_status': previous.group(0) if previous else None})
+                save(root, path, data, 'finish')
+                temporary = card.with_suffix('.md.tmp')
+                safe_path(root, str(temporary.relative_to(root)))
+                temporary.write_text(updated)
+                temporary.replace(card)
+    summary = safe_path(root, 'requirements/DELIVERY.md')
+    expected = overview(root)
+    overview_outdated = not summary.exists() or summary.read_text() != expected
+    if overview_outdated and not check:
+        summary.parent.mkdir(parents=True, exist_ok=True)
+        summary.write_text(expected)
+    status = git(root, 'status', '--porcelain', '--', 'requirements')
+    result = {'outdated': stale if check else [], 'updated': stale if not check else [],
+              'without_implementation_commit': unlinked, 'unarchived_changes': status.splitlines(),
+              'github_checked': github, 'overview_outdated': overview_outdated if check else False}
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return (not stale and not overview_outdated) if check else True
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--project', type=Path, default=Path('.'))
-    parser.add_argument('--requirement', required=True)
+    parser.add_argument('--requirement')
     sub = parser.add_subparsers(dest='command', required=True)
+    finishing = sub.add_parser('finish')
+    finishing.add_argument('--all', action='store_true', help='处理所有需求卡')
+    finishing.add_argument('--github', action='store_true')
+    finishing.add_argument('--check', action='store_true', help='只核对，不更新文件；过期返回非零')
     dev = sub.add_parser('development')
     dev.add_argument('--state', choices=('未执行', '执行中', '待验证', '开发完成'), required=True)
     dev.add_argument('--evidence', required=True)
@@ -183,6 +240,14 @@ def main():
         root = args.project.resolve()
         if Path(git(root, 'rev-parse', '--show-toplevel')).resolve() != root:
             raise ValueError('请指定 Git 根目录')
+        if args.command == 'finish':
+            if bool(args.requirement) == args.all:
+                raise ValueError('finish 指定 --requirement 或 --all，二选一')
+            selected = ([args.requirement] if args.requirement else
+                        sorted(p.stem for p in (root / 'requirements').glob('REQ-*.md') if ID.fullmatch(p.stem)))
+            return 0 if finish(root, selected, args.github, args.check) else 1
+        if not args.requirement:
+            raise ValueError('该命令需要 --requirement')
         path, data = load(root, args.requirement)
         if args.command == 'development':
             if not args.evidence.strip():
@@ -206,4 +271,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())

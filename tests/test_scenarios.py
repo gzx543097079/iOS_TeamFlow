@@ -48,7 +48,7 @@ class ConsumerScenarios(unittest.TestCase):
         self.tool('setup_project')
         self.assertEqual(config.read_text(), content)
         self.assertFalse((self.root / 'App').exists())
-        checks = {'schema_version': 1, 'checks': {'baseline': {'argv': [sys.executable, '-c', 'raise SystemExit(7)']}},
+        checks = {'schema_version': 1, 'inputs': ['Legacy'], 'checks': {'baseline': {'argv': [sys.executable, '-c', 'raise SystemExit(7)']}},
                   'profiles': {'existing': ['baseline']}}
         (self.root / '.agents/project-checks.json').write_text(json.dumps(checks))
         self.tool('project_checks', 'run', '--profile', 'existing', success=False)
@@ -76,9 +76,11 @@ class ConsumerScenarios(unittest.TestCase):
             item.update(status='不适用', evidence='夹具仅验证门禁记录行为，不是实际业务审查')
         report['checks']['subscription'].update(status='通过', evidence='')
         report_path.write_text(json.dumps(report))
+        self.run_command('git', 'add', 'logs/reviews')
         self.run_command(sys.executable, 'scripts/review_gate.py', 'check', success=False)
         report['checks']['subscription'].update(status='未验证', evidence='商品周期与文案不匹配，需要修复')
         report_path.write_text(json.dumps(report))
+        self.run_command('git', 'add', 'logs/reviews')
         self.run_command(sys.executable, 'scripts/review_gate.py', 'check', success=False)
         product.write_text(json.dumps({'product_id': 'example.monthly', 'period': 'month', 'label': '每月续费'}))
         self.run_command('git', 'add', 'App')

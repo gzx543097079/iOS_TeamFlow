@@ -19,9 +19,9 @@ FILES = (
     '.github/workflows/teamflow-check.yml', '.github/workflows/teamflow-release.yml',
     '.github/workflows/teamflow-pr-review.yml',
     'scripts/review_gate.py', 'scripts/package_release.py', 'scripts/validate_workflow.py',
-    'tests/test_scenarios.py', 'tests/test_setup_recovery.py', 'tests/test_workflow.py', 'tests/test_project_checks.py', 'tests/test_delivery.py', 'tests/test_git_checks.py', SKILL + '/SKILL.md',
+    'tests/test_skill_upgrade.py', 'tests/test_scenarios.py', 'tests/test_setup_recovery.py', 'tests/test_workflow.py', 'tests/test_project_checks.py', 'tests/test_delivery.py', 'tests/test_git_checks.py', SKILL + '/SKILL.md',
     SKILL + '/assets/pr-review.yml', SKILL + '/scripts/range_review.py',
-    SKILL + '/scripts/install_git_checks.py', SKILL + '/scripts/delivery.py', SKILL + '/scripts/project_checks.py', SKILL + '/scripts/setup_project.py', SKILL + '/scripts/review_gate.py',
+    SKILL + '/scripts/upgrade_skill.py', SKILL + '/scripts/install_git_checks.py', SKILL + '/scripts/delivery.py', SKILL + '/scripts/project_checks.py', SKILL + '/scripts/setup_project.py', SKILL + '/scripts/review_gate.py',
 ) + tuple(SKILL + '/references/' + name for name in REFERENCES)
 
 

@@ -7,7 +7,7 @@
 1. 核对工作区和暂存区，确认本次范围；默认 `git diff --cached`，包含新增、删除、重命名、资源、配置、锁文件和构建设置。只审本次改动，必要时读取调用者/产品配置作为上下文；发现历史问题单独标注，不擅自扩大整改。
 2. 将本次文件暂存（保留用户已有暂存内容，不能用 git add . 混入无关工作）。运行 `python3 scripts/review_gate.py prepare`。脚本输出指纹、快照及 JSON 报告路径；已完成且完全匹配则输出“复用”，直接 check。
 3. 新报告读取 `logs/reviews/<指纹>.patch` 与暂存对象，不能只读工作区文件（部分暂存时两者不同）。完成下表所有维度，填写每项 status（通过/失败/未验证/不适用）与 evidence；填 summary、reviewer、completed_at、findings 和 blockers。风险被明确接受时记录理由/负责人，不能伪填通过。
-4. 运行 `python3 scripts/review_gate.py check`。有失败、未验证或 blocker 时门禁不通过；“不适用”只用于确实无关维度，不用于缺工具或缺线上配置。已验证的问题修复后重新暂存，prepare 新快照，在报告 previous_review 指向旧指纹，只复查两个快照间变化与受影响问题，其余证据注明复用来源。
+4. 完成报告后先 `git add logs/reviews/<指纹>.json logs/reviews/<指纹>.patch`，再运行 `python3 scripts/review_gate.py check`。check 只读取暂存区的报告，与即将提交及 PR 实际读取的内容一致；只在工作区填写报告不会通过，暂存报告仍未完成时必须重新暂存。有失败、未验证或 blocker 时门禁不通过；“不适用”只用于确实无关维度，不用于缺工具或缺线上配置。已验证的问题修复后重新暂存，prepare 新快照，在报告 previous_review 指向旧指纹，只复查两个快照间变化与受影响问题，其余证据注明复用来源。
 5. 有提交授权才 commit。提交前最终 check，commit 后将 SHA 关联到需求卡；报告元数据后续单独归档不触发同一代码重复审查。若新 HEAD 或规范/其他暂存内容变化，旧审查不能直接通过。
 
 ## 必查维度

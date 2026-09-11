@@ -44,7 +44,28 @@ class WorkflowTests(unittest.TestCase):
         for item in report['checks'].values():
             item.update(status='不适用', evidence='仅用于门禁行为测试的夹具，不是实际审查结论')
         target.write_text(json.dumps(report))
+        self.git('add', str(target.relative_to(self.root)))
         return target
+
+    def test_unstaged_report_cannot_replace_pending_index_report(self):
+        self.stage()
+        target = gate.prepare(self.root)
+        self.git('add', 'logs/reviews')
+        pending = target.read_bytes()
+        self.complete()
+        complete = target.read_bytes()
+        target.write_bytes(pending)
+        self.git('add', 'logs/reviews')
+        target.write_bytes(complete)
+        with self.assertRaises(ValueError):
+            gate.check(self.root)
+        self.git('add', 'logs/reviews')
+        gate.check(self.root)
+        target.write_bytes(pending)  # 工作区变化不改变即将提交的有效报告。
+        gate.check(self.root)
+        self.git('rm', '-f', '--cached', str(target.relative_to(self.root)))
+        with self.assertRaises(ValueError):
+            gate.check(self.root)
 
     def test_initial_commit_pending_then_reuse(self):
         self.stage()
@@ -112,11 +133,13 @@ class WorkflowTests(unittest.TestCase):
         report = json.loads(target.read_text())
         report['checks']['memory']['status'] = '未验证'
         target.write_text(json.dumps(report))
+        self.git('add', str(target.relative_to(self.root)))
         with self.assertRaises(ValueError):
             gate.check(self.root)
         report['checks']['memory']['status'] = '通过'
         report['findings'] = [{'status': 'open'}]
         target.write_text(json.dumps(report))
+        self.git('add', str(target.relative_to(self.root)))
         with self.assertRaises(ValueError):
             gate.check(self.root)
 
@@ -405,15 +428,33 @@ class WorkflowTests(unittest.TestCase):
                 self.assertNotEqual(0, self.run_setup(skill, project).returncode)
                 self.assertEqual(before, self.project_files(project))
 
-    def test_setup_detects_overriding_instructions(self):
+    def test_setup_uses_overriding_instructions_and_upgrades(self):
         skill = self.extract_skill()
         project = self.root / 'override'
         project.mkdir()
-        (project / 'AGENTS.override.md').write_text('项目优先规则')
+        override = project / 'AGENTS.override.md'
+        override.write_text('项目优先规则')
         result = self.run_setup(skill, project)
-        self.assertNotEqual(0, result.returncode)
-        self.assertIn('AGENTS.override.md', result.stderr)
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertTrue(override.read_text().startswith('项目优先规则'))
+        self.assertEqual(1, override.read_text().count('<!-- ios-team-flow:start -->'))
         self.assertFalse((project / 'AGENTS.md').exists())
+        self.assertEqual('AGENTS.override.md', json.loads((project / '.agents/teamflow.json').read_text())['instruction_file'])
+        self.assertEqual(0, self.run_setup(skill, project).returncode)
+        self.bump_skill(project)
+        self.assertEqual(0, self.run_setup(skill, project).returncode)
+        self.assertIn('工作流版本见', override.read_text())
+
+    def test_switch_from_agents_to_override_keeps_old_rules(self):
+        skill = self.extract_skill()
+        project = self.root / 'switch-override'
+        self.assertEqual(0, self.run_setup(skill, project).returncode)
+        original = (project / 'AGENTS.md').read_bytes()
+        (project / 'AGENTS.override.md').write_text('override rule')
+        result = self.run_setup(skill, project)
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual(original, (project / 'AGENTS.md').read_bytes())
+        self.assertIn('<!-- ios-team-flow:start -->', (project / 'AGENTS.override.md').read_text())
 
 
 if __name__ == '__main__':

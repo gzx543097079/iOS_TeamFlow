@@ -15,11 +15,11 @@ class ProjectChecksTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name)
+        self.root = Path(self.temp.name).resolve()
         (self.root / '.agents').mkdir()
 
     def config(self, commands, selected=None):
-        data = {'schema_version': 1, 'checks': commands,
+        data = {'schema_version': 1, 'inputs': ['source'], 'checks': commands,
                 'profiles': {'change': list(commands) if selected is None else selected}}
         (self.root / checks.CONFIG).write_text(json.dumps(data))
 
@@ -60,3 +60,67 @@ class ProjectChecksTests(unittest.TestCase):
         (self.root / 'logs').symlink_to(self.root / '.agents', target_is_directory=True)
         with self.assertRaises(ValueError):
             checks.run(self.root, 'change')
+
+    def test_source_edit_add_delete_and_config_change_invalidate(self):
+        self.config({'ok': {'argv': [sys.executable, '-c', 'pass']}})
+        source = self.root / 'source'
+        source.mkdir()
+        code = source / 'code.swift'
+        code.write_text('one')
+        path, passed = checks.run(self.root, 'change')
+        self.assertTrue(passed)
+        relative = str(path.relative_to(self.root))
+        checks.verify(self.root, relative)
+        code.write_text('two')
+        with self.assertRaises(ValueError):
+            checks.verify(self.root, relative)
+        code.write_text('one')
+        added = source / 'added.swift'
+        added.write_text('new')
+        with self.assertRaises(ValueError):
+            checks.verify(self.root, relative)
+        added.unlink()
+        code.unlink()
+        with self.assertRaises(ValueError):
+            checks.verify(self.root, relative)
+        code.write_text('one')
+        self.config({'ok': {'argv': [sys.executable, '-c', 'print(1)']}})
+        with self.assertRaises(ValueError):
+            checks.verify(self.root, relative)
+
+    def test_input_change_during_successful_command_is_not_pass(self):
+        self.config({'mutate': {'argv': [sys.executable, '-c',
+                    "from pathlib import Path; Path('source').write_text('changed')"]}})
+        (self.root / 'source').write_text('before')
+        path, passed = checks.run(self.root, 'change')
+        self.assertFalse(passed)
+        self.assertEqual(0, json.loads(path.read_text())['results'][0]['exit_code'])
+        self.assertFalse(json.loads(path.read_text())['source_unchanged'])
+
+    def test_git_default_tracks_new_files_but_ignores_generated_evidence(self):
+        import subprocess
+        def git(*args):
+            subprocess.run(['git', '-C', str(self.root), *args], check=True, capture_output=True)
+        git('init', '-q')
+        self.config({'ok': {'argv': [sys.executable, '-c', 'pass']}})
+        config = self.root / checks.CONFIG
+        data = json.loads(config.read_text())
+        del data['inputs']
+        config.write_text(json.dumps(data))
+        (self.root / 'source.swift').write_text('source')
+        (self.root / '.gitignore').write_text('build/\n')
+        git('add', '.')
+        path, passed = checks.run(self.root, 'change')
+        self.assertTrue(passed)
+        relative = str(path.relative_to(self.root))
+        checks.verify(self.root, relative)
+        (self.root / 'build').mkdir()
+        (self.root / 'build/output').write_text('generated')
+        checks.verify(self.root, relative)
+        (self.root / 'new.swift').write_text('new')
+        with self.assertRaises(ValueError):
+            checks.verify(self.root, relative)
+        (self.root / 'new.swift').unlink()
+        (self.root / 'source.swift').chmod(0o755)
+        with self.assertRaises(ValueError):
+            checks.verify(self.root, relative)

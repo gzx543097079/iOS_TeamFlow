@@ -37,7 +37,13 @@ def version_tuple(value):
     return tuple(map(int, value.split('.')))
 
 
-MANAGED_FILES = {'.agents/teamflow.json', 'scripts/review_gate.py', 'AGENTS.md'}
+MANAGED_FILES = {'.agents/teamflow.json', 'scripts/review_gate.py', 'AGENTS.md', 'AGENTS.override.md', '.agents/teamflow-skill-baseline.json'}
+
+
+def managed_name(name):
+    if not isinstance(name, str) or Path(name).is_absolute() or '..' in Path(name).parts:
+        return False
+    return name in MANAGED_FILES or name.startswith('.agents/skills/ios-team-flow/')
 
 
 def atomic_write(path, content, mode=0o644):
@@ -69,7 +75,7 @@ def recover(project, journal_path):
     data = json.loads(journal_path.read_text())
     if (data.get('schema') != 1 or data.get('project') != str(project)
             or not isinstance(data.get('files'), dict) or not data['files']
-            or not set(data['files']).issubset(MANAGED_FILES)):
+            or not all(managed_name(name) for name in data['files'])):
         raise ValueError('恢复记录无效或属于其他项目')
     originals = {}
     # 在任何恢复写入之前核对所有文件，拒绝覆盖升级后的人工修改。
@@ -81,7 +87,7 @@ def recover(project, journal_path):
             if node.is_symlink():
                 raise ValueError('恢复目标包含符号链接：' + name)
         old = None if entry['before'] is None else base64.b64decode(entry['before'], validate=True)
-        new = base64.b64decode(entry['after'], validate=True)
+        new = None if entry['after'] is None else base64.b64decode(entry['after'], validate=True)
         mode = entry['mode']
         if type(mode) is not int or not 0 <= mode <= 0o777:
             raise ValueError('恢复权限无效')
@@ -112,7 +118,7 @@ def apply_transaction(project, changed, before):
         target = project / name
         mode = (target.stat().st_mode & 0o777) if target.exists() else 0o644
         files[name] = {'before': None if before[name] is None else base64.b64encode(before[name]).decode(),
-                       'after': base64.b64encode(content).decode(), 'mode': mode}
+                       'after': None if content is None else base64.b64encode(content).decode(), 'mode': mode}
         if before[name] is not None:
             saved = backup / name
             atomic_write(saved, before[name], mode)
@@ -120,7 +126,10 @@ def apply_transaction(project, changed, before):
     atomic_write(journal, (json.dumps(data, ensure_ascii=False, indent=2) + '\n').encode(), 0o600)
     try:
         for name, content in changed.items():
-            atomic_write(project / name, content, files[name]['mode'])
+            if content is None:
+                (project / name).unlink(missing_ok=True)
+            else:
+                atomic_write(project / name, content, files[name]['mode'])
         for name in ('requirements', 'logs/reviews'):
             (project / name).mkdir(parents=True, exist_ok=True)
         data['state'] = 'applied'
@@ -134,7 +143,7 @@ def apply_transaction(project, changed, before):
     return backup
 
 
-def setup(project, skill):
+def setup(project, skill, dry_run=False):
     project = project.expanduser().resolve()
     skill = skill.resolve()
     local_skill = project / '.agents/skills/ios-team-flow'
@@ -145,7 +154,11 @@ def setup(project, skill):
     version_tuple(version)
     manifest_name = '.agents/teamflow.json'
     gate_name = 'scripts/review_gate.py'
-    names = (manifest_name, gate_name, 'AGENTS.md')
+    override = project / 'AGENTS.override.md'
+    if override.is_symlink():
+        raise ValueError('AGENTS.override.md 不能为符号链接')
+    agents_name = 'AGENTS.override.md' if override.exists() and override.stat().st_size > 0 else 'AGENTS.md'
+    names = (manifest_name, gate_name, agents_name)
     conflicts = []
     for name in (*names, 'requirements', 'logs/reviews', '.agents/teamflow-backups'):
         path = project / name
@@ -161,9 +174,6 @@ def setup(project, skill):
                 conflicts.append(name + ' 的父路径不是目录')
         if path.exists() and (not path.is_file() if name in names else not path.is_dir()):
             conflicts.append(name + ' 类型不正确')
-    override = project / 'AGENTS.override.md'
-    if override.exists() and (not override.is_file() or override.stat().st_size > 0):
-        conflicts.append('存在 AGENTS.override.md，需先将工作流入口合入有效指令文件')
     if conflicts:
         raise ValueError('接入前预检发现冲突，未写入文件：\n' + '\n'.join(sorted(set(conflicts))))
     for journal in (project / '.agents/teamflow-backups').glob('upgrade-*/transaction.json'):
@@ -193,7 +203,7 @@ def setup(project, skill):
                 raise ValueError('旧接入记录没有可识别的基线，请先人工核对托管文件')
         except (ValueError, TypeError) as error:
             raise ValueError('接入前预检发现冲突，未写入文件：' + manifest_name + '：' + str(error)) from error
-    old = before['AGENTS.md'].decode() if before['AGENTS.md'] is not None else ''
+    old = before[agents_name].decode() if before[agents_name] is not None else ''
     updated = old
     if START in old or END in old:
         if old.count(START) != 1 or old.count(END) != 1 or old.index(START) >= old.index(END):
@@ -207,8 +217,8 @@ def setup(project, skill):
                 conflicts.append('AGENTS.md 托管区块有团队修改，请合并到新版区块；区块外规则会保留')
             else:
                 updated = old[:start] + BLOCK.strip() + old[end:]
-    elif baseline:
-        conflicts.append('AGENTS.md 托管区块已被移除，请恢复后重试')
+    elif baseline and manifest.get('instruction_file', 'AGENTS.md') == agents_name:
+        conflicts.append(agents_name + ' 托管区块已被移除，请恢复后重试')
     else:
         updated = old + ('\n\n' if old else '') + BLOCK
     current_gate = before[gate_name]
@@ -223,11 +233,13 @@ def setup(project, skill):
     if conflicts:
         raise ValueError('接入前预检发现冲突，未写入文件：\n' + '\n'.join(conflicts))
     # 保留接入记录中的其他团队字段，只更新本工具拥有的字段。
-    manifest.update(skill='ios-team-flow', version=version, schema_version=1,
+    manifest.update(skill='ios-team-flow', version=version, schema_version=1, instruction_file=agents_name,
                     managed={'agents_block': digest(BLOCK.strip()), 'gate_entry': digest(GATE_ENTRY)})
     planned = {manifest_name: (json.dumps(manifest, ensure_ascii=False, indent=2) + '\n').encode(),
-               gate_name: desired_gate, 'AGENTS.md': updated.encode()}
+               gate_name: desired_gate, agents_name: updated.encode()}
     changed = {name: data for name, data in planned.items() if data != before[name]}
+    if dry_run:
+        return planned
     backup = apply_transaction(project, changed, before)
     for name in ('requirements', 'logs/reviews'):
         (project / name).mkdir(parents=True, exist_ok=True)
@@ -239,12 +251,15 @@ def setup(project, skill):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--project', required=True, type=Path)
+    parser.add_argument('--plan', action='store_true', help='只输出接入计划，不写入文件')
     parser.add_argument('--recover', type=Path, help='恢复本项目 transaction.json 中的接入前托管文件')
     args = parser.parse_args()
     try:
         if args.recover:
             recover(args.project, args.recover)
         else:
-            setup(args.project, Path(__file__).resolve().parents[1])
+            planned = setup(args.project, Path(__file__).resolve().parents[1], dry_run=args.plan)
+            if args.plan:
+                print(json.dumps({name: base64.b64encode(data).decode() for name, data in planned.items()}))
     except (ValueError, OSError, KeyError, TypeError) as error:
         parser.exit(1, str(error) + '\n')

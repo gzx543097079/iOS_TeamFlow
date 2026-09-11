@@ -111,10 +111,14 @@ def check(root):
     if not patch:
         print('没有待审业务/规则改动；仅回执或空暂存区')
         return
-    target = root / RECEIPTS / (fingerprint + '.json')
-    if not target.exists():
-        raise ValueError('缺少本次审查。先运行 prepare 并让 Codex 完成报告。')
-    errors = report_errors(json.loads(target.read_text()), base, fingerprint)
+    name = RECEIPTS + fingerprint + '.json'
+    try:
+        report = json.loads(git(root, 'show', ':' + name))
+    except subprocess.CalledProcessError as error:
+        raise ValueError('缺少已暂存的审查报告；完成报告后 git add ' + name) from error
+    errors = report_errors(report, base, fingerprint)
+    if report.get('scope') != 'staged':
+        errors.append('提交报告 scope 必须为 staged')
     if errors:
         raise ValueError('；'.join(errors))
     print('审查门禁通过，复用指纹：' + fingerprint)

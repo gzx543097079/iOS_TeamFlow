@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """按项目配置执行构建/测试，保存真实退出结果；不猜测 Scheme 或工具链。"""
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -54,11 +55,67 @@ def load_config(root):
     return config
 
 
+# 自动生成的证据不参与源码指纹，避免报告写入令自身失效。
+EVIDENCE_DIRS = ('logs/project-checks/', 'logs/reviews/', '.agents/teamflow-backups/')
+
+
+def source_snapshot(root, config):
+    inputs = config.get('inputs')
+    paths = set()
+    if inputs is not None:
+        if not isinstance(inputs, list) or not inputs or any(not isinstance(n, str) or not n for n in inputs):
+            raise ValueError('inputs 必须是非空项目相对文件/目录列表')
+        for name in inputs:
+            path = local_path(root, name)
+            if path.is_dir():
+                paths.update(str(p.relative_to(root)) for p in path.rglob('*') if not p.is_dir() or p.is_symlink())
+            else:
+                paths.add(str(path.relative_to(root)))
+    else:
+        try:
+            raw = subprocess.check_output(['git', '-C', str(root), 'ls-files', '--cached', '--others',
+                                           '--exclude-standard', '-z'], stderr=subprocess.PIPE)
+            paths.update(os.fsdecode(n) for n in raw.split(b'\0') if n)
+        except subprocess.CalledProcessError:
+            raise ValueError('非 Git 项目必须显式配置 inputs，避免把构建产物作为源码')
+    paths.add(CONFIG)  # profile、命令或输入范围变化也必须令旧证据失效。
+    files = {}
+    for name in sorted(paths):
+        if name.startswith(EVIDENCE_DIRS):
+            continue
+        path = local_path(root, name)
+        if not path.exists():
+            files[name] = None
+        elif path.is_file():
+            files[name] = {'sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
+                           'executable': bool(path.stat().st_mode & 0o111)}
+        else:
+            raise ValueError('输入不是普通文件（目录输入需展开，子模块需显式指定文件）：' + name)
+    encoded = json.dumps(files, sort_keys=True, ensure_ascii=True).encode()
+    return {'algorithm': 'sha256-files-v1', 'fingerprint': hashlib.sha256(encoded).hexdigest(), 'files': files}
+
+
+def verify(root, result):
+    root = root.resolve()
+    result = local_path(root, result)
+    report = json.loads(result.read_text())
+    if not isinstance(report, dict):
+        raise ValueError('验证报告必须为 JSON 对象')
+    if report.get('status') != '通过' or not report.get('source_unchanged') or not report.get('completed_at'):
+        raise ValueError('测试未通过或没有源码绑定证据；请重新执行')
+    current = source_snapshot(root, load_config(root))
+    if report.get('source_before') != current or report.get('source_after') != current:
+        raise ValueError('测试后源码或配置已变化，旧结果不能用于当前代码')
+    print('验证结果与当前源码/配置一致：' + str(result))
+    return report
+
+
 def run(root, profile):
     root = root.resolve()
     config = load_config(root)
     if profile not in config['profiles']:
         raise ValueError('未配置所选 profile：' + profile)
+    source_before = source_snapshot(root, config)
     directory = local_path(root, 'logs/project-checks')
     directory.mkdir(parents=True, exist_ok=True)
     run_dir = directory / (datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ-') + uuid.uuid4().hex[:8])
@@ -68,7 +125,7 @@ def run(root, profile):
     report = {'schema_version': 1, 'profile': profile,
               'started_at': datetime.now(timezone.utc).isoformat(),
               'head': head.stdout.strip() if head.returncode == 0 else None,
-              'scope': 'working-tree', 'results': [], 'status': '未验证'}
+              'scope': 'working-tree', 'source_before': source_before, 'results': [], 'status': '未验证'}
     # 配置和命令属于团队明确选定的可执行代码；不使用 shell，不代入需求中的任意文本。
     for name in config['profiles'][profile]:
         check = config['checks'][name]
@@ -95,6 +152,14 @@ def run(root, profile):
         # 每个所选检查都是本次必跑项；失败后仍收集其余检查结果。
         (run_dir / 'result.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
     report['status'] = '通过' if all(r['status'] == '通过' for r in report['results']) else '失败'
+    try:
+        report['source_after'] = source_snapshot(root, load_config(root))
+        report['source_unchanged'] = report['source_after'] == source_before
+    except (OSError, ValueError) as error:
+        report['source_unchanged'] = False
+        report['source_error'] = str(error)
+    if not report['source_unchanged']:
+        report['status'] = '输入已变化，需重测'
     report['completed_at'] = datetime.now(timezone.utc).isoformat()
     target = run_dir / 'result.json'
     target.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
@@ -108,6 +173,8 @@ def main():
     sub = parser.add_subparsers(dest='command', required=True)
     sub.add_parser('init')
     sub.add_parser('list')
+    verifier = sub.add_parser('verify')
+    verifier.add_argument('--result', required=True, help='项目相对 result.json 路径')
     runner = sub.add_parser('run')
     runner.add_argument('--profile', required=True)
     args = parser.parse_args()
@@ -120,6 +187,8 @@ def main():
                 json.dump({'schema_version': 1, 'checks': {}, 'profiles': {}}, stream, indent=2)
                 stream.write('\n')
             print('已创建空配置，请填写实际命令；空配置不能执行成功：' + str(path))
+        elif args.command == 'verify':
+            verify(root, args.result)
         elif args.command == 'list':
             print(json.dumps(load_config(root), ensure_ascii=False, indent=2))
         else:

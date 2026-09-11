@@ -15,7 +15,7 @@ description: 中文 iOS 团队需求实施与提交审查。用于已安装本 S
 python3 "<SKILL_ROOT>/scripts/setup_project.py" --project "<PROJECT_ROOT>"
 ```
 
-上述为路径占位，执行时替换为已确认的绝对路径。脚本首次接入时生成带标记的入口、版本基线和门禁加载脚本；用户要求升级时运行同一命令，自动更新未定制的托管文件并备份旧内容，新版未改动的部分保留团队定制。不创建业务工程、不改变 Git hook、不初始化嵌套 Git。脚本报告冲突时先读差异，保留团队原有规则再按用户已授权范围合并，禁止直接覆盖。纯咨询不接入项目、不创建需求。
+上述为路径占位，执行时替换为已确认的绝对路径。脚本首次接入时生成带标记的入口、版本基线和门禁加载脚本；用户要求完整升级时按 [完整包升级](references/INSTALL.md#完整-skill-包升级默认预览) 先预览、保护定制并备份整个 Skill；已手动更新 Skill 的项目可运行同一接入命令更新托管入口。不创建业务工程、不改变 Git hook、不初始化嵌套 Git。脚本报告冲突时先读差异，保留团队原有规则再按用户已授权范围合并，禁止直接覆盖。非空 AGENTS.override.md 存在时接入实际生效的 override 文件。纯咨询不接入项目、不创建需求。
 
 项目版本与本 Skill 不同不得静默升级规则：继续使用项目固定版本，或在用户明确要求升级时调整版本和入口。不能借升级自动覆盖项目定制规范。安装与版本说明见 [安装说明](references/INSTALL.md)。
 
@@ -26,7 +26,7 @@ python3 "<SKILL_ROOT>/scripts/setup_project.py" --project "<PROJECT_ROOT>"
 3. 用 [需求模板](references/templates/requirement.md) 记录拆分判断、过程状态与验收。需求、日志、工程和项目辅助脚本均写入 PROJECT_ROOT，不写入安装目录。
 业务验证使用 [项目验证入口](references/PROJECT-CHECKS.md)，按实际工程配置本次必跑项并记录结果。
 
-4. 提交前读取 [审查规程](references/REVIEW.md)，在 PROJECT_ROOT 运行 scripts/review_gate.py；同指纹复用，新增变化只复查增量与关联影响。用户未授权时不 commit/push。已授权的实施提交使用 Requirement 尾注，并按 [交付追踪](references/DELIVERY.md) 刷新提交、验收和后续远端状态。
+4. 提交前读取 [审查规程](references/REVIEW.md)，在 PROJECT_ROOT 运行 scripts/review_gate.py；同指纹复用，新增变化只复查增量与关联影响。用户未授权时不 commit/push。已授权的实施提交使用 Requirement 尾注，并按 [交付追踪](references/DELIVERY.md) 执行 finish 收尾并报告缺失或未归档记录，验收与后续远端状态分别登记。
 
 规则、模板、版本和工具实现均直接维护在本 Skill 内，不需要外部规范目录或同步脚本。`<SKILL_ROOT>/references/` 表示本 Skill 的资料位置；`requirements/`、`logs/`、`scripts/`、`App/` 为项目根目录下的产物。项目接入版本记录在 `.agents/teamflow.json`，根 scripts/review_gate.py 加载本 Skill 的门禁实现。入口和完整 Skill 随项目提交；团队克隆后直接使用。
 

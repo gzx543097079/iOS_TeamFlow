@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "profile": "ios-demo",
+  "started_at": "2026-09-11T08:48:11.939872+00:00",
+  "head": "9186c7d63af80e199c5e5f1df864f2123e8e1b73",
+  "scope": "working-tree",
+  "source_before": {
+    "algorithm": "sha256-files-v1",
+    "fingerprint": "c32d3d88205f1fe6d1517f08d8a4d147910f9367a010d78daef6107dce854159",
+    "files": {
+      ".agents/project-checks.json": {
+        "sha256": "95144905f1b30ccb0edf6449ede4855f7d6cd85e17d6632496eeed4d6af5b111",
+        "executable": false
+      },
+      "App/TeamFlowDemo/.DS_Store": {
+        "sha256": "c29f18da31b0aa64859b6f1d54d8620cbdbe0505f82f73c1565a99e197b4fe3b",
+        "executable": false
+      },
+      "App/TeamFlowDemo/README.md": {
+        "sha256": "9408bbf30f6f5396ed3070bb26fd1cf29ca3b8766d0aeca806c8cdfc4a742851",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/AppDelegate.swift": {
+        "sha256": "c50cb10799149464129e4b7f552cf7db871e0349ee1ab784d296f95fbe1fbf41",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/DemoViewController.swift": {
+        "sha256": "acebb2ae405ca660ce51604e218039bdd99bfbd3b07f510e921df9c1bceae532",
+        "executable": false
+      },
+      "App/TeamFlowDemo/TeamFlowDemo.xcodeproj/project.pbxproj": {
+        "sha256": "ced72661b12f467a6f9299ec483a281914a6e578fb0028b5464635ca0e34b719",
+        "executable": false
+      },
+      "App/TeamFlowDemo/TeamFlowDemo.xcodeproj/project.xcworkspace/contents.xcworkspacedata": {
+        "sha256": "7f3b00b5c3fdb45242d7b87e1e5c4e25d1fa8129a16c94295ecc4e8ea2235c5f",
+        "executable": false
+      },
+      "App/TeamFlowDemo/TeamFlowDemo.xcodeproj/project.xcworkspace/xcuserdata/hhdz.xcuserdatad/UserInterfaceState.xcuserstate": {
+        "sha256": "660a6fb48e48da17b5c9b40a06139700ac9454845ac714975b223d5b74a4c728",
+        "executable": false
+      },
+      "App/TeamFlowDemo/TeamFlowDemo.xcodeproj/xcshareddata/xcschemes/TeamFlowDemo.xcscheme": {
+        "sha256": "8d5964f0b41413f9aafc99f29fa45a3066c7f99d12518213f861f089204246ff",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Tests/DemoTests.swift": {
+        "sha256": "bce5f1c4591d6c1adabc90d1c3ff4a0d1b29135d31cda2d10de434fe7fe54ff7",
+        "executable": false
+      },
+      "App/TeamFlowDemo/UITests/DemoUITests.swift": {
+        "sha256": "7c6aab6a6a9c74109c3d3c836546b5d448e041020fec5045b7a00f529c1d7cb6",
+        "executable": false
+      },
+      "App/TeamFlowDemo/project.yml": {
+        "sha256": "ff203f9b3ea77cd29de409ac9edd7effc678073be76984695f751cf017cb2b30",
+        "executable": false
+      },
+      "scripts/test_demo.py": {
+        "sha256": "099d4b5bbd249aab43b0fdb10acc48213f78448ae360c5533c8b794208f417e4",
+        "executable": false
+      }
+    }
+  },
+  "results": [
+    {
+      "name": "ios-demo",
+      "argv": [
+        "python3",
+        "scripts/test_demo.py"
+      ],
+      "cwd": ".",
+      "log": "ios-demo.log",
+      "status": "通过",
+      "exit_code": 0,
+      "duration_seconds": 40.664
+    }
+  ],
+  "status": "通过",
+  "source_after": {
+    "algorithm": "sha256-files-v1",
+    "fingerprint": "c32d3d88205f1fe6d1517f08d8a4d147910f9367a010d78daef6107dce854159",
+    "files": {
+      ".agents/project-checks.json": {
+        "sha256": "95144905f1b30ccb0edf6449ede4855f7d6cd85e17d6632496eeed4d6af5b111",
+        "executable": false
+      },
+      "App/TeamFlowDemo/.DS_Store": {
+        "sha256": "c29f18da31b0aa64859b6f1d54d8620cbdbe0505f82f73c1565a99e197b4fe3b",
+        "executable": false
+      },
+      "App/TeamFlowDemo/README.md": {
+        "sha256": "9408bbf30f6f5396ed3070bb26fd1cf29ca3b8766d0aeca806c8cdfc4a742851",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/AppDelegate.swift": {
+        "sha256": "c50cb10799149464129e4b7f552cf7db871e0349ee1ab784d296f95fbe1fbf41",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/DemoViewController.swift": {
+        "sha256": "acebb2ae405ca660ce51604e218039bdd99bfbd3b07f510e921df9c1bceae532",
+        "executable": false
+      },
+      "App/TeamFlowDemo/TeamFlowDemo.xcodeproj/project.pbxproj": {
+        "sha256": "ced72661b12f467a6f9299ec483a281914a6e578fb0028b5464635ca0e34b719",
+        "executable": false
+      },
+      "App/TeamFlowDemo/TeamFlowDemo.xcodeproj/project.xcworkspace/contents.xcworkspacedata": {
+        "sha256": "7f3b00b5c3fdb45242d7b87e1e5c4e25d1fa8129a16c94295ecc4e8ea2235c5f",
+        "executable": false
+      },
+      "App/TeamFlowDemo/TeamFlowDemo.xcodeproj/project.xcworkspace/xcuserdata/hhdz.xcuserdatad/UserInterfaceState.xcuserstate": {
+        "sha256": "660a6fb48e48da17b5c9b40a06139700ac9454845ac714975b223d5b74a4c728",
+        "executable": false
+      },
+      "App/TeamFlowDemo/TeamFlowDemo.xcodeproj/xcshareddata/xcschemes/TeamFlowDemo.xcscheme": {
+        "sha256": "8d5964f0b41413f9aafc99f29fa45a3066c7f99d12518213f861f089204246ff",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Tests/DemoTests.swift": {
+        "sha256": "bce5f1c4591d6c1adabc90d1c3ff4a0d1b29135d31cda2d10de434fe7fe54ff7",
+        "executable": false
+      },
+      "App/TeamFlowDemo/UITests/DemoUITests.swift": {
+        "sha256": "7c6aab6a6a9c74109c3d3c836546b5d448e041020fec5045b7a00f529c1d7cb6",
+        "executable": false
+      },
+      "App/TeamFlowDemo/project.yml": {
+        "sha256": "ff203f9b3ea77cd29de409ac9edd7effc678073be76984695f751cf017cb2b30",
+        "executable": false
+      },
+      "scripts/test_demo.py": {
+        "sha256": "099d4b5bbd249aab43b0fdb10acc48213f78448ae360c5533c8b794208f417e4",
+        "executable": false
+      }
+    }
+  },
+  "source_unchanged": true,
+  "completed_at": "2026-09-11T08:48:52.611405+00:00"
+}

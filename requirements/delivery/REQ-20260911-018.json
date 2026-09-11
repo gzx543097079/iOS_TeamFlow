@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "requirement": "REQ-20260911-018",
+  "linked_commits": [],
+  "prs": [],
+  "development": {
+    "state": "未登记"
+  },
+  "events": [
+    {
+      "at": "2026-09-11T08:49:32.384798+00:00",
+      "action": "finish",
+      "snapshot": {
+        "commits": [],
+        "committed": false,
+        "merged": "未确认全部合并",
+        "releases": [],
+        "release_status": "未发现已发布版本",
+        "prs": [],
+        "warnings": [],
+        "development": "未登记",
+        "checked_at": "2026-09-11T08:49:32.384583+00:00"
+      }
+    }
+  ],
+  "snapshot": {
+    "commits": [],
+    "committed": false,
+    "merged": "未确认全部合并",
+    "releases": [],
+    "release_status": "未发现已发布版本",
+    "prs": [],
+    "warnings": [],
+    "development": "未登记",
+    "checked_at": "2026-09-11T08:49:32.384583+00:00"
+  }
+}

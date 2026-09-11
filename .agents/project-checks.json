@@ -14,5 +14,9 @@
     "ios-demo": [
       "ios-demo"
     ]
-  }
+  },
+  "inputs": [
+    "App/TeamFlowDemo",
+    "scripts/test_demo.py"
+  ]
 }

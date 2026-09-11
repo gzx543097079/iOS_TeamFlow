@@ -15,6 +15,7 @@ python3 .agents/skills/ios-team-flow/scripts/project_checks.py run --profile cha
 ```json
 {
   "schema_version": 1,
+  "inputs": ["App", "scripts"],
   "checks": {
     "build": {
       "argv": ["xcodebuild", "-project", "App/MyApp.xcodeproj", "-scheme", "MyApp", "-sdk", "iphonesimulator", "CODE_SIGNING_ALLOWED=NO", "build"],
@@ -35,6 +36,18 @@ python3 .agents/skills/ios-team-flow/scripts/project_checks.py run --profile cha
 
 Codex 在需求卡明确本次选用的 profile 和原因；profile 内每项均为必跑。按改动选择必要构建、测试与静态检查，文档改动只选适用检查，不默认全量测试。新项目创建可运行工程后补齐配置；已有工程复用 PROJECT-CONTEXT 中的命令。未选项目注明范围理由，不能将关键验收缺失归为不适用。无明确要求不验证超大字号。
 
-结果保存至 `logs/project-checks/<运行编号>/result.json`，每项记录命令、工作目录、退出码、时长及原始日志。失败、工具缺失、超时都返回非零退出码，不算通过。报告标明针对当前工作区及 HEAD，不能据此宣称未暂存内容与最终提交一致；提交前确认验证后的业务代码未改变，否则重跑受影响检查。
+结果保存至 `logs/project-checks/<运行编号>/result.json`，每项记录命令、工作目录、退出码、时长及原始日志。失败、工具缺失、超时都返回非零退出码，不算通过。报告同时保存运行前后源码/配置指纹；运行中输入变化会返回非零，不标通过。采用工作区实际文件，不以 HEAD 代替未提交源码。
 
 原始日志可能含本地路径或敏感输出，提交前脱敏；可在项目 .gitignore 中排除原始 `.log`，保留脱敏摘要/受控 CI artifact 链接。CI 可使用同一命令并归档日志，但不要在有生产凭据的环境执行不可信 PR 的配置。对相关基线失败与新引入失败分别记录；工具只报告执行结果，不自行认定历史失败可忽略。
+
+## 验证结果是否仍适用
+
+```sh
+python3 .agents/skills/ios-team-flow/scripts/project_checks.py verify --result logs/project-checks/实际运行编号/result.json
+```
+
+提交前复用测试证据时运行 verify。源码增加、删除、内容/执行权限改变或验证配置改变都会令旧结果失效；没有源码指纹的旧报告需重测。工具校验所记录范围，不保证测试覆盖充分，也不是防伪签名。当前检测运行前后差异，不能发现运行中改动后又完全还原的瞬时变化；测试期间不要编辑输入文件。
+
+`inputs` 是项目相对文件/目录列表（不支持 glob），应覆盖本次 App 的源代码、工程配置、资源、依赖锁文件和执行脚本；`.agents/project-checks.json` 始终纳入。目录递归记录普通文件，拒绝符号链接。不要把构建输出目录纳入输入。
+
+省略 inputs 时，Git 项目按已跟踪及未忽略的新文件记录，删除的跟踪文件也参与比较；非 Git 项目必须显式配置 inputs。自动排除 logs/project-checks、logs/reviews 和 .agents/teamflow-backups 的生成证据，其他生成产物由项目 .gitignore 或明确 inputs 排除。此处测试指纹与 review 暂存指纹用途不同：前者证明测试对象，后者证明审查对象。
