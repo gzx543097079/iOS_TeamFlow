@@ -1,0 +1,96 @@
+diff --git a/requirements/DELIVERY.md b/requirements/DELIVERY.md
+index bf1af670c44d6ba7d4c61362a673375f7433543b..3599004b0a87fc105883efc553c05ee373951e6f 100644
+--- a/requirements/DELIVERY.md
++++ b/requirements/DELIVERY.md
+@@ -25,7 +25,7 @@
+ | [REQ-20260911-019](REQ-20260911-019.md) | 未登记 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-11T09:09:58.878227+00:00 |
+ | [REQ-20260911-020](REQ-20260911-020.md) | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-11T09:43:45.281881+00:00 |
+ | [REQ-20260911-3ffd2fdc03fe46518e1c6e3930fcf0b0](REQ-20260911-3ffd2fdc03fe46518e1c6e3930fcf0b0.md) | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-11T10:28:19.006816+00:00 |
+-| [REQ-20260911-5637be821a624c92952e67b55a264f3b](REQ-20260911-5637be821a624c92952e67b55a264f3b.md) | ✅ 执行完成 | ⬜ 未关联 | 未核实 | 未核实 | 2026-09-11T12:10:34.190151+00:00 |
++| [REQ-20260911-5637be821a624c92952e67b55a264f3b](REQ-20260911-5637be821a624c92952e67b55a264f3b.md) | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-11T12:13:09.524179+00:00 |
+ | [REQ-20260911-5ae07f5fe7fb44f3b1526ae8206ffa9b](REQ-20260911-5ae07f5fe7fb44f3b1526ae8206ffa9b.md) | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-11T10:08:33.793811+00:00 |
+ | [REQ-20260911-79ae0187047b4a02b74c623109bfc350](REQ-20260911-79ae0187047b4a02b74c623109bfc350.md) | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-11T11:57:34.845951+00:00 |
+ | [REQ-20260911-cf5a83acc9f3488b868d175cd114a4a0](REQ-20260911-cf5a83acc9f3488b868d175cd114a4a0.md) | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-11T11:37:46.656969+00:00 |
+diff --git a/requirements/delivery/REQ-20260911-5637be821a624c92952e67b55a264f3b.json b/requirements/delivery/REQ-20260911-5637be821a624c92952e67b55a264f3b.json
+index f69d8219d5ea2187abbed9971cdc41011341086e..989cda9c3af8347f49cf58ffb462f1bedd182121 100644
+--- a/requirements/delivery/REQ-20260911-5637be821a624c92952e67b55a264f3b.json
++++ b/requirements/delivery/REQ-20260911-5637be821a624c92952e67b55a264f3b.json
+@@ -30,6 +30,30 @@
+         "checked_at": "2026-09-11T12:10:34.190151+00:00"
+       },
+       "removed": []
++    },
++    {
++      "at": "2026-09-11T12:13:09.525032+00:00",
++      "action": "finish",
++      "changes": {
++        "commits": [
++          "945a434c58d57e507616015741182fc15d86a778"
++        ],
++        "committed": true,
++        "merged": "未确认全部合并",
++        "releases": [
++          {
++            "tag": "teamflow-v1.10.0",
++            "commit": "945a434c58d57e507616015741182fc15d86a778",
++            "url": "https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v1.10.0",
++            "published_at": "2026-09-11T12:12:21Z"
++          }
++        ],
++        "release_status": "✅ 已发布",
++        "warnings": [],
++        "github_checked_at": "2026-09-11T12:12:56.044161+00:00",
++        "checked_at": "2026-09-11T12:13:09.524179+00:00"
++      },
++      "removed": []
+     }
+   ],
+   "acceptance_baseline": {
+@@ -45,18 +69,29 @@
+       ".gitignore"
+     ],
+     "results": [],
+-    "accepted_at": "2026-09-11T12:10:34.189900+00:00"
++    "accepted_at": "2026-09-11T12:10:34.189900+00:00",
++    "sealed_commits": [
++      "945a434c58d57e507616015741182fc15d86a778"
++    ],
++    "accepted_commit": "945a434c58d57e507616015741182fc15d86a778"
+   },
+   "snapshot": {
+-    "commits": [],
+-    "committed": false,
+-    "merged": "未核实",
+-    "releases": [],
+-    "release_status": "未核实",
+-    "prs": [],
+-    "warnings": [
+-      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++    "commits": [
++      "945a434c58d57e507616015741182fc15d86a778"
++    ],
++    "committed": true,
++    "merged": "未确认全部合并",
++    "releases": [
++      {
++        "tag": "teamflow-v1.10.0",
++        "commit": "945a434c58d57e507616015741182fc15d86a778",
++        "url": "https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v1.10.0",
++        "published_at": "2026-09-11T12:12:21Z"
++      }
+     ],
++    "release_status": "✅ 已发布",
++    "prs": [],
++    "warnings": [],
+     "development": "✅ 执行完成",
+     "card": {
+       "state": "✅ 执行完成",
+@@ -67,6 +102,7 @@
+       "acceptance_fingerprint": "659a9f56af4ba22035e26b26620a4d04ab134ff4ec9d1136912034521034b2e1",
+       "implementation_fingerprint": "2adfaf20b78605ef42bfb73280b45b54fc4f4a509ffd821f717684b714600236"
+     },
+-    "checked_at": "2026-09-11T12:10:34.190151+00:00"
++    "github_checked_at": "2026-09-11T12:12:56.044161+00:00",
++    "checked_at": "2026-09-11T12:13:09.524179+00:00"
+   }
+ }
