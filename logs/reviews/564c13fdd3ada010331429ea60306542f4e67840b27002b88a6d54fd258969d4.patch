@@ -1,0 +1,481 @@
+diff --git a/.agents/skills/ios-team-flow/references/CHANGELOG.md b/.agents/skills/ios-team-flow/references/CHANGELOG.md
+index d0f40392d26bc1240fb40a98e54305f195b3e80a..0c7ec702ef9683fd54aa08ade8741a8bb68fdbf9 100644
+--- a/.agents/skills/ios-team-flow/references/CHANGELOG.md
++++ b/.agents/skills/ios-team-flow/references/CHANGELOG.md
+@@ -1,5 +1,13 @@
+ # 版本记录
+ 
++## 1.10.0
++
++- 精简仓库入口和需求模板的重复说明，明确先定位再读取、跨会话续接及证据引用方式。
++- 项目检查默认输出总结果与证据路径，保留全部失败/输入变化提示；--verbose 展开成功项，完整日志持续保存。
++- delivery status 默认摘要保留警告与核对时间；原完整快照通过 status --json 获取，--history 继续提供完整历史。依赖旧 stdout 字段的脚本须加 --json。
++- 审查通过项简述证据，不适用项简述理由；七维语义审查、关联输入覆盖、指纹和最终门禁保持不变。
++- 不宣称固定 token 节省比例，实际收益需在相近需求上测量。
++
+ ## 1.9.2
+ 
+ - 详细新项目需求模板中的 16 个语言/地区条目全部默认启用，纳入首版范围。
+diff --git a/.agents/skills/ios-team-flow/references/DELIVERY.md b/.agents/skills/ios-team-flow/references/DELIVERY.md
+index 7ba8b132d58447dede807f13743872b969976cc4..88090be855331dad65cd918d7c7431319ec6c9dd 100644
+--- a/.agents/skills/ios-team-flow/references/DELIVERY.md
++++ b/.agents/skills/ios-team-flow/references/DELIVERY.md
+@@ -43,4 +43,4 @@ GitHub Release 与 App Store/TestFlight 分开，业务发布见 [APP-RELEASE](A
+ 
+ ## 日常读取与历史
+ 
+-`delivery.py --requirement REQ-实际编号 status` 只读当前快照，不改状态或联网；只有需要追溯时加 --history。新增事件保存字段变化与删除项，当前快照保存完整状态；历史可按顺序重建，既有完整事件不改写，不丢失证据。日常不要把全部 JSON 历史加载进上下文。
++`delivery.py --requirement REQ-实际编号 status` 默认只读摘要：状态、提交数、发布/合并结论、核对时间、警告及完整记录路径，不改状态或联网；它反映上次 finish 的已保存事实，当前需求以卡片为准。脚本若依赖原完整快照字段，改用 `status --json`；需要追溯时用 `status --history` 展开完整记录与历史，两参数互斥。未同步时明确显示未同步/未核实，不推断已完成。新增事件保存字段变化与删除项，当前快照保存完整状态；历史可按顺序重建，既有完整事件不改写，不丢失证据。日常不要把全部 JSON 历史加载进上下文。
+diff --git a/.agents/skills/ios-team-flow/references/PROJECT-CHECKS.md b/.agents/skills/ios-team-flow/references/PROJECT-CHECKS.md
+index b1b6bc4361820024136619958ab674b682799564..9ba170df9e2581804ad6a9bcaa17d5b22e913430 100644
+--- a/.agents/skills/ios-team-flow/references/PROJECT-CHECKS.md
++++ b/.agents/skills/ios-team-flow/references/PROJECT-CHECKS.md
+@@ -38,6 +38,8 @@ python3 .agents/skills/ios-team-flow/scripts/project_checks.py run --profile cha
+ 
+ Codex 在需求卡明确本次选用的 profile 和原因；profile 内每项均为必跑。按改动选择必要构建、测试与静态检查，文档改动只选适用检查，不默认全量测试。新项目创建可运行工程后补齐配置；已有工程从 PROJECT-CONTEXT 引用的配置入口获取命令。未选项目注明范围理由，不能将关键验收缺失归为不适用。无明确要求不验证超大字号。
+ 
++默认输出最终状态、检查数及证据路径；失败、超时、无法执行逐项报告状态、退出码及日志路径，输入变化也明确提示。`run --profile change --verbose` 展开所有检查状态，原始日志始终完整保存，排错时按相关检查读取。
++
+ 结果保存至 `logs/project-checks/<运行编号>/result.json`，每项记录命令、工作目录、退出码、时长及原始日志。失败、工具缺失、超时都返回非零退出码，不算通过。报告同时保存运行前后源码/配置指纹；运行中输入变化会返回非零，不标通过。采用工作区实际文件，不以 HEAD 代替未提交源码。
+ 
+ 原始日志可能含本地路径或敏感输出，提交前脱敏；可在项目 .gitignore 中排除原始 `.log`，保留脱敏摘要/受控 CI artifact 链接。CI 可使用同一命令并归档日志，但不要在有生产凭据的环境执行不可信 PR 的配置。对相关基线失败与新引入失败分别记录；工具只报告执行结果，不自行认定历史失败可忽略。
+@@ -54,6 +56,8 @@ python3 .agents/skills/ios-team-flow/scripts/project_checks.py verify --result l
+ 
+ 可用 `profile_inputs` 按 profile 指定输入列表，优先于全局 inputs，例如 `"profile_inputs": {"docs": ["requirements", ".agents/skills/ios-team-flow/references"]}`。
+ 
++profile 范围按受影响模块和关联输入配置，包含共享代码、工程配置、资源、锁文件和执行脚本；不确定影响范围时扩大验证，不以节省 token 为由缩小覆盖。
++
+ 省略 inputs 时，Git 项目按已跟踪及未忽略的新文件记录，默认排除 requirements/ 下的 Markdown/JSON 管理记录，避免更新状态触发业务重测（该目录不得放业务资源；需要验证需求文档时显式纳入 inputs/profile_inputs）。删除的跟踪文件也参与比较；非 Git 项目必须显式配置 inputs。自动排除 logs/project-checks、logs/reviews 和 .agents/teamflow-backups 的生成证据，其他生成产物由项目 .gitignore 或明确 inputs 排除。此处测试指纹与 review 暂存指纹用途不同：前者证明测试对象，后者证明审查对象。
+ 
+ 实际验收优先向 delivery.py finish --accept 传 --result 结果路径（可重复），工具验证结果并复用对应 profile 输入，无需再手填 --inputs；result 不代替 AC 或团队确认。
+diff --git a/.agents/skills/ios-team-flow/references/REVIEW.md b/.agents/skills/ios-team-flow/references/REVIEW.md
+index cda2f329414b1934264ae73c069e702e620ddcee..f0459287a988709b66f0d4752c699a2ed62347dd 100644
+--- a/.agents/skills/ios-team-flow/references/REVIEW.md
++++ b/.agents/skills/ios-team-flow/references/REVIEW.md
+@@ -22,6 +22,8 @@
+ | test_artifacts | 生产 target 中的 mock、硬编码测试帐号/价格、localhost/测试环境、debug 菜单、print/NSLog、跳过校验、强制成功/VIP、临时开关；结合 Release 构建条件判断，正常 Tests/Preview 不当作泄露。 |
+ | security | 本次改动的凭据、权限、隐私、输入验证与日志；涉及系统权限时对照 PRD 的首版权限清单，核对实际 Target 用途 key、多语言提示、能力配置、请求时机、拒绝/部分授权处理及 SDK 访问。只基于具体代码证据报告问题。 |
+ 
++七个维度逐项判断；通过项用一句可核对结论及文件/测试证据引用，不适用项用一句范围理由。共用证据引用同一文件，不重复贴日志或整段需求；问题仍按 findings 完整记录，不用统一套话代替语义审查。
++
+ 订阅适用时，evidence 附逐产品映射表（可链接 `logs/` 的脱敏 Markdown），至少产品 ID、周期、展示价格来源、CTA、实购 ID、地区/语言、验证环境、结果。不能只写“已检查”。
+ 
+ findings 使用 `{id, severity, file, line, trigger, impact, recommendation, status}`，严重度 P0/P1/P2/P3，status 为 open/fixed/accepted；接受必须附 reason 和 accepted_by，实际阻塞仍放 blockers。失败/未验证维度不可仅靠接受问题绕过。
+diff --git a/.agents/skills/ios-team-flow/references/VERSION b/.agents/skills/ios-team-flow/references/VERSION
+index 8fdcf3869464a036f5c334300580af0ef74fdada..81c871de46b3eeef1d5f62bf65d62f16c97db309 100644
+--- a/.agents/skills/ios-team-flow/references/VERSION
++++ b/.agents/skills/ios-team-flow/references/VERSION
+@@ -1 +1 @@
+-1.9.2
++1.10.0
+diff --git a/.agents/skills/ios-team-flow/references/WORKFLOW.md b/.agents/skills/ios-team-flow/references/WORKFLOW.md
+index a2458ced2050c04c6615c2465f5b70ccf2544f4a..f9da3ff8143b85031b00a700a1c9a09543f077de 100644
+--- a/.agents/skills/ios-team-flow/references/WORKFLOW.md
++++ b/.agents/skills/ios-team-flow/references/WORKFLOW.md
+@@ -61,4 +61,10 @@ Hook/PR 检查按需读 [GIT-CHECKS](GIT-CHECKS.md)；App 发布读 [APP-RELEASE
+ 
+ ## 阅读与目录边界
+ 
+-同会话已读且未变化的规则不重读；专题只在对应阶段读取，不拼接整套规范。规则只维护在 Skill 内，需求、工程、日志在项目根；不在 references 下创建业务产物。脱敏记录可提交，密钥、用户数据和大型构建产物不入库。既有工程保留目录，新工程默认 App/。
++同会话已读且未变化的规则不重读；专题只在对应阶段读取，不拼接整套规范。读取先用路径、符号或差异定位，再展开必要上下文；不默认遍历全仓源码、requirements/ 或 logs/。跨会话从当前需求卡和工程现状续接，只在追溯问题时加载历史，不另建一套状态摘要。
++
++工具成功时读取结果摘要与证据路径；失败时先读失败项，再按需展开相关原始日志。完整证据保存在文件，不复制到需求卡、审查报告和回复。外部构建/测试的长输出也保存日志，明确保留退出码；不能用截断输出代替失败判断。验证范围覆盖关联输入，不能为了复用证据排除共享代码、工程配置或依赖。
++
++记录采用简短结论和可定位证据；问题展开触发条件、影响与处理。精简篇幅不减少 AC、七维语义审查、指纹和最终门禁。节省 token 的比例需实测，不作固定承诺。
++
++规则只维护在 Skill 内，需求、工程、日志在项目根；不在 references 下创建业务产物。脱敏记录可提交，密钥、用户数据和大型构建产物不入库。既有工程保留目录，新工程默认 App/。
+diff --git a/.agents/skills/ios-team-flow/references/templates/requirement.md b/.agents/skills/ios-team-flow/references/templates/requirement.md
+index f2a8c3458c365b8615d4e14393b5606937d0c856..f3e97aa9cdc583840f43af3b31a8f6bcb7888a3d 100644
+--- a/.agents/skills/ios-team-flow/references/templates/requirement.md
++++ b/.agents/skills/ios-team-flow/references/templates/requirement.md
+@@ -19,12 +19,10 @@
+ 
+ - YYYY-MM-DDTHH:MM:SS+08:00：接收需求；记录范围判断。只追加重要决定、失败及复核，不复制当前状态和完整测试输出。
+ 
+-<!-- 按需补充：项目/Target 与现状链接、基线与回归范围、profile/result 路径、风险与回退。
+-团队验收时添加一处“- 团队确认：待确认”；通过后填确认人、时间、对象版本、原文或可访问记录链接。
+-暂停/取消时添加“- 暂停或取消原因：…”；暂停的下一步填写恢复条件。
+-实际验收完成：更新 AC 与完成状态后执行 finish --accept --result 实际结果路径；人工验收用 --inputs 实际相关路径；普通 finish 不更新验收基线。
+-当前状态只维护顶部一处；AC 行只维护各自结果；复杂步骤引用 AC，不复制结果或计数。
+-不填写覆盖本卡的当前 review 指纹、当前提交 SHA、交付状态或手写进度概览。
+-这些信息由审查回执和交付索引单向关联。 -->
++<!-- 按需链接工程现状、验证范围及风险；证据引用文件，不复制日志。
++团队验收添加一处“- 团队确认：…”并填写确认人、时间、对象版本及原文/链接。
++暂停/取消添加“- 暂停或取消原因：…”；暂停的下一步为恢复条件。
++当前状态只维护顶部，步骤引用 AC；不写当前审查指纹、提交 SHA 或交付状态副本。
++验收绑定与收尾命令见下方交付规程。 -->
+ 
+ 交付索引由首次 finish 创建在 `requirements/DELIVERY.md`。操作规程：[交付追踪](../.agents/skills/ios-team-flow/references/DELIVERY.md)、[团队验收](../.agents/skills/ios-team-flow/references/ACCEPTANCE.md)。
+diff --git a/.agents/skills/ios-team-flow/scripts/delivery.py b/.agents/skills/ios-team-flow/scripts/delivery.py
+index 6986457ecfecfe753fd70ac04192f4a7192aa6bb..bb239d95c40e36093a52e46de7d9bdffa691abf3 100644
+--- a/.agents/skills/ios-team-flow/scripts/delivery.py
++++ b/.agents/skills/ios-team-flow/scripts/delivery.py
+@@ -453,6 +453,19 @@ def finish(root, requirements, github=False, check=False, accept=False, inputs=N
+     return (not stale and not overview_outdated) if check else True
+ 
+ 
++def status_summary(path, data):
++    """只投影已保存快照，不重新推断验收或查询远端。"""
++    snapshot = data.get('snapshot', {})
++    return {'requirement': data['requirement'],
++            'development': snapshot.get('development', '未同步'),
++            'commit_count': len(snapshot.get('commits', [])),
++            'merged': snapshot.get('merged', '未核实'),
++            'release_status': snapshot.get('release_status', '未核实'),
++            'checked_at': snapshot.get('checked_at'),
++            'github_checked_at': snapshot.get('github_checked_at'),
++            'warnings': snapshot.get('warnings', []), 'record': str(path)}
++
++
+ def create(root, title):
+     if not title.strip() or '\n' in title or '\r' in title:
+         raise ValueError('标题须为单行非空文本')
+@@ -480,7 +493,9 @@ def main():
+     parser.add_argument('--requirement')
+     sub = parser.add_subparsers(dest='command', required=True)
+     status = sub.add_parser('status')
+-    status.add_argument('--history', action='store_true', help='按需展开完整历史事件')
++    output = status.add_mutually_exclusive_group()
++    output.add_argument('--history', action='store_true', help='按需展开完整记录和历史事件')
++    output.add_argument('--json', action='store_true', help='输出原有完整快照 JSON，供脚本消费')
+     creator = sub.add_parser('create')
+     creator.add_argument('--title', required=True)
+     finishing = sub.add_parser('finish')
+@@ -525,7 +540,9 @@ def main():
+             raise ValueError('该命令需要 --requirement')
+         path, data = load(root, args.requirement)
+         if args.command == 'status':
+-            print(json.dumps({**data, 'events': history_snapshots(data)} if args.history else data.get('snapshot', {}), ensure_ascii=False, indent=2))
++            result = ({**data, 'events': history_snapshots(data)} if args.history else
++                      data.get('snapshot', {}) if args.json else status_summary(path, data))
++            print(json.dumps(result, ensure_ascii=False, indent=2))
+             return 0
+         if args.command == 'development':
+             if card_state(root, args.requirement) is not None:
+diff --git a/.agents/skills/ios-team-flow/scripts/project_checks.py b/.agents/skills/ios-team-flow/scripts/project_checks.py
+index 9603f46ba742aa087c5f28e27764df6a147c0dd9..b953358d7a2f29e5a9f2c1445b769ab8044b9325 100644
+--- a/.agents/skills/ios-team-flow/scripts/project_checks.py
++++ b/.agents/skills/ios-team-flow/scripts/project_checks.py
+@@ -191,7 +191,7 @@ def verify(root, result, staged=False):
+     return report
+ 
+ 
+-def run(root, profile):
++def run(root, profile, verbose=False):
+     root = root.resolve()
+     config = load_config(root)
+     if profile not in config['profiles']:
+@@ -229,7 +229,11 @@ def run(root, profile):
+                 result.update(status='无法执行', error=str(error))
+         result['duration_seconds'] = round(time.monotonic() - start, 3)
+         report['results'].append(result)
+-        print(name + '：' + result['status'])
++        if verbose or result['status'] != '通过':
++            print(name + '：' + result['status'] + '；退出码：' + str(result['exit_code'])
++                  + '；日志：' + str(run_dir / result['log']))
++            if result.get('error'):
++                print(result['error'])
+         # 每个所选检查都是本次必跑项；失败后仍收集其余检查结果。
+         (run_dir / 'result.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
+     report['status'] = '通过' if all(r['status'] == '通过' for r in report['results']) else '失败'
+@@ -244,6 +248,9 @@ def run(root, profile):
+     report['completed_at'] = datetime.now(timezone.utc).isoformat()
+     target = run_dir / 'result.json'
+     target.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
++    print('验证结果：' + report['status'] + '；检查数：' + str(len(report['results'])))
++    if not report['source_unchanged']:
++        print(report.get('source_error', '运行期间源码或配置变化，成功退出不代表验证通过'))
+     print('验证证据：' + str(target))
+     return target, report['status'] == '通过'
+ 
+@@ -259,6 +266,7 @@ def main():
+     verifier.add_argument('--staged', action='store_true', help='同时核对暂存对象；提交前必须使用')
+     runner = sub.add_parser('run')
+     runner.add_argument('--profile', required=True)
++    runner.add_argument('--verbose', action='store_true', help='展开每项检查状态；原始日志始终保存到文件')
+     args = parser.parse_args()
+     try:
+         root = args.project.resolve()
+@@ -274,7 +282,7 @@ def main():
+         elif args.command == 'list':
+             print(json.dumps(load_config(root), ensure_ascii=False, indent=2))
+         else:
+-            _, passed = run(root, args.profile)
++            _, passed = run(root, args.profile, args.verbose)
+             return 0 if passed else 1
+     except (ValueError, OSError, TypeError, subprocess.CalledProcessError) as error:
+         parser.exit(2, str(error) + '\n')
+diff --git a/.agents/teamflow.json b/.agents/teamflow.json
+index 2defb3928a3ab58cf265eff0a1d105c6de2a3342..d59cfa7a99dc51d982dfa41d90abe7c8dddf66ff 100644
+--- a/.agents/teamflow.json
++++ b/.agents/teamflow.json
+@@ -1,6 +1,6 @@
+ {
+   "skill": "ios-team-flow",
+-  "version": "1.9.2",
++  "version": "1.10.0",
+   "schema_version": 1,
+   "instruction_file": "AGENTS.md",
+   "managed": {
+diff --git a/AGENTS.md b/AGENTS.md
+index 0034fad168cdf6e216b42a9fc8124bb9506bf65c..45407302d0ec12dd74d6f1cdd2e29ca9b6201958 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -1,15 +1,6 @@
+ # iOS 团队工作流入口
+ 
+-本仓库使用中文协作。开始读取 `.agents/skills/ios-team-flow/references/WORKFLOW.md`；实施和审查读取本地 Skill。只加载本次相关资料，已读且未变化的文件不重复读取。
+-
+-- 新需求用 create 生成 UUID/v3 精简卡；状态与验收只维护一份，状态、验收或交付事实变化时用 finish 生成并核对交付索引，实际验收完成才用 --accept。历史需求不补同步。
+-- 新 iOS 产品先确认具体 PRD；已有项目按 EXISTING-PROJECT.md 增量处理，保留既有配置。本仓库维护不属于新建 iOS 产品。
+-- 按文件加载 Objective-C、Swift、SwiftUI 规范；UI 改动先读 ui.md，.mm 同时沿用工程 C++ 约定。
+-- 产物位于项目根目录 requirements/、logs/、scripts/ 和业务工程目录，不写进 Skill 的 references/。
+-
+-## Code Review Rules
+-
+-提交前按 REVIEW.md 审查本次暂存内容及必要上下文，七个维度给出结论/证据；脚本不代替语义分析。引用的测试证据由最终门禁统一核对，无需预先重复 verify。按指纹复用，变化只复核增量及关联影响；执行 review_gate.py check。需求卡不嵌入覆盖自身的当前审查指纹。
++本仓库使用中文协作，是工作流工具仓库，不属于新建 iOS 产品。开始读取 `.agents/skills/ios-team-flow/references/WORKFLOW.md`；按本次范围加载专题，已读且未变化不重读。
+ 
+ <!-- ios-team-flow:start -->
+ ## iOS 团队工作流
+diff --git a/README.md b/README.md
+index 010ce83376b0cec9002fbf4561778c1b727e3e8c..b97ba099fbe3d52a13809d773d16fcb5ac7eb1ab 100644
+--- a/README.md
++++ b/README.md
+@@ -1,6 +1,6 @@
+ # iOS TeamFlow
+ 
+-项目级中文 iOS 团队工作流，支持 Objective-C、Swift、SwiftUI、UI 规范、需求追踪、验证、提交审查和交付记录。当前版本为 **1.9.2**。完整规则只维护在项目 `.agents/skills/ios-team-flow/`，团队克隆后共用。
++项目级中文 iOS 团队工作流，支持 Objective-C、Swift、SwiftUI、UI 规范、需求追踪、验证、提交审查和交付记录。当前版本为 **1.10.0**。完整规则只维护在项目 `.agents/skills/ios-team-flow/`，团队克隆后共用。
+ 
+ ## 先看你属于哪种情况
+ 
+@@ -37,7 +37,7 @@ git init
+ 
+ ### 2. 放入完整 Skill
+ 
+-从 [1.9.2 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v1.9.2) 下载 `ios-team-flow-skill-v1.9.2.zip`，解压后把完整的 `ios-team-flow` 文件夹放到 `.agents/skills/`。
++从 [1.10.0 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v1.10.0) 下载 `ios-team-flow-skill-v1.10.0.zip`，解压后把完整的 `ios-team-flow` 文件夹放到 `.agents/skills/`。
+ 
+ 最终必须是 `.agents/skills/ios-team-flow/SKILL.md`，不要只复制 SKILL.md，也不要多套一层同名文件夹。Finder 按 `Command + Shift + .` 显示隐藏文件夹。
+ 
+@@ -51,7 +51,7 @@ MyApp/
+             └── scripts/
+ ```
+ 
+-已有同名 Skill 时先比较版本和定制，按升级流程处理。业务项目使用上述独立 Skill 包；`iOS-TeamFlow-v1.9.2.zip` 是带源仓库测试和发布流水线的完整分发包。
++已有同名 Skill 时先比较版本和定制，按升级流程处理。业务项目使用上述独立 Skill 包；`iOS-TeamFlow-v1.10.0.zip` 是带源仓库测试和发布流水线的完整分发包。
+ 
+ ### 3. 接入项目并查看诊断
+ 
+@@ -134,7 +134,7 @@ Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/refer
+ 
+ ## 源仓库维护与版本
+ 
+-1.9.2 将详细新项目需求模板中的 16 个语言/地区条目全部默认启用，纳入首版需求范围；翻译与验收状态仍按实际完成情况记录。版本变化见 [CHANGELOG](.agents/skills/ios-team-flow/references/CHANGELOG.md)。
++1.10.0 精简重复入口与记录说明，检查默认输出摘要，交付 `status` 默认返回简短状态（原完整快照改用 `status --json`）。完整证据、七维审查与验证门禁保留；实际 token 收益需测量。版本变化见 [CHANGELOG](.agents/skills/ios-team-flow/references/CHANGELOG.md)。
+ 
+ 以下命令用于工作流分发仓库维护，不要求业务项目为了接入而运行：
+ 
+diff --git a/requirements/DELIVERY.md b/requirements/DELIVERY.md
+index d2606810635be1b37555fbf445cc64602f3c2d71..bf1af670c44d6ba7d4c61362a673375f7433543b 100644
+--- a/requirements/DELIVERY.md
++++ b/requirements/DELIVERY.md
+@@ -25,6 +25,7 @@
+ | [REQ-20260911-019](REQ-20260911-019.md) | 未登记 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-11T09:09:58.878227+00:00 |
+ | [REQ-20260911-020](REQ-20260911-020.md) | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-11T09:43:45.281881+00:00 |
+ | [REQ-20260911-3ffd2fdc03fe46518e1c6e3930fcf0b0](REQ-20260911-3ffd2fdc03fe46518e1c6e3930fcf0b0.md) | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-11T10:28:19.006816+00:00 |
++| [REQ-20260911-5637be821a624c92952e67b55a264f3b](REQ-20260911-5637be821a624c92952e67b55a264f3b.md) | ✅ 执行完成 | ⬜ 未关联 | 未核实 | 未核实 | 2026-09-11T12:10:34.190151+00:00 |
+ | [REQ-20260911-5ae07f5fe7fb44f3b1526ae8206ffa9b](REQ-20260911-5ae07f5fe7fb44f3b1526ae8206ffa9b.md) | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-11T10:08:33.793811+00:00 |
+ | [REQ-20260911-79ae0187047b4a02b74c623109bfc350](REQ-20260911-79ae0187047b4a02b74c623109bfc350.md) | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-11T11:57:34.845951+00:00 |
+ | [REQ-20260911-cf5a83acc9f3488b868d175cd114a4a0](REQ-20260911-cf5a83acc9f3488b868d175cd114a4a0.md) | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-11T11:37:46.656969+00:00 |
+diff --git a/requirements/REQ-20260911-5637be821a624c92952e67b55a264f3b.md b/requirements/REQ-20260911-5637be821a624c92952e67b55a264f3b.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..f7b683ddc8460770f0f8128cbe3084cd5dbcf119
+--- /dev/null
++++ b/requirements/REQ-20260911-5637be821a624c92952e67b55a264f3b.md
+@@ -0,0 +1,24 @@
++# REQ-20260911-5637be821a624c92952e67b55a264f3b：降低工作流上下文消耗并发布 1.10.0
++<!-- teamflow:requirement:v3 -->
++
++- 状态：✅ 执行完成
++- 来源与范围：用户授权精简规则、工具输出及记录，提交推送并发布 1.10.0；保留现有验证和审查语义。
++- 拆分：否；同一工作流版本交付。
++- 验收方式：自审
++- 验收依据：工具和文档维护，CLI 回归及 ZIP 消费测试；不涉及 App 产品验收。
++- 下一步：无
++- 阻塞项：无
++
++## 验收（唯一结果记录）
++
++| 编号 | 条件 | 结果 | 证据或不适用原因 |
++| --- | --- | --- | --- |
++| AC-01 | 检查摘要保留失败与输入变化，完整日志可读；详细状态可按需展开 | 通过 | logs/reviews/validation-1.10.0.md |
++| AC-02 | 交付状态摘要保留警告和时间，完整快照/历史可取，查询不改文件 | 通过 | logs/reviews/validation-1.10.0.md |
++| AC-03 | 入口与记录精简，七维门禁/验证覆盖保留，版本和双包一致且完整回归通过 | 通过 | logs/reviews/validation-1.10.0.md |
++
++## 过程与决策
++
++- 2026-09-11T20:08:10+08:00：用户授权发布 1.10.0；status 默认输出调整为摘要，原快照由 --json 提供并写明迁移方式。token 收益未实测，不承诺比例。
++
++- 2026-09-11T20:10:34+08:00：101 项完整回归通过；模板字段提示复核及双包验证通过，详见上述证据；待交付事实由生成索引维护。
+diff --git a/requirements/delivery/REQ-20260911-5637be821a624c92952e67b55a264f3b.json b/requirements/delivery/REQ-20260911-5637be821a624c92952e67b55a264f3b.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..f69d8219d5ea2187abbed9971cdc41011341086e
+--- /dev/null
++++ b/requirements/delivery/REQ-20260911-5637be821a624c92952e67b55a264f3b.json
+@@ -0,0 +1,72 @@
++{
++  "schema_version": 1,
++  "requirement": "REQ-20260911-5637be821a624c92952e67b55a264f3b",
++  "linked_commits": [],
++  "prs": [],
++  "events": [
++    {
++      "at": "2026-09-11T12:10:34.190394+00:00",
++      "action": "finish",
++      "changes": {
++        "commits": [],
++        "committed": false,
++        "merged": "未核实",
++        "releases": [],
++        "release_status": "未核实",
++        "prs": [],
++        "warnings": [
++          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++        ],
++        "development": "✅ 执行完成",
++        "card": {
++          "state": "✅ 执行完成",
++          "passed": 3,
++          "applicable": 3,
++          "next": "无",
++          "blocker": "无",
++          "acceptance_fingerprint": "659a9f56af4ba22035e26b26620a4d04ab134ff4ec9d1136912034521034b2e1",
++          "implementation_fingerprint": "2adfaf20b78605ef42bfb73280b45b54fc4f4a509ffd821f717684b714600236"
++        },
++        "checked_at": "2026-09-11T12:10:34.190151+00:00"
++      },
++      "removed": []
++    }
++  ],
++  "acceptance_baseline": {
++    "implementation_fingerprint": "2adfaf20b78605ef42bfb73280b45b54fc4f4a509ffd821f717684b714600236",
++    "acceptance_fingerprint": "659a9f56af4ba22035e26b26620a4d04ab134ff4ec9d1136912034521034b2e1",
++    "inputs": [
++      ".agents",
++      "scripts",
++      "tests",
++      ".github",
++      "README.md",
++      "AGENTS.md",
++      ".gitignore"
++    ],
++    "results": [],
++    "accepted_at": "2026-09-11T12:10:34.189900+00:00"
++  },
++  "snapshot": {
++    "commits": [],
++    "committed": false,
++    "merged": "未核实",
++    "releases": [],
++    "release_status": "未核实",
++    "prs": [],
++    "warnings": [
++      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++    ],
++    "development": "✅ 执行完成",
++    "card": {
++      "state": "✅ 执行完成",
++      "passed": 3,
++      "applicable": 3,
++      "next": "无",
++      "blocker": "无",
++      "acceptance_fingerprint": "659a9f56af4ba22035e26b26620a4d04ab134ff4ec9d1136912034521034b2e1",
++      "implementation_fingerprint": "2adfaf20b78605ef42bfb73280b45b54fc4f4a509ffd821f717684b714600236"
++    },
++    "checked_at": "2026-09-11T12:10:34.190151+00:00"
++  }
++}
+diff --git a/tests/test_delivery.py b/tests/test_delivery.py
+index 8151ed30f6f5f882b856060ac0a8f6c61b5e95c3..b3cda57fc060d390ed4353a03daaae2ca47a741c 100644
+--- a/tests/test_delivery.py
++++ b/tests/test_delivery.py
+@@ -385,5 +385,39 @@ class DeliveryTests(unittest.TestCase):
+         self.assertEqual({'a': 3}, d.history_snapshots(mixed)[-1]['snapshot'])
+         import sys
+         output = subprocess.check_output([sys.executable, str(ROOT / '.agents/skills/ios-team-flow/scripts/delivery.py'),
+-                    '--project', str(self.root), '--requirement', REQ, 'status'], text=True)
++                    '--project', str(self.root), '--requirement', REQ, 'status', '--json'], text=True)
+         self.assertEqual(after['snapshot'], json.loads(output))
++
++    def test_status_summary_preserves_warnings_and_full_output_without_writes(self):
++        import sys
++        self.v2_card()
++        d.finish(self.root, [REQ])
++        path, data = d.load(self.root, REQ)
++        before = path.read_bytes()
++        command = [sys.executable, str(ROOT / '.agents/skills/ios-team-flow/scripts/delivery.py'),
++                   '--project', str(self.root), '--requirement', REQ, 'status']
++        summary = json.loads(subprocess.check_output(command, text=True))
++        self.assertEqual(data['snapshot']['warnings'], summary['warnings'])
++        self.assertEqual(data['snapshot']['checked_at'], summary['checked_at'])
++        self.assertEqual(data['snapshot']['release_status'], summary['release_status'])
++        self.assertNotIn('card', summary)
++        self.assertNotIn('events', summary)
++        self.assertEqual(path.resolve(), Path(summary['record']))
++        full = json.loads(subprocess.check_output(command + ['--json'], text=True))
++        self.assertEqual(data['snapshot'], full)
++        history = json.loads(subprocess.check_output(command + ['--history'], text=True))
++        self.assertEqual(d.history_snapshots(data), history['events'])
++        self.assertNotEqual(0, subprocess.run(command + ['--json', '--history'], capture_output=True).returncode)
++        self.assertEqual(before, path.read_bytes())
++
++    def test_status_unsynced_does_not_claim_completion_or_create_record(self):
++        import sys
++        self.v2_card()
++        path, _ = d.load(self.root, REQ)
++        command = [sys.executable, str(ROOT / '.agents/skills/ios-team-flow/scripts/delivery.py'),
++                   '--project', str(self.root), '--requirement', REQ, 'status']
++        summary = json.loads(subprocess.check_output(command, text=True))
++        self.assertEqual('未同步', summary['development'])
++        self.assertEqual('未核实', summary['release_status'])
++        self.assertIsNone(summary['checked_at'])
++        self.assertFalse(path.exists())
+diff --git a/tests/test_project_checks.py b/tests/test_project_checks.py
+index aadb23c36e1bf4513d2aed309ecc04533d29ce0d..b54c0375be9feba5d099db20493ee155f8bb0869 100644
+--- a/tests/test_project_checks.py
++++ b/tests/test_project_checks.py
+@@ -231,3 +231,32 @@ class ProjectChecksTests(unittest.TestCase):
+         self.assertEqual(deleted, checks.source_snapshot(self.root, config, 'change', staged=True))
+         git('commit', '-qm', 'delete')
+         self.assertEqual(deleted, checks.source_snapshot(self.root, config, 'change'))
++
++    def test_cli_summary_verbose_failure_and_complete_logs(self):
++        import subprocess
++        command = [sys.executable, str(ROOT / '.agents/skills/ios-team-flow/scripts/project_checks.py'),
++                   '--project', str(self.root), 'run', '--profile', 'change']
++        self.config({'ok': {'argv': [sys.executable, '-c', 'print("raw-output-" * 2000)']}})
++        result = subprocess.run(command, capture_output=True, text=True)
++        self.assertEqual(0, result.returncode, result.stderr)
++        self.assertIn('验证结果：通过；检查数：1', result.stdout)
++        self.assertNotIn('ok：通过', result.stdout)
++        self.assertNotIn('raw-output-', result.stdout)
++        target = Path(result.stdout.split('验证证据：')[1].strip())
++        self.assertEqual('raw-output-' * 2000 + '\n', (target.parent / 'ok.log').read_text())
++        verbose = subprocess.run(command + ['--verbose'], capture_output=True, text=True)
++        self.assertEqual(0, verbose.returncode)
++        self.assertIn('ok：通过', verbose.stdout)
++        self.config({'fail': {'argv': [sys.executable, '-c', 'print("failure detail"); raise SystemExit(7)']},
++                     'missing': {'argv': ['/no-such-tool']},
++                     'slow': {'argv': [sys.executable, '-c', 'import time; time.sleep(30)'], 'timeout_seconds': 1}})
++        failed = subprocess.run(command, capture_output=True, text=True)
++        self.assertEqual(1, failed.returncode)
++        for expected in ('fail：失败；退出码：7', 'missing：无法执行', 'slow：超时', '验证结果：失败'):
++            self.assertIn(expected, failed.stdout)
++        target = Path(failed.stdout.split('验证证据：')[1].strip())
++        self.assertEqual('failure detail\n', (target.parent / 'fail.log').read_text())
++        self.config({'mutate': {'argv': [sys.executable, '-c', 'from pathlib import Path; Path("source").write_text("changed")']}})
++        changed = subprocess.run(command, capture_output=True, text=True)
++        self.assertEqual(1, changed.returncode)
++        self.assertIn('输入已变化，需重测', changed.stdout)

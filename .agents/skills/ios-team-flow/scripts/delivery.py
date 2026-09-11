@@ -453,6 +453,19 @@ def finish(root, requirements, github=False, check=False, accept=False, inputs=N
     return (not stale and not overview_outdated) if check else True
 
 
+def status_summary(path, data):
+    """只投影已保存快照，不重新推断验收或查询远端。"""
+    snapshot = data.get('snapshot', {})
+    return {'requirement': data['requirement'],
+            'development': snapshot.get('development', '未同步'),
+            'commit_count': len(snapshot.get('commits', [])),
+            'merged': snapshot.get('merged', '未核实'),
+            'release_status': snapshot.get('release_status', '未核实'),
+            'checked_at': snapshot.get('checked_at'),
+            'github_checked_at': snapshot.get('github_checked_at'),
+            'warnings': snapshot.get('warnings', []), 'record': str(path)}
+
+
 def create(root, title):
     if not title.strip() or '\n' in title or '\r' in title:
         raise ValueError('标题须为单行非空文本')
@@ -480,7 +493,9 @@ def main():
     parser.add_argument('--requirement')
     sub = parser.add_subparsers(dest='command', required=True)
     status = sub.add_parser('status')
-    status.add_argument('--history', action='store_true', help='按需展开完整历史事件')
+    output = status.add_mutually_exclusive_group()
+    output.add_argument('--history', action='store_true', help='按需展开完整记录和历史事件')
+    output.add_argument('--json', action='store_true', help='输出原有完整快照 JSON，供脚本消费')
     creator = sub.add_parser('create')
     creator.add_argument('--title', required=True)
     finishing = sub.add_parser('finish')
@@ -525,7 +540,9 @@ def main():
             raise ValueError('该命令需要 --requirement')
         path, data = load(root, args.requirement)
         if args.command == 'status':
-            print(json.dumps({**data, 'events': history_snapshots(data)} if args.history else data.get('snapshot', {}), ensure_ascii=False, indent=2))
+            result = ({**data, 'events': history_snapshots(data)} if args.history else
+                      data.get('snapshot', {}) if args.json else status_summary(path, data))
+            print(json.dumps(result, ensure_ascii=False, indent=2))
             return 0
         if args.command == 'development':
             if card_state(root, args.requirement) is not None:

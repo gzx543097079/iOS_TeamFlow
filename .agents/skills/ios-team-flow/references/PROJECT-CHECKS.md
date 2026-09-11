@@ -38,6 +38,8 @@ python3 .agents/skills/ios-team-flow/scripts/project_checks.py run --profile cha
 
 Codex 在需求卡明确本次选用的 profile 和原因；profile 内每项均为必跑。按改动选择必要构建、测试与静态检查，文档改动只选适用检查，不默认全量测试。新项目创建可运行工程后补齐配置；已有工程从 PROJECT-CONTEXT 引用的配置入口获取命令。未选项目注明范围理由，不能将关键验收缺失归为不适用。无明确要求不验证超大字号。
 
+默认输出最终状态、检查数及证据路径；失败、超时、无法执行逐项报告状态、退出码及日志路径，输入变化也明确提示。`run --profile change --verbose` 展开所有检查状态，原始日志始终完整保存，排错时按相关检查读取。
+
 结果保存至 `logs/project-checks/<运行编号>/result.json`，每项记录命令、工作目录、退出码、时长及原始日志。失败、工具缺失、超时都返回非零退出码，不算通过。报告同时保存运行前后源码/配置指纹；运行中输入变化会返回非零，不标通过。采用工作区实际文件，不以 HEAD 代替未提交源码。
 
 原始日志可能含本地路径或敏感输出，提交前脱敏；可在项目 .gitignore 中排除原始 `.log`，保留脱敏摘要/受控 CI artifact 链接。CI 可使用同一命令并归档日志，但不要在有生产凭据的环境执行不可信 PR 的配置。对相关基线失败与新引入失败分别记录；工具只报告执行结果，不自行认定历史失败可忽略。
@@ -53,6 +55,8 @@ python3 .agents/skills/ios-team-flow/scripts/project_checks.py verify --result l
 `inputs` 是项目相对文件/目录列表（不支持 glob），应覆盖本次 App 的源代码、工程配置、资源、依赖锁文件和执行脚本；`.agents/project-checks.json` 始终纳入。Git 目录输入选择已跟踪及未忽略文件，与验收共用规则，排除 .git、缓存、DerivedData、.build、xcresult 和证据目录；拒绝符号链接。不要把构建输出目录纳入输入。
 
 可用 `profile_inputs` 按 profile 指定输入列表，优先于全局 inputs，例如 `"profile_inputs": {"docs": ["requirements", ".agents/skills/ios-team-flow/references"]}`。
+
+profile 范围按受影响模块和关联输入配置，包含共享代码、工程配置、资源、锁文件和执行脚本；不确定影响范围时扩大验证，不以节省 token 为由缩小覆盖。
 
 省略 inputs 时，Git 项目按已跟踪及未忽略的新文件记录，默认排除 requirements/ 下的 Markdown/JSON 管理记录，避免更新状态触发业务重测（该目录不得放业务资源；需要验证需求文档时显式纳入 inputs/profile_inputs）。删除的跟踪文件也参与比较；非 Git 项目必须显式配置 inputs。自动排除 logs/project-checks、logs/reviews 和 .agents/teamflow-backups 的生成证据，其他生成产物由项目 .gitignore 或明确 inputs 排除。此处测试指纹与 review 暂存指纹用途不同：前者证明测试对象，后者证明审查对象。
 

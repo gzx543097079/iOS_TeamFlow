@@ -385,5 +385,39 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual({'a': 3}, d.history_snapshots(mixed)[-1]['snapshot'])
         import sys
         output = subprocess.check_output([sys.executable, str(ROOT / '.agents/skills/ios-team-flow/scripts/delivery.py'),
-                    '--project', str(self.root), '--requirement', REQ, 'status'], text=True)
+                    '--project', str(self.root), '--requirement', REQ, 'status', '--json'], text=True)
         self.assertEqual(after['snapshot'], json.loads(output))
+
+    def test_status_summary_preserves_warnings_and_full_output_without_writes(self):
+        import sys
+        self.v2_card()
+        d.finish(self.root, [REQ])
+        path, data = d.load(self.root, REQ)
+        before = path.read_bytes()
+        command = [sys.executable, str(ROOT / '.agents/skills/ios-team-flow/scripts/delivery.py'),
+                   '--project', str(self.root), '--requirement', REQ, 'status']
+        summary = json.loads(subprocess.check_output(command, text=True))
+        self.assertEqual(data['snapshot']['warnings'], summary['warnings'])
+        self.assertEqual(data['snapshot']['checked_at'], summary['checked_at'])
+        self.assertEqual(data['snapshot']['release_status'], summary['release_status'])
+        self.assertNotIn('card', summary)
+        self.assertNotIn('events', summary)
+        self.assertEqual(path.resolve(), Path(summary['record']))
+        full = json.loads(subprocess.check_output(command + ['--json'], text=True))
+        self.assertEqual(data['snapshot'], full)
+        history = json.loads(subprocess.check_output(command + ['--history'], text=True))
+        self.assertEqual(d.history_snapshots(data), history['events'])
+        self.assertNotEqual(0, subprocess.run(command + ['--json', '--history'], capture_output=True).returncode)
+        self.assertEqual(before, path.read_bytes())
+
+    def test_status_unsynced_does_not_claim_completion_or_create_record(self):
+        import sys
+        self.v2_card()
+        path, _ = d.load(self.root, REQ)
+        command = [sys.executable, str(ROOT / '.agents/skills/ios-team-flow/scripts/delivery.py'),
+                   '--project', str(self.root), '--requirement', REQ, 'status']
+        summary = json.loads(subprocess.check_output(command, text=True))
+        self.assertEqual('未同步', summary['development'])
+        self.assertEqual('未核实', summary['release_status'])
+        self.assertIsNone(summary['checked_at'])
+        self.assertFalse(path.exists())
