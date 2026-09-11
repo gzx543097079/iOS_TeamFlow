@@ -1,0 +1,46 @@
+{
+  "fingerprint": "84476162ce8dbe93f6508a61240335f5227f663b939e090e31e638e6bc7cef3c",
+  "base": "e7bba2e0552ee4bbe0cf79409074c85a5d55a2d1",
+  "scope": "staged",
+  "created_at": "2026-09-11T12:46:23.479463+00:00",
+  "reviewer": "Codex",
+  "completed_at": "2026-09-11T20:46:40.161581+08:00",
+  "summary": "仅归档 1.10.2 发布、提交与验收封存；无新实现。",
+  "previous_review": "138ed550bf3dcab3ff2dad9d4dc2787c9a690792bced0f5a4f4777e5a260d020",
+  "checks": {
+    "correctness": {
+      "status": "通过",
+      "evidence": "记录绑定已推送 e7bba2e 与正式 teamflow-v1.10.2；旧事件和验收指纹保留。CI 34600481307 与 Release 34600553530 成功，四附件 uploaded 且 SHA256 与本地一致；无 PR 未冒充合并。"
+    },
+    "standards": {
+      "status": "通过",
+      "evidence": "复用 138ed550bf3dcab3ff2dad9d4dc2787c9a690792bced0f5a4f4777e5a260d020 的 standards；仅生成记录归档，无业务变化。"
+    },
+    "subscription": {
+      "status": "不适用",
+      "evidence": "复用 138ed550bf3dcab3ff2dad9d4dc2787c9a690792bced0f5a4f4777e5a260d020 的 subscription；仅生成记录归档，无业务变化。"
+    },
+    "memory": {
+      "status": "通过",
+      "evidence": "复用 138ed550bf3dcab3ff2dad9d4dc2787c9a690792bced0f5a4f4777e5a260d020 的 memory；仅生成记录归档，无业务变化。"
+    },
+    "analytics": {
+      "status": "不适用",
+      "evidence": "复用 138ed550bf3dcab3ff2dad9d4dc2787c9a690792bced0f5a4f4777e5a260d020 的 analytics；仅生成记录归档，无业务变化。"
+    },
+    "test_artifacts": {
+      "status": "通过",
+      "evidence": "复用 138ed550bf3dcab3ff2dad9d4dc2787c9a690792bced0f5a4f4777e5a260d020 的 test_artifacts；仅生成记录归档，无业务变化。"
+    },
+    "security": {
+      "status": "通过",
+      "evidence": "生成差异仅公开 SHA/URL、时间与验收指纹，无凭据或用户数据；历史需求未变。"
+    }
+  },
+  "findings": [],
+  "blockers": [],
+  "requirements": [
+    "REQ-20260911-f60325f1654145508c491a78bc7d506e"
+  ],
+  "validation_results": []
+}
