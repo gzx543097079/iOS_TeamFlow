@@ -1,0 +1,46 @@
+{
+  "fingerprint": "d7d6a6d4bfb4435bf25468add6437f3453264e26b03c17111ba75a6755f3997a",
+  "base": "081fc9836d13f17ff2c54a63739424eb482c4cb9",
+  "scope": "staged",
+  "created_at": "2026-09-11T12:22:40.065622+00:00",
+  "reviewer": "Codex",
+  "completed_at": "2026-09-11T20:23:14.945749+08:00",
+  "summary": "恢复已验证的 1.9.2 CLI 输出，版本/说明/分发一致，兼容性迁移已说明，无阻塞。",
+  "previous_review": null,
+  "checks": {
+    "correctness": {
+      "status": "通过",
+      "evidence": "暂存两脚本与 teamflow-v1.9.2 完全一致；输出回归、完整快照/历史、只读行为及失败状态通过。101 项回归和双包见 logs/reviews/validation-1.10.1.md；工具维护按 RELEASE 直接运行，ios-demo profile 不适用。"
+    },
+    "standards": {
+      "status": "通过",
+      "evidence": "沿用 Python 既有实现与目录；README/VERSION/teamflow.json 为 1.10.1，CHANGELOG 说明移除参数，七维审查规则保留；无 OC/Swift/UI 修改。"
+    },
+    "subscription": {
+      "status": "不适用",
+      "evidence": "仅 CLI 输出和版本文档，未修改购买、商品或权益。"
+    },
+    "memory": {
+      "status": "通过",
+      "evidence": "仅删除输出投影与开关，文件上下文和子进程等待/超时回收沿用原实现，无新资源生命周期。"
+    },
+    "analytics": {
+      "status": "不适用",
+      "evidence": "未涉及业务埋点或事件契约。"
+    },
+    "test_artifacts": {
+      "status": "通过",
+      "evidence": "测试模拟命令留在 tests 中，无生产 App target 改动；测试仍核对完整日志及真实退出码。"
+    },
+    "security": {
+      "status": "通过",
+      "evidence": "恢复输出不改路径校验、命令执行或权限，状态仍只读；审查生成记录仅包含公开事实、指纹及本机测试日志位置，无凭据。"
+    }
+  },
+  "findings": [],
+  "blockers": [],
+  "requirements": [
+    "REQ-20260911-dda30577b7de48149e2f2387b481951e"
+  ],
+  "validation_results": []
+}

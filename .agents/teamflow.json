@@ -1,6 +1,6 @@
 {
   "skill": "ios-team-flow",
-  "version": "1.10.0",
+  "version": "1.10.1",
   "schema_version": 1,
   "instruction_file": "AGENTS.md",
   "managed": {

@@ -191,7 +191,7 @@ def verify(root, result, staged=False):
     return report
 
 
-def run(root, profile, verbose=False):
+def run(root, profile):
     root = root.resolve()
     config = load_config(root)
     if profile not in config['profiles']:
@@ -229,11 +229,7 @@ def run(root, profile, verbose=False):
                 result.update(status='无法执行', error=str(error))
         result['duration_seconds'] = round(time.monotonic() - start, 3)
         report['results'].append(result)
-        if verbose or result['status'] != '通过':
-            print(name + '：' + result['status'] + '；退出码：' + str(result['exit_code'])
-                  + '；日志：' + str(run_dir / result['log']))
-            if result.get('error'):
-                print(result['error'])
+        print(name + '：' + result['status'])
         # 每个所选检查都是本次必跑项；失败后仍收集其余检查结果。
         (run_dir / 'result.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
     report['status'] = '通过' if all(r['status'] == '通过' for r in report['results']) else '失败'
@@ -248,9 +244,6 @@ def run(root, profile, verbose=False):
     report['completed_at'] = datetime.now(timezone.utc).isoformat()
     target = run_dir / 'result.json'
     target.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
-    print('验证结果：' + report['status'] + '；检查数：' + str(len(report['results'])))
-    if not report['source_unchanged']:
-        print(report.get('source_error', '运行期间源码或配置变化，成功退出不代表验证通过'))
     print('验证证据：' + str(target))
     return target, report['status'] == '通过'
 
@@ -266,7 +259,6 @@ def main():
     verifier.add_argument('--staged', action='store_true', help='同时核对暂存对象；提交前必须使用')
     runner = sub.add_parser('run')
     runner.add_argument('--profile', required=True)
-    runner.add_argument('--verbose', action='store_true', help='展开每项检查状态；原始日志始终保存到文件')
     args = parser.parse_args()
     try:
         root = args.project.resolve()
@@ -282,7 +274,7 @@ def main():
         elif args.command == 'list':
             print(json.dumps(load_config(root), ensure_ascii=False, indent=2))
         else:
-            _, passed = run(root, args.profile, args.verbose)
+            _, passed = run(root, args.profile)
             return 0 if passed else 1
     except (ValueError, OSError, TypeError, subprocess.CalledProcessError) as error:
         parser.exit(2, str(error) + '\n')

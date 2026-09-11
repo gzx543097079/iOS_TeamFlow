@@ -232,31 +232,29 @@ class ProjectChecksTests(unittest.TestCase):
         git('commit', '-qm', 'delete')
         self.assertEqual(deleted, checks.source_snapshot(self.root, config, 'change'))
 
-    def test_cli_summary_verbose_failure_and_complete_logs(self):
+    def test_cli_original_output_failure_and_complete_logs(self):
         import subprocess
         command = [sys.executable, str(ROOT / '.agents/skills/ios-team-flow/scripts/project_checks.py'),
                    '--project', str(self.root), 'run', '--profile', 'change']
         self.config({'ok': {'argv': [sys.executable, '-c', 'print("raw-output-" * 2000)']}})
         result = subprocess.run(command, capture_output=True, text=True)
         self.assertEqual(0, result.returncode, result.stderr)
-        self.assertIn('验证结果：通过；检查数：1', result.stdout)
-        self.assertNotIn('ok：通过', result.stdout)
+        self.assertEqual(2, len(result.stdout.splitlines()))
+        self.assertEqual('ok：通过', result.stdout.splitlines()[0])
         self.assertNotIn('raw-output-', result.stdout)
         target = Path(result.stdout.split('验证证据：')[1].strip())
         self.assertEqual('raw-output-' * 2000 + '\n', (target.parent / 'ok.log').read_text())
-        verbose = subprocess.run(command + ['--verbose'], capture_output=True, text=True)
-        self.assertEqual(0, verbose.returncode)
-        self.assertIn('ok：通过', verbose.stdout)
         self.config({'fail': {'argv': [sys.executable, '-c', 'print("failure detail"); raise SystemExit(7)']},
                      'missing': {'argv': ['/no-such-tool']},
                      'slow': {'argv': [sys.executable, '-c', 'import time; time.sleep(30)'], 'timeout_seconds': 1}})
         failed = subprocess.run(command, capture_output=True, text=True)
         self.assertEqual(1, failed.returncode)
-        for expected in ('fail：失败；退出码：7', 'missing：无法执行', 'slow：超时', '验证结果：失败'):
+        for expected in ('fail：失败', 'missing：无法执行', 'slow：超时'):
             self.assertIn(expected, failed.stdout)
         target = Path(failed.stdout.split('验证证据：')[1].strip())
         self.assertEqual('failure detail\n', (target.parent / 'fail.log').read_text())
         self.config({'mutate': {'argv': [sys.executable, '-c', 'from pathlib import Path; Path("source").write_text("changed")']}})
         changed = subprocess.run(command, capture_output=True, text=True)
         self.assertEqual(1, changed.returncode)
-        self.assertIn('输入已变化，需重测', changed.stdout)
+        target = Path(changed.stdout.split('验证证据：')[1].strip())
+        self.assertEqual('输入已变化，需重测', json.loads(target.read_text())['status'])
