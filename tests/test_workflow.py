@@ -496,6 +496,30 @@ class WorkflowTests(unittest.TestCase):
         for target in re.findall(r'\]\(([^)]+)\)', template):
             self.assertTrue((destination.parent / target).exists(), target)
 
+    def test_archive_prepare_inherits_only_unchanged_dimensions(self):
+        self.stage()
+        prior = self.complete()
+        self.git('add', 'logs/reviews'); self.git('commit', '-qm', 'reviewed implementation')
+        self.stage('requirements/DELIVERY.md', 'generated index')
+        report = gate.prepare(self.root, prior.stem)
+        data = json.loads(report.read_text())
+        self.assertEqual(prior.stem, data['previous_review'])
+        self.assertEqual('未验证', data['checks']['correctness']['status'])
+        self.assertEqual('未验证', data['checks']['security']['status'])
+        self.assertEqual('不适用', data['checks']['memory']['status'])
+        self.git('add', 'logs/reviews')
+        with self.assertRaises(ValueError):
+            gate.check(self.root)
+        self.git('reset', '--hard', 'HEAD')
+        self.stage('App/unreviewed.swift', 'changed after prior review')
+        self.git('commit', '-qm', 'later implementation')
+        self.stage('requirements/DELIVERY.md', 'new index')
+        with self.assertRaisesRegex(ValueError, '不覆盖当前 HEAD'):
+            gate.prepare(self.root, prior.stem)
+        self.stage('App/new.swift', 'new implementation')
+        with self.assertRaisesRegex(ValueError, '实施变化'):
+            gate.prepare(self.root, prior.stem)
+
 
 if __name__ == '__main__':
     unittest.main()

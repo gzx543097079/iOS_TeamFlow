@@ -1,0 +1,1120 @@
+diff --git a/.agents/skills/ios-team-flow/references/ACCEPTANCE.md b/.agents/skills/ios-team-flow/references/ACCEPTANCE.md
+index 78d87e5bd58e309aeb21292e077bcd6c535bbdb7..c58ad87508147fd3efee1d6df6f6a4a35dbc14b6 100644
+--- a/.agents/skills/ios-team-flow/references/ACCEPTANCE.md
++++ b/.agents/skills/ios-team-flow/references/ACCEPTANCE.md
+@@ -20,3 +20,5 @@
+ 6. 代码、商品配置或环境变化影响已验收行为时，将相关项重开为待验证；沿用未受影响证据并写明理由，不重复整个验收，也不沿用已失效结论。
+ 
+ 发布前仍有阻塞项不得标已验收；未验证项不能以“无发现”替代通过。没有明确要求不验证超大字号。
++
++待团队验收期间允许已授权的阶段性提交、推送和 PR，便于提供实际验收版本。需求保持待验证；提交授权不改变验收结果，合并/发布按团队已有门槛执行。
+diff --git a/.agents/skills/ios-team-flow/references/CHANGELOG.md b/.agents/skills/ios-team-flow/references/CHANGELOG.md
+index 9b584c9c4f3c246c43bf52206d18fb7bc8f6f073..5d4d739d09666ee371552e642855896a514b6b15 100644
+--- a/.agents/skills/ios-team-flow/references/CHANGELOG.md
++++ b/.agents/skills/ios-team-flow/references/CHANGELOG.md
+@@ -1,5 +1,13 @@
+ # 版本记录
+ 
++## 1.9.0
++
++- 修复文档验证因写入验收状态与生成交付记录而自行失效；正文和 AC 条件变化仍失效。
++- 输入拼错/空目录明确报错，保留有 Git 历史的合法删除复核。
++- 归档 prepare --previous 预填未变维度，正确性与安全仍核对；status 默认只读当前快照，历史事件保存变化。
++- 补齐首次验证配置步骤、分开构建与测试目的，前置安装诊断处理，明确待验收的阶段性提交/PR。
++- 按用户要求恢复 1.7.0 的详细新项目需求模板，保留分阶段填写与唯一状态维护。
++
+ ## 1.8.0
+ 
+ - 已验收实施内容绑定确切提交；其他需求修改同目录不再使原验收失效，明确重开后重新验证。
+diff --git a/.agents/skills/ios-team-flow/references/DELIVERY.md b/.agents/skills/ios-team-flow/references/DELIVERY.md
+index e0c2389380d599fdc717eb86a246215c3d346ba9..7ba8b132d58447dede807f13743872b969976cc4 100644
+--- a/.agents/skills/ios-team-flow/references/DELIVERY.md
++++ b/.agents/skills/ios-team-flow/references/DELIVERY.md
+@@ -40,3 +40,7 @@ python3 .agents/skills/ios-team-flow/scripts/delivery.py --requirement REQ-实
+ 本地标签只是候选；只有远端同名标签与本地一致、正式非草稿/非预发布 Release 包含全部实施提交（或核实的合并提交）才标已发布。网络、权限或对象缺失如实标未核实；同一提交集合的普通本地同步保留上次远端证据及时间，不代表本轮联网核对。工具不自动 fetch、commit、push 或发布。
+ 
+ GitHub Release 与 App Store/TestFlight 分开，业务发布见 [APP-RELEASE](APP-RELEASE.md)。编号关联纠错可用 link-commit / exclude-commit --commit 确切SHA --reason 原因，不改共享历史；仅按明确需求使用，不作为日常步骤。
++
++## 日常读取与历史
++
++`delivery.py --requirement REQ-实际编号 status` 只读当前快照，不改状态或联网；只有需要追溯时加 --history。新增事件保存字段变化与删除项，当前快照保存完整状态；历史可按顺序重建，既有完整事件不改写，不丢失证据。日常不要把全部 JSON 历史加载进上下文。
+diff --git a/.agents/skills/ios-team-flow/references/INSTALL.md b/.agents/skills/ios-team-flow/references/INSTALL.md
+index a6eb03d570b9aebc95cc7dea2304c46a960ea6c3..2e5db51af8f424a6a54fe5dd0d41477f94c07572 100644
+--- a/.agents/skills/ios-team-flow/references/INSTALL.md
++++ b/.agents/skills/ios-team-flow/references/INSTALL.md
+@@ -20,6 +20,16 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
+ 
+ 空目录先 mkdir -p .agents/skills，再按上述步骤接入；不用提前创建 App。首次收尾前在未纳入 Git 的项目根 git init，已有仓库不嵌套。接入不提交、不上传。
+ 
++## 接入后的只读诊断
++
++```sh
++python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project . --doctor
++```
++
++不写文件、不执行配置里的命令、不联网、不安装依赖或 Hook。缺 Git 时先确认项目根再初始化；新项目待工程生成后补实际 profile，已有项目从既有 CI/构建说明提取配置。未安装 Hook/CI 是可选状态，不冒充强制门禁已启用。工具内部不依赖 Python 忽略规则，仍建议合并 `__pycache__/`、`*.pyc`、`.agents/teamflow-backups/` 和实际构建输出到项目 .gitignore，保留团队既有内容。
++
++当前阻塞项：Git 根或入口错误先解决；已有业务工程实施前配置实际验证，新工程建成后配置。未安装可选 Hook/CI 不阻塞接入；升级与恢复仅在对应事件发生时阅读后文。
++
+ ## 后续使用
+ 
+ 从项目根目录打开新的 Codex 会话。AGENTS.md 已要求在 iOS 实施与提交审查时读取本地 Skill，直接说“做一个订阅页”即可。规则属于指令约束，构建、lint 和提交拦截仍需对应工具或 hook。
+@@ -81,11 +91,3 @@ python3 /临时目录/ios-team-flow/scripts/upgrade_skill.py --project /项目
+ `--apply` 在同一事务中备份完整 Skill、两种指令入口、根门禁入口和版本/基线，再应用更新。写入失败自动恢复；恢复入口仍为 setup_project.py --project ... --recover <transaction.json>，此时恢复范围包含完整 Skill。恢复也会检查升级后是否有人工修改，不强制覆盖。
+ 
+ 始终保留新版临时工具直到升级验收完成。恢复到旧版本后如需再次执行恢复，使用临时新版 scripts/setup_project.py；旧版本可能不支持完整事务格式。强制中断时，先确认无升级进程，使用新版恢复工具处理 prepared 事务，再移除 `.agents/teamflow-upgrade.lock` 空锁目录。备份留在项目 .agents/teamflow-backups，不进入通用包；升级不会安装或覆盖 Git Hook/CI。
+-
+-## 接入后的只读诊断
+-
+-```sh
+-python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project . --doctor
+-```
+-
+-不写文件、不执行配置里的命令、不联网、不安装依赖或 Hook。缺 Git 时先确认项目根再初始化；新项目待工程生成后补实际 profile，已有项目从既有 CI/构建说明提取配置。未安装 Hook/CI 是可选状态，不冒充强制门禁已启用。工具内部不依赖 Python 忽略规则，仍建议合并 `__pycache__/`、`*.pyc`、`.agents/teamflow-backups/` 和实际构建输出到项目 .gitignore，保留团队既有内容。
+diff --git a/.agents/skills/ios-team-flow/references/PROJECT-CHECKS.md b/.agents/skills/ios-team-flow/references/PROJECT-CHECKS.md
+index 86258da5fb694b7eff242b167a08b154313bfd7b..b1b6bc4361820024136619958ab674b682799564 100644
+--- a/.agents/skills/ios-team-flow/references/PROJECT-CHECKS.md
++++ b/.agents/skills/ios-team-flow/references/PROJECT-CHECKS.md
+@@ -4,7 +4,7 @@
+ 
+ ```sh
+ python3 .agents/skills/ios-team-flow/scripts/project_checks.py init
+-python3 .agents/skills/ios-team-flow/scripts/project_checks.py list
++# 编辑生成的 .agents/project-checks.json：填入实际命令、profile 和输入路径后再运行
+ python3 .agents/skills/ios-team-flow/scripts/project_checks.py run --profile change
+ ```
+ 
+@@ -28,10 +28,12 @@ python3 .agents/skills/ios-team-flow/scripts/project_checks.py run --profile cha
+       "timeout_seconds": 1800
+     }
+   },
+-  "profiles": {"change": ["build", "unit-tests"]}
++  "profiles": {"build-only": ["build"], "change": ["unit-tests"]}
+ }
+ ```
+ 
++示例 change 由 test 完成测试及其构建，不机械重复 build；build-only 用于只需构建的改动。不同配置/Target 的额外构建有独立验证目的时再组合。list 仅用于查询配置，不是必经步骤。
++
+ 可配置现有 lint、测试计划、脚本或其他工具的 argv。没有 shell 展开，空格保留为单个参数；需要 shell 的已有项目脚本用其解释器显式调用，先审阅配置及脚本。凭据通过已有环境管理提供，不写进 argv/配置。不因使用入口而擅自执行发布、删除数据等命令。
+ 
+ Codex 在需求卡明确本次选用的 profile 和原因；profile 内每项均为必跑。按改动选择必要构建、测试与静态检查，文档改动只选适用检查，不默认全量测试。新项目创建可运行工程后补齐配置；已有工程从 PROJECT-CONTEXT 引用的配置入口获取命令。未选项目注明范围理由，不能将关键验收缺失归为不适用。无明确要求不验证超大字号。
+@@ -55,3 +57,11 @@ python3 .agents/skills/ios-team-flow/scripts/project_checks.py verify --result l
+ 省略 inputs 时，Git 项目按已跟踪及未忽略的新文件记录，默认排除 requirements/ 下的 Markdown/JSON 管理记录，避免更新状态触发业务重测（该目录不得放业务资源；需要验证需求文档时显式纳入 inputs/profile_inputs）。删除的跟踪文件也参与比较；非 Git 项目必须显式配置 inputs。自动排除 logs/project-checks、logs/reviews 和 .agents/teamflow-backups 的生成证据，其他生成产物由项目 .gitignore 或明确 inputs 排除。此处测试指纹与 review 暂存指纹用途不同：前者证明测试对象，后者证明审查对象。
+ 
+ 实际验收优先向 delivery.py finish --accept 传 --result 结果路径（可重复），工具验证结果并复用对应 profile 输入，无需再手填 --inputs；result 不代替 AC 或团队确认。
++
++## 文档验证与有效输入
++
++输入必须至少匹配有效文件，或有 Git 跟踪历史可证明是合法删除；拼错、空目录和从未存在的路径明确报错。删除后暂存和后续复核不因此误重测。
++
++requirements/delivery/ 和 requirements/DELIVERY.md 是生成记录，始终排除。显式验证 requirements 时，结构化 REQ 卡只绑定产品正文及 AC 编号/条件；状态、下一步、阻塞、确认记录、AC 结果/证据和“过程与决策”不进入源码指纹，它们由需求结构校验及提交语义审查核对。PRD 和其他文档仍绑定完整内容。不得把产品需求正文放在过程记录里。
++
++因此先验证文档、再填写 AC 结果及 finish 不会让自己的证据失效；改变条件或产品正文仍必须重验。此规范用于产品文档验证；验证工作流状态解析器本身应使用独立测试夹具，不能依赖已排除的运行记录证明状态逻辑。
+diff --git a/.agents/skills/ios-team-flow/references/REVIEW.md b/.agents/skills/ios-team-flow/references/REVIEW.md
+index 2a77a323d546d28377d0fd8532296fe1e8cd3805..cda2f329414b1934264ae73c069e702e620ddcee 100644
+--- a/.agents/skills/ios-team-flow/references/REVIEW.md
++++ b/.agents/skills/ios-team-flow/references/REVIEW.md
+@@ -43,3 +43,7 @@ findings 使用 `{id, severity, file, line, trigger, impact, recommendation, sta
+ ## 仅归档生成记录
+ 
+ 生成交付记录允许随下一次正常提交归档，不强制每个需求多一次提交；最终说明如实指出待归档文件。需要本轮立即归档时，核对 SHA/链接/状态/隐私及与原证据一致性，报告引用 previous_review 的业务结论，七个维度保留但无需重写同一业务理由。归档不加 Requirement 实施尾注；记录或实现变化仍按实际差异审查。
++
++仅归档生成交付记录时可运行 `python3 scripts/review_gate.py prepare --previous 前次完整指纹`。工具从 HEAD 读取已完成报告，拒绝夹带实施变化，预填未受影响维度；正确性和安全仍需核对当前记录事实、来源及隐私，完成报告后照常 check。它不复用旧测试来证明新源码，也不自动批准归档。
++
++待团队验收不禁止已授权的阶段性提交、推送或 PR；按实际状态保存需求和已执行证据，不为提交改成完成。合并和发布是否需要团队验收由既有团队规则及本需求决定。
+diff --git a/.agents/skills/ios-team-flow/references/VERSION b/.agents/skills/ios-team-flow/references/VERSION
+index 27f9cd322bb9121054664da0e44ac2996f726886..f8e233b27332b4712304d3226a791d32bdd967c5 100644
+--- a/.agents/skills/ios-team-flow/references/VERSION
++++ b/.agents/skills/ios-team-flow/references/VERSION
+@@ -1 +1 @@
+-1.8.0
++1.9.0
+diff --git a/.agents/skills/ios-team-flow/references/WORKFLOW.md b/.agents/skills/ios-team-flow/references/WORKFLOW.md
+index 5e8b62590460e601917bc2a2b02cc7c4820d064c..a2458ced2050c04c6615c2465f5b70ccf2544f4a 100644
+--- a/.agents/skills/ios-team-flow/references/WORKFLOW.md
++++ b/.agents/skills/ios-team-flow/references/WORKFLOW.md
+@@ -51,6 +51,8 @@ AC 仅使用通过、失败、未验证、不适用；判定需有证据或理
+ 
+ 状态、AC 或交付事实变化后，由 Codex 按 [DELIVERY](DELIVERY.md) 同步一次；事实未变不因回复或阶段名称再执行 finish。实际验收完成时显式绑定证据；自动测试优先引用 result，人工验收补充实际范围。已封存验收证明当时对象，不持续约束以后所有需求。明确续接或发现回归时重开相关 AC，新需求承担自己的验证。
+ 
++待团队验收时也可按授权提交、推送或开 PR，需求保持待验证；不为交付代码强行标完成。合并/发布遵守已有验收规则。
++
+ 有提交授权时按 [REVIEW](REVIEW.md) 暂存、审查并执行一次最终门禁；它同时核对引用测试与暂存内容。输入未变不重测、不重复语义审查。没有授权不 commit/push/release。
+ 
+ 实施提交使用 Requirement 尾注；交付事实变化后同步记录。生成记录可以随下一次正常提交归档；需要本轮立即归档时仅审记录差异，不重审业务代码、不重新填写业务检查理由。归档不加实施尾注，避免循环登记自身 SHA。交付说明报告实际验收、验证限制、Git 状态和未归档记录。
+diff --git a/.agents/skills/ios-team-flow/references/templates/new-project.md b/.agents/skills/ios-team-flow/references/templates/new-project.md
+index 1de3bcc12a8b84020a952bc2a5fae98950108c3c..b4539daf97919e6e32b10fd09ecd2a7c4998be6c 100644
+--- a/.agents/skills/ios-team-flow/references/templates/new-project.md
++++ b/.agents/skills/ios-team-flow/references/templates/new-project.md
+@@ -1,44 +1,407 @@
+-# 启动 PRD：〈项目名称〉
++# 新项目需求文档：〈项目名称〉
+ 
+-只输出当前阶段适用内容，不复制未实施章节或生成成片“待确认”。未知项只记录影响当前范围的部分；后续事项集中列负责人和处理阶段。状态与 AC 结果在关联需求卡维护，本 PRD 保存产品决定和确认版本。
++- 文档版本：v1
++- 状态：❔ 待确认
++- 产品负责人：待确认
++- 技术负责人：待确认
++- 更新日期：待填写
+ 
+-## 启动阶段（首次只填写本节）
++填写规则：Codex 根据团队输入先完成草案，未知项写“待确认”，不适用项注明原因。下面的默认值是团队起步建议，生成 PRD 时应填入并标“默认建议，待确认”；团队确认具体版本后才创建工程。不得将默认值、示例 ID、语言列表或占位信息当作已批准配置。
+ 
+-- 文档版本、产品/技术负责人、关联需求：待填写。
+-- 用户与问题、首个可演示范围、本期不做：待填写。
+-- 演示操作与预期结果：引用需求卡 AC，不重复维护结果。
+-- 产品名、工程/Target 名、显示名、实际 Bundle ID：待确认；用户说 buildid 时先明确含义，不使用示例 ID 冒充实际值。
+-- 开发环境：实际 Xcode/SDK/Swift 模式、运行设备和当前开发语言。
+-- 技术建议（均待团队接受或调整）：Swift + UIKit、iOS 14.0、按功能组织的 MVVM、导航栈及导航栏、无 Tab Bar、支持深色且跟随系统；App/ 与 requirements/ 同级。
+-- 实际最小目录及职责：仅列当前有内容的目录、Target 与资源归属；不生成空壳模块，不预装架构库或无用依赖。
+-- 启动必需数据/接口/权限及限制：只填写演示范围实际依赖，权限必须明确用途、请求时机和拒绝处理。
+-- 可延后事项：事项 → 负责人 → 功能实施前或发布前；不重复填写整套后期配置。
++## 分阶段确认（先读本节，再填写适用部分）
+ 
+-将以上具体版本交团队确认，记录确认人、时间（含时区）、范围和原文/链接。没有明确确认不创建工程与业务代码；批准启动不等于批准后续功能。确认后创建最小可运行工程，实际构建验证，并在 .agents/project-checks.json 配置命令和输入；PRD 引用配置，不抄命令和测试结果。
++| 阶段 | 必须确定 | 可延后 |
++| --- | --- | --- |
++| 工程启动前 | 首个可演示范围及验收、项目/Bundle ID、框架/语言/最低系统、首个 Target 与必要目录、当前开发语言；团队明确确认启动版本 | 不参与启动范围的页面细节、后续语言、未启用权限及商店资料 |
++| 对应功能实施前 | 该功能交互、接口/数据及商业规则、实际权限用途与拒绝处理、相关文案/语言；团队确认需要确认的业务决定 | 其他尚未实施功能，正式上架资料 |
++| 发布前 | 正式语言及翻译审校、生产环境、签名/平台配置、商店材料、适用设备与业务验收 | 后续版本范围，记录负责人和处理阶段 |
+ 
+-## 功能阶段（实施对应功能时才展开）
++先整理可审阅启动草案并确认，再创建最小可运行工程；不用为了填满本模板阅读或确认后续阶段全部条目。关键未知项只阻塞依赖它的功能。后续展开对应章节，明确负责人和完成阶段；分阶段不豁免最终功能与发布验收。默认配置仍须确认，不擅自改动已确认项目决策。
+ 
+-只追加该功能需要的产品决定，已确认内容链接复用：
++完整保留以下详细条目供当前阶段按需填写；不要为了精简删掉已经明确的需求，也不要求启动前填完发布材料。当前执行状态与 AC 结果仍只在关联需求卡维护，本 PRD 保留需求细节、决策与确认历史。
+ 
+-- 页面、状态、交互、导航/深链、错误及空态，设计稿及版本。
+-- 接口与数据契约、认证、缓存/存储、同步和恢复；相关语言及文案。
+-- 权限用途、能力与用途 key、提示文案、触发时机、拒绝/部分授权处理及实际 SDK 访问，按 [UI 规范](../standards/ui.md) 和相关语言规范实施。
+-- 有订阅时：产品 ID、周期/权益、价格来源、试用/续订文案、购买/恢复及失败场景，按 [审查规程](../REVIEW.md) 核对；未获取的配置不能编造。
+-- 事件名、参数、触发时机、隐私及相关性能预算；只填写实际需要项。
+-- 需业务确认的变化确认后实施；验收范围与结果仍由关联需求卡维护。
++## 1. 项目身份与版本
+ 
+-## 发布阶段（准备发布时才展开）
++| 配置项 | 填写值 / 默认建议 | 说明与确认要求 |
++| --- | --- | --- |
++| 项目名称（产品中文名） | 待填写 | 对外名称，与工程名分别记录 |
++| 工程名称 / Product Name | 待填写，例如 MyApp | 建议稳定的英文名称，用于工程、Target 与 Scheme 命名 |
++| App 显示名称 / Display Name | 待填写 | 桌面名称；可按语言本地化 |
++| buildid / Bundle ID | 待确认；格式示例 `com.example.myapp` | 本模板把用户所称 buildid 暂解释为 Bundle ID，必须确认含义；示例不可直接用于正式项目 |
++| App 版本 / MARKETING_VERSION | `1.0.0`（默认建议） | 对应 CFBundleShortVersionString，与工作流版本无关 |
++| 构建号 / CURRENT_PROJECT_VERSION | `1`（默认建议） | 对应 CFBundleVersion；每次交付构建递增，不与 Bundle ID 混用 |
++| CI Build ID | 待确认 / 不适用 | 若 buildid 指流水线任务 ID，记录在本行；说明与 App 构建号的映射 |
++| 开发团队 / Team ID | 待确认 | 使用团队实际 Apple Developer 账号，不编造 ID |
++| App Store Connect App ID / SKU | 待确认 / 上架准备时提供 | 分别记录 Apple 分配的数字 App ID 和团队 SKU，不能用 Bundle ID 代替 |
++| 仓库 / 默认分支 / 代码负责人 | 待填写 | 使用项目根目录，不建立嵌套 Git 仓库 |
++| 工程目录 | `App/`（默认建议） | 与 .agents/、requirements/、logs/、scripts/ 同级 |
+ 
+-按 [App 发布流程](../APP-RELEASE.md) 使用已有发布记录，不再复制另一份发布状态：
++确认 Bundle ID 所有者及唯一性，并与开发者后台、签名、App Store Connect 配置一致。若有 Widget、通知扩展等，逐个记录 Target 与独立 Bundle ID；不要把同一个 ID 用于不同 App/扩展。开发/测试环境是否需要独立 App ID 见第 6 节，不擅自增加。
+ 
+-- 正式市场/语言、翻译审校与 RTL 等适用验证；不默认勾选所有候选语言。
+-- 正式 Bundle ID、版本/build、签名 Team/能力、生产配置、商店 App ID/SKU 与负责人。
+-- 隐私、权限说明、商店材料、设备/系统范围、业务验收、回退与上线条件。
++## 2. 背景、目标与首版范围
+ 
+-## 确认历史（只记录实际确认）
++- 需求材料：原始描述 / PRD / 设计稿 / 接口文档及版本：待填写。
++- 目标用户、主要市场、使用场景和核心问题：待填写。
++- 项目目标与可衡量成功指标：待填写。
++- 首版必须交付 / 可后续交付 / 本期不做：待填写。
++- 角色、权限、业务术语、竞品或参考流程：待填写。
+ 
+-| 文档版本 | 确认范围 | 确认人 | 时间（含时区） | 原文/链接 |
++## 3. 技术选型与项目架构
++
++| 配置项 | 填写值 / 默认建议 | 选型约束 |
++| --- | --- | --- |
++| 主要开发语言 | Swift（默认建议） | 可选 Objective-C / Swift / 混编，记录比例或模块边界 |
++| UI 框架 | UIKit（默认） | 采用 Swift + UIKit；项目明确要求时可调整为 SwiftUI / 混合 |
++| 项目架构 | MVVM + 按功能组织（默认建议） | 可选 MVC / MVVM / TCA / Clean 等；按需求复杂度决定，不默认引入架构库 |
++| 状态管理与依赖注入 | ViewModel 管理界面状态 + 构造注入（默认建议） | UIKit 视图负责展示与交互，明确状态更新方式和共享状态 owner；不默认引入 SwiftUI 状态模型 |
++| 导航方案 | 使用 UINavigationController，默认显示导航栏并通过导航栈管理页面（默认建议，待确认） | 记录页面标题、返回行为、深链、登录拦截与路由恢复需求 |
++| 是否使用 Tab Bar（底部标签栏） | 否（默认建议，待确认） | 默认不创建 UITabBarController 或底部标签栏；仅在明确需求并确认后启用 |
++| 最低 iOS / iPadOS | iOS 14.0；启用 iPad 支持时默认 iPadOS 14.0 | 按此部署目标选择 API 和依赖；更高版本 API 提供兼容处理，不自动提高最低系统版本 |
++| Xcode / SDK / Swift 语言模式 | 待确认具体版本 | 本地与 CI 对齐；不写模糊“最新版”，部署目标和 SDK 分开记录 |
++| 依赖管理 | Swift Package Manager（默认建议） | 既有 CocoaPods 等可保留；记录依赖、版本锁定及引入理由 |
++| 工程生成方式 | Xcode 原生工程（默认建议） | XcodeGen / Tuist 等仅有明确需求再采用 |
++| 模块边界 | Application / Features / Shared / Infrastructure / Resources（默认建议） | 详见第 3.1–3.5 节；按需建目录，不强制拆成多个 Target/Package |
++| OC / Swift 桥接 | 无（默认建议） | 混编时明确桥接头、公开接口、空值及语言规范 |
++| 网络层 / 本地存储 | 待确认 | 根据功能确定 URLSession、数据库等；不预装无用依赖 |
++
++选型理由、已存在代码、必须复用模块及禁止引入的依赖：待填写。
++生成代码默认采用 Swift + UIKit，最低支持 iOS 14.0；执行 Swift 与 `<SKILL_ROOT>/references/standards/ui.md` 规范。使用 OC 或 SwiftUI 的模块再加载对应规范。项目确需调整默认技术栈或提高最低系统版本时，写明原因并纳入需求确认，不能静默替换。
++
++### 3.1 工程目录设计
++
++依据 Apple 的 Xcode 文件/文件夹管理、Target 资源归属、本地 Swift Package 和构建配置机制组织工程。**Apple 没有规定统一的 MVVM 目录树；下面的名称、层次和依赖边界是本团队针对 Swift + UIKit、iOS 14 制定的默认设计。**
++
++先根据确认的功能给出本项目实际目录树，再创建工程。以下 MyApp、FeatureName 是示意名称，必须替换；可选目录仅在有真实内容时创建，不生成空壳模块或没有用途的基础类。
++
++```text
++项目根目录/                         # Git 根目录
++├── AGENTS.md
++├── .agents/skills/ios-team-flow/     # 项目工作流 Skill
++├── .agents/teamflow.json           # 项目接入版本
++├── requirements/                   # PRD、需求卡、架构决定
++├── logs/                           # 脱敏过程与验证记录
++├── scripts/                        # 工程外的辅助脚本
++└── App/                            # iOS 工程，和工作流/日志同级
++    ├── MyApp.xcodeproj/
++    ├── MyApp/                      # 主 App Target 源码
++    │   ├── Application/
++    │   │   ├── AppDelegate.swift
++    │   │   ├── SceneDelegate.swift
++    │   │   └── AppComposition.swift # 启动时组装依赖、设置根页面
++    │   ├── Features/
++    │   │   └── FeatureName/         # 每个功能独立组织
++    │   │       ├── ViewControllers/
++    │   │       ├── Views/          # UIView、Cell 等
++    │   │       ├── ViewModels/
++    │   │       ├── Models/         # 本功能的数据与状态
++    │   │       └── Services/       # 本功能服务协议/业务协作，按需
++    │   ├── Shared/                # 已有明确跨功能用途的代码
++    │   │   ├── UI/                # 通用 UIKit 组件
++    │   │   ├── DesignSystem/      # 颜色/字体/间距的统一接口
++    │   │   └── Extensions/        # 范围清楚、可复用的扩展
++    │   ├── Infrastructure/        # 外部系统访问，按需建立
++    │   │   ├── Networking/
++    │   │   ├── Persistence/
++    │   │   ├── Permissions/
++    │   │   └── Analytics/
++    │   └── Resources/
++    │       ├── Assets.xcassets
++    │       ├── Localization/
++    │       │   ├── Localizable.xcstrings
++    │       │   └── InfoPlist.xcstrings
++    │       ├── LaunchScreen.storyboard
++    │       └── PrivacyInfo.xcprivacy # 依据实际 API/SDK 要求配置
++    ├── Configurations/             # 不作为 App 普通资源打包
++    │   ├── Base.xcconfig
++    │   ├── Debug.xcconfig
++    │   └── Release.xcconfig
++    ├── MyAppTests/                  # 单元/集成测试 Target，按行为需求添加
++    │   ├── Features/
++    │   └── TestSupport/            # 测试替身、fixture，仅测试引用
++    ├── MyAppUITests/                # UI 测试 Target，按需求添加
++    ├── Extensions/                 # Widget/通知扩展等，仅需求明确时创建
++    └── Packages/                   # 本地 Swift Package，可选
++```
++
++资源目录中的 String Catalog 是工具链支持时的默认示例；使用旧工具链或既有本地化方案时改为各语言 `.lproj/Localizable.strings`、`InfoPlist.strings` 和适用的 `.stringsdict`，不要同时维护两套相同 key。工程最低 iOS 14 与所选 Xcode 的文件组织功能分别确认。
++
++### 3.2 各层职责与依赖边界
++
++| 层 / 目录 | 负责内容 | 约束 |
++| --- | --- | --- |
++| Application | App/Scene 生命周期、依赖组装、根导航与启动协调 | 不堆积页面业务逻辑；只组装当前需要的能力 |
++| Features / ViewControllers | UIKit 页面生命周期、事件转发、渲染绑定和导航调用 | 不直接实现网络请求、数据库操作或订阅权益判定 |
++| Features / Views | 视图布局、组件样式、局部交互与无障碍 | 不依赖具体页面控制器，不主动访问外部服务 |
++| Features / ViewModels | 界面状态、输入处理、调用业务服务与结果转换 | 不持有 UIViewController/UIView，不依赖页面生命周期回调细节 |
++| Features / Models、Services | 功能数据、状态、服务协议与必要业务协调 | 简单功能可用少量文件，不机械创建 Repository/UseCase 层 |
++| Shared | 已被多个功能使用的组件、样式和通用类型 | 不能反向依赖某个 Feature，不作为随意堆放代码的 Utils 目录 |
++| Infrastructure | 网络、存储、系统权限与打点等外部访问实现 | 通过构造注入供功能使用，不持有页面；权限只实现确认清单中的能力 |
++| Tests / TestSupport | 可验证行为、隔离外部依赖的测试替身 | Mock、fixture、调试捷径不进入生产 Target |
++
++默认依赖方向：Application 组装 Features 与 Infrastructure；Features 使用自身或中立位置定义的服务协议；Infrastructure 提供具体实现。Shared 不依赖具体功能，功能间协作由明确的接口或上层导航协调。真正复杂的业务再引入领域层或独立 Package，避免循环依赖。
++
++以上首先是代码职责约定：在单个 App Target 中，目录并不会形成 Swift 模块隔离。需要编译器强制依赖边界或独立复用/测试时，再拆 Target/Package；不要把多建文件夹当成已经模块化。
++
++### 3.3 Xcode 文件与资源归属
++
++- Xcode 导航器结构尽量与磁盘路径一致。确认团队 Xcode 版本后选择文件夹同步方式或与实际文件夹对应的 Group；不要为整齐只建大量虚拟分组，也不强制旧工具链使用不支持的工程格式。
++- 创建、移动、重命名文件后核对引用、Target membership、Compile Sources 与 Copy Bundle Resources，避免重复编译、重复资源或文件存在但未参与构建。
++- `.xcconfig` 按项目/Target 的 Build Configuration 明确绑定，检查最终生效设置；不勾入普通资源复制阶段。Debug/Release 与 Development/Staging/Production 映射遵循第 6 节。
++- 若使用手工 Info.plist 或 `.entitlements`，建议放在 Configurations/ 或对应扩展目录，并通过实际构建设置指定。若由 Xcode 自动生成 Info.plist，则维护其有效设置，不再创建一份未使用的 Info.plist。
++- 各 Target 独立确认 Bundle ID、权限用途说明、能力和资源；扩展不能自动继承主 App 的一切配置。隐私清单按实际归属打包，不能因它位于 Resources/ 就省略验证。
++- App 资源、Package 资源和测试资源各归其所属 Target。图片/颜色优先 Asset Catalog；文案集中本地化管理，业务代码不写机器绝对路径。
++- 提交 `.xcodeproj` 必要文件、共享 Scheme、依赖锁定记录及源资源；多人共享所需 Scheme 用共享配置。忽略 DerivedData、构建产物和 xcuserdata 等个人状态；不把项目工作流、requirements/、logs/ 当作 App 资源打包。
++- 默认一个 App 工程即可；只有多个工程协作或现有工具确需 Workspace 时，才引入 `.xcworkspace`。不要额外建立空 Workspace 或嵌套 Git 仓库。
++
++### 3.4 何时拆为本地 Swift Package
++
++满足明确的独立复用、稳定边界、独立测试或维护需求时再拆，例如网络组件或通用业务能力。包仍保存在当前 Git 仓库的 App/Packages/，不因本地模块化创建新仓库。
++
++```text
++App/Packages/NetworkingKit/          # 示例，仅决定拆包后创建
++├── Package.swift
++├── Sources/
++│   └── NetworkingKit/
++│       ├── NetworkClient.swift
++│       └── Resources/             # 仅有包资源时创建
++└── Tests/
++    └── NetworkingKitTests/
++```
++
++Package.swift 明确产品、Target、依赖和平台要求；iOS 支持范围与 App 的 iOS 14 目标兼容，不静默抬高要求。包含资源时按类型声明处理/复制规则；包内资源通过 `Bundle.module` 访问，不假定在主 App bundle 中。公开最小接口，App 添加产品依赖，禁止包反向依赖 App Target。OC 与 Swift 混编拆包时先核对所用工具链对 Target 的语言约束。
++
++### 3.5 本项目结构确认表
++
++| 决定项 | 本项目方案 | 依据 / 确认状态 |
++| --- | --- | --- |
++| 实际工程名称、目录树与功能目录 | 按首版功能填写 | 待确认 |
++| UI 实现方式 | UIKit；纯代码布局或 Storyboard/XIB 选择待确认 | 与 Swift + UIKit、iOS 14 保持一致 |
++| App / 扩展 / 测试 Target 清单 | 待填写 | 不需要的 Target 不创建 |
++| 文件夹 / Group 策略 | 按团队 Xcode 版本填写 | 待确认 |
++| 依赖方向、共享边界与服务注入 | 按上述职责结合功能填写 | 待确认 |
++| 本地 Package / Workspace | 默认不额外创建 | 若需要，填写具体收益与维护人 |
++| 配置、权限、资源和测试归属 | 按实际 Target 填写 | 待确认 |
++
++生成工程后验证：磁盘路径与工程引用一致、代码编译进入正确 Target、实际包内资源可读取、权限本地化有效、测试资源未混入生产、构建设置符合 iOS 14，并在需求记录中填写证据。只生成上述目录树不代表已创建可运行工程。
++
++## 4. 用户流程与功能
++
++| 功能 ID | 场景与用户目标 | 输入与操作 | 结果及异常状态 | 优先级 | 验收条件 |
++| --- | --- | --- | --- | --- | --- |
++| F-001 | 待填写 | 待填写 | 待填写 | 待确认 | 可观察、可验证的行为 |
++
++补充页面入口、返回路径、登录/游客、离线/弱网、空数据、重复操作、权限拒绝及删除账号等适用流程。
++
++## 5. UI、设备与交互配置
++
++| 配置项 | 填写值 / 默认建议 |
++| --- | --- |
++| 设计稿、品牌色、图标、字体与素材使用权 | 待提供，未提供时采用系统组件与语义样式 |
++| UI 规范及项目特例 | 遵循工作流 UI 规范；特例填写理由 |
++| 支持设备 | iPhone（默认建议）；iPad 是否支持待确认 |
++| 屏幕方向 | iPhone 竖屏（默认建议）；视频等特殊页面单独说明 |
++| iPad 多窗口 / 尺寸变化 | 待确认 / 不适用；若支持 iPad，补充其适配要求 |
++| 是否支持深色模式 | 是（默认建议，待确认）；支持浅色与深色两种主题 |
++| 是否跟随系统外观 | 是（默认建议，待确认）；随系统浅色/深色设置切换。若选否，明确固定主题或 App 内切换方案 |
++| Dynamic Type / VoiceOver / 减少动态效果 | 支持系统设置（默认建议），列出验收范围；超大字号默认不测试，仅明确要求时列入 |
++| 页面状态 | 每页明确加载、空、成功、失败及权限不足等适用状态 |
++| 键盘、长文案、RTL、触控区域 | 按 UI 与国际化规范验证，不靠固定尺寸隐藏问题 |
++| App Icon / 启动界面 | 待提供；开发期占位与正式资产区分 |
++
++## 6. 构建、环境与能力配置
++
++| 配置项 | 填写值 / 默认建议 | 补充要求 |
++| --- | --- | --- |
++| 环境 | Development / Staging / Production（默认建议） | 不需要服务端时可简化，确认后创建实际配置 |
++| Build Configuration | Debug / Release（默认建议） | 环境不等同编译优化配置，单独记录映射 |
++| Target / Scheme / Bundle ID 映射 | 待确认 | 每种分发环境写明 Scheme、配置、服务地址引用及 App ID |
++| 配置管理 | `.xcconfig` + 配置引用（默认建议） | 不把私钥、服务端秘密写入配置；客户端可读取的内容不视为秘密 |
++| 签名方式 / Provisioning | 待确认 | 记录开发、测试和发布的签名负责人及 CI 获取方式 |
++| Capabilities / Entitlements | 默认不额外启用；按需求确认 | 如 Push、Associated Domains、App Groups、iCloud、Sign in with Apple |
++| 隐私权限与用途文案 | 按第 7 节首版权限清单确认 | 生成工程时落实配置、运行时请求和各语言提示 |
++| URL Scheme / Universal Links | 待确认 / 不适用 | 域名归属、路由规则、关联配置及验证方式 |
++| 后台任务 / 推送 / Widget / 通知扩展 | 待确认 / 不适用 | 说明必要性、Target、生命周期和权限 |
++| 构建 / 单测 / UI 测试 / lint 命令 | 工程生成后填入实际可执行命令 | 生成前写待落实；不能把占位命令记作已验证 |
++| CI 与工具版本 | 待确认；团队现有方案优先 | Xcode、依赖、签名、产物保留和分支检查规则 |
++| 分发渠道 | TestFlight → App Store（默认建议） | 企业或其他渠道需另行明确，发布前获得授权 |
++
++环境映射表：
++
++| 环境 | Target / Scheme | Build Configuration | Bundle ID | API 配置引用 | 签名与分发 |
++| --- | --- | --- | --- | --- | --- |
++| Development | 待确认 | Debug（建议） | 待确认 | 待确认 / 不适用 | 待确认 |
++| Staging | 待确认 | 待确认 | 待确认 | 待确认 / 不适用 | 待确认 |
++| Production | 待确认 | Release（建议） | 待确认 | 待确认 / 不适用 | 待确认 |
++
++## 7. 首版系统权限与提示文案
++
++本节必须在创建工程前完成。Codex 根据第 4 节首版功能逐项判断需要哪些权限，填入“启用 / 不启用 / 待确认”及理由，提交团队确认；没有相关功能时默认不启用。不能把下面的候选项全部写进工程，也不能以“首版可能用到”为由申请权限。没有受保护资源访问的项目可以明确写“首版无额外系统权限”。
++
++### 7.1 首版权限清单
++
++| 权限候选 | 启用状态 / 对应功能 ID | 最小必要访问范围 | 工程配置参考 | 首次请求场景与拒绝处理 |
+ | --- | --- | --- | --- | --- |
+-| 待填写 | 当前启动范围 | 待确认 | — | — |
++| 相机 | 待判断 / F-xxx | 拍照、扫码等具体用途 | `NSCameraUsageDescription` | 用户选择拍照/扫码时请求；拒绝后提供实际可用的替代入口 |
++| 麦克风 | 待判断 / F-xxx | 录音或带声音的视频 | `NSMicrophoneUsageDescription` | 用户开始录音时请求；禁止默默录音或循环弹窗 |
++| 照片选择 | 待判断 / F-xxx | 用户主动选择的照片 | 优先 PhotosPicker / PHPicker；仅使用系统选择器通常无需申请整个照片库权限 | 取消选择视为正常取消，不当作权限拒绝 |
++| 照片库读取 | 待判断 / F-xxx | 确需 PhotoKit 读取的资源 | `NSPhotoLibraryUsageDescription` | 使用读取功能时请求，处理 limited 部分授权，不能把部分授权当失败 |
++| 保存到照片库 | 待判断 / F-xxx | 仅添加照片 | 适用时使用 add-only 与 `NSPhotoLibraryAddUsageDescription` | 用户保存结果时请求，拒绝后按需求提供分享/其他保存方案 |
++| 使用期间定位 | 待判断 / F-xxx | 前台定位；精度按功能需要 | `NSLocationWhenInUseUsageDescription` | 用户使用附近/定位功能时请求；处理精度降低、单次许可和手动输入 |
++| 始终定位 / 后台定位 | 待判断 / F-xxx | 仅确有持续定位需求 | 核对 `NSLocationAlwaysAndWhenInUseUsageDescription`、使用期间说明和必要的后台配置 | 独立解释后台用途，按当前系统规则请求/升级，不能默认跟随前台定位启用 |
++| 通知 | 待判断 / F-xxx | alert / sound / badge 按实际需要选择 | `UNUserNotificationCenter` 请求；没有通用的通知 UsageDescription key | 用户开启提醒时请求；拒绝后保留 App 内功能。远程推送才另配 Push Notifications / APNs |
++| 通讯录 | 待判断 / F-xxx | 明确需要的联系人访问范围 | 直接受保护访问核对 `NSContactsUsageDescription`；优先评估系统选择方式 | 用户导入联系人时请求；按系统版本处理有限访问与手动输入 |
++| 蓝牙 | 待判断 / F-xxx | 连接指定外设 | `NSBluetoothAlwaysUsageDescription`；旧系统键及后台模式按部署目标另核对 | 配对/连接设备时触发；区分未授权、蓝牙关闭和无设备 |
++| Face ID | 待判断 / F-xxx | 本地身份验证 | `NSFaceIDUsageDescription`；认证时提供符合实际用途的 localizedReason | 用户启用/使用生物认证时触发，处理无硬件、未录入、锁定与密码替代 |
++| 本地网络 | 待判断 / F-xxx | 发现/连接局域网设备 | `NSLocalNetworkUsageDescription`；Bonjour 场景另核对服务声明 | 用户连接局域网设备时触发；普通互联网请求不因此默认添加本地网络权限 |
++| 跨 App / 网站跟踪（ATT） | 待判断 / F-xxx | 确实符合跟踪定义的用途 | `NSUserTrackingUsageDescription` 与 ATT API，需核对真实 SDK 行为 | 只有实际需要跟踪才请求；拒绝后不得继续跟踪，不影响无关功能 |
++| 其他：日历/提醒事项/健康/运动/语音识别等 | 待判断 / F-xxx | 按具体数据类型、读写范围填写 | 按最低系统版本查对应 API、UsageDescription 和能力配置，不复用其他权限的 key | 填写实际场景、拒绝/受限状态、替代方案；例如健康读取不能假设可获知用户是否拒绝 |
++
++每个启用项另填写：适用 Target / 扩展、最低系统与 API、调用代码位置、配置位置、负责人及验收状态。记录第三方 SDK 引入的受保护资源访问；发现多余访问时移除对应代码/依赖，不能用虚构用途文案掩盖。
++
++### 7.2 权限提示文案表
++
++“权限提示词”指用户可见文案：区分系统弹窗用途说明、可选的 App 内前置解释，以及拒绝后的提示。系统弹窗的标题和按钮由系统控制，不承诺自行改写；通知等没有自定义用途字段的权限，相关解释写在 App 自己的界面中。
++
++| 文案 ID | 权限与界面 | 系统 key / App 文案 key | 简体中文 | 英语 | 其他首发语言 | 状态 |
++| --- | --- | --- | --- | --- | --- | --- |
++| PERM-001 | 相机系统用途说明（示例） | `NSCameraUsageDescription` | 允许使用相机，以拍摄并设置你的个人头像。 | Allow camera access to take a photo for your profile picture. | 按确认的语言范围翻译 | 示例，需按实际功能改写 |
++| PERM-002 | 仅保存图片用途说明（示例） | `NSPhotoLibraryAddUsageDescription` | 允许将你生成的图片保存到照片图库。 | Allow saving the images you create to your photo library. | 按确认的语言范围翻译 | 示例，需按实际功能改写 |
++| PERM-003 | 通知 App 内说明（示例） | `permission.notifications.explanation` | 开启通知后，可以接收你设置的任务提醒。 | Enable notifications to receive the task reminders you set. | 按确认的语言范围翻译 | 示例，不是系统弹窗文案 |
++| PERM-004 | 相机被拒绝后的 App 提示（示例） | `permission.camera.denied` | 相机访问已关闭。你可以前往设置开启，或选择已有照片。 | Camera access is off. You can enable it in Settings or choose an existing photo. | 按确认的语言范围翻译 | 只有确实提供选图替代时才使用 |
++
++文案规则：
++
++- 系统用途说明写清“访问什么 + 完成什么具体功能”，简洁、准确，不使用“为了更好的体验”“请授予必要权限”等空泛文案。
++- 不添加未经证实的“绝不上传”“仅在本地使用”等承诺；每个权限、每个 Target 的用途与实际数据处理一致。
++- 前置解释只在确实有帮助时展示，不仿冒系统授权弹窗，不以奖励或阻断无关功能强迫同意；允许用户继续或暂不启用。
++- 拒绝后的引导说明影响，并提供“暂不 / 取消”和适用的“前往设置”或替代功能；仅由用户主动操作打开设置，不反复自动弹出。
++- 所有已确认首发语言都有对应文案和审校状态。系统用途文案放入 `InfoPlist.xcstrings`（工具链支持时）或各语言 `InfoPlist.strings`；App 内说明放入普通文案资源。不能只翻译 App 内解释、遗漏系统用途说明。
++
++### 7.3 生成项目时必须落实
++
++1. 从团队确认的权限清单生成配置，仅处理“启用”项；“待确认”不自动加入工程。有缺项时继续独立工作，暂停依赖该权限的实现，不默认选全部。
++2. 针对实际 Target 添加有效的 Info.plist / 构建设置用途说明，补齐所需 Capabilities、Entitlements、后台模式和后台服务关联。检查项目是否自动生成 Info.plist，避免改了未参与构建的文件。
++3. 生成本地化权限文案资源并确认 Target membership。示例或占位内容不能作为正式用途说明；未审校的翻译明确记录。
++4. 实现对应框架的状态检查、首次请求、授权后的业务动作、拒绝/受限/部分授权/硬件不可用的分支；不同权限状态不能机械套用同一枚举。仅写 Info.plist 不算完成权限接入。
++5. 请求发生在相关功能的用户操作上下文，默认不在冷启动时集中索要全部权限；从设置返回时刷新状态，并处理系统中撤销权限的情况。
++6. 工程配置只声明用途，不等于用户已经授权。使用 Apple 原生权限机制，不能绕过授权或自动同意系统弹窗。
++7. 对相关路径执行验证并把结果写回需求卡：配置文件/代码/本地化资源位置、设备和系统版本、权限初始状态、操作与结果、截图或测试证据；无设备/工具时标未验证，不能声称授权流程已通过。
++
++### 7.4 权限验收清单
++
++- [ ] 首版每个启用权限均关联功能 ID、实际用途及团队确认；不启用项有简短理由。
++- [ ] 实际构建产物中的用途 key、文案和能力声明匹配对应 Target，无缺失或空白说明。
++- [ ] 未决定、已允许、已拒绝、受限及该权限适用的部分授权/硬件状态分别验证；拒绝不导致崩溃。
++- [ ] 请求时机与 PRD 一致，不重复骚扰；设置返回、撤销权限、取消操作可正确恢复界面。
++- [ ] 每个首发语言的系统用途文案与 App 提示正确，系统弹窗不能自定义的字段未伪装实现。
++- [ ] 第三方 SDK 访问与清单一致，测试仅在测试设备/模拟器进行，不擅自重置个人设备权限。
++
++## 8. 多语言与地区配置
++
++默认建议以下 16 个语言/地区条目作为面向多地区 App 的首版候选。它们是本工作流为覆盖英语、中文、欧洲、东亚、东南亚及部分其他市场制定的默认组合，不是 Apple 要求或“所有 App 通用”的统计结论。作为候选清单保留，不默认勾选；启动阶段只确认当前开发/演示语言，正式范围按市场、翻译与验收预算确认；未确认或未完成翻译不能宣称已经支持。
++
++| 默认启用 | 语言 / 地区 | App 本地化标识 | 翻译与验收状态 |
++| --- | --- | --- | --- |
++| 候选（未启用） | 英语 | `en` | 待翻译 / 待验收 |
++| 候选（未启用） | 简体中文 | `zh-Hans` | 待翻译 / 待验收 |
++| 候选（未启用） | 繁体中文 | `zh-Hant` | 待翻译 / 待验收 |
++| 候选（未启用） | 日语 | `ja` | 待翻译 / 待验收 |
++| 候选（未启用） | 韩语 | `ko` | 待翻译 / 待验收 |
++| 候选（未启用） | 德语 | `de` | 待翻译 / 待验收 |
++| 候选（未启用） | 法语 | `fr` | 待翻译 / 待验收 |
++| 候选（未启用） | 西班牙语 | `es` | 待翻译 / 待验收 |
++| 候选（未启用） | 意大利语 | `it` | 待翻译 / 待验收 |
++| 候选（未启用） | 葡萄牙语（巴西） | `pt-BR` | 待翻译 / 待验收 |
++| 候选（未启用） | 俄语 | `ru` | 待翻译 / 待验收 |
++| 候选（未启用） | 阿拉伯语（RTL） | `ar` | 待翻译 / 待验收 |
++| 候选（未启用） | 印地语 | `hi` | 待翻译 / 待验收 |
++| 候选（未启用） | 印度尼西亚语 | `id` | 待翻译 / 待验收 |
++| 候选（未启用） | 泰语 | `th` | 待翻译 / 待验收 |
++| 候选（未启用） | 越南语 | `vi` | 待翻译 / 待验收 |
++
++- 基础开发语言：英语 `en`（默认建议）；需求文档、团队沟通仍用中文。
++- 跟随系统/App 语言偏好选择支持语言；不支持的语言最终回退到开发语言英语，按系统匹配规则验证。App 内自建语言切换页默认不做，若需要则明确切换、生效和持久化方式。
++- 文案资源：工具链支持时采用 String Catalog（`.xcstrings`）；已有 `.strings/.stringsdict` 方案可保留。复数、变量、拼接和语境注释统一管理，不直接拼接可翻译句子。
++- 范围：页面文案、按钮、错误、空状态、无障碍标签、权限用途说明、适用的通知内容、订阅说明。文案含图的素材需替换或本地化。App 名称按品牌决策选择是否翻译。
++- 语言和地区分离：日期、数字、单位、时区按系统/业务地区规则格式化；购买金额使用 StoreKit 产品本地化价格，不能由 UI 语言推导币种或售价。
++- 支持阿拉伯语时验收 RTL 排版、导航、图标方向与混合数字；所有语言检查长文案、字体覆盖、常规字号适配、复数及参数占位符。超大字号（辅助功能的更大字体档位）默认不验证，仅用户明确要求或已确认验收标准列入时测试；否则记录不适用及跳过原因。
++- 翻译负责人 / 审校负责人 / 文案冻结日期 / 更新流程：待确认。AI 可提供初稿，订阅、权限与条款等关键文案需要指定人员审校。
++- App Store 元数据语言与 App 内语言分别确认；商店语言标识不直接照抄本表。App Store 截图、描述、关键词、隐私与服务条款页面分别记录负责人、翻译范围和实际商店 locale。
++- 发布验收：确认范围内的必要文案翻译完成，格式参数与复数正确；不能通过复制英文到全部语言来宣称完成。不满足时缩减正式语言范围需团队确认并记录。
++
++## 9. 商业化与订阅（无订阅时明确不适用）
++
++| 权益/套餐 | Product ID | 订阅组/等级 | 周期 | 目标 storefront | 预期价格来源 | 优惠/试用资格 | UI 文案/CTA |
++| --- | --- | --- | --- | --- | --- | --- | --- |
++| 待确认 | 待确认 | 待确认 | 待确认 | 待确认 | App Store Connect / StoreKit | 待确认 | 各语言分别核对 |
++
++- 实际展示价格由 StoreKit 产品决定；需求中的预期金额不是可硬编码的真实售价。
++- 续订、升级降级、恢复、退款/撤销、宽限期、跨设备权益规则：待确认。
++- 隐私政策、服务条款、管理订阅入口：待提供。
++- 产品配置负责人、确认材料、Sandbox 与线上产品对应关系：待确认。
++
++## 10. 数据、服务与隐私
++
++- 登录方式、认证有效期、游客模式、退出与注销行为：待确认 / 不适用。
++- API 契约、错误码、请求取消、超时、幂等与重试：待确认 / 不适用。
++- 本地存储、缓存期限、同步与冲突策略、数据迁移：待确认 / 不适用。
++- 敏感数据、Keychain 使用、日志脱敏、数据保留/删除及第三方 SDK：按实际需求列明。
++- 适用的 Privacy Manifest、隐私标签与权限配置：根据实际 API / SDK 核对，不凭模板猜测采集行为。
++- 只记录环境与凭据配置引用，不粘贴证书、token、私钥或真实用户数据。
++
++## 11. 打点、质量与交付
++
++| 事件 | 精确触发时机 | 必需参数/类型 | 去重键或规则 | 隐私处理 | 验收方式 |
++| --- | --- | --- | --- | --- | --- |
++| 待确认 / 不适用 | 待填写 | 待填写 | 待填写 | 待填写 | 待填写 |
++
++- 崩溃/性能监控方案与负责人：待确认，不自动加入第三方 SDK。
++- 启动、滚动、网络和内存预算及测量设备：待确认，填写可测量阈值。
++- 测试框架、设备/系统矩阵、UI/语言/订阅测试与验收负责人：待确认；匹配实际工具链。
++- 里程碑、依赖、发布渠道、灰度及回退方案：待确认。
++- 风险、开放问题、解决条件及负责人：待填写。
++
++## 12. 工程启动确认与后续阶段登记
++
++- [ ] 项目名称、工程名称、显示名称、Bundle ID 含义与实际值已确认。
++- [ ] UI 框架、主要语言、架构、最低系统与工具链已确认；默认建议已接受或调整。
++- [ ] 启动范围、设备及当前开发/演示语言已确认；其他候选语言记录为后续阶段待定。
++- [ ] 已根据首版功能确认实际目录树、层次职责、Target/资源归属与是否拆 Package；不是照抄示意目录。
++- [ ] 环境/Target/签名/能力配置已确认，暂缺后台资料的事项有负责人、处理阶段与阻塞范围。
++- [ ] 启动范围实际使用的权限与用途已确认；后续功能权限在该功能实施前确认，按第 7 节落实并验证。
++- [ ] 原始需求与验收条件可追踪；未知订阅/认证/数据规则未被当作已确认。
++- [ ] 团队对具体启动文档版本及延后项给出明确确认，再创建 App/ 工程；后续功能/发布再确认对应范围。
++
++工程生成后补齐实际 Target/Scheme/配置与构建命令并核验本节配置一致性；未跑通的检查记录“未验证”，不能提前勾选工程验收。尚未上架不必阻塞原型开发，但必须明确签名/商店等缺项何时补齐。
++
++## 13. 团队确认记录
++
++| 文档版本 | 确认范围 | 确认人 | 时间（含时区） | 原始确认内容/引用 | 结论 |
++| --- | --- | --- | --- | --- | --- |
++| v1 | 功能、工程配置、权限及提示文案、语言清单及待定项处理 | 待确认 | — | — | 待确认 |
++
++确认后链接需求父卡和步骤。重大范围或基础配置调整时生成新文档版本，确认变化部分；保留此前确认和修改过程。
++
++## 参考依据（模板维护用）
++
++核对日期：2026-09-11。
++
++- [Apple Bundle ID](https://developer.apple.com/documentation/bundleresources/information-property-list/cfbundleidentifier) 与 [构建版本](https://developer.apple.com/documentation/bundleresources/information-property-list/cfbundleversion)：标识和版本分开记录。
++- [Apple 本地化](https://developer.apple.com/documentation/xcode/localization)：语言资源、地区格式、翻译与运行验证、商店资料分别处理。
++- [Firefox iOS 语言覆盖示例](https://support.mozilla.org/en-US/kb/firefox-available-iphone-or-ipad-my-language)：参考其英语、中日韩与欧洲等语言覆盖；本模板加入阿拉伯语、印地语、泰语、越南语是团队面向更多市场的建议，并非该示例的支持清单或普遍性统计。
++
++- [Apple 受保护资源访问](https://developer.apple.com/documentation/uikit/requesting-access-to-protected-resources) 与 [用途说明 key](https://developer.apple.com/documentation/bundleresources/protected-resources)：用途文案、本地化与 Target 配置。
++- [Apple 照片隐私](https://developer.apple.com/documentation/photokit/delivering-an-enhanced-privacy-experience-in-your-photos-app)：系统选择器与有限照片访问。
++- [Apple 通知授权](https://developer.apple.com/documentation/usernotifications/asking-permission-to-use-notifications)：结合实际功能请求并处理授权状态。
++
++- [Apple Xcode 文件与文件夹管理](https://developer.apple.com/documentation/xcode/managing-files-and-folders-in-your-xcode-project)：导航器、文件夹与 Group 的关系。
++- [Apple 本地 Package 组织](https://developer.apple.com/documentation/xcode/organizing-your-code-with-local-packages)：按复用与维护需求拆分代码。
++- [Apple Package 资源](https://developer.apple.com/documentation/xcode/bundling-resources-with-a-swift-package)：资源的 Target 归属和 Bundle.module。
++- [Apple 构建配置文件](https://developer.apple.com/documentation/xcode/adding-a-build-configuration-file-to-your-project)：.xcconfig 与构建配置绑定；上述 MVVM 目录命名是团队约定。
++
++## 团队验收安排
+ 
+-重大决定变化只确认变化部分，保留以前确认；不把测试成功或提交授权当作团队产品验收。
++- 产品/设计/测试验收负责人：待确认
++- 首版验收环境、核心场景和证据要求：待确认
++- 发布阻塞条件与问题复核负责人：待确认
++- 使用 [验收记录](acceptance.md)，团队确认与 Codex 自审、构建测试分别记录。
+diff --git a/.agents/skills/ios-team-flow/scripts/delivery.py b/.agents/skills/ios-team-flow/scripts/delivery.py
+index 0dac0c977c4fb0cf941f99ea2ed96a871f321b06..6986457ecfecfe753fd70ac04192f4a7192aa6bb 100644
+--- a/.agents/skills/ios-team-flow/scripts/delivery.py
++++ b/.agents/skills/ios-team-flow/scripts/delivery.py
+@@ -155,7 +155,7 @@ def implementation_snapshot(root, inputs=None, ref=None):
+     names = checks.input_paths(root, inputs, entries if ref else None)
+     digest = hashlib.sha256()
+     for name in sorted(names):
+-        if name.startswith('requirements/') and Path(name).suffix in ('.md', '.json'):
++        if inputs is None and name.startswith('requirements/') and Path(name).suffix in ('.md', '.json'):
+             continue
+         if ref:
+             git_mode, kind, oid = entries[name]
+@@ -174,7 +174,7 @@ def implementation_snapshot(root, inputs=None, ref=None):
+                 content, mode = git(path, 'rev-parse', 'HEAD').encode(), b'gitlink'
+             else:
+                 continue
+-        digest.update(os.fsencode(name) + b'\0' + mode + b'\0' + hashlib.sha256(content).digest())
++        digest.update(os.fsencode(name) + b'\0' + mode + b'\0' + hashlib.sha256(checks.content_for_snapshot(name, content)).digest())
+     return digest.hexdigest()
+ 
+ 
+@@ -327,11 +327,30 @@ def refresh(root, data, github=False, accept=False, inputs=None, results=None):
+     return data
+ 
+ 
++def history_snapshots(data):
++    previous = {}
++    expanded = []
++    for event in data['events']:
++        if 'snapshot' in event:
++            previous = event['snapshot'].copy()
++        else:
++            previous.update(event.get('changes', {}))
++            for key in event.get('removed', []):
++                previous.pop(key, None)
++        expanded.append({**event, 'snapshot': previous.copy()})
++    return expanded
++
++
+ def save(root, path, data, action):
+     safe_path(root, 'requirements/DELIVERY.md')
+     if 'card' in data.get('snapshot', {}):
+         data.pop('development', None)
+-    data['events'].append({'at': datetime.now(timezone.utc).isoformat(), 'action': action, 'snapshot': data.get('snapshot', {})})
++    history = history_snapshots(data)
++    previous = history[-1]['snapshot'] if history else {}
++    current = data.get('snapshot', {})
++    data['events'].append({'at': datetime.now(timezone.utc).isoformat(), 'action': action,
++                          'changes': {k: v for k, v in current.items() if k not in previous or previous[k] != v},
++                          'removed': [k for k in previous if k not in current]})
+     path.parent.mkdir(parents=True, exist_ok=True)
+     temp = path.with_suffix('.tmp')
+     safe_path(root, str(temp.relative_to(root)))
+@@ -460,6 +479,8 @@ def main():
+     parser.add_argument('--project', type=Path, default=Path('.'))
+     parser.add_argument('--requirement')
+     sub = parser.add_subparsers(dest='command', required=True)
++    status = sub.add_parser('status')
++    status.add_argument('--history', action='store_true', help='按需展开完整历史事件')
+     creator = sub.add_parser('create')
+     creator.add_argument('--title', required=True)
+     finishing = sub.add_parser('finish')
+@@ -503,6 +524,9 @@ def main():
+         if not args.requirement:
+             raise ValueError('该命令需要 --requirement')
+         path, data = load(root, args.requirement)
++        if args.command == 'status':
++            print(json.dumps({**data, 'events': history_snapshots(data)} if args.history else data.get('snapshot', {}), ensure_ascii=False, indent=2))
++            return 0
+         if args.command == 'development':
+             if card_state(root, args.requirement) is not None:
+                 raise ValueError('新版需求仅在需求卡维护状态与验收，然后 finish；无需 development 重复登记')
+diff --git a/.agents/skills/ios-team-flow/scripts/project_checks.py b/.agents/skills/ios-team-flow/scripts/project_checks.py
+index 463c64ecd537aed16a6f9eca449d1ac4f3661624..9603f46ba742aa087c5f28e27764df6a147c0dd9 100644
+--- a/.agents/skills/ios-team-flow/scripts/project_checks.py
++++ b/.agents/skills/ios-team-flow/scripts/project_checks.py
+@@ -56,12 +56,12 @@ def load_config(root):
+ 
+ 
+ # 自动生成的证据不参与源码指纹，避免报告写入令自身失效。
+-EVIDENCE_DIRS = ('logs/project-checks/', 'logs/reviews/', '.agents/teamflow-backups/')
++EVIDENCE_DIRS = ('logs/project-checks/', 'logs/reviews/', '.agents/teamflow-backups/', 'requirements/delivery/')
+ 
+ 
+ def excluded_input(name):
+     parts = Path(name).parts
+-    return (name.startswith(EVIDENCE_DIRS) or any(p in ('.git', '__pycache__', '.build', 'DerivedData')
++    return (name == 'requirements/DELIVERY.md' or name.startswith(EVIDENCE_DIRS) or any(p in ('.git', '__pycache__', '.build', 'DerivedData')
+             or p.endswith('.xcresult') for p in parts) or Path(name).suffix in ('.pyc', '.pyo'))
+ 
+ 
+@@ -73,6 +73,7 @@ def input_paths(root, inputs=None, candidates=None):
+         for name in inputs:
+             local_path(root, name)
+         inputs = [str(Path(n)) for n in inputs]
++    validate_inputs = candidates is None
+     if candidates is None:
+         try:
+             raw = subprocess.check_output(['git', '-C', str(root), 'ls-files', '--cached', '--others',
+@@ -83,11 +84,42 @@ def input_paths(root, inputs=None, candidates=None):
+                 raise ValueError('非 Git 项目必须显式配置 inputs')
+             candidates = {str(p.relative_to(root)) for n in inputs for p in
+                           ([local_path(root, n)] if not local_path(root, n).is_dir() else local_path(root, n).rglob('*'))
+-                          if not p.is_dir() or p.is_symlink()}
++                          if p.is_file() or p.is_symlink()}
++    if validate_inputs and inputs is not None:
++        for item in inputs:
++            if any(not excluded_input(n) and (item == '.' or n == item or n.startswith(item + '/')) for n in candidates):
++                continue
++            # 允许本次删除及后续复核已跟踪的删除路径，但不能静默接受拼错/空目录。
++            history = subprocess.run(['git', '-C', str(root), 'log', '-1', '--format=%H', '--', item],
++                                     capture_output=True, text=True)
++            if history.returncode != 0 or not history.stdout.strip():
++                raise ValueError('验证输入无有效文件且无跟踪历史：' + item)
+     return {n for n in candidates if not excluded_input(n) and (inputs is None or any(
+         item == '.' or n == item or n.startswith(item.rstrip('/') + '/') for item in inputs))}
+ 
+ 
++def content_for_snapshot(name, content):
++    """需求卡只绑定产品条件，状态/结果/历史由需求及审查语义核对，避免验收自引用。"""
++    if not (name.startswith('requirements/REQ-') and name.endswith('.md')):
++        return content
++    text = content.decode('utf-8')
++    if '<!-- teamflow:requirement:v' not in text:
++        return content
++    lines = []
++    history = False
++    for line in text.splitlines():
++        if line.startswith('## '):
++            history = line.startswith('## 过程与决策')
++        if history or re.match(r'^- (状态|下一步|阻塞项|团队确认|暂停或取消原因)：', line):
++            continue
++        if re.match(r'^\|\s*AC-', line):
++            cells = [c.strip() for c in line.strip().strip('|').split('|')]
++            if len(cells) == 4:
++                line = '| ' + cells[0] + ' | ' + cells[1] + ' |'
++        lines.append(line)
++    return ('\n'.join(lines) + '\n').encode('utf-8')
++
++
+ def source_snapshot(root, config, profile=None, staged=False):
+     overrides = config.get('profile_inputs', {})
+     if not isinstance(overrides, dict) or any(k not in config['profiles'] for k in overrides):
+@@ -126,17 +158,17 @@ def source_snapshot(root, config, profile=None, staged=False):
+                     raise ValueError('暂存输入不是普通文件：' + name)
+                 content = subprocess.check_output(['git', '-C', str(root), 'cat-file', 'blob', oid.decode()],
+                                                   stderr=subprocess.PIPE)
+-                files[name] = {'sha256': hashlib.sha256(content).hexdigest(), 'executable': mode == b'100755'}
++                files[name] = {'sha256': hashlib.sha256(content_for_snapshot(name, content)).hexdigest(), 'executable': mode == b'100755'}
+             continue
+         if not path.exists():
+             continue
+         elif path.is_file():
+-            files[name] = {'sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
++            files[name] = {'sha256': hashlib.sha256(content_for_snapshot(name, path.read_bytes())).hexdigest(),
+                            'executable': bool(path.stat().st_mode & 0o111)}
+         else:
+             raise ValueError('输入不是普通文件（目录输入需展开，子模块需显式指定文件）：' + name)
+     encoded = json.dumps(files, sort_keys=True, ensure_ascii=True).encode()
+-    return {'algorithm': 'sha256-files-v2', 'fingerprint': hashlib.sha256(encoded).hexdigest(), 'files': files}
++    return {'algorithm': 'sha256-files-v3', 'fingerprint': hashlib.sha256(encoded).hexdigest(), 'files': files}
+ 
+ 
+ def verify(root, result, staged=False):
+diff --git a/.agents/skills/ios-team-flow/scripts/review_gate.py b/.agents/skills/ios-team-flow/scripts/review_gate.py
+index 74586e4184e847db6172e3471aefa1e7c0258bdd..ef0cc3cc27a778def321830f34f526cfa0ea6d54 100644
+--- a/.agents/skills/ios-team-flow/scripts/review_gate.py
++++ b/.agents/skills/ios-team-flow/scripts/review_gate.py
+@@ -81,7 +81,7 @@ def report_errors(report, base, fingerprint):
+     return errors
+ 
+ 
+-def prepare(root):
++def prepare(root, previous=None):
+     base, patch, fingerprint = snapshot(root)
+     directory = root / RECEIPTS
+     directory.mkdir(parents=True, exist_ok=True)
+@@ -97,6 +97,25 @@ def prepare(root):
+             'checks': {name: {'status': '未验证', 'evidence': ''} for name in CATEGORIES},
+             'findings': [], 'blockers': [], 'requirements': [], 'validation_results': []
+         }
++        if previous:
++            if len(previous) != 64 or any(c not in '0123456789abcdef' for c in previous):
++                raise ValueError('previous 必须是完整审查指纹')
++            names = git(root, 'diff', '--cached', '--name-only', '-z').decode().split('\0')
++            if any(n and not (n.startswith(('requirements/delivery/', RECEIPTS)) or n == 'requirements/DELIVERY.md') for n in names):
++                raise ValueError('自动继承仅用于生成交付记录归档，实施变化须重新审查')
++            prior = json.loads(git(root, 'show', 'HEAD:' + RECEIPTS + previous + '.json'))
++            if report_errors(prior, prior.get('base'), previous):
++                raise ValueError('前次报告未完成，不能继承')
++            reviewed_patch = git(root, 'diff', '--binary', '--full-index', '--no-ext-diff', '--no-textconv',
++                                 '--no-renames', prior['base'], 'HEAD', '--', '.', ':(exclude)logs/reviews/**')
++            if hashlib.sha256(prior['base'].encode() + b'\0' + reviewed_patch).hexdigest() != previous:
++                raise ValueError('前次报告不覆盖当前 HEAD，不能自动继承')
++            report['previous_review'] = previous
++            report['requirements'] = prior.get('requirements', [])
++            for category in CATEGORIES:
++                if category not in ('correctness', 'security'):
++                    report['checks'][category] = {'status': prior['checks'][category]['status'],
++                        'evidence': '复用 ' + previous + ' 的 ' + category + '；仅生成记录归档，无业务变化。'}
+         # 不覆盖已有报告；并发创建同一指纹时由后续调用续接。
+         with target.open('x') as stream:
+             json.dump(report, stream, ensure_ascii=False, indent=2)
+@@ -148,9 +167,15 @@ def check(root):
+ def main():
+     parser = argparse.ArgumentParser(description=__doc__)
+     parser.add_argument('command', choices=('prepare', 'check'))
++    parser.add_argument('--previous', help='仅归档记录时复用已提交的完成报告')
+     args = parser.parse_args()
+     try:
+-        (prepare if args.command == 'prepare' else check)(repo_root())
++        if args.command == 'prepare':
++            prepare(repo_root(), args.previous)
++        elif args.previous:
++            raise ValueError('--previous 仅用于 prepare')
++        else:
++            check(repo_root())
+     except (ValueError, OSError, subprocess.CalledProcessError) as error:
+         parser.exit(1, '审查门禁：' + str(error) + '\n')
+ 
+diff --git a/.agents/teamflow.json b/.agents/teamflow.json
+index 4ffc609f3ed79ec1d1c0152ee01af4310111c6d7..a23df82e94202793b187f761e4afb024c2df2e11 100644
+--- a/.agents/teamflow.json
++++ b/.agents/teamflow.json
+@@ -1,6 +1,6 @@
+ {
+   "skill": "ios-team-flow",
+-  "version": "1.8.0",
++  "version": "1.9.0",
+   "schema_version": 1,
+   "instruction_file": "AGENTS.md",
+   "managed": {
+diff --git a/README.md b/README.md
+index 1f76a4ae5b8626784426d51384d002fa18407753..9a3a8474d17dec101dec7e48c94f8754b36b6a5a 100644
+--- a/README.md
++++ b/README.md
+@@ -1,6 +1,6 @@
+ # iOS TeamFlow
+ 
+-项目级中文 iOS 团队工作流。当前版本为 **1.8.0**。完整规则只维护在项目 .agents/skills/ios-team-flow，团队克隆后共用。
++项目级中文 iOS 团队工作流。当前版本为 **1.9.0**。完整规则只维护在项目 .agents/skills/ios-team-flow，团队克隆后共用。
+ 
+ ## 团队成员如何使用
+ 
+@@ -8,7 +8,7 @@
+ 
+ **首次接入：** 放入完整 Skill → 执行一次接入及查看诊断 → 在 Codex 打开项目根的新会话。需要 Python 3.10+、Git；App 构建需要项目实际 macOS/Xcode。
+ 
+-1. 进入项目根，创建 .agents/skills；从 [1.8.0 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v1.8.0) 下载 ios-team-flow-skill-v1.8.0.zip，将完整 ios-team-flow 文件夹放入其中，最终是 .agents/skills/ios-team-flow/SKILL.md。
++1. 进入项目根，创建 .agents/skills；从 [1.9.0 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v1.9.0) 下载 ios-team-flow-skill-v1.9.0.zip，将完整 ios-team-flow 文件夹放入其中，最终是 .agents/skills/ios-team-flow/SKILL.md。
+ 2. 执行接入（也可让 Codex 接入当前项目）：
+ 
+ ```sh
+@@ -26,7 +26,7 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
+ 
+ 状态只在需求卡维护；测试命令只在验证配置维护；验收引用真实结果，无需再手填同一测试范围。已封存验收绑定当时提交，后续需求不会迫使原需求重验。无变化问答不执行收尾，生成交付记录可随下一次正常提交归档。
+ 
+-新项目只输出启动阶段适用内容，功能和发布阶段再展开；已有项目保留实际技术栈和目录，现状文档只保留稳定入口与约定。历史需求不补同步。
++新项目恢复详细 PRD 模板，按启动、功能、发布阶段填写，保留需求细节；已有项目保留实际技术栈和目录，现状文档只保留稳定入口与约定。历史需求不补同步。
+ 
+ | 按需资料 | 入口 |
+ | --- | --- |
+@@ -36,6 +36,8 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
+ | 提交前审查、可选 Hook/PR | [REVIEW](.agents/skills/ios-team-flow/references/REVIEW.md) · [GIT-CHECKS](.agents/skills/ios-team-flow/references/GIT-CHECKS.md) |
+ | 其余规范、模板和 App 发布 | [内容导航](.agents/skills/ios-team-flow/references/README.md) |
+ 
++1.9.0 修复文档验收自引用和无效输入漏检；首次验证说明补齐配置步骤，归档审查支持继承前次结论，历史按需读取。待团队验收也可按授权提交代码，保持真实状态。
++
+ ## 源仓库维护
+ 
+ [变更记录](.agents/skills/ios-team-flow/references/CHANGELOG.md)记录版本变化。业务项目用独立 Skill 包；完整 iOS-TeamFlow ZIP 含分发仓库的测试与发布流水线，勿覆盖到业务仓库。
+diff --git a/requirements/DELIVERY.md b/requirements/DELIVERY.md
+index 8a67ae9f1676b7d38c8287d8008a9aaef437393b..34a7cf4f1f0b0efee757bc6a762d7e89b41f1dbf 100644
+--- a/requirements/DELIVERY.md
++++ b/requirements/DELIVERY.md
+@@ -26,3 +26,4 @@
+ | [REQ-20260911-020](REQ-20260911-020.md) | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-11T09:43:45.281881+00:00 |
+ | [REQ-20260911-3ffd2fdc03fe46518e1c6e3930fcf0b0](REQ-20260911-3ffd2fdc03fe46518e1c6e3930fcf0b0.md) | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-11T10:28:19.006816+00:00 |
+ | [REQ-20260911-5ae07f5fe7fb44f3b1526ae8206ffa9b](REQ-20260911-5ae07f5fe7fb44f3b1526ae8206ffa9b.md) | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-11T10:08:33.793811+00:00 |
++| [REQ-20260911-d7091eb1815c423e8b71e01dbbf6a811](REQ-20260911-d7091eb1815c423e8b71e01dbbf6a811.md) | ✅ 执行完成 | ⬜ 未关联 | 未核实 | 未核实 | 2026-09-11T10:55:19.672750+00:00 |
+diff --git a/requirements/REQ-20260911-d7091eb1815c423e8b71e01dbbf6a811.md b/requirements/REQ-20260911-d7091eb1815c423e8b71e01dbbf6a811.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..0e50c5bb6f28e731dcb417459f71c28d30791f42
+--- /dev/null
++++ b/requirements/REQ-20260911-d7091eb1815c423e8b71e01dbbf6a811.md
+@@ -0,0 +1,27 @@
++# REQ-20260911-d7091eb1815c423e8b71e01dbbf6a811：完善验证与交付边界、恢复详细新项目模板并发布 1.9.0
++<!-- teamflow:requirement:v3 -->
++
++- 状态：✅ 执行完成
++- 来源与范围：用户授权修复上轮问题、提交推送并发布1.9.0；恢复前面讨论的新项目详细需求模板，不新增模块，不补同步历史。
++- 拆分：同一卡包含验证边界、现有工具减负、流程说明与模板恢复、发布四部分，共同交付。
++- 验收方式：自审
++- 验收依据：工作流分发工具与文档维护，以工具回归及实际消费ZIP场景核对。
++- 下一步：无
++- 阻塞项：无
++
++## 验收
++
++| 编号 | 条件 | 结果 | 证据或不适用原因 |
++| --- | --- | --- | --- |
++| AC-01 | 文档验收更新状态和生成交付记录不使结果失效；正文与AC条件变化仍失效 | 通过 | 实际ZIP文档验证：写AC结果及finish后verify --staged通过，改变AC条件后测试与finish均拒绝 |
++| AC-02 | 拼错/空目录明确报错，有跟踪历史的合法删除可验证与暂存复核 | 通过 | 测试覆盖拼错/空目录拒绝、删除前后暂存及提交后删除复核通过 |
++| AC-03 | 归档继承未变审查维度但仍需核对事实/安全；日常只读摘要，历史可重建 | 通过 | 归档只继承未变维度，事实/安全待审；夹带实现或旧报告不覆盖HEAD拒绝；增量事件可重建并只读status |
++| AC-04 | 首次验证步骤完整、构建目的明确、安装诊断前置、待验收可阶段性交付 | 通过 | PROJECT-CHECKS、INSTALL、WORKFLOW、REVIEW与ACCEPTANCE已核对：步骤与职责明确 |
++| AC-05 | 恢复1.7详细新项目模板，保留分阶段填写及单一需求状态；README/版本同步 | 通过 | 恢复teamflow-v1.7.0详细模板并保留分阶段填写说明；VERSION/README均为1.9.0 |
++| AC-06 | 工具及消费ZIP回归、版本清单链接和打包通过，正式发布核验独立记录 | 通过 | 完整98项工具测试通过，最终审查绑定调整后29项门禁/工作流复测通过；链接/清单校验及双包打包通过 |
++
++## 过程与决策
++
++- 2026-09-11T10:53:33+00:00：记录本轮实现决定；恢复的是刚才讨论的新项目PRD模板，保留需求追踪卡的单一状态。输入路径演练仅在临时仓库，不引入任何示例业务模块。
++
++- 2026-09-11T10:55:19+00:00：完成上述验收；工具场景不代替真实App验收。发布事实由交付索引记录；摘要 logs/reviews/validation-1.9.0.md。
+diff --git a/requirements/delivery/REQ-20260911-d7091eb1815c423e8b71e01dbbf6a811.json b/requirements/delivery/REQ-20260911-d7091eb1815c423e8b71e01dbbf6a811.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..360950fe886b827d3a9df3a3c420397271d60098
+--- /dev/null
++++ b/requirements/delivery/REQ-20260911-d7091eb1815c423e8b71e01dbbf6a811.json
+@@ -0,0 +1,73 @@
++{
++  "schema_version": 1,
++  "requirement": "REQ-20260911-d7091eb1815c423e8b71e01dbbf6a811",
++  "linked_commits": [],
++  "prs": [],
++  "events": [
++    {
++      "at": "2026-09-11T10:55:19.672988+00:00",
++      "action": "finish",
++      "changes": {
++        "commits": [],
++        "committed": false,
++        "merged": "未核实",
++        "releases": [],
++        "release_status": "未核实",
++        "prs": [],
++        "warnings": [
++          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++        ],
++        "development": "✅ 执行完成",
++        "card": {
++          "state": "✅ 执行完成",
++          "passed": 6,
++          "applicable": 6,
++          "next": "无",
++          "blocker": "无",
++          "acceptance_fingerprint": "4e1017888a5cbb2f91570d8b7150eeef0d0e919b03cd1043291e9c4f55c9c6df",
++          "implementation_fingerprint": "44ad75b679c618df46a681aa17f34d7ffb1d55ebb639fff2b29cfe542222b6a9"
++        },
++        "checked_at": "2026-09-11T10:55:19.672750+00:00"
++      },
++      "removed": []
++    }
++  ],
++  "acceptance_baseline": {
++    "implementation_fingerprint": "44ad75b679c618df46a681aa17f34d7ffb1d55ebb639fff2b29cfe542222b6a9",
++    "acceptance_fingerprint": "4e1017888a5cbb2f91570d8b7150eeef0d0e919b03cd1043291e9c4f55c9c6df",
++    "inputs": [
++      ".agents/skills/ios-team-flow",
++      ".agents/teamflow.json",
++      "scripts",
++      "tests",
++      "README.md",
++      "AGENTS.md",
++      ".gitignore",
++      ".github"
++    ],
++    "results": [],
++    "accepted_at": "2026-09-11T10:55:19.672610+00:00"
++  },
++  "snapshot": {
++    "commits": [],
++    "committed": false,
++    "merged": "未核实",
++    "releases": [],
++    "release_status": "未核实",
++    "prs": [],
++    "warnings": [
++      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++    ],
++    "development": "✅ 执行完成",
++    "card": {
++      "state": "✅ 执行完成",
++      "passed": 6,
++      "applicable": 6,
++      "next": "无",
++      "blocker": "无",
++      "acceptance_fingerprint": "4e1017888a5cbb2f91570d8b7150eeef0d0e919b03cd1043291e9c4f55c9c6df",
++      "implementation_fingerprint": "44ad75b679c618df46a681aa17f34d7ffb1d55ebb639fff2b29cfe542222b6a9"
++    },
++    "checked_at": "2026-09-11T10:55:19.672750+00:00"
++  }
++}
+diff --git a/tests/test_consumer_release.py b/tests/test_consumer_release.py
+index 6a709055df1d6c7f47f0fead13f057e7d6a3bd8b..01c8d39aad78ac38305b19af7de12a692c13f4d9 100644
+--- a/tests/test_consumer_release.py
++++ b/tests/test_consumer_release.py
+@@ -163,3 +163,23 @@ class ConsumerReleaseTests(unittest.TestCase):
+         self.assertIn('accepted_commit', record['acceptance_baseline'])
+         self.assertEqual('✅ 执行完成', record['snapshot']['development'])
+         self.cli('delivery.py', 'finish', '--all', '--check')
++
++    def test_document_validation_survives_acceptance_and_rejects_content_changes(self):
++        self.cli('setup_project.py', '--project', '.')
++        self.initialize()
++        req = json.loads(self.cli('delivery.py', 'create', '--title', '文档需求').stdout)['requirement']
++        config = {'schema_version': 1, 'inputs': ['requirements'],
++                  'checks': {'docs': {'argv': [sys.executable, '-c', 'pass']}},
++                  'profiles': {'docs': ['docs']}}
++        (self.root / '.agents/project-checks.json').write_text(json.dumps(config))
++        self.cli('project_checks.py', 'run', '--profile', 'docs')
++        result = str(next((self.root / 'logs/project-checks').glob('*/result.json')).relative_to(self.root))
++        card = self.root / 'requirements' / (req + '.md')
++        card.write_text(card.read_text().replace('⬜ 未执行', '✅ 执行完成')
++                        .replace('实施并验证 AC-01', '无').replace('| 未验证 | — |', '| 通过 | ' + result + ' |'))
++        self.cli('delivery.py', '--requirement', req, 'finish', '--accept', '--result', result)
++        self.git('add', '.')
++        self.cli('project_checks.py', 'verify', '--result', result, '--staged')
++        card.write_text(card.read_text().replace('可观察的输入、操作与预期结果', '改变了产品验收条件'))
++        self.assertNotEqual(0, self.cli('project_checks.py', 'verify', '--result', result, ok=False).returncode)
++        self.assertNotEqual(0, self.cli('delivery.py', '--requirement', req, 'finish', ok=False).returncode)
+diff --git a/tests/test_delivery.py b/tests/test_delivery.py
+index 454ad8d222b5c6999a6bd8308f664559d5b7506d..8151ed30f6f5f882b856060ac0a8f6c61b5e95c3 100644
+--- a/tests/test_delivery.py
++++ b/tests/test_delivery.py
+@@ -369,3 +369,21 @@ class DeliveryTests(unittest.TestCase):
+         self.v2_card('🔄 执行中', '失败', '真实复现证据')
+         self.assertEqual('🔄 执行中', d.card_state(self.root, REQ)['state'])
+         self.assertNotIn('标通过、未通过', (ROOT / '.agents/skills/ios-team-flow/references/ACCEPTANCE.md').read_text())
++
++    def test_history_delta_preserves_complete_snapshots(self):
++        self.v2_card()
++        d.finish(self.root, [REQ])
++        _, before = d.load(self.root, REQ)
++        self.v2_card('🧪 待验证')
++        d.finish(self.root, [REQ])
++        _, after = d.load(self.root, REQ)
++        self.assertNotIn('snapshot', after['events'][-1])
++        expanded = d.history_snapshots(after)
++        self.assertEqual(before['snapshot'], expanded[0]['snapshot'])
++        self.assertEqual(after['snapshot'], expanded[-1]['snapshot'])
++        mixed = {'events': [{'snapshot': {'a': 1, 'b': 2}}, {'changes': {'a': 3}, 'removed': ['b']}]}
++        self.assertEqual({'a': 3}, d.history_snapshots(mixed)[-1]['snapshot'])
++        import sys
++        output = subprocess.check_output([sys.executable, str(ROOT / '.agents/skills/ios-team-flow/scripts/delivery.py'),
++                    '--project', str(self.root), '--requirement', REQ, 'status'], text=True)
++        self.assertEqual(after['snapshot'], json.loads(output))
+diff --git a/tests/test_project_checks.py b/tests/test_project_checks.py
+index bc1840bc300a68a28557f77a768ce19888829f48..aadb23c36e1bf4513d2aed309ecc04533d29ce0d 100644
+--- a/tests/test_project_checks.py
++++ b/tests/test_project_checks.py
+@@ -17,6 +17,7 @@ class ProjectChecksTests(unittest.TestCase):
+         self.addCleanup(self.temp.cleanup)
+         self.root = Path(self.temp.name).resolve()
+         (self.root / '.agents').mkdir()
++        (self.root / 'source').write_text('fixture source')
+ 
+     def config(self, commands, selected=None):
+         data = {'schema_version': 1, 'inputs': ['source'], 'checks': commands,
+@@ -64,6 +65,7 @@ class ProjectChecksTests(unittest.TestCase):
+     def test_source_edit_add_delete_and_config_change_invalidate(self):
+         self.config({'ok': {'argv': [sys.executable, '-c', 'pass']}})
+         source = self.root / 'source'
++        source.unlink()
+         source.mkdir()
+         code = source / 'code.swift'
+         code.write_text('one')
+@@ -136,6 +138,7 @@ class ProjectChecksTests(unittest.TestCase):
+         config['inputs'] = ['./source/']
+         config_path.write_text(json.dumps(config))
+         source = self.root / 'source'
++        source.unlink()
+         source.mkdir()
+         code = source / 'code.swift'
+         code.write_text('old')
+@@ -208,3 +211,23 @@ class ProjectChecksTests(unittest.TestCase):
+         source.write_text('restored')
+         with self.assertRaisesRegex(ValueError, '源码或配置'):
+             checks.verify(self.root, relative, staged=True)
++
++    def test_invalid_input_rejected_and_tracked_deletion_allowed(self):
++        import subprocess
++        def git(*args):
++            return subprocess.check_output(['git', '-C', str(self.root), *args])
++        git('init', '-q'); git('config', 'user.name', 'Fixture'); git('config', 'user.email', 'fixture@example.invalid')
++        self.config({'unit': {'argv': [sys.executable, '-c', 'pass']}})
++        config = checks.load_config(self.root)
++        for name in ('missing-source', 'empty'):
++            if name == 'empty':
++                (self.root / name).mkdir()
++            with self.assertRaisesRegex(ValueError, '无有效文件'):
++                checks.source_snapshot(self.root, {**config, 'inputs': [name]}, 'change')
++        git('add', '.'); git('commit', '-qm', 'initial')
++        (self.root / 'source').unlink()
++        deleted = checks.source_snapshot(self.root, config, 'change')
++        git('add', '-u')
++        self.assertEqual(deleted, checks.source_snapshot(self.root, config, 'change', staged=True))
++        git('commit', '-qm', 'delete')
++        self.assertEqual(deleted, checks.source_snapshot(self.root, config, 'change'))
+diff --git a/tests/test_workflow.py b/tests/test_workflow.py
+index c397399121165e1790466671869f380ad268fc50..ce1c9a087087c981a441d29c7f8ac58a2ce2d90a 100644
+--- a/tests/test_workflow.py
++++ b/tests/test_workflow.py
+@@ -496,6 +496,30 @@ class WorkflowTests(unittest.TestCase):
+         for target in re.findall(r'\]\(([^)]+)\)', template):
+             self.assertTrue((destination.parent / target).exists(), target)
+ 
++    def test_archive_prepare_inherits_only_unchanged_dimensions(self):
++        self.stage()
++        prior = self.complete()
++        self.git('add', 'logs/reviews'); self.git('commit', '-qm', 'reviewed implementation')
++        self.stage('requirements/DELIVERY.md', 'generated index')
++        report = gate.prepare(self.root, prior.stem)
++        data = json.loads(report.read_text())
++        self.assertEqual(prior.stem, data['previous_review'])
++        self.assertEqual('未验证', data['checks']['correctness']['status'])
++        self.assertEqual('未验证', data['checks']['security']['status'])
++        self.assertEqual('不适用', data['checks']['memory']['status'])
++        self.git('add', 'logs/reviews')
++        with self.assertRaises(ValueError):
++            gate.check(self.root)
++        self.git('reset', '--hard', 'HEAD')
++        self.stage('App/unreviewed.swift', 'changed after prior review')
++        self.git('commit', '-qm', 'later implementation')
++        self.stage('requirements/DELIVERY.md', 'new index')
++        with self.assertRaisesRegex(ValueError, '不覆盖当前 HEAD'):
++            gate.prepare(self.root, prior.stem)
++        self.stage('App/new.swift', 'new implementation')
++        with self.assertRaisesRegex(ValueError, '实施变化'):
++            gate.prepare(self.root, prior.stem)
++
+ 
+ if __name__ == '__main__':
+     unittest.main()

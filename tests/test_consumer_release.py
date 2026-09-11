@@ -163,3 +163,23 @@ class ConsumerReleaseTests(unittest.TestCase):
         self.assertIn('accepted_commit', record['acceptance_baseline'])
         self.assertEqual('✅ 执行完成', record['snapshot']['development'])
         self.cli('delivery.py', 'finish', '--all', '--check')
+
+    def test_document_validation_survives_acceptance_and_rejects_content_changes(self):
+        self.cli('setup_project.py', '--project', '.')
+        self.initialize()
+        req = json.loads(self.cli('delivery.py', 'create', '--title', '文档需求').stdout)['requirement']
+        config = {'schema_version': 1, 'inputs': ['requirements'],
+                  'checks': {'docs': {'argv': [sys.executable, '-c', 'pass']}},
+                  'profiles': {'docs': ['docs']}}
+        (self.root / '.agents/project-checks.json').write_text(json.dumps(config))
+        self.cli('project_checks.py', 'run', '--profile', 'docs')
+        result = str(next((self.root / 'logs/project-checks').glob('*/result.json')).relative_to(self.root))
+        card = self.root / 'requirements' / (req + '.md')
+        card.write_text(card.read_text().replace('⬜ 未执行', '✅ 执行完成')
+                        .replace('实施并验证 AC-01', '无').replace('| 未验证 | — |', '| 通过 | ' + result + ' |'))
+        self.cli('delivery.py', '--requirement', req, 'finish', '--accept', '--result', result)
+        self.git('add', '.')
+        self.cli('project_checks.py', 'verify', '--result', result, '--staged')
+        card.write_text(card.read_text().replace('可观察的输入、操作与预期结果', '改变了产品验收条件'))
+        self.assertNotEqual(0, self.cli('project_checks.py', 'verify', '--result', result, ok=False).returncode)
+        self.assertNotEqual(0, self.cli('delivery.py', '--requirement', req, 'finish', ok=False).returncode)

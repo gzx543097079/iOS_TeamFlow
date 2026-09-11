@@ -4,7 +4,7 @@
 
 ```sh
 python3 .agents/skills/ios-team-flow/scripts/project_checks.py init
-python3 .agents/skills/ios-team-flow/scripts/project_checks.py list
+# 编辑生成的 .agents/project-checks.json：填入实际命令、profile 和输入路径后再运行
 python3 .agents/skills/ios-team-flow/scripts/project_checks.py run --profile change
 ```
 
@@ -28,9 +28,11 @@ python3 .agents/skills/ios-team-flow/scripts/project_checks.py run --profile cha
       "timeout_seconds": 1800
     }
   },
-  "profiles": {"change": ["build", "unit-tests"]}
+  "profiles": {"build-only": ["build"], "change": ["unit-tests"]}
 }
 ```
+
+示例 change 由 test 完成测试及其构建，不机械重复 build；build-only 用于只需构建的改动。不同配置/Target 的额外构建有独立验证目的时再组合。list 仅用于查询配置，不是必经步骤。
 
 可配置现有 lint、测试计划、脚本或其他工具的 argv。没有 shell 展开，空格保留为单个参数；需要 shell 的已有项目脚本用其解释器显式调用，先审阅配置及脚本。凭据通过已有环境管理提供，不写进 argv/配置。不因使用入口而擅自执行发布、删除数据等命令。
 
@@ -55,3 +57,11 @@ python3 .agents/skills/ios-team-flow/scripts/project_checks.py verify --result l
 省略 inputs 时，Git 项目按已跟踪及未忽略的新文件记录，默认排除 requirements/ 下的 Markdown/JSON 管理记录，避免更新状态触发业务重测（该目录不得放业务资源；需要验证需求文档时显式纳入 inputs/profile_inputs）。删除的跟踪文件也参与比较；非 Git 项目必须显式配置 inputs。自动排除 logs/project-checks、logs/reviews 和 .agents/teamflow-backups 的生成证据，其他生成产物由项目 .gitignore 或明确 inputs 排除。此处测试指纹与 review 暂存指纹用途不同：前者证明测试对象，后者证明审查对象。
 
 实际验收优先向 delivery.py finish --accept 传 --result 结果路径（可重复），工具验证结果并复用对应 profile 输入，无需再手填 --inputs；result 不代替 AC 或团队确认。
+
+## 文档验证与有效输入
+
+输入必须至少匹配有效文件，或有 Git 跟踪历史可证明是合法删除；拼错、空目录和从未存在的路径明确报错。删除后暂存和后续复核不因此误重测。
+
+requirements/delivery/ 和 requirements/DELIVERY.md 是生成记录，始终排除。显式验证 requirements 时，结构化 REQ 卡只绑定产品正文及 AC 编号/条件；状态、下一步、阻塞、确认记录、AC 结果/证据和“过程与决策”不进入源码指纹，它们由需求结构校验及提交语义审查核对。PRD 和其他文档仍绑定完整内容。不得把产品需求正文放在过程记录里。
+
+因此先验证文档、再填写 AC 结果及 finish 不会让自己的证据失效；改变条件或产品正文仍必须重验。此规范用于产品文档验证；验证工作流状态解析器本身应使用独立测试夹具，不能依赖已排除的运行记录证明状态逻辑。

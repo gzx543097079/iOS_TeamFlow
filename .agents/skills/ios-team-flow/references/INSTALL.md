@@ -20,6 +20,16 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
 
 空目录先 mkdir -p .agents/skills，再按上述步骤接入；不用提前创建 App。首次收尾前在未纳入 Git 的项目根 git init，已有仓库不嵌套。接入不提交、不上传。
 
+## 接入后的只读诊断
+
+```sh
+python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project . --doctor
+```
+
+不写文件、不执行配置里的命令、不联网、不安装依赖或 Hook。缺 Git 时先确认项目根再初始化；新项目待工程生成后补实际 profile，已有项目从既有 CI/构建说明提取配置。未安装 Hook/CI 是可选状态，不冒充强制门禁已启用。工具内部不依赖 Python 忽略规则，仍建议合并 `__pycache__/`、`*.pyc`、`.agents/teamflow-backups/` 和实际构建输出到项目 .gitignore，保留团队既有内容。
+
+当前阻塞项：Git 根或入口错误先解决；已有业务工程实施前配置实际验证，新工程建成后配置。未安装可选 Hook/CI 不阻塞接入；升级与恢复仅在对应事件发生时阅读后文。
+
 ## 后续使用
 
 从项目根目录打开新的 Codex 会话。AGENTS.md 已要求在 iOS 实施与提交审查时读取本地 Skill，直接说“做一个订阅页”即可。规则属于指令约束，构建、lint 和提交拦截仍需对应工具或 hook。
@@ -81,11 +91,3 @@ python3 /临时目录/ios-team-flow/scripts/upgrade_skill.py --project /项目�
 `--apply` 在同一事务中备份完整 Skill、两种指令入口、根门禁入口和版本/基线，再应用更新。写入失败自动恢复；恢复入口仍为 setup_project.py --project ... --recover <transaction.json>，此时恢复范围包含完整 Skill。恢复也会检查升级后是否有人工修改，不强制覆盖。
 
 始终保留新版临时工具直到升级验收完成。恢复到旧版本后如需再次执行恢复，使用临时新版 scripts/setup_project.py；旧版本可能不支持完整事务格式。强制中断时，先确认无升级进程，使用新版恢复工具处理 prepared 事务，再移除 `.agents/teamflow-upgrade.lock` 空锁目录。备份留在项目 .agents/teamflow-backups，不进入通用包；升级不会安装或覆盖 Git Hook/CI。
-
-## 接入后的只读诊断
-
-```sh
-python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project . --doctor
-```
-
-不写文件、不执行配置里的命令、不联网、不安装依赖或 Hook。缺 Git 时先确认项目根再初始化；新项目待工程生成后补实际 profile，已有项目从既有 CI/构建说明提取配置。未安装 Hook/CI 是可选状态，不冒充强制门禁已启用。工具内部不依赖 Python 忽略规则，仍建议合并 `__pycache__/`、`*.pyc`、`.agents/teamflow-backups/` 和实际构建输出到项目 .gitignore，保留团队既有内容。

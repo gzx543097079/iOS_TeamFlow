@@ -155,7 +155,7 @@ def implementation_snapshot(root, inputs=None, ref=None):
     names = checks.input_paths(root, inputs, entries if ref else None)
     digest = hashlib.sha256()
     for name in sorted(names):
-        if name.startswith('requirements/') and Path(name).suffix in ('.md', '.json'):
+        if inputs is None and name.startswith('requirements/') and Path(name).suffix in ('.md', '.json'):
             continue
         if ref:
             git_mode, kind, oid = entries[name]
@@ -174,7 +174,7 @@ def implementation_snapshot(root, inputs=None, ref=None):
                 content, mode = git(path, 'rev-parse', 'HEAD').encode(), b'gitlink'
             else:
                 continue
-        digest.update(os.fsencode(name) + b'\0' + mode + b'\0' + hashlib.sha256(content).digest())
+        digest.update(os.fsencode(name) + b'\0' + mode + b'\0' + hashlib.sha256(checks.content_for_snapshot(name, content)).digest())
     return digest.hexdigest()
 
 
@@ -327,11 +327,30 @@ def refresh(root, data, github=False, accept=False, inputs=None, results=None):
     return data
 
 
+def history_snapshots(data):
+    previous = {}
+    expanded = []
+    for event in data['events']:
+        if 'snapshot' in event:
+            previous = event['snapshot'].copy()
+        else:
+            previous.update(event.get('changes', {}))
+            for key in event.get('removed', []):
+                previous.pop(key, None)
+        expanded.append({**event, 'snapshot': previous.copy()})
+    return expanded
+
+
 def save(root, path, data, action):
     safe_path(root, 'requirements/DELIVERY.md')
     if 'card' in data.get('snapshot', {}):
         data.pop('development', None)
-    data['events'].append({'at': datetime.now(timezone.utc).isoformat(), 'action': action, 'snapshot': data.get('snapshot', {})})
+    history = history_snapshots(data)
+    previous = history[-1]['snapshot'] if history else {}
+    current = data.get('snapshot', {})
+    data['events'].append({'at': datetime.now(timezone.utc).isoformat(), 'action': action,
+                          'changes': {k: v for k, v in current.items() if k not in previous or previous[k] != v},
+                          'removed': [k for k in previous if k not in current]})
     path.parent.mkdir(parents=True, exist_ok=True)
     temp = path.with_suffix('.tmp')
     safe_path(root, str(temp.relative_to(root)))
@@ -460,6 +479,8 @@ def main():
     parser.add_argument('--project', type=Path, default=Path('.'))
     parser.add_argument('--requirement')
     sub = parser.add_subparsers(dest='command', required=True)
+    status = sub.add_parser('status')
+    status.add_argument('--history', action='store_true', help='按需展开完整历史事件')
     creator = sub.add_parser('create')
     creator.add_argument('--title', required=True)
     finishing = sub.add_parser('finish')
@@ -503,6 +524,9 @@ def main():
         if not args.requirement:
             raise ValueError('该命令需要 --requirement')
         path, data = load(root, args.requirement)
+        if args.command == 'status':
+            print(json.dumps({**data, 'events': history_snapshots(data)} if args.history else data.get('snapshot', {}), ensure_ascii=False, indent=2))
+            return 0
         if args.command == 'development':
             if card_state(root, args.requirement) is not None:
                 raise ValueError('新版需求仅在需求卡维护状态与验收，然后 finish；无需 development 重复登记')

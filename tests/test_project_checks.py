@@ -17,6 +17,7 @@ class ProjectChecksTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name).resolve()
         (self.root / '.agents').mkdir()
+        (self.root / 'source').write_text('fixture source')
 
     def config(self, commands, selected=None):
         data = {'schema_version': 1, 'inputs': ['source'], 'checks': commands,
@@ -64,6 +65,7 @@ class ProjectChecksTests(unittest.TestCase):
     def test_source_edit_add_delete_and_config_change_invalidate(self):
         self.config({'ok': {'argv': [sys.executable, '-c', 'pass']}})
         source = self.root / 'source'
+        source.unlink()
         source.mkdir()
         code = source / 'code.swift'
         code.write_text('one')
@@ -136,6 +138,7 @@ class ProjectChecksTests(unittest.TestCase):
         config['inputs'] = ['./source/']
         config_path.write_text(json.dumps(config))
         source = self.root / 'source'
+        source.unlink()
         source.mkdir()
         code = source / 'code.swift'
         code.write_text('old')
@@ -208,3 +211,23 @@ class ProjectChecksTests(unittest.TestCase):
         source.write_text('restored')
         with self.assertRaisesRegex(ValueError, '源码或配置'):
             checks.verify(self.root, relative, staged=True)
+
+    def test_invalid_input_rejected_and_tracked_deletion_allowed(self):
+        import subprocess
+        def git(*args):
+            return subprocess.check_output(['git', '-C', str(self.root), *args])
+        git('init', '-q'); git('config', 'user.name', 'Fixture'); git('config', 'user.email', 'fixture@example.invalid')
+        self.config({'unit': {'argv': [sys.executable, '-c', 'pass']}})
+        config = checks.load_config(self.root)
+        for name in ('missing-source', 'empty'):
+            if name == 'empty':
+                (self.root / name).mkdir()
+            with self.assertRaisesRegex(ValueError, '无有效文件'):
+                checks.source_snapshot(self.root, {**config, 'inputs': [name]}, 'change')
+        git('add', '.'); git('commit', '-qm', 'initial')
+        (self.root / 'source').unlink()
+        deleted = checks.source_snapshot(self.root, config, 'change')
+        git('add', '-u')
+        self.assertEqual(deleted, checks.source_snapshot(self.root, config, 'change', staged=True))
+        git('commit', '-qm', 'delete')
+        self.assertEqual(deleted, checks.source_snapshot(self.root, config, 'change'))

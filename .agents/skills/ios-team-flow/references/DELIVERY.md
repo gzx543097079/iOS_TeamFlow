@@ -40,3 +40,7 @@ python3 .agents/skills/ios-team-flow/scripts/delivery.py --requirement REQ-实�
 本地标签只是候选；只有远端同名标签与本地一致、正式非草稿/非预发布 Release 包含全部实施提交（或核实的合并提交）才标已发布。网络、权限或对象缺失如实标未核实；同一提交集合的普通本地同步保留上次远端证据及时间，不代表本轮联网核对。工具不自动 fetch、commit、push 或发布。
 
 GitHub Release 与 App Store/TestFlight 分开，业务发布见 [APP-RELEASE](APP-RELEASE.md)。编号关联纠错可用 link-commit / exclude-commit --commit 确切SHA --reason 原因，不改共享历史；仅按明确需求使用，不作为日常步骤。
+
+## 日常读取与历史
+
+`delivery.py --requirement REQ-实际编号 status` 只读当前快照，不改状态或联网；只有需要追溯时加 --history。新增事件保存字段变化与删除项，当前快照保存完整状态；历史可按顺序重建，既有完整事件不改写，不丢失证据。日常不要把全部 JSON 历史加载进上下文。

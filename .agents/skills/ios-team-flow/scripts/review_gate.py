@@ -81,7 +81,7 @@ def report_errors(report, base, fingerprint):
     return errors
 
 
-def prepare(root):
+def prepare(root, previous=None):
     base, patch, fingerprint = snapshot(root)
     directory = root / RECEIPTS
     directory.mkdir(parents=True, exist_ok=True)
@@ -97,6 +97,25 @@ def prepare(root):
             'checks': {name: {'status': '未验证', 'evidence': ''} for name in CATEGORIES},
             'findings': [], 'blockers': [], 'requirements': [], 'validation_results': []
         }
+        if previous:
+            if len(previous) != 64 or any(c not in '0123456789abcdef' for c in previous):
+                raise ValueError('previous 必须是完整审查指纹')
+            names = git(root, 'diff', '--cached', '--name-only', '-z').decode().split('\0')
+            if any(n and not (n.startswith(('requirements/delivery/', RECEIPTS)) or n == 'requirements/DELIVERY.md') for n in names):
+                raise ValueError('自动继承仅用于生成交付记录归档，实施变化须重新审查')
+            prior = json.loads(git(root, 'show', 'HEAD:' + RECEIPTS + previous + '.json'))
+            if report_errors(prior, prior.get('base'), previous):
+                raise ValueError('前次报告未完成，不能继承')
+            reviewed_patch = git(root, 'diff', '--binary', '--full-index', '--no-ext-diff', '--no-textconv',
+                                 '--no-renames', prior['base'], 'HEAD', '--', '.', ':(exclude)logs/reviews/**')
+            if hashlib.sha256(prior['base'].encode() + b'\0' + reviewed_patch).hexdigest() != previous:
+                raise ValueError('前次报告不覆盖当前 HEAD，不能自动继承')
+            report['previous_review'] = previous
+            report['requirements'] = prior.get('requirements', [])
+            for category in CATEGORIES:
+                if category not in ('correctness', 'security'):
+                    report['checks'][category] = {'status': prior['checks'][category]['status'],
+                        'evidence': '复用 ' + previous + ' 的 ' + category + '；仅生成记录归档，无业务变化。'}
         # 不覆盖已有报告；并发创建同一指纹时由后续调用续接。
         with target.open('x') as stream:
             json.dump(report, stream, ensure_ascii=False, indent=2)
@@ -148,9 +167,15 @@ def check(root):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('command', choices=('prepare', 'check'))
+    parser.add_argument('--previous', help='仅归档记录时复用已提交的完成报告')
     args = parser.parse_args()
     try:
-        (prepare if args.command == 'prepare' else check)(repo_root())
+        if args.command == 'prepare':
+            prepare(repo_root(), args.previous)
+        elif args.previous:
+            raise ValueError('--previous 仅用于 prepare')
+        else:
+            check(repo_root())
     except (ValueError, OSError, subprocess.CalledProcessError) as error:
         parser.exit(1, '审查门禁：' + str(error) + '\n')
 

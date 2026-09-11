@@ -56,12 +56,12 @@ def load_config(root):
 
 
 # 自动生成的证据不参与源码指纹，避免报告写入令自身失效。
-EVIDENCE_DIRS = ('logs/project-checks/', 'logs/reviews/', '.agents/teamflow-backups/')
+EVIDENCE_DIRS = ('logs/project-checks/', 'logs/reviews/', '.agents/teamflow-backups/', 'requirements/delivery/')
 
 
 def excluded_input(name):
     parts = Path(name).parts
-    return (name.startswith(EVIDENCE_DIRS) or any(p in ('.git', '__pycache__', '.build', 'DerivedData')
+    return (name == 'requirements/DELIVERY.md' or name.startswith(EVIDENCE_DIRS) or any(p in ('.git', '__pycache__', '.build', 'DerivedData')
             or p.endswith('.xcresult') for p in parts) or Path(name).suffix in ('.pyc', '.pyo'))
 
 
@@ -73,6 +73,7 @@ def input_paths(root, inputs=None, candidates=None):
         for name in inputs:
             local_path(root, name)
         inputs = [str(Path(n)) for n in inputs]
+    validate_inputs = candidates is None
     if candidates is None:
         try:
             raw = subprocess.check_output(['git', '-C', str(root), 'ls-files', '--cached', '--others',
@@ -83,9 +84,40 @@ def input_paths(root, inputs=None, candidates=None):
                 raise ValueError('非 Git 项目必须显式配置 inputs')
             candidates = {str(p.relative_to(root)) for n in inputs for p in
                           ([local_path(root, n)] if not local_path(root, n).is_dir() else local_path(root, n).rglob('*'))
-                          if not p.is_dir() or p.is_symlink()}
+                          if p.is_file() or p.is_symlink()}
+    if validate_inputs and inputs is not None:
+        for item in inputs:
+            if any(not excluded_input(n) and (item == '.' or n == item or n.startswith(item + '/')) for n in candidates):
+                continue
+            # 允许本次删除及后续复核已跟踪的删除路径，但不能静默接受拼错/空目录。
+            history = subprocess.run(['git', '-C', str(root), 'log', '-1', '--format=%H', '--', item],
+                                     capture_output=True, text=True)
+            if history.returncode != 0 or not history.stdout.strip():
+                raise ValueError('验证输入无有效文件且无跟踪历史：' + item)
     return {n for n in candidates if not excluded_input(n) and (inputs is None or any(
         item == '.' or n == item or n.startswith(item.rstrip('/') + '/') for item in inputs))}
+
+
+def content_for_snapshot(name, content):
+    """需求卡只绑定产品条件，状态/结果/历史由需求及审查语义核对，避免验收自引用。"""
+    if not (name.startswith('requirements/REQ-') and name.endswith('.md')):
+        return content
+    text = content.decode('utf-8')
+    if '<!-- teamflow:requirement:v' not in text:
+        return content
+    lines = []
+    history = False
+    for line in text.splitlines():
+        if line.startswith('## '):
+            history = line.startswith('## 过程与决策')
+        if history or re.match(r'^- (状态|下一步|阻塞项|团队确认|暂停或取消原因)：', line):
+            continue
+        if re.match(r'^\|\s*AC-', line):
+            cells = [c.strip() for c in line.strip().strip('|').split('|')]
+            if len(cells) == 4:
+                line = '| ' + cells[0] + ' | ' + cells[1] + ' |'
+        lines.append(line)
+    return ('\n'.join(lines) + '\n').encode('utf-8')
 
 
 def source_snapshot(root, config, profile=None, staged=False):
@@ -126,17 +158,17 @@ def source_snapshot(root, config, profile=None, staged=False):
                     raise ValueError('暂存输入不是普通文件：' + name)
                 content = subprocess.check_output(['git', '-C', str(root), 'cat-file', 'blob', oid.decode()],
                                                   stderr=subprocess.PIPE)
-                files[name] = {'sha256': hashlib.sha256(content).hexdigest(), 'executable': mode == b'100755'}
+                files[name] = {'sha256': hashlib.sha256(content_for_snapshot(name, content)).hexdigest(), 'executable': mode == b'100755'}
             continue
         if not path.exists():
             continue
         elif path.is_file():
-            files[name] = {'sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
+            files[name] = {'sha256': hashlib.sha256(content_for_snapshot(name, path.read_bytes())).hexdigest(),
                            'executable': bool(path.stat().st_mode & 0o111)}
         else:
             raise ValueError('输入不是普通文件（目录输入需展开，子模块需显式指定文件）：' + name)
     encoded = json.dumps(files, sort_keys=True, ensure_ascii=True).encode()
-    return {'algorithm': 'sha256-files-v2', 'fingerprint': hashlib.sha256(encoded).hexdigest(), 'files': files}
+    return {'algorithm': 'sha256-files-v3', 'fingerprint': hashlib.sha256(encoded).hexdigest(), 'files': files}
 
 
 def verify(root, result, staged=False):

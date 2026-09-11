@@ -1,6 +1,6 @@
 # iOS TeamFlow
 
-项目级中文 iOS 团队工作流。当前版本为 **1.8.0**。完整规则只维护在项目 .agents/skills/ios-team-flow，团队克隆后共用。
+项目级中文 iOS 团队工作流。当前版本为 **1.9.0**。完整规则只维护在项目 .agents/skills/ios-team-flow，团队克隆后共用。
 
 ## 团队成员如何使用
 
@@ -8,7 +8,7 @@
 
 **首次接入：** 放入完整 Skill → 执行一次接入及查看诊断 → 在 Codex 打开项目根的新会话。需要 Python 3.10+、Git；App 构建需要项目实际 macOS/Xcode。
 
-1. 进入项目根，创建 .agents/skills；从 [1.8.0 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v1.8.0) 下载 ios-team-flow-skill-v1.8.0.zip，将完整 ios-team-flow 文件夹放入其中，最终是 .agents/skills/ios-team-flow/SKILL.md。
+1. 进入项目根，创建 .agents/skills；从 [1.9.0 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v1.9.0) 下载 ios-team-flow-skill-v1.9.0.zip，将完整 ios-team-flow 文件夹放入其中，最终是 .agents/skills/ios-team-flow/SKILL.md。
 2. 执行接入（也可让 Codex 接入当前项目）：
 
 ```sh
@@ -26,7 +26,7 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
 
 状态只在需求卡维护；测试命令只在验证配置维护；验收引用真实结果，无需再手填同一测试范围。已封存验收绑定当时提交，后续需求不会迫使原需求重验。无变化问答不执行收尾，生成交付记录可随下一次正常提交归档。
 
-新项目只输出启动阶段适用内容，功能和发布阶段再展开；已有项目保留实际技术栈和目录，现状文档只保留稳定入口与约定。历史需求不补同步。
+新项目恢复详细 PRD 模板，按启动、功能、发布阶段填写，保留需求细节；已有项目保留实际技术栈和目录，现状文档只保留稳定入口与约定。历史需求不补同步。
 
 | 按需资料 | 入口 |
 | --- | --- |
@@ -35,6 +35,8 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
 | 验证命令与结果排错 | [PROJECT-CHECKS](.agents/skills/ios-team-flow/references/PROJECT-CHECKS.md) |
 | 提交前审查、可选 Hook/PR | [REVIEW](.agents/skills/ios-team-flow/references/REVIEW.md) · [GIT-CHECKS](.agents/skills/ios-team-flow/references/GIT-CHECKS.md) |
 | 其余规范、模板和 App 发布 | [内容导航](.agents/skills/ios-team-flow/references/README.md) |
+
+1.9.0 修复文档验收自引用和无效输入漏检；首次验证说明补齐配置步骤，归档审查支持继承前次结论，历史按需读取。待团队验收也可按授权提交代码，保持真实状态。
 
 ## 源仓库维护
 
