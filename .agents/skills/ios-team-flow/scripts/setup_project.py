@@ -2,6 +2,9 @@
 """将已安装 Skill 接入指定项目，预检冲突并保留既有文件。"""
 import argparse
 import json
+import hashlib
+import re
+import tempfile
 from pathlib import Path
 
 START = '<!-- ios-team-flow:start -->'
@@ -18,26 +21,34 @@ BLOCK = '''<!-- ios-team-flow:start -->
 
 GATE_ENTRY = '#!/usr/bin/env python3\n"""从项目内 Skill 加载审查门禁，唯一实现维护在 Skill 内。"""\nimport runpy\nfrom pathlib import Path\n\n_source = Path(__file__).resolve().parents[1] / \'.agents/skills/ios-team-flow/scripts/review_gate.py\'\nglobals().update(runpy.run_path(str(_source), run_name=__name__))\n'
 
+# 已发布 1.2.1 的托管内容指纹；仅用于没有基线的旧接入记录。
+LEGACY_121 = {'agents_block': '2ed1594fbeb374590c3ecd0cca48910b7f86726acc3204ce1634d5a58e6f9a8e', 'gate_entry': '1c6e0ee2a0554883d7fd1ce35b4f93a3dccb3d4a7aabe9aa8fecabdd9124db94'}
+
+
+def digest(content):
+    return hashlib.sha256(content.encode()).hexdigest()
+
+
+def version_tuple(value):
+    if not isinstance(value, str) or not re.fullmatch(r'\d+\.\d+\.\d+', value):
+        raise ValueError('版本必须为 X.Y.Z')
+    return tuple(map(int, value.split('.')))
+
+
 def setup(project, skill):
     project = project.expanduser().resolve()
     skill = skill.resolve()
-    if project == skill or project.is_relative_to(skill):
-        raise ValueError('项目产物不能写入 Skill 安装目录')
     local_skill = project / '.agents/skills/ios-team-flow'
     if skill != local_skill or any(node.is_symlink() for node in
                                    (local_skill, local_skill.parent, local_skill.parent.parent)):
         raise ValueError('请先将完整 Skill 放入目标项目的 .agents/skills/ios-team-flow，再运行该项目内的接入脚本')
     version = (skill / 'references/VERSION').read_text().strip()
-    manifest = json.dumps({'skill': 'ios-team-flow', 'version': version}, ensure_ascii=False, indent=2) + '\n'
-    planned = {
-        '.agents/teamflow.json': manifest.encode(),
-        'scripts/review_gate.py': GATE_ENTRY.encode(),
-    }
+    version_tuple(version)
+    manifest_name = '.agents/teamflow.json'
+    gate_name = 'scripts/review_gate.py'
+    names = (manifest_name, gate_name, 'AGENTS.md')
     conflicts = []
-    override = project / 'AGENTS.override.md'
-    if override.exists() and (not override.is_file() or override.stat().st_size > 0):
-        conflicts.append('存在 AGENTS.override.md，需先将工作流入口合入有效指令文件')
-    for name in (*planned, 'AGENTS.md', 'requirements', 'logs/reviews'):
+    for name in (*names, 'requirements', 'logs/reviews', '.agents/teamflow-backups'):
         path = project / name
         for node in (path, *path.parents):
             if node == project:
@@ -49,35 +60,91 @@ def setup(project, skill):
                 break
             if parent.exists() and not parent.is_dir():
                 conflicts.append(name + ' 的父路径不是目录')
-    for name, content in planned.items():
-        target = project / name
-        if target.exists() and (not target.is_file() or target.read_bytes() != content):
-            conflicts.append(name + ' 已存在且内容/版本不同')
-    agents = project / 'AGENTS.md'
-    if agents.exists() and not agents.is_file():
-        conflicts.append('AGENTS.md 不是文件')
-    old = agents.read_text() if agents.is_file() else ''
-    if START in old or END in old:
-        if old.count(START) != 1 or old.count(END) != 1 or BLOCK.strip() not in old:
-            conflicts.append('AGENTS.md 的工作流区块已定制或不完整')
-        updated = old
-    else:
-        updated = old + ('\n\n' if old else '') + BLOCK
-    for name in ('requirements', 'logs/reviews'):
-        target = project / name
-        if target.exists() and not target.is_dir():
-            conflicts.append(name + ' 不是目录')
+        if path.exists() and (not path.is_file() if name in names else not path.is_dir()):
+            conflicts.append(name + ' 类型不正确')
+    override = project / 'AGENTS.override.md'
+    if override.exists() and (not override.is_file() or override.stat().st_size > 0):
+        conflicts.append('存在 AGENTS.override.md，需先将工作流入口合入有效指令文件')
     if conflicts:
         raise ValueError('接入前预检发现冲突，未写入文件：\n' + '\n'.join(sorted(set(conflicts))))
-    project.mkdir(parents=True, exist_ok=True)
-    for name, content in planned.items():
+    before = {name: (project / name).read_bytes() if (project / name).exists() else None
+              for name in names}
+    manifest = {}
+    baseline = {}
+    if before[manifest_name] is not None:
+        try:
+            manifest = json.loads(before[manifest_name])
+            if not isinstance(manifest, dict) or manifest.get('skill') != 'ios-team-flow':
+                raise ValueError('不是 ios-team-flow 的项目记录')
+            if version_tuple(manifest.get('version')) > version_tuple(version):
+                raise ValueError('不自动降级，请恢复匹配版本的 Skill')
+            if 'managed' in manifest:
+                baseline = manifest['managed']
+                if (manifest.get('schema_version') != 1 or not isinstance(baseline, dict)
+                        or set(baseline) != {'agents_block', 'gate_entry'}
+                        or any(not isinstance(v, str) or not re.fullmatch(r'[0-9a-f]{64}', v)
+                               for v in baseline.values())):
+                    raise ValueError('托管基线无效，请从项目 Git 历史恢复接入记录')
+            elif manifest.get('version') == '1.2.1':
+                baseline = LEGACY_121
+            else:
+                raise ValueError('旧接入记录没有可识别的基线，请先人工核对托管文件')
+        except (ValueError, TypeError) as error:
+            raise ValueError('接入前预检发现冲突，未写入文件：' + manifest_name + '：' + str(error)) from error
+    old = before['AGENTS.md'].decode() if before['AGENTS.md'] is not None else ''
+    updated = old
+    if START in old or END in old:
+        if old.count(START) != 1 or old.count(END) != 1 or old.index(START) >= old.index(END):
+            conflicts.append('AGENTS.md 托管标记缺失、重复或顺序错误，请恢复成对标记')
+        else:
+            start, end = old.index(START), old.index(END) + len(END)
+            current = old[start:end]
+            if digest(BLOCK.strip()) == baseline.get('agents_block'):
+                pass  # 新版未改此区块，保留团队定制。
+            elif current != BLOCK.strip() and digest(current) != baseline.get('agents_block'):
+                conflicts.append('AGENTS.md 托管区块有团队修改，请合并到新版区块；区块外规则会保留')
+            else:
+                updated = old[:start] + BLOCK.strip() + old[end:]
+    elif baseline:
+        conflicts.append('AGENTS.md 托管区块已被移除，请恢复后重试')
+    else:
+        updated = old + ('\n\n' if old else '') + BLOCK
+    current_gate = before[gate_name]
+    desired_gate = GATE_ENTRY.encode()
+    if current_gate is not None:
+        if digest(GATE_ENTRY) == baseline.get('gate_entry'):
+            desired_gate = current_gate  # 新版入口未变，保留团队定制。
+        elif current_gate != GATE_ENTRY.encode() and hashlib.sha256(current_gate).hexdigest() != baseline.get('gate_entry'):
+            conflicts.append(gate_name + ' 有团队修改或来源未知，请合并新版入口后重试')
+    elif baseline:
+        conflicts.append(gate_name + ' 已被移除，请恢复后重试')
+    if conflicts:
+        raise ValueError('接入前预检发现冲突，未写入文件：\n' + '\n'.join(conflicts))
+    # 保留接入记录中的其他团队字段，只更新本工具拥有的字段。
+    manifest.update(skill='ios-team-flow', version=version, schema_version=1,
+                    managed={'agents_block': digest(BLOCK.strip()), 'gate_entry': digest(GATE_ENTRY)})
+    planned = {manifest_name: (json.dumps(manifest, ensure_ascii=False, indent=2) + '\n').encode(),
+               gate_name: desired_gate, 'AGENTS.md': updated.encode()}
+    changed = {name: data for name, data in planned.items() if data != before[name]}
+    backup = None
+    if any(before[name] is not None for name in changed):
+        backup_root = project / '.agents/teamflow-backups'
+        backup_root.mkdir(parents=True, exist_ok=True)
+        backup = Path(tempfile.mkdtemp(prefix='upgrade-', dir=backup_root))
+        for name in changed:
+            if before[name] is not None:
+                target = backup / name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(before[name])
+    for name, content in changed.items():
         target = project / name
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(content)
-    agents.write_text(updated)
     for name in ('requirements', 'logs/reviews'):
         (project / name).mkdir(parents=True, exist_ok=True)
     print('项目已接入 ios-team-flow ' + version + '：' + str(project))
+    if backup:
+        print('升级前文件备份：' + str(backup))
 
 
 if __name__ == '__main__':

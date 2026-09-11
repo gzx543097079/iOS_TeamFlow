@@ -291,6 +291,117 @@ class WorkflowTests(unittest.TestCase):
         self.assertNotEqual(0, self.run_setup(skill, other).returncode)
         self.assertFalse((other / 'AGENTS.md').exists())
 
+    def project_files(self, project):
+        return {str(p.relative_to(project)): p.read_bytes()
+                for p in project.rglob('*') if p.is_file()}
+
+    def bump_skill(self, project, version='1.3.0'):
+        local = project / '.agents/skills/ios-team-flow'
+        (local / 'references/VERSION').write_text(version + '\n')
+        script = local / 'scripts/setup_project.py'
+        script.write_text(script.read_text().replace('版本见 .agents/teamflow.json',
+                                                    '工作流版本见 .agents/teamflow.json')
+                          .replace('唯一实现维护在 Skill 内', '实现由本项目 Skill 提供'))
+
+    def test_upgrade_121_without_baseline(self):
+        skill = self.extract_skill()
+        project = self.root / 'from-121'
+        local = project / '.agents/skills/ios-team-flow'
+        shutil.copytree(skill, local)
+        (project / 'scripts').mkdir()
+        old_block = '<!-- ios-team-flow:start -->\n## iOS 团队工作流\n\n本项目采用仓库内的 `.agents/skills/ios-team-flow/SKILL.md`。实施 iOS 需求和提交前必须读取该文件，无需用户再次点名 Skill；按 OC / Swift / SwiftUI / UI 类型加载规范，维护 requirements/ 需求过程与 logs/ 审查记录。\n新产品先整理 PRD 交团队确认。提交前只 review 本次改动，相同有效指纹复用；运行 `python3 scripts/review_gate.py check`。未经授权不提交或发布。\n版本见 .agents/teamflow.json，Skill 与项目一起提交和克隆，不依赖用户级安装。找不到本地 Skill 时明确报告缺失，不自动改用其他项目或用户级同名版本。遵守项目现有具体约定，有冲突先说明。\n<!-- ios-team-flow:end -->\n'
+        old_gate = '#!/usr/bin/env python3\n"""从项目内 Skill 加载审查门禁，唯一实现维护在 Skill 内。"""\nimport runpy\nfrom pathlib import Path\n\n_source = Path(__file__).resolve().parents[1] / \'.agents/skills/ios-team-flow/scripts/review_gate.py\'\nglobals().update(runpy.run_path(str(_source), run_name=__name__))\n'
+        agents = '团队前置规则\n' + old_block + '\n团队后置规则\n'
+        (project / 'AGENTS.md').write_text(agents)
+        (project / 'scripts/review_gate.py').write_text(old_gate)
+        manifest = project / '.agents/teamflow.json'
+        manifest.write_text(json.dumps({'skill': 'ios-team-flow', 'version': '1.2.1',
+                                        'team': '保留团队字段'}))
+        self.bump_skill(project)
+        result = self.run_setup(skill, project)
+        self.assertEqual(0, result.returncode, result.stderr)
+        data = json.loads(manifest.read_text())
+        self.assertEqual('1.3.0', data['version'])
+        self.assertEqual('保留团队字段', data['team'])
+        self.assertEqual({'agents_block', 'gate_entry'}, set(data['managed']))
+        updated = (project / 'AGENTS.md').read_text()
+        self.assertTrue(updated.startswith('团队前置规则\n'))
+        self.assertTrue(updated.endswith('\n团队后置规则\n'))
+        self.assertIn('工作流版本见 .agents/teamflow.json', updated)
+        backups = list((project / '.agents/teamflow-backups').glob('upgrade-*'))
+        self.assertEqual(1, len(backups))
+        self.assertEqual(agents, (backups[0] / 'AGENTS.md').read_text())
+        self.assertEqual(old_gate, (backups[0] / 'scripts/review_gate.py').read_text())
+        before = self.project_files(project)
+        self.assertEqual(0, self.run_setup(skill, project).returncode)
+        self.assertEqual(before, self.project_files(project))
+
+    def test_future_upgrade_with_baseline(self):
+        skill = self.extract_skill()
+        project = self.root / 'future'
+        self.assertEqual(0, self.run_setup(skill, project).returncode)
+        self.bump_skill(project)
+        result = self.run_setup(skill, project)
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual('1.3.0', json.loads((project / '.agents/teamflow.json').read_text())['version'])
+        self.bump_skill(project, '1.4.0')
+        self.assertEqual(0, self.run_setup(skill, project).returncode)
+        self.assertEqual('1.4.0', json.loads((project / '.agents/teamflow.json').read_text())['version'])
+
+    def test_upgrade_customization_conflicts_write_nothing(self):
+        skill = self.extract_skill()
+        for name in ('AGENTS.md', 'scripts/review_gate.py'):
+            with self.subTest(name=name):
+                project = self.root / ('custom-' + Path(name).stem)
+                self.assertEqual(0, self.run_setup(skill, project).returncode)
+                target = project / name
+                if name == 'AGENTS.md':
+                    target.write_text(target.read_text().replace('新产品先整理 PRD', '定制：新产品先整理 PRD'))
+                else:
+                    target.write_text(target.read_text() + '\n# 团队定制\n')
+                self.bump_skill(project)
+                before = self.project_files(project)
+                result = self.run_setup(skill, project)
+                self.assertNotEqual(0, result.returncode)
+                self.assertIn('团队修改', result.stderr)
+                self.assertEqual(before, self.project_files(project))
+
+    def test_version_only_upgrade_preserves_team_customization(self):
+        skill = self.extract_skill()
+        project = self.root / 'custom-version-only'
+        self.assertEqual(0, self.run_setup(skill, project).returncode)
+        agents = project / 'AGENTS.md'
+        agents.write_text(agents.read_text().replace('新产品先整理 PRD', '团队定制：新产品先整理 PRD'))
+        entry = project / 'scripts/review_gate.py'
+        entry.write_text(entry.read_text() + '\n# 团队定制\n')
+        expected = (agents.read_bytes(), entry.read_bytes())
+        (project / '.agents/skills/ios-team-flow/references/VERSION').write_text('1.3.0\n')
+        result = self.run_setup(skill, project)
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual(expected, (agents.read_bytes(), entry.read_bytes()))
+        self.assertEqual('1.3.0', json.loads((project / '.agents/teamflow.json').read_text())['version'])
+
+    def test_upgrade_rejects_downgrade_bad_manifest_and_markers(self):
+        skill = self.extract_skill()
+        for case in ('downgrade', 'bad-json', 'bad-baseline', 'reversed-markers'):
+            with self.subTest(case=case):
+                project = self.root / case
+                self.assertEqual(0, self.run_setup(skill, project).returncode)
+                manifest = project / '.agents/teamflow.json'
+                if case == 'downgrade':
+                    self.bump_skill(project, '1.0.0')
+                elif case == 'bad-json':
+                    manifest.write_text('{broken')
+                elif case == 'bad-baseline':
+                    data = json.loads(manifest.read_text())
+                    data['managed'] = []
+                    manifest.write_text(json.dumps(data))
+                else:
+                    (project / 'AGENTS.md').write_text('<!-- ios-team-flow:end -->\n<!-- ios-team-flow:start -->')
+                before = self.project_files(project)
+                self.assertNotEqual(0, self.run_setup(skill, project).returncode)
+                self.assertEqual(before, self.project_files(project))
+
     def test_setup_detects_overriding_instructions(self):
         skill = self.extract_skill()
         project = self.root / 'override'

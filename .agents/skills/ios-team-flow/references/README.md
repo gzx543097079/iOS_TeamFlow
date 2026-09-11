@@ -30,9 +30,9 @@ Codex 依据入口自动执行流程和语义审查；脚本提供可验证的�
 
 需求和日志可随项目提交；发布 zip 排除 App、需求和日志等项目数据。已配置 GitHub Actions 校验与 Release 附件上传，需推送后才在 GitHub 生效。
 
-## 项目级独立安装（v1.2.1）
+## 项目级独立安装（v1.2.2）
 
-使用 `ios-team-flow-skill-v1.2.1.zip`，将完整 ios-team-flow 目录放入目标项目 `.agents/skills/`，再在项目根目录运行一次 `python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .`。之后直接提 iOS 需求；规则与版本随项目提交，不需要个人安装。详细步骤见 [项目安装说明](INSTALL.md)。
+使用 `ios-team-flow-skill-v1.2.2.zip`，将完整 ios-team-flow 目录放入目标项目 `.agents/skills/`，再在项目根目录运行一次 `python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .`。之后直接提 iOS 需求；规则与版本随项目提交，不需要个人安装。详细步骤见 [项目安装说明](INSTALL.md)。
 
 空项目先创建并进入项目文件夹，再创建 Skill 目录（将 MyApp 替换为你的项目目录名；已有文件夹直接进入）：
 
