@@ -62,3 +62,5 @@
 完成说明：所有适用验收达成后填写；团队验收为约定必需项时记录其确认。
 
 业务验证配置：`.agents/project-checks.json`；本次 profile、选取原因及 result.json 证据：待填写 / 不适用并说明原因。
+
+交付关联：实施提交使用 `Requirement: 本需求编号`，详见 [交付追踪](../DELIVERY.md)。开发、提交、合并、发布分开记录，提交后刷新 requirements/DELIVERY.md。

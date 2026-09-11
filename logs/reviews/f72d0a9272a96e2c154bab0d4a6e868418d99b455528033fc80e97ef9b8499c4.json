@@ -1,0 +1,42 @@
+{
+  "fingerprint": "f72d0a9272a96e2c154bab0d4a6e868418d99b455528033fc80e97ef9b8499c4",
+  "base": "48929aa0ca114c00fc8fbbec3cd7d49a04497724",
+  "scope": "staged",
+  "created_at": "2026-09-11T08:02:31.824597+00:00",
+  "reviewer": "Codex",
+  "completed_at": "2026-09-11T08:02:48.273301+00:00",
+  "summary": "审查第 2 项：需求、提交、PR 与发布关联，无阻塞问题。",
+  "previous_review": null,
+  "checks": {
+    "correctness": {
+      "status": "通过",
+      "evidence": "交付专项 8 项测试通过：尾注关联、验收过期、元数据排除、离线与草稿、旧版本不覆盖新提交、远端标签漂移；全套此前 36 项通过且新增漂移测试通过。当前仓库真实发现第 1 项提交并生成状态索引。"
+    },
+    "standards": {
+      "status": "通过",
+      "evidence": "仅维护项目内 Skill，入口和分发清单一致；工具与中文说明对应，无业务代码风格改动。"
+    },
+    "subscription": {
+      "status": "不适用",
+      "evidence": "没有订阅商品、价格或购买代码变更。"
+    },
+    "memory": {
+      "status": "不适用",
+      "evidence": "没有 iOS 对象生命周期变更，子进程/文件资源按工具行为测试验证。"
+    },
+    "analytics": {
+      "status": "不适用",
+      "evidence": "没有业务打点逻辑改动。"
+    },
+    "test_artifacts": {
+      "status": "通过",
+      "evidence": "测试仅使用临时项目和夹具，没有生产账号或调试入口；通用包白名单排除项目数据。"
+    },
+    "security": {
+      "status": "通过",
+      "evidence": "Git/gh 参数数组调用，需求 ID 和引用校验，记录路径拒绝符号链接；仅显式 --github 进行只读查询，不自动创建 PR/Release，无法核实不标通过。"
+    }
+  },
+  "findings": [],
+  "blockers": []
+}

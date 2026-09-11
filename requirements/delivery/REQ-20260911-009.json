@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "requirement": "REQ-20260911-009",
+  "linked_commits": [],
+  "prs": [],
+  "development": {
+    "state": "✅ 开发完成",
+    "evidence": "29 项测试与本卡验收记录；实施提交 48929aa",
+    "commits": [
+      "48929aa0ca114c00fc8fbbec3cd7d49a04497724"
+    ]
+  },
+  "events": [
+    {
+      "at": "2026-09-11T08:02:23.608126+00:00",
+      "action": "development",
+      "snapshot": {
+        "commits": [
+          "48929aa0ca114c00fc8fbbec3cd7d49a04497724"
+        ],
+        "committed": true,
+        "merged": "未核实",
+        "releases": [],
+        "release_status": "未核实",
+        "prs": [],
+        "warnings": [
+          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+        ],
+        "development": "✅ 开发完成",
+        "checked_at": "2026-09-11T08:02:23.607863+00:00"
+      }
+    }
+  ],
+  "snapshot": {
+    "commits": [
+      "48929aa0ca114c00fc8fbbec3cd7d49a04497724"
+    ],
+    "committed": true,
+    "merged": "未核实",
+    "releases": [],
+    "release_status": "未核实",
+    "prs": [],
+    "warnings": [
+      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+    ],
+    "development": "✅ 开发完成",
+    "checked_at": "2026-09-11T08:02:23.607863+00:00"
+  }
+}
