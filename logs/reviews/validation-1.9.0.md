@@ -9,3 +9,11 @@
 - 新项目模板恢复1.7详细内容，保留分阶段填写、权限/语言/订阅/目录等条目。
 - validate_workflow及双ZIP/SHA256打包通过；源文件diff --check通过。补丁文件中的空白上下文保持原始Git格式。
 - 本次仅工作流工具/文档，无真实App、商店或运行时内存验收声明。
+
+## 发布核验
+
+- 实施提交 db4527922b99af7da79bd9efec709a0e713cdbe2 已推送。
+- 正式Release：https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v1.9.0
+- GitHub发布流水线success：https://github.com/gzx543097079/iOS_TeamFlow/actions/runs/34591693322
+- 最终提交的完整测试/校验/打包在GitHub通过，四附件API digest与本地ZIP及SHA256文件字节一致。
+- 无PR，不将直接推送标为PR已合并；本需求发布事实通过finish --github核对。
