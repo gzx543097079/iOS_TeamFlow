@@ -42,7 +42,8 @@
 | UI 框架 | UIKit（默认） | 采用 Swift + UIKit；项目明确要求时可调整为 SwiftUI / 混合 |
 | 项目架构 | MVVM + 按功能组织（默认建议） | 可选 MVC / MVVM / TCA / Clean 等；按需求复杂度决定，不默认引入架构库 |
 | 状态管理与依赖注入 | ViewModel 管理界面状态 + 构造注入（默认建议） | UIKit 视图负责展示与交互，明确状态更新方式和共享状态 owner；不默认引入 SwiftUI 状态模型 |
-| 导航方案 | UINavigationController，按需使用 UITabBarController（默认建议） | 记录深链、登录拦截与路由恢复需求 |
+| 导航方案 | 使用 UINavigationController，默认显示导航栏并通过导航栈管理页面（默认建议，待确认） | 记录页面标题、返回行为、深链、登录拦截与路由恢复需求 |
+| 是否使用 Tab Bar（底部标签栏） | 否（默认建议，待确认） | 默认不创建 UITabBarController 或底部标签栏；仅在明确需求并确认后启用 |
 | 最低 iOS / iPadOS | iOS 14.0；启用 iPad 支持时默认 iPadOS 14.0 | 按此部署目标选择 API 和依赖；更高版本 API 提供兼容处理，不自动提高最低系统版本 |
 | Xcode / SDK / Swift 语言模式 | 待确认具体版本 | 本地与 CI 对齐；不写模糊“最新版”，部署目标和 SDK 分开记录 |
 | 依赖管理 | Swift Package Manager（默认建议） | 既有 CocoaPods 等可保留；记录依赖、版本锁定及引入理由 |
