@@ -66,9 +66,9 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
 
 业务项目使用独立 Skill 包。`iOS-TeamFlow-vX.Y.Z.zip` 是包含源仓库校验、测试和工作流发布 CI 的完整分发包，不要将其中发布流水线直接覆盖进业务仓库。
 
-当前版本为 **1.5.0**，包含暂存报告门禁、测试源码指纹、iOS CI、交付收尾、完整 Skill 升级恢复及 override 入口支持。详见 [版本记录](.agents/skills/ios-team-flow/references/CHANGELOG.md)。旧版 Release 附件保持原样。
+当前版本为 **1.5.0**，包含暂存报告门禁、测试源码指纹、交付收尾、完整 Skill 升级恢复及 override 入口支持。详见 [版本记录](.agents/skills/ios-team-flow/references/CHANGELOG.md)。旧版 Release 附件保持原样。
 
-真实 iOS 测试工程见 `App/TeamFlowDemo/README.md`，在源仓库运行 `python3 .agents/skills/ios-team-flow/scripts/project_checks.py --project . run --profile ios-demo` 可执行模拟器构建、单测和 UI 测试。该工程仅随源码提供，不打入 Skill 分发包。源码的 `.github/workflows/ios-demo-tests.yml` 会在 App、运行脚本或验证配置变化时执行 macOS 模拟器测试并上传证据。
+真实 iOS 测试工程见 `App/TeamFlowDemo/README.md`，在源仓库运行 `python3 .agents/skills/ios-team-flow/scripts/project_checks.py --project . run --profile ios-demo` 可执行模拟器构建、单测和 UI 测试。该工程仅随源码提供，不打入 Skill 分发包。GitHub 自动模拟器 CI 已移除，本地按需执行上述命令。
 
 源仓库验证与打包：
 
