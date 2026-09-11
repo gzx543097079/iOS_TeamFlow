@@ -24,6 +24,8 @@ python3 "<SKILL_ROOT>/scripts/setup_project.py" --project "<PROJECT_ROOT>"
 1. 读取 [工作流](references/WORKFLOW.md)。查找 PROJECT_ROOT 下 requirements/ 的相关需求，复用编号和历史。已有工程按 [已有项目流程](references/EXISTING-PROJECT.md) 首次记录项目现状，后续只核对本次相关变化，保留原配置。新 iOS 产品按 [PRD 模板](references/templates/new-project.md) 整理具体需求，交团队确认后创建业务工程。
 2. 按改动读取：[OC](references/standards/objective-c.md)、[Swift](references/standards/swift.md)、[SwiftUI](references/standards/swiftui.md)。SwiftUI 同时执行 Swift；所有 UI 改动先读 [UI](references/standards/ui.md)。项目明确约定优先，解释冲突。
 3. 用 [需求模板](references/templates/requirement.md) 记录拆分判断、过程状态与验收。需求、日志、工程和项目辅助脚本均写入 PROJECT_ROOT，不写入安装目录。
+业务验证使用 [项目验证入口](references/PROJECT-CHECKS.md)，按实际工程配置本次必跑项并记录结果。
+
 4. 提交前读取 [审查规程](references/REVIEW.md)，在 PROJECT_ROOT 运行 scripts/review_gate.py；同指纹复用，新增变化只复查增量与关联影响。用户未授权时不 commit/push。
 
 规则、模板、版本和工具实现均直接维护在本 Skill 内，不需要外部规范目录或同步脚本。`<SKILL_ROOT>/references/` 表示本 Skill 的资料位置；`requirements/`、`logs/`、`scripts/`、`App/` 为项目根目录下的产物。项目接入版本记录在 `.agents/teamflow.json`，根 scripts/review_gate.py 加载本 Skill 的门禁实现。入口和完整 Skill 随项目提交；团队克隆后直接使用。

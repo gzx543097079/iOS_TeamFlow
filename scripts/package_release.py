@@ -10,7 +10,7 @@ REFERENCES = (
     'RELEASE.md', 'SOURCES.md', 'INSTALL.md', 'standards/ui.md',
     'standards/objective-c.md', 'standards/swift.md', 'standards/swiftui.md',
     'templates/new-project.md', 'templates/requirement.md',
-    'EXISTING-PROJECT.md', 'templates/project-context.md',
+    'PROJECT-CHECKS.md', 'EXISTING-PROJECT.md', 'templates/project-context.md',
 )
 # 仅打包明确登记的通用文件，不打包项目接入记录、需求或日志。
 FILES = (
@@ -18,8 +18,8 @@ FILES = (
     '.github/pull_request_template.md',
     '.github/workflows/teamflow-check.yml', '.github/workflows/teamflow-release.yml',
     'scripts/review_gate.py', 'scripts/package_release.py', 'scripts/validate_workflow.py',
-    'tests/test_workflow.py', SKILL + '/SKILL.md',
-    SKILL + '/scripts/setup_project.py', SKILL + '/scripts/review_gate.py',
+    'tests/test_workflow.py', 'tests/test_project_checks.py', SKILL + '/SKILL.md',
+    SKILL + '/scripts/project_checks.py', SKILL + '/scripts/setup_project.py', SKILL + '/scripts/review_gate.py',
 ) + tuple(SKILL + '/references/' + name for name in REFERENCES)
 
 
