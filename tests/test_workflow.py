@@ -9,6 +9,9 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+CURRENT_VERSION = tuple(map(int, (ROOT / '.agents/skills/ios-team-flow/references/VERSION').read_text().strip().split('.')))
+NEXT_VERSION = f'{CURRENT_VERSION[0]}.{CURRENT_VERSION[1] + 1}.0'
+LATER_VERSION = f'{CURRENT_VERSION[0]}.{CURRENT_VERSION[1] + 2}.0'
 sys.path.insert(0, str(ROOT / 'scripts'))
 import package_release as release
 import review_gate as gate
@@ -295,7 +298,7 @@ class WorkflowTests(unittest.TestCase):
         return {str(p.relative_to(project)): p.read_bytes()
                 for p in project.rglob('*') if p.is_file()}
 
-    def bump_skill(self, project, version='1.3.0'):
+    def bump_skill(self, project, version=NEXT_VERSION):
         local = project / '.agents/skills/ios-team-flow'
         (local / 'references/VERSION').write_text(version + '\n')
         script = local / 'scripts/setup_project.py'
@@ -321,7 +324,7 @@ class WorkflowTests(unittest.TestCase):
         result = self.run_setup(skill, project)
         self.assertEqual(0, result.returncode, result.stderr)
         data = json.loads(manifest.read_text())
-        self.assertEqual('1.3.0', data['version'])
+        self.assertEqual(NEXT_VERSION, data['version'])
         self.assertEqual('保留团队字段', data['team'])
         self.assertEqual({'agents_block', 'gate_entry'}, set(data['managed']))
         updated = (project / 'AGENTS.md').read_text()
@@ -343,10 +346,10 @@ class WorkflowTests(unittest.TestCase):
         self.bump_skill(project)
         result = self.run_setup(skill, project)
         self.assertEqual(0, result.returncode, result.stderr)
-        self.assertEqual('1.3.0', json.loads((project / '.agents/teamflow.json').read_text())['version'])
-        self.bump_skill(project, '1.4.0')
+        self.assertEqual(NEXT_VERSION, json.loads((project / '.agents/teamflow.json').read_text())['version'])
+        self.bump_skill(project, LATER_VERSION)
         self.assertEqual(0, self.run_setup(skill, project).returncode)
-        self.assertEqual('1.4.0', json.loads((project / '.agents/teamflow.json').read_text())['version'])
+        self.assertEqual(LATER_VERSION, json.loads((project / '.agents/teamflow.json').read_text())['version'])
 
     def test_upgrade_customization_conflicts_write_nothing(self):
         skill = self.extract_skill()
@@ -375,11 +378,11 @@ class WorkflowTests(unittest.TestCase):
         entry = project / 'scripts/review_gate.py'
         entry.write_text(entry.read_text() + '\n# 团队定制\n')
         expected = (agents.read_bytes(), entry.read_bytes())
-        (project / '.agents/skills/ios-team-flow/references/VERSION').write_text('1.3.0\n')
+        (project / '.agents/skills/ios-team-flow/references/VERSION').write_text(NEXT_VERSION + '\n')
         result = self.run_setup(skill, project)
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertEqual(expected, (agents.read_bytes(), entry.read_bytes()))
-        self.assertEqual('1.3.0', json.loads((project / '.agents/teamflow.json').read_text())['version'])
+        self.assertEqual(NEXT_VERSION, json.loads((project / '.agents/teamflow.json').read_text())['version'])
 
     def test_upgrade_rejects_downgrade_bad_manifest_and_markers(self):
         skill = self.extract_skill()

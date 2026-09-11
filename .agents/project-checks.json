@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "checks": {
+    "ios-demo": {
+      "argv": [
+        "python3",
+        "scripts/test_demo.py"
+      ],
+      "cwd": ".",
+      "timeout_seconds": 900
+    }
+  },
+  "profiles": {
+    "ios-demo": [
+      "ios-demo"
+    ]
+  }
+}

@@ -1,0 +1,45 @@
+name: TeamFlowDemo
+options:
+  deploymentTarget:
+    iOS: '14.0'
+settings:
+  base:
+    SWIFT_VERSION: '5.0'
+    TARGETED_DEVICE_FAMILY: '1,2'
+    CODE_SIGNING_ALLOWED: NO
+targets:
+  TeamFlowDemo:
+    type: application
+    platform: iOS
+    sources: [Sources]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.example.teamflow.demo
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: NO
+  TeamFlowDemoTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [Tests]
+    dependencies:
+      - target: TeamFlowDemo
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+  TeamFlowDemoUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [UITests]
+    dependencies:
+      - target: TeamFlowDemo
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  TeamFlowDemo:
+    build:
+      targets:
+        TeamFlowDemo: all
+    test:
+      targets: [TeamFlowDemoTests, TeamFlowDemoUITests]
