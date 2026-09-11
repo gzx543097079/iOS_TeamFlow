@@ -1,0 +1,46 @@
+{
+  "fingerprint": "e5a07712f8a22e80aaaea1b8e8d11c97c60db2f23ceb492d88654ada81428baa",
+  "base": "e9eb3188ab60d229df45d9fe761e37fdfde698b4",
+  "scope": "staged",
+  "created_at": "2026-09-11T09:44:03.559800+00:00",
+  "reviewer": "Codex",
+  "completed_at": "2026-09-11T17:45:10+08:00",
+  "summary": "仅归档 REQ-20260911-020 的实施提交与 GitHub Release 证据；已核对暂存差异和远端对象，未修改需求验收或旧需求。",
+  "previous_review": "e558242677e9cea293e111255aba32f8e387ba5006893563ce9a7a3701546af6",
+  "checks": {
+    "correctness": {
+      "status": "通过",
+      "evidence": "已核对暂存 patch：仅 REQ-020 的提交集合和发布状态变化，原验收/工作区指纹保持一致，旧需求未改；finish --check 通过。Release 标签对应 e9eb318，云端工具检查 34585604640 和发布任务 34585633713 均 success，4 个附件 SHA256 与本地完全一致。记录归档不加实施尾注，不重复测试代码。"
+    },
+    "standards": {
+      "status": "通过",
+      "evidence": "按 DELIVERY 归档生成索引，无需求状态或当前 SHA 的手工副本，不移动发布标签。"
+    },
+    "subscription": {
+      "status": "不适用",
+      "evidence": "仅两份生成的交付记录，不涉及业务代码、商品、内存生命周期或埋点。"
+    },
+    "memory": {
+      "status": "不适用",
+      "evidence": "仅两份生成的交付记录，不涉及业务代码、商品、内存生命周期或埋点。"
+    },
+    "analytics": {
+      "status": "不适用",
+      "evidence": "仅两份生成的交付记录，不涉及业务代码、商品、内存生命周期或埋点。"
+    },
+    "test_artifacts": {
+      "status": "通过",
+      "evidence": "内容仅状态、时间和公开 SHA/Release URL，没有测试账号或生产 target 改动。"
+    },
+    "security": {
+      "status": "通过",
+      "evidence": "已检查两份记录和本回执，未包含密钥、真实用户数据或敏感日志。"
+    }
+  },
+  "findings": [],
+  "blockers": [],
+  "requirements": [
+    "REQ-20260911-020"
+  ],
+  "validation_results": []
+}
