@@ -1,0 +1,42 @@
+{
+  "fingerprint": "2abcf5b3734d5c7c0ab01aea32a963c1c85dc0dc49275bec759a6201c68f6d8a",
+  "base": "603e2af259164a588d1ae420a064cc3f11d09f4b",
+  "scope": "staged",
+  "created_at": "2026-09-11T05:39:42.772288+00:00",
+  "reviewer": "Codex",
+  "completed_at": "2026-09-11T05:40:03.881852+00:00",
+  "summary": "仅审查本次 PRD 深色模式字段、同步模板及需求记录，未发现阻塞问题。两项默认均为是，并保留团队确认。",
+  "previous_review": null,
+  "checks": {
+    "correctness": {
+      "status": "通过",
+      "evidence": "支持深色模式与跟随系统拆为独立项，默认均为是；不跟随系统时明确配置方案。资源同步、内部链接及暂存差异格式检查通过。"
+    },
+    "standards": {
+      "status": "通过",
+      "evidence": "保持中文模板和需求确认约定；无 OC、Swift 或 SwiftUI 实现改动。"
+    },
+    "subscription": {
+      "status": "不适用",
+      "evidence": "仅主题配置字段，没有订阅商品、价格或购买文案变更。"
+    },
+    "memory": {
+      "status": "不适用",
+      "evidence": "没有运行时代码或对象生命周期变更。"
+    },
+    "analytics": {
+      "status": "不适用",
+      "evidence": "没有打点事件或参数变更。"
+    },
+    "test_artifacts": {
+      "status": "通过",
+      "evidence": "无测试账号、mock、调试开关或生产代码；仅默认配置与过程记录。"
+    },
+    "security": {
+      "status": "通过",
+      "evidence": "未发现凭据或用户数据；无权限和隐私配置改动。"
+    }
+  },
+  "findings": [],
+  "blockers": []
+}
