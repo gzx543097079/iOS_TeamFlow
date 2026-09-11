@@ -1,0 +1,176 @@
+diff --git a/.agents/skills/ios-team-flow/references/CHANGELOG.md b/.agents/skills/ios-team-flow/references/CHANGELOG.md
+index 0babfbed6c1f0ce880795a124f68fa6c12a2a573..b5d9dfdbec9514ececaf5311561810069ccde04a 100644
+--- a/.agents/skills/ios-team-flow/references/CHANGELOG.md
++++ b/.agents/skills/ios-team-flow/references/CHANGELOG.md
+@@ -57,3 +57,5 @@
+ - 未发布：接入写入异常自动回滚，支持中断恢复、原权限保留及人工改动冲突保护。
+ 
+ - 未发布：增加独立业务 App 发布流程与构建、验收、审核、上线证据模板。
++
++- 未发布：增加新项目、已有项目和订阅改动 CLI 场景演练，以及真实项目试运行矩阵。
+diff --git a/.agents/skills/ios-team-flow/references/SCENARIOS.md b/.agents/skills/ios-team-flow/references/SCENARIOS.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..672381b697e67f385099a801ece34da2c7ee54ea
+--- /dev/null
++++ b/.agents/skills/ios-team-flow/references/SCENARIOS.md
+@@ -0,0 +1,17 @@
++# 业务场景试运行
++
++每次重大工作流变更先进行代表性链路演练，再在团队真实项目试运行。源仓库运行 `python3 -m unittest discover -s tests -p test_scenarios.py -v`，临时消费项目通过真实 CLI 接入和运行门禁；自动测试不执行 Codex 需求理解，也不运行 Xcode、StoreKit 或真实设备。
++
++| 场景 | 真实项目执行步骤 | 验收结果 |
++| --- | --- | --- |
++| 新建 App | 在空目录接入，提出产品需求；检查 PRD 默认 Swift/UIKit/iOS14、导航无 Tab、深色与跟随系统；先确认具体 PRD，再生成工程并实际构建运行 | 确认前无业务工程；确认后配置与 PRD 匹配，权限按实际首版范围配置 |
++| 已有 App 增量 | 选择实际有不同框架/系统目标/导航配置的工程，要求修改单一页面；记录 PROJECT-CONTEXT 与构建基线，再执行修改和相关回归 | 保留既有配置；不强制新 PRD、不迁移目录；区分既有失败与新增失败 |
++| 订阅改动 | 临时分支故意构造月套餐/年文案不匹配，Codex 自审定位问题，修复后复核；同内容重复检查，再变更商品或文案 | 未验证/缺少证据时门禁失败；相同有效指纹复用；新改动需更新审查；真机/平台购买恢复与权益另验 |
++| 验收重开 | 指定成员拒绝一个验收项，修复并交其复核 | 保留原失败和确认原文；不以提交代替验收 |
++| 升级与发布 | 在真实项目副本演练旧版升级、失败恢复；按 App 发布记录走测试渠道 | 定制保留、恢复可用；只有真实平台证据才推进发布状态 |
++
++将结果存入 `requirements/scenarios/日期-项目.md`，逐项记录：项目与场景、需求编号、工作流 commit/版本、业务 commit/build、步骤、期望/实际、执行人/时间、证据、状态、问题和复核。敏感账号和用户数据脱敏；失败时阻止本次受影响能力推广，修复后重跑受影响场景。
++
++源码演练当前覆盖：空项目接入不创建 App；已有配置保留及失败基线留证；订阅报告缺证据/未验证被拒绝、修复后的内容生成新指纹。这些测试明确使用夹具，不证明脚本能自动发现价格错误或 Codex 一定遵循全部规则。
++
++当前仓库没有真实业务工程与发布账号材料，真实产品的 PRD 确认、Xcode 构建、设备购买、团队验收和平台发布尚待团队试运行。交付演练工具与规程可以完成，真实项目试运行必须保持 🧪 待验证，不能据此宣称工作流已获生产验证。无明确要求不验证超大字号。
+diff --git a/.agents/skills/ios-team-flow/references/WORKFLOW.md b/.agents/skills/ios-team-flow/references/WORKFLOW.md
+index fdab3ed42fedba59ed223c46eaeb27c023b76fb1..ea6a2f065980af021417fb3acc28ebb64827a85e 100644
+--- a/.agents/skills/ios-team-flow/references/WORKFLOW.md
++++ b/.agents/skills/ios-team-flow/references/WORKFLOW.md
+@@ -101,3 +101,5 @@
+ 按 [团队验收与问题复核](ACCEPTANCE.md) 判断适用性，保留真实确认与失败复核历史；适用团队验收尚未完成时保持待验证。
+ 
+ 业务 App 发布按 [App 发布流程](APP-RELEASE.md) 记录归档、TestFlight、审核和商店状态。
++
++重大流程变更按 [业务场景试运行](SCENARIOS.md) 验证消费项目链路；真实项目证据与工具夹具结果分开记录。
+diff --git a/requirements/REQ-20260911-015.md b/requirements/REQ-20260911-015.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..d69f1f5ce5062bd5573d759c766af5c0aadbbaff
+--- /dev/null
++++ b/requirements/REQ-20260911-015.md
+@@ -0,0 +1,12 @@
++# REQ-20260911-015：业务场景验证入口
++
++- 状态：✅ 执行完成（演练工具与规程交付）
++- 进度：1 / 1；当前：完成；下一步：真实业务项目试运行；阻塞：工具交付无阻塞
++- 验收：三个消费项目 CLI 集成场景通过，真实项目试运行步骤、证据和失败复核规则已提供。
++- 实际业务项目验证：🧪 待验证，当前仓库无业务 App；尚未执行 Xcode、设备订阅购买或商店发布。
++- 范围：交付验证机制，不虚构业务生产验证结果。
++
++## 过程
++
++- 2026-09-11 +08:00：🔄 执行中，建立空项目、已有配置与订阅报告夹具。
++- 2026-09-11 +08:00：✅ 执行完成，3 个集成场景通过；实际产品试运行独立保留待验证。
+diff --git a/scripts/package_release.py b/scripts/package_release.py
+index 7d257acbabfa1f9e1180d2e11812e5bd7be6d030..79caaea282338d97fc6be32b1f58b03d78bdac02 100644
+--- a/scripts/package_release.py
++++ b/scripts/package_release.py
+@@ -6,7 +6,7 @@ import zipfile
+ from pathlib import Path
+ SKILL = '.agents/skills/ios-team-flow'
+ REFERENCES = (
+-    'APP-RELEASE.md', 'templates/app-release.md', 'ACCEPTANCE.md', 'templates/acceptance.md', 'VERSION', 'README.md', 'CHANGELOG.md', 'WORKFLOW.md', 'REVIEW.md',
++    'SCENARIOS.md', 'APP-RELEASE.md', 'templates/app-release.md', 'ACCEPTANCE.md', 'templates/acceptance.md', 'VERSION', 'README.md', 'CHANGELOG.md', 'WORKFLOW.md', 'REVIEW.md',
+     'RELEASE.md', 'SOURCES.md', 'INSTALL.md', 'standards/ui.md',
+     'standards/objective-c.md', 'standards/swift.md', 'standards/swiftui.md',
+     'templates/new-project.md', 'templates/requirement.md',
+@@ -19,7 +19,7 @@ FILES = (
+     '.github/workflows/teamflow-check.yml', '.github/workflows/teamflow-release.yml',
+     '.github/workflows/teamflow-pr-review.yml',
+     'scripts/review_gate.py', 'scripts/package_release.py', 'scripts/validate_workflow.py',
+-    'tests/test_setup_recovery.py', 'tests/test_workflow.py', 'tests/test_project_checks.py', 'tests/test_delivery.py', 'tests/test_git_checks.py', SKILL + '/SKILL.md',
++    'tests/test_scenarios.py', 'tests/test_setup_recovery.py', 'tests/test_workflow.py', 'tests/test_project_checks.py', 'tests/test_delivery.py', 'tests/test_git_checks.py', SKILL + '/SKILL.md',
+     SKILL + '/assets/pr-review.yml', SKILL + '/scripts/range_review.py',
+     SKILL + '/scripts/install_git_checks.py', SKILL + '/scripts/delivery.py', SKILL + '/scripts/project_checks.py', SKILL + '/scripts/setup_project.py', SKILL + '/scripts/review_gate.py',
+ ) + tuple(SKILL + '/references/' + name for name in REFERENCES)
+diff --git a/tests/test_scenarios.py b/tests/test_scenarios.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..7ebbf8f8c27a474768b2d2dda4c2545ec8bd89c8
+--- /dev/null
++++ b/tests/test_scenarios.py
+@@ -0,0 +1,87 @@
++"""代表性消费项目链路演练；不宣称运行过真实 iOS App。"""
++import json
++import shutil
++import subprocess
++import sys
++import tempfile
++import unittest
++from pathlib import Path
++
++ROOT = Path(__file__).resolve().parents[1]
++SKILL = ROOT / '.agents/skills/ios-team-flow'
++
++
++class ConsumerScenarios(unittest.TestCase):
++    def setUp(self):
++        self.temp = tempfile.TemporaryDirectory(prefix='teamflow scenario ')
++        self.addCleanup(self.temp.cleanup)
++        self.root = Path(self.temp.name)
++        shutil.copytree(SKILL, self.root / '.agents/skills/ios-team-flow')
++
++    def run_command(self, *argv, success=True):
++        result = subprocess.run(argv, cwd=self.root, text=True, capture_output=True)
++        if success:
++            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        else:
++            self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
++        return result
++
++    def tool(self, name, *args, success=True):
++        return self.run_command(sys.executable, '.agents/skills/ios-team-flow/scripts/' + name + '.py',
++                                '--project', '.', *args, success=success)
++
++    def test_new_project_setup_does_not_create_unconfirmed_app(self):
++        self.tool('setup_project')
++        self.assertTrue((self.root / 'AGENTS.md').exists())
++        self.assertFalse((self.root / 'App').exists())
++        self.tool('project_checks', 'init')
++        self.tool('project_checks', 'run', '--profile', 'build', success=False)
++        self.assertFalse(list(self.root.glob('logs/project-checks/*/result.json')))
++
++    def test_existing_project_preserves_config_and_failing_baseline(self):
++        app = self.root / 'Legacy'
++        app.mkdir()
++        config = app / 'Project.xcconfig'
++        content = 'IPHONEOS_DEPLOYMENT_TARGET = 17.0\nPRODUCT_BUNDLE_IDENTIFIER = example.existing\n'
++        config.write_text(content)
++        (app / 'Home.swift').write_text('import SwiftUI\n// Existing TabView, no theme migration requested\n')
++        self.tool('setup_project')
++        self.assertEqual(config.read_text(), content)
++        self.assertFalse((self.root / 'App').exists())
++        checks = {'schema_version': 1, 'checks': {'baseline': {'argv': [sys.executable, '-c', 'raise SystemExit(7)']}},
++                  'profiles': {'existing': ['baseline']}}
++        (self.root / '.agents/project-checks.json').write_text(json.dumps(checks))
++        self.tool('project_checks', 'run', '--profile', 'existing', success=False)
++        report = json.loads(next(self.root.glob('logs/project-checks/*/result.json')).read_text())
++        self.assertEqual(report['results'][0]['exit_code'], 7)
++
++    def test_subscription_missing_evidence_blocks_and_content_change_invalidates(self):
++        self.tool('setup_project')
++        self.run_command('git', 'init', '-q')
++        self.run_command('git', 'config', 'user.name', 'Scenario Fixture')
++        self.run_command('git', 'config', 'user.email', 'fixture@example.invalid')
++        self.run_command('git', 'config', 'commit.gpgsign', 'false')
++        self.run_command('git', 'add', '.')
++        self.run_command('git', 'commit', '-qm', 'fixture baseline')
++        app = self.root / 'App'
++        app.mkdir()
++        product = app / 'subscription.json'
++        product.write_text(json.dumps({'product_id': 'example.monthly', 'period': 'month', 'label': '每年续费'}))
++        self.run_command('git', 'add', 'App')
++        self.run_command(sys.executable, 'scripts/review_gate.py', 'prepare')
++        report_path = next(self.root.glob('logs/reviews/*.json'))
++        report = json.loads(report_path.read_text())
++        report.update(reviewer='测试夹具', completed_at='2026-09-11T00:00:00Z', summary='模拟人工指出月套餐与年文案不一致')
++        for item in report['checks'].values():
++            item.update(status='不适用', evidence='夹具仅验证门禁记录行为，不是实际业务审查')
++        report['checks']['subscription'].update(status='通过', evidence='')
++        report_path.write_text(json.dumps(report))
++        self.run_command(sys.executable, 'scripts/review_gate.py', 'check', success=False)
++        report['checks']['subscription'].update(status='未验证', evidence='商品周期与文案不匹配，需要修复')
++        report_path.write_text(json.dumps(report))
++        self.run_command(sys.executable, 'scripts/review_gate.py', 'check', success=False)
++        product.write_text(json.dumps({'product_id': 'example.monthly', 'period': 'month', 'label': '每月续费'}))
++        self.run_command('git', 'add', 'App')
++        self.run_command(sys.executable, 'scripts/review_gate.py', 'prepare')
++        self.assertEqual(len(list(self.root.glob('logs/reviews/*.json'))), 2)
++        self.run_command(sys.executable, 'scripts/review_gate.py', 'check', success=False)

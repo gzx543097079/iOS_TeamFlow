@@ -6,7 +6,7 @@ import zipfile
 from pathlib import Path
 SKILL = '.agents/skills/ios-team-flow'
 REFERENCES = (
-    'APP-RELEASE.md', 'templates/app-release.md', 'ACCEPTANCE.md', 'templates/acceptance.md', 'VERSION', 'README.md', 'CHANGELOG.md', 'WORKFLOW.md', 'REVIEW.md',
+    'SCENARIOS.md', 'APP-RELEASE.md', 'templates/app-release.md', 'ACCEPTANCE.md', 'templates/acceptance.md', 'VERSION', 'README.md', 'CHANGELOG.md', 'WORKFLOW.md', 'REVIEW.md',
     'RELEASE.md', 'SOURCES.md', 'INSTALL.md', 'standards/ui.md',
     'standards/objective-c.md', 'standards/swift.md', 'standards/swiftui.md',
     'templates/new-project.md', 'templates/requirement.md',
@@ -19,7 +19,7 @@ FILES = (
     '.github/workflows/teamflow-check.yml', '.github/workflows/teamflow-release.yml',
     '.github/workflows/teamflow-pr-review.yml',
     'scripts/review_gate.py', 'scripts/package_release.py', 'scripts/validate_workflow.py',
-    'tests/test_setup_recovery.py', 'tests/test_workflow.py', 'tests/test_project_checks.py', 'tests/test_delivery.py', 'tests/test_git_checks.py', SKILL + '/SKILL.md',
+    'tests/test_scenarios.py', 'tests/test_setup_recovery.py', 'tests/test_workflow.py', 'tests/test_project_checks.py', 'tests/test_delivery.py', 'tests/test_git_checks.py', SKILL + '/SKILL.md',
     SKILL + '/assets/pr-review.yml', SKILL + '/scripts/range_review.py',
     SKILL + '/scripts/install_git_checks.py', SKILL + '/scripts/delivery.py', SKILL + '/scripts/project_checks.py', SKILL + '/scripts/setup_project.py', SKILL + '/scripts/review_gate.py',
 ) + tuple(SKILL + '/references/' + name for name in REFERENCES)
