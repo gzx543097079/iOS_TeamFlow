@@ -4,22 +4,20 @@ on:
     paths:
       - 'AGENTS.md'
       - '.agents/**'
-      - 'workflow/**'
+      - 'README.md'
       - 'scripts/review_gate.py'
       - 'scripts/package_release.py'
       - 'scripts/validate_workflow.py'
-      - 'scripts/build_skill.py'
       - 'tests/test_workflow.py'
       - '.github/workflows/teamflow-*.yml'
   push:
     paths:
       - 'AGENTS.md'
       - '.agents/**'
-      - 'workflow/**'
+      - 'README.md'
       - 'scripts/review_gate.py'
       - 'scripts/package_release.py'
       - 'scripts/validate_workflow.py'
-      - 'scripts/build_skill.py'
       - 'tests/test_workflow.py'
       - '.github/workflows/teamflow-*.yml'
   workflow_dispatch:

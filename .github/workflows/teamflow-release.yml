@@ -25,9 +25,9 @@ jobs:
           python3 - <<'PY'
           import os
           from pathlib import Path
-          version = Path('workflow/VERSION').read_text().strip()
+          version = Path('.agents/skills/ios-team-flow/references/VERSION').read_text().strip()
           if os.environ['RELEASE_TAG'] != 'teamflow-v' + version:
-              raise SystemExit('Release 标签必须与 workflow/VERSION 一致')
+              raise SystemExit('Release 标签必须与 .agents/skills/ios-team-flow/references/VERSION 一致')
           PY
       - name: 验证并打包
         run: |

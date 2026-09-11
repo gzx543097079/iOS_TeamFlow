@@ -26,6 +26,6 @@ python3 "<SKILL_ROOT>/scripts/setup_project.py" --project "<PROJECT_ROOT>"
 3. 用 [需求模板](references/templates/requirement.md) 记录拆分判断、过程状态与验收。需求、日志、工程和项目辅助脚本均写入 PROJECT_ROOT，不写入安装目录。
 4. 提交前读取 [审查规程](references/REVIEW.md)，在 PROJECT_ROOT 运行 scripts/review_gate.py；同指纹复用，新增变化只复查增量与关联影响。用户未授权时不 commit/push。
 
-参考资料中的 `<SKILL_ROOT>/references/` 表示 Skill 自带的规则和模板；`requirements/`、`logs/`、`scripts/`、`App/` 均表示项目产物目录。参考流程的目录示意为兼容旧项目整包模式；独立安装模式的项目 workflow/ 只需版本绑定，不要求复制全部规范。根项目 AGENTS.md 通过 `.agents/skills/ios-team-flow/SKILL.md` 明确引用本地流程。接入后无需用户再次点名，Skill、版本及项目入口一起提交，团队克隆即可获得相同规则。
+规则、模板、版本和工具实现均直接维护在本 Skill 内，不需要外部规范目录或同步脚本。`<SKILL_ROOT>/references/` 表示本 Skill 的资料位置；`requirements/`、`logs/`、`scripts/`、`App/` 为项目根目录下的产物。项目接入版本记录在 `.agents/teamflow.json`，根 scripts/review_gate.py 加载本 Skill 的门禁实现。入口和完整 Skill 随项目提交；团队克隆后直接使用。
 
-本 Skill 不把规则发布流水线安装进消费项目。发布本工作流版本属于源仓库维护，使用源仓库发布工具；业务 App 发布遵守其项目流程。
+本 Skill 不把规则发布流水线安装进消费项目。发布本工作流版本属于源仓库维护，读取 [发布规程](references/RELEASE.md) 并使用源仓库发布工具；业务 App 发布遵守其项目流程。

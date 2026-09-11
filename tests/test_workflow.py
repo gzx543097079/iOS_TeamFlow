@@ -88,7 +88,7 @@ class WorkflowTests(unittest.TestCase):
     def test_workflow_policy_change_requires_review(self):
         self.stage()
         self.complete()
-        self.stage('workflow/REVIEW.md', 'new policy')
+        self.stage('.agents/skills/ios-team-flow/references/REVIEW.md', 'new policy')
         with self.assertRaises(ValueError):
             gate.check(self.root)
 
@@ -150,7 +150,7 @@ class WorkflowTests(unittest.TestCase):
         with zipfile.ZipFile(archive) as stream:
             self.assertEqual(set(release.FILES), set(stream.namelist()))
             self.assertIn('.agents/skills/ios-team-flow/SKILL.md', stream.namelist())
-        (self.root / 'workflow/VERSION').write_text('../bad')
+        (self.root / '.agents/skills/ios-team-flow/references/VERSION').write_text('../bad')
         with self.assertRaises(ValueError):
             release.package(self.root)
 
@@ -207,10 +207,42 @@ class WorkflowTests(unittest.TestCase):
             self.assertEqual(before, (project / 'AGENTS.md').read_bytes())
             self.assertTrue((project / 'requirements').is_dir())
             self.assertTrue((project / 'logs/reviews').is_dir())
-            self.assertEqual((skill / 'scripts/review_gate.py').read_bytes(),
-                             (project / 'scripts/review_gate.py').read_bytes())
+            self.assertFalse((project / 'workflow').exists())
+            self.assertTrue((project / '.agents/teamflow.json').is_file())
+            gate_result = subprocess.run([sys.executable, str(project / 'scripts/review_gate.py'), '--help'], capture_output=True, text=True)
+            self.assertEqual(0, gate_result.returncode, gate_result.stderr)
         self.assertEqual(original, {str(p.relative_to(skill)): p.read_bytes()
                                    for p in skill.rglob('*') if p.is_file()})
+
+    def test_direct_skill_edits_used_by_package_without_sync(self):
+        import zipfile
+        for name in release.FILES:
+            target = self.root / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(ROOT / name, target)
+        policy = '.agents/skills/ios-team-flow/references/standards/ui.md'
+        changed = (self.root / policy).read_text() + '\n项目直接维护的规则。\n'
+        (self.root / policy).write_text(changed)
+        validator.validate(self.root)
+        for archive, member in (
+            (release.package(self.root), policy),
+            (release.package_skill(self.root), 'ios-team-flow/references/standards/ui.md'),
+        ):
+            with zipfile.ZipFile(archive) as stream:
+                self.assertEqual(changed, stream.read(member).decode())
+                self.assertFalse(any(n.startswith('workflow/') for n in stream.namelist()))
+        self.assertFalse((self.root / 'workflow').exists())
+
+    def test_project_gate_uses_current_skill_implementation(self):
+        skill = self.extract_skill()
+        project = self.root / 'live-gate'
+        self.assertEqual(0, self.run_setup(skill, project).returncode)
+        implementation = project / '.agents/skills/ios-team-flow/scripts/review_gate.py'
+        implementation.write_text("print('project-local-gate')\n")
+        result = subprocess.run([sys.executable, str(project / 'scripts/review_gate.py')],
+                                capture_output=True, text=True)
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual('project-local-gate', result.stdout.strip())
 
     def test_setup_conflict_does_not_modify_project(self):
         skill = self.extract_skill()
@@ -249,7 +281,7 @@ class WorkflowTests(unittest.TestCase):
         skill = self.extract_skill()
         project = self.root / 'version'
         self.assertEqual(0, self.run_setup(skill, project).returncode)
-        manifest = project / 'workflow/teamflow.json'
+        manifest = project / '.agents/teamflow.json'
         manifest.write_text('{"version": "0.0.1"}')
         self.assertNotEqual(0, self.run_setup(skill, project).returncode)
         self.assertEqual('{"version": "0.0.1"}', manifest.read_text())

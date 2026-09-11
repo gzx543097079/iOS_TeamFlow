@@ -14,7 +14,7 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
 
 也可以在放好文件后请 Codex “接入当前项目的 iOS 工作流”。不需要每次提需求都重复这句话。
 
-脚本会追加 AGENTS.md 的带标记区块，明确引用项目内 Skill，生成 workflow/teamflow.json 与 scripts/review_gate.py，创建 requirements/、logs/reviews/。保留原 AGENTS.md 正文；相同版本重复运行不重复追加。脚本拒绝从其他项目或用户级安装目录直接接入本项目。
+脚本会追加 AGENTS.md 的带标记区块，明确引用项目内 Skill，生成 .agents/teamflow.json 与 scripts/review_gate.py，创建 requirements/、logs/reviews/。保留原 AGENTS.md 正文；相同版本重复运行不重复追加。脚本拒绝从其他项目或用户级安装目录直接接入本项目。
 
 有同名脚本、版本差异、定制区块或符号链接时预检退出，不覆盖已有内容。非空 AGENTS.override.md 会覆盖普通入口，所以也先报告冲突，需要将入口合入实际生效的指令文件。项目需要使用 Git 审查时应已是 Git 仓库，脚本不自动 git init。
 
@@ -44,7 +44,7 @@ mkdir -p .agents/skills
 python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
 ```
 
-脚本会生成 AGENTS.md、workflow/teamflow.json、scripts/review_gate.py，并创建 requirements/、logs/reviews/，不会提前创建业务工程。
+脚本会生成 AGENTS.md、.agents/teamflow.json、scripts/review_gate.py，并创建 requirements/、logs/reviews/，不会提前创建业务工程。
 
 接入后在 Codex 打开该项目根目录，开始新会话，直接描述要做的产品。新项目会先按模板整理需求文档交团队确认，确认后再在 App/ 下创建 iOS 工程。后续无需重复接入或每次点名 Skill。
 
@@ -67,7 +67,7 @@ git init
 │   ├── SKILL.md
 │   ├── references/       # UI、语言规范、流程与模板
 │   └── scripts/          # Skill 自带工具
-├── workflow/teamflow.json
+├── .agents/teamflow.json
 ├── App/                  # 新工程，既有工程保留原名
 ├── requirements/
 ├── logs/reviews/
@@ -78,8 +78,10 @@ git init
 
 ## 团队共享与升级
 
-将 `.agents/skills/ios-team-flow/`、AGENTS.md、workflow/teamflow.json、scripts/review_gate.py 及脱敏需求日志一同提交。确认项目的 .gitignore 没有忽略 `.agents/`、requirements/ 或整个 logs/。团队成员克隆项目后即可获得同一份规范，不需要额外个人安装。
+将 `.agents/skills/ios-team-flow/`、AGENTS.md、.agents/teamflow.json、scripts/review_gate.py 及脱敏需求日志一同提交。确认项目的 .gitignore 没有忽略 `.agents/`、requirements/ 或整个 logs/。团队成员克隆项目后即可获得同一份规范，不需要额外个人安装。
 
-升级只针对当前项目：比较新旧 Skill、保留定制，合并接入区块和审查门禁，更新 workflow/teamflow.json，再验证并提交。版本不匹配时不得静默切换至其他位置的版本；setup_project.py 不提供盲目覆盖参数。开发阶段曾生成的用户级接入区块应先按差异迁移为显式项目路径。
+升级只针对当前项目：比较新旧 Skill、保留定制，合并接入区块和审查门禁，更新 .agents/teamflow.json，再验证并提交。版本不匹配时不得静默切换至其他位置的版本；setup_project.py 不提供盲目覆盖参数。开发阶段曾生成的用户级接入区块应先按差异迁移为显式项目路径。
 
-源仓库以 workflow/ 为规范单一源，scripts/build_skill.py 生成 Skill 内资源并在发布前校验；消费项目直接使用完整 Skill，不需要源仓库或其构建/发布工具。消费项目的规范定制随自己的 Skill 提交维护。
+源仓库和消费项目都直接维护 `.agents/skills/ios-team-flow/`，没有规范同步步骤。版本以 Skill 内 references/VERSION 为准，.agents/teamflow.json 记录项目接入版本。根 scripts/review_gate.py 只加载 Skill 内的门禁实现。
+
+旧版项目升级：先比较旧 workflow/ 的定制规则与新 Skill，保留需要的修改；将原 workflow/teamflow.json 版本记录迁移到 .agents/teamflow.json，核对 AGENTS.md 入口和门禁加载脚本。接入脚本会报告旧入口或同名脚本冲突，不自动覆盖或删除旧目录。确认旧目录中没有项目资料、入口已改好并验证后，再删除旧 workflow/。历史需求和审查记录中的旧路径保留为当时的证据。

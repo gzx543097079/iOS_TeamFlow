@@ -11,10 +11,12 @@ BLOCK = '''<!-- ios-team-flow:start -->
 
 本项目采用仓库内的 `.agents/skills/ios-team-flow/SKILL.md`。实施 iOS 需求和提交前必须读取该文件，无需用户再次点名 Skill；按 OC / Swift / SwiftUI / UI 类型加载规范，维护 requirements/ 需求过程与 logs/ 审查记录。
 新产品先整理 PRD 交团队确认。提交前只 review 本次改动，相同有效指纹复用；运行 `python3 scripts/review_gate.py check`。未经授权不提交或发布。
-版本见 workflow/teamflow.json，Skill 与项目一起提交和克隆，不依赖用户级安装。找不到本地 Skill 时明确报告缺失，不自动改用其他项目或用户级同名版本。遵守项目现有具体约定，有冲突先说明。
+版本见 .agents/teamflow.json，Skill 与项目一起提交和克隆，不依赖用户级安装。找不到本地 Skill 时明确报告缺失，不自动改用其他项目或用户级同名版本。遵守项目现有具体约定，有冲突先说明。
 <!-- ios-team-flow:end -->
 '''
 
+
+GATE_ENTRY = '#!/usr/bin/env python3\n"""从项目内 Skill 加载审查门禁，唯一实现维护在 Skill 内。"""\nimport runpy\nfrom pathlib import Path\n\n_source = Path(__file__).resolve().parents[1] / \'.agents/skills/ios-team-flow/scripts/review_gate.py\'\nglobals().update(runpy.run_path(str(_source), run_name=__name__))\n'
 
 def setup(project, skill):
     project = project.expanduser().resolve()
@@ -28,8 +30,8 @@ def setup(project, skill):
     version = (skill / 'references/VERSION').read_text().strip()
     manifest = json.dumps({'skill': 'ios-team-flow', 'version': version}, ensure_ascii=False, indent=2) + '\n'
     planned = {
-        'workflow/teamflow.json': manifest.encode(),
-        'scripts/review_gate.py': (skill / 'scripts/review_gate.py').read_bytes(),
+        '.agents/teamflow.json': manifest.encode(),
+        'scripts/review_gate.py': GATE_ENTRY.encode(),
     }
     conflicts = []
     override = project / 'AGENTS.override.md'

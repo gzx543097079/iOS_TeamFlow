@@ -4,30 +4,27 @@ import hashlib
 import re
 import zipfile
 from pathlib import Path
-from build_skill import SKILL, SOURCES, build
-
-# 新增分发文件需显式登记，避免误打包消费项目的业务脚本或私有文档。
+SKILL = '.agents/skills/ios-team-flow'
+REFERENCES = (
+    'VERSION', 'README.md', 'CHANGELOG.md', 'WORKFLOW.md', 'REVIEW.md',
+    'RELEASE.md', 'SOURCES.md', 'INSTALL.md', 'standards/ui.md',
+    'standards/objective-c.md', 'standards/swift.md', 'standards/swiftui.md',
+    'templates/new-project.md', 'templates/requirement.md',
+)
+# 仅打包明确登记的通用文件，不打包项目接入记录、需求或日志。
 FILES = (
-    'AGENTS.md', '.gitignore',
-    '.agents/skills/ios-team-flow/SKILL.md',
+    'AGENTS.md', 'README.md', '.gitignore',
     '.github/pull_request_template.md',
     '.github/workflows/teamflow-check.yml', '.github/workflows/teamflow-release.yml',
-    'workflow/VERSION', 'workflow/README.md', 'workflow/CHANGELOG.md',
-    'workflow/WORKFLOW.md', 'workflow/REVIEW.md', 'workflow/RELEASE.md', 'workflow/SOURCES.md',
-    'workflow/standards/ui.md', 'workflow/standards/objective-c.md',
-    'workflow/standards/swift.md', 'workflow/standards/swiftui.md',
-    'workflow/templates/new-project.md', 'workflow/templates/requirement.md',
     'scripts/review_gate.py', 'scripts/package_release.py', 'scripts/validate_workflow.py',
-    'tests/test_workflow.py',
-)
-FILES += ('scripts/build_skill.py', SKILL + '/scripts/setup_project.py',
-          SKILL + '/scripts/review_gate.py', SKILL + '/references/INSTALL.md')
-FILES += tuple(SKILL + '/references/' + name for name in SOURCES)
+    'tests/test_workflow.py', SKILL + '/SKILL.md',
+    SKILL + '/scripts/setup_project.py', SKILL + '/scripts/review_gate.py',
+) + tuple(SKILL + '/references/' + name for name in REFERENCES)
 
 
 def package(root):
     root = root.resolve()
-    version = (root / 'workflow/VERSION').read_text().strip()
+    version = (root / SKILL / 'references/VERSION').read_text().strip()
     if not re.fullmatch(r'\d+\.\d+\.\d+', version):
         raise ValueError('VERSION 必须为 X.Y.Z')
     for name in FILES:
@@ -54,8 +51,7 @@ def package(root):
 
 def package_skill(root):
     root = root.resolve()
-    build(root, check=True)
-    version = (root / 'workflow/VERSION').read_text().strip()
+    version = (root / SKILL / 'references/VERSION').read_text().strip()
     if not re.fullmatch(r'\d+\.\d+\.\d+', version):
         raise ValueError('VERSION 必须为 X.Y.Z')
     output = root / 'dist'

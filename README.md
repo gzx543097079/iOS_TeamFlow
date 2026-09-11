@@ -2,7 +2,7 @@
 
 中文 Codex iOS 团队工作流：Apple UI 规范、Objective-C / Swift / SwiftUI 规范、需求拆分与过程追踪、提交前自动审查与去重、Release 压缩包分发。
 
-从 [使用说明](workflow/README.md) 开始；先阅读 [UI 规范](workflow/standards/ui.md)。
+从 [使用说明](.agents/skills/ios-team-flow/references/README.md) 开始；先阅读 [UI 规范](.agents/skills/ios-team-flow/references/standards/ui.md)。
 
 本地验证与生成分发包：
 
@@ -12,7 +12,7 @@ python3 -m unittest discover -s tests -v
 python3 scripts/package_release.py
 ```
 
-分发时将 ZIP 内容合入项目 Git 根目录，包含 AGENTS.md、.agents 和 .github。工程、workflow、requirements、logs、scripts 同级。完整规则见 [工作流](workflow/WORKFLOW.md)，参考项目与官方资料见 [调研记录](workflow/SOURCES.md)。
+分发时将 ZIP 内容合入项目 Git 根目录，包含 AGENTS.md、.agents 和 .github。工程、.agents、requirements、logs、scripts 同级。规范和工具实现只在 .agents/skills/ios-team-flow 内维护。完整规则见 [工作流](.agents/skills/ios-team-flow/references/WORKFLOW.md)，参考项目与官方资料见 [调研记录](.agents/skills/ios-team-flow/references/SOURCES.md)。
 
 采用项目级独立安装：使用 `ios-team-flow-skill-v1.2.0.zip`，将完整目录放入目标项目 `.agents/skills/`，再从项目根目录运行一次：
 
@@ -42,6 +42,6 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
 
 4. 在 Codex 打开该项目根目录并开始新会话，直接描述产品需求。无需提前创建 Xcode 工程；先整理需求文档，团队确认后再在 `App/` 中创建工程。
 
-接入脚本会创建 `AGENTS.md`、`workflow/teamflow.json`、`scripts/review_gate.py`、`requirements/` 和 `logs/reviews/`。首次提交审查前，若该目录尚未属于任何 Git 仓库，在项目根目录运行 `git init`；已有仓库使用既有 Git 根目录，不创建嵌套仓库。
+接入脚本会创建 `AGENTS.md`、`.agents/teamflow.json`、`scripts/review_gate.py`、`requirements/` 和 `logs/reviews/`。首次提交审查前，若该目录尚未属于任何 Git 仓库，在项目根目录运行 `git init`；已有仓库使用既有 Git 根目录，不创建嵌套仓库。
 
 完整说明见 [空项目接入](.agents/skills/ios-team-flow/references/INSTALL.md#空项目接入没有-agentsskills-时)。

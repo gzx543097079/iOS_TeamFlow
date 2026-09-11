@@ -2,12 +2,10 @@
 """验证分发入口、版本与内部 Markdown 链接。仅检查通用分发文件。"""
 import re
 from pathlib import Path
-from package_release import FILES
-from build_skill import build
+from package_release import FILES, SKILL
 
 
 def validate(root):
-    build(root, check=True)
     errors = []
     for name in FILES:
         path = root / name
@@ -26,7 +24,7 @@ def validate(root):
         errors.append('Skill 元数据不完整')
     if len((root / 'AGENTS.md').read_bytes()) >= 32768:
         errors.append('AGENTS.md 超出默认 32 KiB 预算')
-    if not re.fullmatch(r'\d+\.\d+\.\d+', (root / 'workflow/VERSION').read_text().strip()):
+    if not re.fullmatch(r'\d+\.\d+\.\d+', (root / SKILL / 'references/VERSION').read_text().strip()):
         errors.append('版本格式错误')
     if errors:
         raise ValueError('\n'.join(errors))

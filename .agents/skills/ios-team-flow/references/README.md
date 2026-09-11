@@ -4,7 +4,7 @@
 
 ## 快速使用
 
-把压缩包内部文件合入项目根目录（包含隐藏目录），在 Codex 打开该根目录。已有同名文件先合并；不要只复制 workflow 文件夹。详细说明见 [分发与发布](RELEASE.md)。
+把压缩包内部文件合入项目根目录（包含隐藏目录），在 Codex 打开该根目录。已有同名文件先合并；保留完整 Skill 和项目入口。详细说明见 [分发与发布](RELEASE.md)。
 
 然后直接说：
 
@@ -32,7 +32,7 @@ Codex 依据入口自动执行流程和语义审查；脚本提供可验证的�
 
 ## 项目级独立安装（v1.2.0）
 
-使用 `ios-team-flow-skill-v1.2.0.zip`，将完整 ios-team-flow 目录放入目标项目 `.agents/skills/`，再在项目根目录运行一次 `python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .`。之后直接提 iOS 需求；规则与版本随项目提交，不需要个人安装。详细步骤见 [项目安装说明](../.agents/skills/ios-team-flow/references/INSTALL.md)。
+使用 `ios-team-flow-skill-v1.2.0.zip`，将完整 ios-team-flow 目录放入目标项目 `.agents/skills/`，再在项目根目录运行一次 `python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .`。之后直接提 iOS 需求；规则与版本随项目提交，不需要个人安装。详细步骤见 [项目安装说明](INSTALL.md)。
 
 空项目先创建并进入项目文件夹，再创建 Skill 目录（将 MyApp 替换为你的项目目录名；已有文件夹直接进入）：
 
@@ -42,4 +42,4 @@ cd ~/Desktop/MyGit/MyApp
 mkdir -p .agents/skills
 ```
 
-然后放入完整 Skill 并执行上面的接入命令。在 Codex 打开项目根目录，不需要预先生成 iOS 工程，先确认需求文档再创建。逐步操作见 [根目录 README](../README.md#空项目创建文件夹并接入) 和 [空项目接入](../.agents/skills/ios-team-flow/references/INSTALL.md#空项目接入没有-agentsskills-时)。
+然后放入完整 Skill 并执行上面的接入命令。在 Codex 打开项目根目录，不需要预先生成 iOS 工程，先确认需求文档再创建。逐步操作见 [空项目接入](INSTALL.md#空项目接入没有-agentsskills-时)。

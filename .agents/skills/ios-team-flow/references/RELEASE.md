@@ -2,14 +2,14 @@
 
 ## 使用压缩包
 
-1. 将 zip 解压到临时目录，检查内容后把内部根目录内容合入目标项目的 Git 根目录，必须包含隐藏的 `.agents/` 与 `.github/`。不能只复制 `workflow/`，否则 Codex/GitHub 的原生入口不会被发现。
+1. 将 zip 解压到临时目录，检查内容后把内部根目录内容合入目标项目的 Git 根目录，必须包含隐藏的 `.agents/` 与 `.github/`。必须保留完整 Skill 和项目入口，才能按项目规则使用。
 2. 新目录可整套复制；已有项目合并 AGENTS.md、.gitignore、.github 和同名脚本，保留团队规则、工作日志与业务配置。先看差异，禁止直接覆盖已有文件。工程目录不搬迁；新工程默认 `App/`。
 3. 从项目根目录启动新 Codex 会话，确认识别 `ios-team-flow`；已打开会话若未刷新技能，重新打开会话。首次新产品按需求模板确认。
 4. 可提交的需求/日志默认正常跟踪；将入口、规范、脚本及产生的脱敏记录随项目提交。dist zip 通过 Release 附件分发，不进源码历史。
 
 ## 本地生成
 
-先更新 `workflow/VERSION`（语义版本 X.Y.Z）和 `workflow/CHANGELOG.md`，完成相关验证与本次审查，然后执行：
+先更新 `<SKILL_ROOT>/references/VERSION`（语义版本 X.Y.Z）和 `<SKILL_ROOT>/references/CHANGELOG.md`，完成相关验证与本次审查，然后执行：
 
 ```sh
 python3 -m unittest discover -s tests -v
@@ -30,6 +30,6 @@ python3 scripts/package_release.py
 
 ## 项目级独立 Skill 分发
 
-现在同时输出 `ios-team-flow-skill-vX.Y.Z.zip` 及 SHA256，内含完整 `ios-team-flow/` 文件夹；它应安装到每个目标项目的 `.agents/skills/`，执行一次项目接入后随项目提交，无需个人安装或原始仓库。详见 [独立安装说明](../.agents/skills/ios-team-flow/references/INSTALL.md)。
+现在同时输出 `ios-team-flow-skill-vX.Y.Z.zip` 及 SHA256，内含完整 `ios-team-flow/` 文件夹；它应安装到每个目标项目的 `.agents/skills/`，执行一次项目接入后随项目提交，无需个人安装或原始仓库。详见 [独立安装说明](INSTALL.md)。
 
-维护时先编辑 workflow/ 的规范单一源，然后运行 `python3 scripts/build_skill.py` 同步到 Skill 内；`validate_workflow.py` 会拒绝未同步的副本。仅 Skill 的 SKILL.md、setup_project.py 和 INSTALL.md 直接维护，其余 references 与 review_gate.py 都由单一源生成。打包从明确清单取文件，两个包都会通过现有 Release job 上传。
+直接维护 `.agents/skills/ios-team-flow/` 中的规则、模板、版本和工具实现，不再生成或同步第二份规范。根 scripts/review_gate.py 仅加载项目内 Skill 的门禁实现；根 scripts/ 中的校验与打包工具用于分发仓库。新增资源需登记打包清单，两个包均由 Release job 上传。

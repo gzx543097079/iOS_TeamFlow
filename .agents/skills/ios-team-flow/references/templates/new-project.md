@@ -1,7 +1,7 @@
 # 新项目需求文档：〈项目名称〉
 
 - 文档版本：v1
-- 状态：待确认
+- 状态：❔ 待确认
 - 产品负责人：待确认
 - 技术负责人：待确认
 - 更新日期：待填写
@@ -22,7 +22,7 @@
 | 开发团队 / Team ID | 待确认 | 使用团队实际 Apple Developer 账号，不编造 ID |
 | App Store Connect App ID / SKU | 待确认 / 上架准备时提供 | 分别记录 Apple 分配的数字 App ID 和团队 SKU，不能用 Bundle ID 代替 |
 | 仓库 / 默认分支 / 代码负责人 | 待填写 | 使用项目根目录，不建立嵌套 Git 仓库 |
-| 工程目录 | `App/`（默认建议） | 与 <SKILL_ROOT>/references/、requirements/、logs/、scripts/ 同级 |
+| 工程目录 | `App/`（默认建议） | 与 .agents/、requirements/、logs/、scripts/ 同级 |
 
 确认 Bundle ID 所有者及唯一性，并与开发者后台、签名、App Store Connect 配置一致。若有 Widget、通知扩展等，逐个记录 Target 与独立 Bundle ID；不要把同一个 ID 用于不同 App/扩展。开发/测试环境是否需要独立 App ID 见第 6 节，不擅自增加。
 
@@ -64,7 +64,7 @@
 项目根目录/                         # Git 根目录
 ├── AGENTS.md
 ├── .agents/skills/ios-team-flow/     # 项目工作流 Skill
-├── <SKILL_ROOT>/references/                       # 版本绑定；源仓库模式可保留规则
+├── .agents/teamflow.json           # 项目接入版本
 ├── requirements/                   # PRD、需求卡、架构决定
 ├── logs/                           # 脱敏过程与验证记录
 ├── scripts/                        # 工程外的辅助脚本
