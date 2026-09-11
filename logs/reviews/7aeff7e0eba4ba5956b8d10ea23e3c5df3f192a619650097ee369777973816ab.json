@@ -1,0 +1,42 @@
+{
+  "fingerprint": "7aeff7e0eba4ba5956b8d10ea23e3c5df3f192a619650097ee369777973816ab",
+  "base": "5dee8379b78c78779517cb82cc1fe29f12702d0c",
+  "scope": "staged",
+  "created_at": "2026-09-11T08:16:37.662289+00:00",
+  "reviewer": "Codex",
+  "completed_at": "2026-09-11T08:16:46.135710+00:00",
+  "summary": "增加团队验收与问题复核规范",
+  "previous_review": null,
+  "checks": {
+    "correctness": {
+      "status": "通过",
+      "evidence": "已核对新增模板、状态机和入口引用；文档验证通过，未将自审等同团队确认。"
+    },
+    "standards": {
+      "status": "通过",
+      "evidence": "仅维护项目内 Skill，入口和分发清单一致；工具与中文说明对应，无业务代码风格改动。"
+    },
+    "subscription": {
+      "status": "不适用",
+      "evidence": "没有订阅商品、价格或购买代码变更。"
+    },
+    "memory": {
+      "status": "不适用",
+      "evidence": "没有 iOS 对象生命周期变更，子进程/文件资源按工具行为测试验证。"
+    },
+    "analytics": {
+      "status": "不适用",
+      "evidence": "没有业务打点逻辑改动。"
+    },
+    "test_artifacts": {
+      "status": "通过",
+      "evidence": "测试仅使用临时项目和夹具，没有生产账号或调试入口；通用包白名单排除项目数据。"
+    },
+    "security": {
+      "status": "通过",
+      "evidence": "只新增规则和脱敏证据要求，无外部写入或凭据。"
+    }
+  },
+  "findings": [],
+  "blockers": []
+}

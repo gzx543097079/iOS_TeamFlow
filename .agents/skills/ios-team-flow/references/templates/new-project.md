@@ -386,3 +386,10 @@ Package.swift 明确产品、Target、依赖和平台要求；iOS 支持范围�
 - [Apple 本地 Package 组织](https://developer.apple.com/documentation/xcode/organizing-your-code-with-local-packages)：按复用与维护需求拆分代码。
 - [Apple Package 资源](https://developer.apple.com/documentation/xcode/bundling-resources-with-a-swift-package)：资源的 Target 归属和 Bundle.module。
 - [Apple 构建配置文件](https://developer.apple.com/documentation/xcode/adding-a-build-configuration-file-to-your-project)：.xcconfig 与构建配置绑定；上述 MVVM 目录命名是团队约定。
+
+## 团队验收安排
+
+- 产品/设计/测试验收负责人：待确认
+- 首版验收环境、核心场景和证据要求：待确认
+- 发布阻塞条件与问题复核负责人：待确认
+- 使用 [验收记录](acceptance.md)，团队确认与 Codex 自审、构建测试分别记录。

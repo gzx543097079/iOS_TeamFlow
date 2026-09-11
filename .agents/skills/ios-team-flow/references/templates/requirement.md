@@ -64,3 +64,5 @@
 业务验证配置：`.agents/project-checks.json`；本次 profile、选取原因及 result.json 证据：待填写 / 不适用并说明原因。
 
 交付关联：实施提交使用 `Requirement: 本需求编号`，详见 [交付追踪](../DELIVERY.md)。开发、提交、合并、发布分开记录，提交后刷新 requirements/DELIVERY.md。
+
+团队验收：适用性及理由、负责人、验收对象版本、记录路径；按 [团队验收](../ACCEPTANCE.md) 区分自审、测试和团队确认。失败问题保留编号、修复与复核历史。

@@ -95,3 +95,7 @@
 ```
 
 不要另建嵌套 Git 仓库。工作日志、需求和脚本可正常 git add/push；`.gitignore` 不忽略整个 logs 或 scripts。大体积 xcresult、构建输出、私钥、用户隐私不入库，保留脱敏摘要或受控 CI artifact 链接。复制文件到目录不等于上传 GitHub；push 与 Release 由明确授权执行。
+
+## 7. 团队验收
+
+按 [团队验收与问题复核](ACCEPTANCE.md) 判断适用性，保留真实确认与失败复核历史；适用团队验收尚未完成时保持待验证。
