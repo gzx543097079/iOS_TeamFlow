@@ -4,7 +4,7 @@
 
 ## 日常最小路径
 
-新需求只维护需求卡的一处状态和 AC 验收表；阶段结束执行本需求 `finish` 与 `--check`，自动生成交付索引。小改动不写重复进度表、不单独登记 development、不回填当前审查指纹。历史需求不自动迁移。
+新需求只维护需求卡的一处状态和 AC 验收表；阶段结束执行本需求 `finish`（自带写后核对），自动生成交付索引。小改动不写重复进度表、不单独登记 development、不回填当前审查指纹。历史需求不自动迁移。
 
 只加载当前阶段和改动类型的规范；未变化的规则与有效验证结果复用。提交前核对测试与暂存对象一致，完整路径见 [工作流](.agents/skills/ios-team-flow/references/WORKFLOW.md)。
 
@@ -28,17 +28,38 @@ mkdir -p .agents/skills
 python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
 ```
 
-脚本生成/合并 `AGENTS.md`、`.agents/teamflow.json`、`scripts/review_gate.py`，创建 `requirements/` 和 `logs/reviews/`。若目录尚不属于任何 Git 仓库，首次提交前执行 `git init`，不要创建嵌套仓库。
+脚本生成/合并 `AGENTS.md`、`.agents/teamflow.json`、`scripts/review_gate.py`，创建 `requirements/` 和 `logs/reviews/`。若目录尚不属于任何 Git 仓库，首次需求收尾前执行 `git init`，不要创建嵌套仓库。
 
 4. 在 Codex 打开项目根目录并开始新会话，直接提出需求，例如“增加订阅管理页，显示套餐并支持恢复购买”。后续无需再次点名 Skill。将完整 Skill、入口及项目记录一同提交，团队克隆后使用相同版本，无需安装到个人目录。
 
 只有复制 Skill 而未接入 AGENTS.md 时，不应依赖每次都能自动触发。接入不创建业务 App，也不安装 Hook。详细冲突处理和安装边界见 [安装说明](.agents/skills/ios-team-flow/references/INSTALL.md)。
 
+接入结束会自动显示只读诊断。后续独立诊断可运行：
+
+```sh
+python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project . --doctor
+```
+
+缺 Git、验证配置待补和可选 Hook/CI 会分别显示；诊断不运行项目命令、不安装依赖、不覆盖 .gitignore 或 Hook。新项目在工程创建后补实际验证 profile；已有项目复用既有命令。
+
+## 新需求的日常命令
+
+```sh
+# 新卡：UUID 可跨分支独立生成；续接需求不要重复 create
+python3 .agents/skills/ios-team-flow/scripts/delivery.py create --title "需求标题"
+# 使用上一步返回的实际编号；实施阶段普通同步
+python3 .agents/skills/ios-team-flow/scripts/delivery.py --requirement REQ-实际编号 finish
+# 实际验收通过、更新卡片证据后，显式绑定实际相关输入（替换示例目录）
+python3 .agents/skills/ios-team-flow/scripts/delivery.py --requirement REQ-实际编号 finish --accept --inputs App tests
+```
+
+普通同步不更新验收基线；内容变化先重开并实际复核，不能为消除报错盲用 --accept。正常提交已验收内容不重验。`--check` 留给 CI/独立只读核对，日常无需再跑一次；`--all` 只同步 1.7 新建 v3 卡，不批量接受或迁移历史卡。旧数字编号继续兼容，冲突修复见 [交付追踪](.agents/skills/ios-team-flow/references/DELIVERY.md)。
+
 ## 接入后的处理
 
 | 场景 | 行为与入口 |
 | --- | --- |
-| 新产品 | 先生成 [PRD](.agents/skills/ios-team-flow/references/templates/new-project.md)，团队确认后建工程；默认 Swift + UIKit、iOS 14、导航栈、无 Tab Bar、支持深色并跟随系统 |
+| 新产品 | 先生成 [启动 PRD](.agents/skills/ios-team-flow/references/templates/new-project.md)，确认启动范围后建最小工程，功能细节和发布配置分阶段确认；默认 Swift + UIKit、iOS 14、导航栈、无 Tab Bar、支持深色并跟随系统 |
 | 已有工程 | [记录现状并增量实施](.agents/skills/ios-team-flow/references/EXISTING-PROJECT.md)，保留实际配置，不套用新项目默认值 |
 | 日常需求 | [自行判断拆分并追踪](.agents/skills/ios-team-flow/references/WORKFLOW.md)：⬜ 未执行 → 🔄 执行中 → 🧪 待验证 → ✅ 执行完成；失败重开并留证 |
 | 构建与测试 | [配置项目命令/profile](.agents/skills/ios-team-flow/references/PROJECT-CHECKS.md)，记录实际执行结果；无明确要求不验证超大字号 |
@@ -72,7 +93,7 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
 
 业务项目使用独立 Skill 包。`iOS-TeamFlow-vX.Y.Z.zip` 是包含源仓库校验、测试和工作流发布 CI 的完整分发包，不要将其中发布流水线直接覆盖进业务仓库。
 
-当前版本为 **1.5.0**，包含暂存报告门禁、测试源码指纹、交付收尾、完整 Skill 升级恢复及 override 入口支持。详见 [版本记录](.agents/skills/ios-team-flow/references/CHANGELOG.md)。旧版 Release 附件保持原样。
+当前版本为 **1.7.0**，修复验收基线被同步覆盖、首次门禁缓存副作用及删除暂存误重测；提供 UUID 需求编号、接入诊断与分阶段新项目确认。详见 [版本记录](.agents/skills/ios-team-flow/references/CHANGELOG.md)。旧版 Release 附件保持原样。
 
 真实 iOS 测试工程见 `App/TeamFlowDemo/README.md`，在源仓库运行 `python3 .agents/skills/ios-team-flow/scripts/project_checks.py --project . run --profile ios-demo` 可执行模拟器构建、单测和 UI 测试。该工程仅随源码提供，不打入 Skill 分发包。GitHub 自动模拟器 CI 已移除，本地按需执行上述命令。
 

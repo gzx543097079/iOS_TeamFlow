@@ -28,6 +28,10 @@ def validate(root):
         errors.append('AGENTS.md 超出默认 32 KiB 预算')
     if not re.fullmatch(r'\d+\.\d+\.\d+', (root / SKILL / 'references/VERSION').read_text().strip()):
         errors.append('版本格式错误')
+    version = (root / SKILL / 'references/VERSION').read_text().strip()
+    readme = (root / 'README.md').read_text()
+    if '当前版本为 **' + version + '**' not in readme:
+        errors.append('README 当前版本与 VERSION 不一致')
     if errors:
         raise ValueError('\n'.join(errors))
     print('工作流入口、版本、文件清单和内部链接检查通过')

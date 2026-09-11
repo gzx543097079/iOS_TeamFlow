@@ -23,7 +23,7 @@ python3 "<SKILL_ROOT>/scripts/setup_project.py" --project "<PROJECT_ROOT>"
 
 1. 读取 [工作流](references/WORKFLOW.md)。查找 PROJECT_ROOT 下 requirements/ 的相关需求，复用编号和历史。已有工程按 [已有项目流程](references/EXISTING-PROJECT.md) 首次记录项目现状，后续只核对本次相关变化，保留原配置。新 iOS 产品按 [PRD 模板](references/templates/new-project.md) 整理具体需求，交团队确认后创建业务工程。
 2. 按改动读取：[OC](references/standards/objective-c.md)、[Swift](references/standards/swift.md)、[SwiftUI](references/standards/swiftui.md)。SwiftUI 同时执行 Swift；所有 UI 改动先读 [UI](references/standards/ui.md)。项目明确约定优先，解释冲突。
-3. 新需求用 [精简模板](references/templates/requirement.md)，只在卡片维护一次状态与 AC 结果；交付索引自动生成，历史卡不补同步。阶段结束与最终回复前执行本需求 finish 和 --check，未提交也适用。需求、日志、工程和项目辅助脚本均写入 PROJECT_ROOT，不写入安装目录。
+3. 新需求通过 delivery.py create --title 从 [精简模板](references/templates/requirement.md) 生成 UUID 卡，只在卡片维护一次状态与 AC 结果；交付索引自动生成，历史卡不补同步。阶段结束与最终回复前执行本需求 finish（自带写后核验），未提交也适用；首次实际验收完成及复核后用 finish --accept 绑定证据，普通同步不能重设基线。需求、日志、工程和项目辅助脚本均写入 PROJECT_ROOT，不写入安装目录。
 业务验证使用 [项目验证入口](references/PROJECT-CHECKS.md)，按实际工程配置本次必跑项并记录结果。
 
 4. 提交前读取 [审查规程](references/REVIEW.md)，在 PROJECT_ROOT 运行 scripts/review_gate.py；同指纹复用，新增变化只复查增量与关联影响。用户未授权时不 commit/push。已授权的实施提交使用 Requirement 尾注，并按 [交付追踪](references/DELIVERY.md) 执行 finish 收尾并报告缺失或未归档记录，验收与后续远端状态分别登记。

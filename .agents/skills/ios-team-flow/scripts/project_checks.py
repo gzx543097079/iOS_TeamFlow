@@ -100,7 +100,7 @@ def source_snapshot(root, config, profile=None, staged=False):
     paths.add(CONFIG)  # profile、命令或输入范围变化也必须令旧证据失效。
     files = {}
     for name in sorted(paths):
-        if name.startswith(EVIDENCE_DIRS):
+        if name.startswith(EVIDENCE_DIRS) or '__pycache__' in Path(name).parts or Path(name).suffix in ('.pyc', '.pyo'):
             continue
         # 默认业务验证忽略需求管理记录；文档验证可通过 inputs 显式纳入。
         if inputs is None and name.startswith('requirements/') and Path(name).suffix in ('.md', '.json'):
@@ -109,7 +109,7 @@ def source_snapshot(root, config, profile=None, staged=False):
         if staged:
             entry = index.get(name)
             if entry is None:
-                files[name] = None
+                continue
             else:
                 mode, oid = entry
                 if mode not in (b'100644', b'100755'):
@@ -119,14 +119,14 @@ def source_snapshot(root, config, profile=None, staged=False):
                 files[name] = {'sha256': hashlib.sha256(content).hexdigest(), 'executable': mode == b'100755'}
             continue
         if not path.exists():
-            files[name] = None
+            continue
         elif path.is_file():
             files[name] = {'sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
                            'executable': bool(path.stat().st_mode & 0o111)}
         else:
             raise ValueError('输入不是普通文件（目录输入需展开，子模块需显式指定文件）：' + name)
     encoded = json.dumps(files, sort_keys=True, ensure_ascii=True).encode()
-    return {'algorithm': 'sha256-files-v1', 'fingerprint': hashlib.sha256(encoded).hexdigest(), 'files': files}
+    return {'algorithm': 'sha256-files-v2', 'fingerprint': hashlib.sha256(encoded).hexdigest(), 'files': files}
 
 
 def verify(root, result, staged=False):

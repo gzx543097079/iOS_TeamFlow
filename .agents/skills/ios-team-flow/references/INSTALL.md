@@ -14,7 +14,7 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
 
 也可以在放好文件后请 Codex “接入当前项目的 iOS 工作流”。不需要每次提需求都重复这句话。
 
-脚本会在实际生效的指令文件中追加带标记区块（非空 AGENTS.override.md 优先，否则 AGENTS.md），明确引用项目内 Skill，生成 .agents/teamflow.json 与 scripts/review_gate.py，创建 requirements/、logs/reviews/。保留原 AGENTS.md 正文；相同版本重复运行不重复追加。脚本拒绝从其他项目或用户级安装目录直接接入本项目。
+脚本会在实际生效的指令文件中追加带标记区块（非空 AGENTS.override.md 优先，否则 AGENTS.md），明确引用项目内 Skill，生成 .agents/teamflow.json 与 scripts/review_gate.py，创建 requirements/、logs/reviews/。保留原 AGENTS.md 正文；相同版本重复运行不重复追加。脚本拒绝从其他项目或用户级安装目录直接接入本项目。接入后自动显示只读诊断：Python、Git 根目录、版本与入口、项目验证配置、忽略规则及可选 Hook/CI；“接入成功”不等于业务验证已就绪。
 
 脚本支持版本升级：未修改的托管内容自动更新，新版未修改的内容保留团队定制；双方都修改同一托管部分且内容不同才报告冲突。来源未知的同名脚本、损坏的标记/接入记录、降级或符号链接会在写入前退出。非空 AGENTS.override.md 存在时自动接入该文件，版本记录保存 instruction_file。后续入口切换时重新运行接入，保留旧文件正文，不主动删除旧规则；有效入口的托管标记损坏仍需修复。项目需要使用 Git 审查时应已是 Git 仓库，脚本不自动 git init。
 
@@ -135,3 +135,11 @@ python3 /临时目录/ios-team-flow/scripts/upgrade_skill.py --project /项目�
 `--apply` 在同一事务中备份完整 Skill、两种指令入口、根门禁入口和版本/基线，再应用更新。写入失败自动恢复；恢复入口仍为 setup_project.py --project ... --recover <transaction.json>，此时恢复范围包含完整 Skill。恢复也会检查升级后是否有人工修改，不强制覆盖。
 
 始终保留新版临时工具直到升级验收完成。恢复到旧版本后如需再次执行恢复，使用临时新版 scripts/setup_project.py；旧版本可能不支持完整事务格式。强制中断时，先确认无升级进程，使用新版恢复工具处理 prepared 事务，再移除 `.agents/teamflow-upgrade.lock` 空锁目录。备份留在项目 .agents/teamflow-backups，不进入通用包；升级不会安装或覆盖 Git Hook/CI。
+
+## 接入后的只读诊断
+
+```sh
+python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project . --doctor
+```
+
+不写文件、不执行配置里的命令、不联网、不安装依赖或 Hook。缺 Git 时先确认项目根再初始化；新项目待工程生成后补实际 profile，已有项目从既有 CI/构建说明提取配置。未安装 Hook/CI 是可选状态，不冒充强制门禁已启用。工具内部不依赖 Python 忽略规则，仍建议合并 `__pycache__/`、`*.pyc`、`.agents/teamflow-backups/` 和实际构建输出到项目 .gitignore，保留团队既有内容。

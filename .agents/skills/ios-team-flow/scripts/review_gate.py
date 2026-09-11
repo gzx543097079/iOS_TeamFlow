@@ -5,6 +5,7 @@ import hashlib
 import importlib.util
 import json
 import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -130,7 +131,12 @@ def check(root):
         spec = importlib.util.spec_from_file_location('teamflow_project_checks',
                                                       Path(__file__).with_name('project_checks.py'))
         checks = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(checks)
+        previous_bytecode = sys.dont_write_bytecode
+        try:
+            sys.dont_write_bytecode = True
+            spec.loader.exec_module(checks)
+        finally:
+            sys.dont_write_bytecode = previous_bytecode
         for result in report['validation_results']:
             path = checks.local_path(root, result)
             if git(root, 'show', ':' + result) != path.read_bytes():

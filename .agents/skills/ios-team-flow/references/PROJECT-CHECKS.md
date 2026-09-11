@@ -53,3 +53,5 @@ python3 .agents/skills/ios-team-flow/scripts/project_checks.py verify --result l
 可用 `profile_inputs` 按 profile 指定输入列表，优先于全局 inputs，例如 `"profile_inputs": {"docs": ["requirements", ".agents/skills/ios-team-flow/references"]}`。
 
 省略 inputs 时，Git 项目按已跟踪及未忽略的新文件记录，默认排除 requirements/ 下的 Markdown/JSON 管理记录，避免更新状态触发业务重测（该目录不得放业务资源；需要验证需求文档时显式纳入 inputs/profile_inputs）。删除的跟踪文件也参与比较；非 Git 项目必须显式配置 inputs。自动排除 logs/project-checks、logs/reviews 和 .agents/teamflow-backups 的生成证据，其他生成产物由项目 .gitignore 或明确 inputs 排除。此处测试指纹与 review 暂存指纹用途不同：前者证明测试对象，后者证明审查对象。
+
+1.7 使用 sha256-files-v2 快照：删除项统一表示为路径不存在，暂存删除不改变测试对象；Python __pycache__、.pyc/.pyo 在默认和显式输入中均排除。门禁加载验证器不生成缓存。1.6 的旧算法报告在下一次需要引用时重测，不批量迁移历史报告；真实源码增删改、执行权限和配置变化仍会失效。

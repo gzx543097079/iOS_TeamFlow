@@ -151,8 +151,9 @@ class DeliveryTests(unittest.TestCase):
         self.assertTrue(d.finish(self.root, [REQ], check=True))
         self.assertEqual(files, {p: p.read_bytes() for p in files})
         self.v2_card('✅ 执行完成', '通过', '实际测试证据')
-        self.assertFalse(d.finish(self.root, [REQ], check=True))
-        self.assertTrue(d.finish(self.root, [REQ]))
+        with self.assertRaisesRegex(ValueError, '基线缺失'):
+            d.finish(self.root, [REQ], check=True)
+        self.assertTrue(d.finish(self.root, [REQ], accept=True))
         _, data = d.load(self.root, REQ)
         self.assertEqual('✅ 执行完成', data['snapshot']['development'])
 
@@ -166,19 +167,19 @@ class DeliveryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, '团队实际确认'):
             d.finish(self.root, [REQ])
         card.write_text(card.read_text().replace('团队确认：待确认', '团队确认：用户；2026-09-11+08:00；build 1；通过'))
-        self.assertTrue(d.finish(self.root, [REQ]))
+        self.assertTrue(d.finish(self.root, [REQ], accept=True))
         card.write_text(card.read_text() + '\n- 状态：🔄 执行中\n')
         with self.assertRaisesRegex(ValueError, '只能填写一处'):
             d.finish(self.root, [REQ])
 
     def test_v2_new_implementation_requires_revalidation(self):
         self.v2_card('✅ 执行完成', '通过', '第一版测试证据')
-        d.finish(self.root, [REQ])
+        d.finish(self.root, [REQ], accept=True)
         self.commit('changed', 'Requirement: ' + REQ)
         with self.assertRaisesRegex(ValueError, '尚未复核'):
             d.finish(self.root, [REQ])
         self.v2_card('✅ 执行完成', '通过', '第二版实际复测证据')
-        self.assertTrue(d.finish(self.root, [REQ]))
+        self.assertTrue(d.finish(self.root, [REQ], accept=True))
 
     def test_all_ignores_legacy_and_v2_development_rejected(self):
         import sys
@@ -228,10 +229,53 @@ class DeliveryTests(unittest.TestCase):
 
     def test_v2_precommit_acceptance_is_reused_after_commit_without_repeat(self):
         self.v2_card('✅ 执行完成', '通过', '第一次证据')
-        d.finish(self.root, [REQ])
+        d.finish(self.root, [REQ], accept=True)
         (self.root / 'code.txt').write_text('fixed and tested')
         self.v2_card('✅ 执行完成', '通过', '修复后实际复测证据')
-        d.finish(self.root, [REQ])
+        d.finish(self.root, [REQ], accept=True)
         self.commit('fixed and tested', 'Requirement: ' + REQ)
         self.assertTrue(d.finish(self.root, [REQ]))
         self.assertTrue(d.finish(self.root, [REQ], check=True))
+
+
+    def test_finish_cannot_overwrite_accepted_baseline_before_commit(self):
+        self.v2_card('✅ 执行完成', '通过', '初版实际证据')
+        d.finish(self.root, [REQ], accept=True, inputs=['code.txt'])
+        record = self.root / 'requirements/delivery' / (REQ + '.json')
+        before = record.read_bytes()
+        (self.root / 'code.txt').write_text('unverified change')
+        for check in (False, True):
+            with self.assertRaisesRegex(ValueError, '尚未复核'):
+                d.finish(self.root, [REQ], check=check)
+        with self.assertRaisesRegex(ValueError, '复核证据'):
+            d.finish(self.root, [REQ], accept=True)
+        self.assertEqual(before, record.read_bytes())
+        self.commit('unverified change', 'Requirement: ' + REQ)
+        with self.assertRaisesRegex(ValueError, '尚未复核'):
+            d.finish(self.root, [REQ])
+        self.v2_card('🔄 执行中')
+        d.finish(self.root, [REQ])
+        _, data = d.load(self.root, REQ)
+        self.assertEqual(json.loads(before)['acceptance_baseline'], data['acceptance_baseline'])
+        self.v2_card('✅ 执行完成', '通过', '新版本实际复测证据')
+        d.finish(self.root, [REQ], accept=True)
+        self.assertTrue(d.finish(self.root, [REQ], check=True))
+
+    def test_acceptance_scope_ignores_unrelated_work_and_accept_is_idempotent(self):
+        self.v2_card('✅ 执行完成', '通过', '真实证据')
+        d.finish(self.root, [REQ], accept=True, inputs=['code.txt'])
+        files = {p: p.read_bytes() for p in (self.root / 'requirements').rglob('*') if p.is_file()}
+        (self.root / 'unrelated.txt').write_text('another task')
+        d.finish(self.root, [REQ])
+        d.finish(self.root, [REQ], accept=True)
+        self.assertEqual(files, {p: p.read_bytes() for p in files})
+        with self.assertRaises(ValueError):
+            d.finish(self.root, [REQ], check=True, accept=True)
+        with self.assertRaises(ValueError):
+            d.finish(self.root, [REQ], accept=True, inputs=['../outside'])
+
+    def test_finish_detects_failed_persistence_without_second_command(self):
+        self.v2_card()
+        with patch.object(d, 'save'):
+            with self.assertRaises(OSError):
+                d.finish(self.root, [REQ])

@@ -185,3 +185,26 @@ class ProjectChecksTests(unittest.TestCase):
         checks.verify(self.root, str(result.relative_to(self.root)))
         with self.assertRaisesRegex(ValueError, '源码或配置已变化'):
             checks.verify(self.root, str(docs.relative_to(self.root)))
+
+
+    def test_default_deletion_then_staging_preserves_verified_snapshot(self):
+        import subprocess
+        def git(*args):
+            subprocess.run(['git', '-C', str(self.root), *args], check=True, capture_output=True)
+        git('init', '-q')
+        self.config({'ok': {'argv': [sys.executable, '-c', 'pass']}})
+        path = self.root / checks.CONFIG
+        config = json.loads(path.read_text()); del config['inputs']; path.write_text(json.dumps(config))
+        source = self.root / 'removed.swift'; source.write_text('old')
+        git('add', '.')
+        source.unlink()
+        result, passed = checks.run(self.root, 'change')
+        self.assertTrue(passed)
+        relative = str(result.relative_to(self.root))
+        with self.assertRaisesRegex(ValueError, '暂存内容'):
+            checks.verify(self.root, relative, staged=True)
+        git('add', '-u')
+        checks.verify(self.root, relative, staged=True)
+        source.write_text('restored')
+        with self.assertRaisesRegex(ValueError, '源码或配置'):
+            checks.verify(self.root, relative, staged=True)

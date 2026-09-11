@@ -7,6 +7,10 @@ import json
 import hashlib
 import re
 import tempfile
+import subprocess
+import sys
+import shutil
+import importlib.util
 from pathlib import Path
 
 START = '<!-- ios-team-flow:start -->'
@@ -248,18 +252,87 @@ def setup(project, skill, dry_run=False):
         print('升级前文件备份：' + str(backup))
 
 
+def diagnose(project):
+    """只读诊断；不初始化 Git、不修改忽略规则或 Hook、不执行项目配置命令。"""
+    project = project.expanduser().resolve()
+    items = []
+    def item(name, status, detail):
+        items.append({'item': name, 'status': status, 'detail': detail})
+    item('Python', '就绪' if sys.version_info >= (3, 10) else '需处理', sys.version.split()[0])
+    try:
+        result = subprocess.run(['git', '-C', str(project), 'rev-parse', '--show-toplevel'], capture_output=True, text=True)
+        has_git = result.returncode == 0 and Path(result.stdout.strip()).resolve() == project
+    except OSError:
+        has_git = False
+    item('Git 根目录', '就绪' if has_git else '需处理', '已在根目录' if has_git else '首次需求收尾前确认根目录并初始化 Git；不能嵌套')
+    try:
+        record = json.loads((project / '.agents/teamflow.json').read_text())
+        version = (project / '.agents/skills/ios-team-flow/references/VERSION').read_text().strip()
+        ready = record['version'] == version and (project / record['instruction_file']).is_file() and (project / 'scripts/review_gate.py').is_file()
+        item('Skill 与入口', '就绪' if ready else '需处理', '版本 ' + version)
+    except (OSError, ValueError, KeyError, TypeError):
+        item('Skill 与入口', '需处理', '缺失或版本记录无效；执行项目接入')
+    config = project / '.agents/project-checks.json'
+    if config.exists():
+        try:
+            spec = importlib.util.spec_from_file_location('doctor_checks', Path(__file__).with_name('project_checks.py'))
+            module = importlib.util.module_from_spec(spec)
+            previous = sys.dont_write_bytecode
+            try:
+                sys.dont_write_bytecode = True
+                spec.loader.exec_module(module)
+            finally:
+                sys.dont_write_bytecode = previous
+            profiles = module.load_config(project)['profiles']
+            item('项目验证', '就绪' if profiles else '待配置', ', '.join(profiles) if profiles else '填入实际构建/测试命令，空配置不能验证')
+        except (OSError, ValueError, KeyError, TypeError):
+            item('项目验证', '需处理', '验证配置无效；检查项目路径和 profile')
+    else:
+        item('项目验证', '待配置', '业务实现前从实际工程配置 project_checks；新工程创建后补齐')
+    samples = ['.agents/skills/ios-team-flow/scripts/__pycache__/probe.pyc', '.agents/teamflow-backups/probe', 'DerivedData/probe']
+    ignored = False
+    if has_git:
+        result = subprocess.run(['git', '-C', str(project), 'check-ignore', '--no-index', '--stdin'],
+                                input='\n'.join(samples) + '\n', capture_output=True, text=True)
+        ignored = set(result.stdout.splitlines()) == set(samples)
+    item('生成物忽略', '就绪' if ignored else '建议检查', '工具自身缓存已排除；按既有 .gitignore 合并缓存、备份和实际构建输出规则')
+    hook = project / '.git/hooks/pre-commit'
+    if has_git:
+        configured = subprocess.run(['git', '-C', str(project), 'config', '--get', 'core.hooksPath'], capture_output=True, text=True)
+        if configured.returncode == 0:
+            hook = project / configured.stdout.strip() / 'pre-commit'
+        else:
+            git_path = subprocess.run(['git', '-C', str(project), 'rev-parse', '--git-path', 'hooks/pre-commit'], capture_output=True, text=True)
+            if git_path.returncode == 0:
+                hook = project / git_path.stdout.strip()
+    item('本地 Hook（可选）', '存在' if hook.is_file() else '未安装', '存在不等于已接入 TeamFlow；按 GIT-CHECKS 保留既有 Hook')
+    ci = project / '.github/workflows/teamflow-pr-review.yml'
+    item('PR 检查（可选）', '存在' if ci.is_file() else '未安装', '分支必需检查需要管理员另行配置')
+    item('Xcode', '可找到工具' if shutil.which('xcodebuild') else '未找到工具', '仅检测工具入口，不代表 App 已构建或 Scheme 可用')
+    report = {'project': str(project), 'checks': items, 'needs_action': any(i['status'] in ('需处理', '待配置') for i in items)}
+    print(json.dumps(report, ensure_ascii=False, indent=2))
+    return report
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--project', required=True, type=Path)
     parser.add_argument('--plan', action='store_true', help='只输出接入计划，不写入文件')
+    parser.add_argument('--doctor', action='store_true', help='只读诊断接入与验证就绪情况')
     parser.add_argument('--recover', type=Path, help='恢复本项目 transaction.json 中的接入前托管文件')
     args = parser.parse_args()
     try:
-        if args.recover:
+        if sum((args.doctor, args.plan, bool(args.recover))) > 1:
+            raise ValueError('--doctor、--plan、--recover 不能组合')
+        if args.doctor:
+            diagnose(args.project)
+        elif args.recover:
             recover(args.project, args.recover)
         else:
             planned = setup(args.project, Path(__file__).resolve().parents[1], dry_run=args.plan)
             if args.plan:
                 print(json.dumps({name: base64.b64encode(data).decode() for name, data in planned.items()}))
+            else:
+                diagnose(args.project)
     except (ValueError, OSError, KeyError, TypeError) as error:
         parser.exit(1, str(error) + '\n')

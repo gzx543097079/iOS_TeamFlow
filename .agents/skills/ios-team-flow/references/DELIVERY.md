@@ -4,14 +4,15 @@
 
 ## 新需求的唯一维护入口
 
-带 `teamflow:requirement:v2` 标记的需求只在 `requirements/REQ-*.md` 维护状态、AC 条件/结果/证据、验收方式及必要确认。脚本校验状态、唯一字段、AC 编号及完成条件；不代替验收真实性判断。JSON 和总表均为生成的只读投影，不能手工登记第二套 development 状态。
+带 `teamflow:requirement:v3` 标记的需求只在 `requirements/REQ-*.md` 维护状态、AC 条件/结果/证据、验收方式及必要确认。脚本校验状态、唯一字段、AC 编号及完成条件；不代替验收真实性判断。JSON 和总表均为生成的只读投影，不能手工登记第二套 development 状态。
 
 ```sh
 python3 .agents/skills/ios-team-flow/scripts/delivery.py --requirement REQ-实际编号 finish
-python3 .agents/skills/ios-team-flow/scripts/delivery.py --requirement REQ-实际编号 finish --check
+# 仅在实际验收完成后绑定基线（选择实际相关输入）
+python3 .agents/skills/ios-team-flow/scripts/delivery.py --requirement REQ-实际编号 finish --accept --inputs App tests
 ```
 
-阶段结束、最终回复前和已授权提交后运行；未提交也生成需求状态，提交显示未关联。每轮只处理本需求，不扫描历史。相同事实重复 finish 不改文件。`finish --all` 只选新版卡；历史卡和旧交付记录保留，不自动补登记或迁移。
+finish 自带写后核验，日常不再追加 --check；CI/独立核对才使用 --check。阶段结束、最终回复前和已授权提交后运行；未提交也生成需求状态，提交显示未关联。每轮只处理本需求，不扫描历史。相同事实重复 finish 不改文件。`finish --all` 只选 v3 卡；历史卡和旧交付记录保留，不自动补登记或迁移。
 
 新卡不写 Git 状态、提交 SHA、审查指纹或手写进度；finish 不回写新卡。回执通过 requirements 数组关联卡片，提交通过尾注关联：
 
@@ -19,7 +20,9 @@ python3 .agents/skills/ios-team-flow/scripts/delivery.py --requirement REQ-实�
 git commit -m '具体改动' -m 'Requirement: REQ-20260911-020'
 ```
 
-提交必须先审查并获得用户授权。提交后 finish 发现实施提交；生成记录留下一次已授权归档，不为记录自身 SHA 循环提交。只有生成交付记录/回执的提交不算实施。发生代码或环境变化时按影响重开 AC 并实际复核；新增实施提交的内容不同于上次验收工作区、且仍沿用上一套完成证据时会拒绝收尾；正常提交已验收内容复用证据，要求修正源卡，不生成矛盾状态。
+提交必须先审查并获得用户授权。提交后 finish 发现实施提交；生成记录留下一次已授权归档，不为记录自身 SHA 循环提交。只有生成交付记录/回执的提交不算实施。普通 finish 不创建或更新验收基线。实际验收完成后在卡片更新 AC 与状态，使用 --accept 绑定当前证据和代码范围；可用 --inputs 指定项目相对路径，默认沿用既有范围，首次不指定则覆盖工作区源码。代码变化而 AC 证据未更新时拒绝 --accept。正常提交已验收内容继续复用；源码/AC 改变先重开、复核，再接受。--accept 不与 --all/--check 组合。
+
+1.6 的 v2 卡仅在明确续接时建立基线，不自动认领过去的验收；--all 跳过旧 v2 卡。范围必须覆盖真实受影响输入，工具不验证团队确认身份，也不能用 --accept 代替实际测试。
 
 旧卡仅在明确指定其编号时保留原有 refresh、development、link-commit 和回写 Git 状态的兼容行为；新卡执行 development 会报错并指向唯一入口。本次以后不要求补齐旧卡。
 
@@ -50,6 +53,12 @@ python3 .agents/skills/ios-team-flow/scripts/delivery.py --requirement REQ-实�
 python3 .agents/skills/ios-team-flow/scripts/delivery.py finish --all --github --check
 ```
 
-单项使用实际需求编号；`--all` 仅扫描新版需求卡，不与 --requirement 同时使用。finish 刷新 JSON 和总表；新版卡不回写，旧卡兼容更新 Git 状态字段，保留历史和产品验收。--check 只核对，缺失/过期记录返回非零，不改文件。无实施提交的卡会单独列出，未授权提交的新需求可以合法处于该状态。
+单项使用实际需求编号；`--all` 仅扫描 v3 卡，不与 --requirement 同时使用。finish 刷新 JSON 和总表；新版卡不回写，旧卡兼容更新 Git 状态字段，保留历史和产品验收。--check 只核对，缺失/过期记录返回非零，不改文件。无实施提交的卡会单独列出，未授权提交的新需求可以合法处于该状态。
 
 提交、推送、发布的收尾必须报告 finish 结果及 unarchived_changes；刷新后产生的记录改动仍需后续授权的归档提交。工具不自动 commit/push，不把提交或正式 Release 等同团队验收。新版需求本地 finish 在提交集合未变时保留上次远端证据与 github_checked_at，不将已核实状态退回未知；这不代表本轮查询。提交集合变化则失效，使用 --github 重新核对；网络或对象不足仍明确未核实。发布后可先更新记录再归档到下一次文档提交，避免修改发布标签或循环提交自己的 SHA。
+
+## 多人编号与旧编号冲突
+
+新需求统一运行 `delivery.py create --title "需求标题"`，UUID 与日期组成编号；重复命令会创建新卡，续接时应使用已有编号。创建不提交、不改 Git 历史，可在初始化 Git 前执行。
+
+旧数字编号在不同分支冲突时，不把两项需求合成一张。保留一方编号，另一方用 create 分配新编号并迁入其需求与证据，更新父子卡和 PR 引用。未推送的提交可按团队已授权流程纠正 Requirement 尾注；已共享提交不强推改历史，用新编号的 link-commit 补关联，对旧编号运行 `exclude-commit --commit 确切SHA --reason "编号冲突，已迁入新编号"` 排除错归提交，并在需求历史记录原因。然后分别 finish 核对；生成总表冲突由 finish 重建，不能复制一方状态覆盖另一方。
