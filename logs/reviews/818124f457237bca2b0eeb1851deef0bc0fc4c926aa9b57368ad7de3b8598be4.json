@@ -1,0 +1,46 @@
+{
+  "fingerprint": "818124f457237bca2b0eeb1851deef0bc0fc4c926aa9b57368ad7de3b8598be4",
+  "base": "cc909bf66682e67f73236c36b9db6e0384498a1d",
+  "scope": "staged",
+  "created_at": "2026-09-11T10:08:51.998783+00:00",
+  "reviewer": "Codex",
+  "completed_at": "2026-09-11T10:09:15.598782+00:00",
+  "summary": "仅归档本需求提交与正式 Release 状态，以及已核实的流水线和四附件 digest；不修改实现、验收基线或旧需求。不重复工具测试。",
+  "previous_review": "3c77dad6a62f5088784560affffc2eddda6759c2fced9dec840a6a1840a1f57e",
+  "checks": {
+    "correctness": {
+      "status": "通过",
+      "evidence": "逐项核对暂存交付差异；cc909bf 已在 origin/main 和 teamflow-v1.7.0，正式 Release 已发布，Actions 34587665134 success，四个附件 digest 与本地字节一致；4项 AC 与验收基线未改，历史需求行未改，未虚称 PR 合并。"
+    },
+    "standards": {
+      "status": "通过",
+      "evidence": "生成状态仅归档一次，归档提交不加实施尾注；报告单向引用需求，无循环回填。"
+    },
+    "subscription": {
+      "status": "不适用",
+      "evidence": "本次仅生成交付索引与审查记录，不涉及业务代码、订阅、运行时资源或埋点。实现证据复用 previous_review。"
+    },
+    "memory": {
+      "status": "不适用",
+      "evidence": "本次仅生成交付索引与审查记录，不涉及业务代码、订阅、运行时资源或埋点。实现证据复用 previous_review。"
+    },
+    "analytics": {
+      "status": "不适用",
+      "evidence": "本次仅生成交付索引与审查记录，不涉及业务代码、订阅、运行时资源或埋点。实现证据复用 previous_review。"
+    },
+    "test_artifacts": {
+      "status": "不适用",
+      "evidence": "本次仅生成交付索引与审查记录，不涉及业务代码、订阅、运行时资源或埋点。实现证据复用 previous_review。"
+    },
+    "security": {
+      "status": "通过",
+      "evidence": "差异仅公开仓库 SHA、链接、时间与脱敏验收事实，无凭据或个人业务数据。"
+    }
+  },
+  "findings": [],
+  "blockers": [],
+  "requirements": [
+    "REQ-20260911-5ae07f5fe7fb44f3b1526ae8206ffa9b"
+  ],
+  "validation_results": []
+}
