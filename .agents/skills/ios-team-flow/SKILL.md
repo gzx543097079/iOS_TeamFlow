@@ -30,6 +30,6 @@ python3 "<SKILL_ROOT>/scripts/setup_project.py" --project "<PROJECT_ROOT>"
 
 规则、模板、版本和工具实现均直接维护在本 Skill 内，不需要外部规范目录或同步脚本。`<SKILL_ROOT>/references/` 表示本 Skill 的资料位置；`requirements/`、`logs/`、`scripts/`、`App/` 为项目根目录下的产物。项目接入版本记录在 `.agents/teamflow.json`，根 scripts/review_gate.py 加载本 Skill 的门禁实现。入口和完整 Skill 随项目提交；团队克隆后直接使用。
 
-本 Skill 不把规则发布流水线安装进消费项目。发布本工作流版本属于源仓库维护，读取 [发布规程](references/RELEASE.md) 并使用源仓库发布工具；业务 App 发布遵守其项目流程。
+本 Skill 不把规则发布流水线安装进消费项目。发布本工作流版本属于源仓库维护，读取 [发布规程](references/RELEASE.md) 并使用源仓库发布工具；业务 App 发布读取 [App 发布流程](references/APP-RELEASE.md) 并结合既有项目流程执行。
 
 业务验收读取 [团队验收与问题复核](references/ACCEPTANCE.md)，不能将自动 review 或提交授权当作团队产品验收。

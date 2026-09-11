@@ -1,0 +1,42 @@
+{
+  "fingerprint": "59ee50dfc3b9f4607d88a802472f0c513737dd808a5f3010d669bee66b39ef3e",
+  "base": "b3787ff18d89eb0566e4d017d13e3bc0aaab033c",
+  "scope": "staged",
+  "created_at": "2026-09-11T08:20:11.127064+00:00",
+  "reviewer": "Codex",
+  "completed_at": "2026-09-11T08:20:23.087906+00:00",
+  "summary": "增加业务 App 发布流程",
+  "previous_review": null,
+  "checks": {
+    "correctness": {
+      "status": "通过",
+      "evidence": "已核对官方上传、测试、提交和状态资料；区分实际build、商店可用与GitHub Release，模板链接检查通过。"
+    },
+    "standards": {
+      "status": "通过",
+      "evidence": "仅维护项目内 Skill，入口和分发清单一致；工具与中文说明对应，无业务代码风格改动。"
+    },
+    "subscription": {
+      "status": "不适用",
+      "evidence": "没有订阅商品、价格或购买代码变更。"
+    },
+    "memory": {
+      "status": "不适用",
+      "evidence": "没有 iOS 对象生命周期变更，子进程/文件资源按工具行为测试验证。"
+    },
+    "analytics": {
+      "status": "不适用",
+      "evidence": "没有业务打点逻辑改动。"
+    },
+    "test_artifacts": {
+      "status": "通过",
+      "evidence": "测试仅使用临时项目和夹具，没有生产账号或调试入口；通用包白名单排除项目数据。"
+    },
+    "security": {
+      "status": "通过",
+      "evidence": "外部发布遵循已有授权，凭据不入库；回退不假设Git标签能降级安装包。"
+    }
+  },
+  "findings": [],
+  "blockers": []
+}

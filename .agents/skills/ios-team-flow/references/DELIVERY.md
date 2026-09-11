@@ -39,3 +39,5 @@ python3 .agents/skills/ios-team-flow/scripts/delivery.py --requirement REQ-20260
 刷新保留操作历史、核对时间、提交 SHA、PR URL、发布 tag/URL。总表是交付索引，细节看各 JSON 和需求卡；团队验收不是工具自动批准。发生 rebase/squash 后核对关联，必要时在 Git 可审查的 JSON 中纠正旧手工 SHA 并记录理由，不伪造远端状态。
 
 使用新的工作流需求时 Codex 应在实施提交后 refresh，完成验收后登记 development；PR 合并/发布授权工作完成后再 refresh --github。交付记录可归档到下一次文档提交，归档不添加实施尾注；不为了修改记录中的自身 SHA 循环提交。用户只授权提交推送时，不由追踪工具自动创建 PR 或发布版本。
+
+本工具的 release 状态指 GitHub Release；App Store/TestFlight 发布状态须另按 [App 发布流程](APP-RELEASE.md) 核验并记录。
