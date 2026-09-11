@@ -1,0 +1,42 @@
+{
+  "fingerprint": "42814f09e766abefeaa0f42a0874b936432a70e12b2706be83e50b977903461e",
+  "base": "d3d2405775ab363c369d753e032a918bcb44a99d",
+  "scope": "staged",
+  "created_at": "2026-09-11T09:07:18.407391+00:00",
+  "reviewer": "Codex",
+  "completed_at": "2026-09-11T09:07:43.899421+00:00",
+  "summary": "归档1.5.0发布与CI实际结果",
+  "previous_review": null,
+  "checks": {
+    "correctness": {
+      "status": "通过",
+      "evidence": "本次仅归档需求018开发完成、发布提交d3d2405与远端Release事实；核对JSON和卡片、CI成功链接及附件SHA256证据。无业务或工具逻辑变化，不重复此前功能审查。"
+    },
+    "standards": {
+      "status": "通过",
+      "evidence": "仅维护项目内 Skill，入口和分发清单一致；工具与中文说明对应，无业务代码风格改动。"
+    },
+    "subscription": {
+      "status": "不适用",
+      "evidence": "没有订阅商品、价格或购买代码变更。"
+    },
+    "memory": {
+      "status": "不适用",
+      "evidence": "没有 iOS 对象生命周期变更，子进程/文件资源按工具行为测试验证。"
+    },
+    "analytics": {
+      "status": "不适用",
+      "evidence": "没有业务打点逻辑改动。"
+    },
+    "test_artifacts": {
+      "status": "通过",
+      "evidence": "测试仅使用临时项目和夹具，没有生产账号或调试入口；通用包白名单排除项目数据。"
+    },
+    "security": {
+      "status": "通过",
+      "evidence": "记录只含GitHub公开链接、提交SHA及验证结果，不含凭据、个人数据或可执行内容；不移动发布标签。"
+    }
+  },
+  "findings": [],
+  "blockers": []
+}

@@ -1,0 +1,177 @@
+diff --git a/logs/validation/REQ-20260911-018.md b/logs/validation/REQ-20260911-018.md
+index 3377ebd03fc674d63e8ed5869fd597637d83ac8a..9dcbe3e6c8306bab463fa4763c17bf63ac222c3b 100644
+--- a/logs/validation/REQ-20260911-018.md
++++ b/logs/validation/REQ-20260911-018.md
+@@ -13,3 +13,11 @@
+ - 交付：finish --all --github 已执行；017 的 finish --github --check 返回无过期。卡片旧 Git 状态保留在 JSON card_history，归档改动尚未提交。
+ 
+ 未执行真实支付、系统权限或超大字号测试；本次没有业务行为变更。语义检查范围为本次工具/文档改动，无生产凭据或新增业务权限。
++
++## 发布后补充证据
++
++- 发布提交：d3d2405775ab363c369d753e032a918bcb44a99d；标签：teamflow-v1.5.0。
++- GitHub 工具 CI：https://github.com/gzx543097079/iOS_TeamFlow/actions/runs/34581948462，通过。
++- GitHub iOS CI：https://github.com/gzx543097079/iOS_TeamFlow/actions/runs/34581948456，通过；标签触发的同提交重复 iOS 任务取消，复用已通过证据。
++- Release：https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v1.5.0。
++- Release 打包 CI：https://github.com/gzx543097079/iOS_TeamFlow/actions/runs/34582499122，通过；下载两种 ZIP 和 SHA256，均与本地逐文件核对标签的包一致。
+diff --git a/requirements/DELIVERY.md b/requirements/DELIVERY.md
+index d5a3bbed93e4405903ba8b934501851b2d29bb12..a3b09b585db0e2fbdf9ec91f5df0295a6960948a 100644
+--- a/requirements/DELIVERY.md
++++ b/requirements/DELIVERY.md
+@@ -21,4 +21,4 @@
+ | [REQ-20260911-015](REQ-20260911-015.md) | 未登记 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-11T08:49:18.468243+00:00 |
+ | [REQ-20260911-016](REQ-20260911-016.md) | 未登记 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-11T08:49:25.686336+00:00 |
+ | [REQ-20260911-017](REQ-20260911-017.md) | 未登记 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-11T08:49:32.274228+00:00 |
+-| [REQ-20260911-018](REQ-20260911-018.md) | 未登记 | ⬜ 未关联 | 未确认全部合并 | 未发现已发布版本 | 2026-09-11T08:49:32.384583+00:00 |
++| [REQ-20260911-018](REQ-20260911-018.md) | ✅ 开发完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-11T09:06:58.856132+00:00 |
+diff --git a/requirements/REQ-20260911-018.md b/requirements/REQ-20260911-018.md
+index 65f7551257c57d6440a5afe2221c588a0fc9c293..0e61f067ce28cd4fd479f541a157401b48653b7e 100644
+--- a/requirements/REQ-20260911-018.md
++++ b/requirements/REQ-20260911-018.md
+@@ -3,7 +3,7 @@
+ - 状态：✅ 执行完成
+ - 来源：先解决评估中的六个 P1/P2 问题
+ - 类型：工作流工具修复；负责人：Codex
+-- Git 状态：未关联实施提交；Release：未发现已发布版本；详见 delivery/REQ-20260911-018.json
++- Git 状态：已提交：d3d2405775ab363c369d753e032a918bcb44a99d；Release：✅ 已发布；详见 delivery/REQ-20260911-018.json
+ - 拆分：是；门禁、测试证据、CI、交付和升级分别有独立失败场景。
+ 
+ | 步骤 | 状态 | 验收 |
+@@ -15,7 +15,7 @@
+ | S5 完整 Skill 升级恢复 | ✅ 执行完成 | 预览差异、保护定制、备份整个 Skill 和入口、故障恢复 |
+ | S6 override 入口接入 | ✅ 执行完成 | 使用实际生效入口，保留团队正文，重复接入和升级可用 |
+ 
+-完成 6 / 6；当前：修复及本地验证完成；下一步：用户授权后提交推送，触发新增 CI；阻塞：无。
++完成 6 / 6；当前：修复及本地验证完成；下一步：无；阻塞：无。
+ 
+ ## 过程
+ 
+@@ -31,3 +31,5 @@
+ 证据：logs/validation/REQ-20260911-018.md；模拟器结果：logs/project-checks/20260911T084811Z-ed4cea20/result.json。
+ 
+ - 2026-09-11 +08:00：用户授权提交、推送并发布 1.5.0；发布后执行交付 finish 并归档结果。
++
++- 2026-09-11 +08:00：d3d2405 已提交推送，teamflow-v1.5.0 正式发布；GitHub 工具测试与首次 iOS CI 通过。发布后的交付状态已刷新，本次另行归档，标签保持实施提交。
+diff --git a/requirements/delivery/REQ-20260911-018.json b/requirements/delivery/REQ-20260911-018.json
+index b51544b20c58b28f0cb3328da6e51331a29ed703..0aefda6b72d4b55bdea393e45a58ceb9c66369f4 100644
+--- a/requirements/delivery/REQ-20260911-018.json
++++ b/requirements/delivery/REQ-20260911-018.json
+@@ -4,7 +4,11 @@
+   "linked_commits": [],
+   "prs": [],
+   "development": {
+-    "state": "未登记"
++    "state": "✅ 开发完成",
++    "evidence": "logs/validation/REQ-20260911-018.md：68项工具测试、4项模拟器测试及完整升级恢复通过；工具维护无需产品验收。",
++    "commits": [
++      "d3d2405775ab363c369d753e032a918bcb44a99d"
++    ]
+   },
+   "events": [
+     {
+@@ -21,17 +25,98 @@
+         "development": "未登记",
+         "checked_at": "2026-09-11T08:49:32.384583+00:00"
+       }
++    },
++    {
++      "at": "2026-09-11T09:00:37.614252+00:00",
++      "action": "development",
++      "snapshot": {
++        "commits": [
++          "d3d2405775ab363c369d753e032a918bcb44a99d"
++        ],
++        "committed": true,
++        "merged": "未核实",
++        "releases": [],
++        "release_status": "未核实",
++        "prs": [],
++        "warnings": [
++          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++        ],
++        "development": "✅ 开发完成",
++        "checked_at": "2026-09-11T09:00:37.614024+00:00"
++      }
++    },
++    {
++      "at": "2026-09-11T09:00:37.693826+00:00",
++      "action": "finish",
++      "snapshot": {
++        "commits": [
++          "d3d2405775ab363c369d753e032a918bcb44a99d"
++        ],
++        "committed": true,
++        "merged": "未核实",
++        "releases": [],
++        "release_status": "未核实",
++        "prs": [],
++        "warnings": [
++          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++        ],
++        "development": "✅ 开发完成",
++        "checked_at": "2026-09-11T09:00:37.693307+00:00"
++      }
++    },
++    {
++      "at": "2026-09-11T09:06:58.857959+00:00",
++      "action": "finish",
++      "snapshot": {
++        "commits": [
++          "d3d2405775ab363c369d753e032a918bcb44a99d"
++        ],
++        "committed": true,
++        "merged": "未确认全部合并",
++        "releases": [
++          {
++            "tag": "teamflow-v1.5.0",
++            "commit": "d3d2405775ab363c369d753e032a918bcb44a99d",
++            "url": "https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v1.5.0",
++            "published_at": "2026-09-11T09:06:21Z"
++          }
++        ],
++        "release_status": "✅ 已发布",
++        "prs": [],
++        "warnings": [],
++        "development": "✅ 开发完成",
++        "checked_at": "2026-09-11T09:06:58.856132+00:00"
++      }
+     }
+   ],
+   "snapshot": {
+-    "commits": [],
+-    "committed": false,
++    "commits": [
++      "d3d2405775ab363c369d753e032a918bcb44a99d"
++    ],
++    "committed": true,
+     "merged": "未确认全部合并",
+-    "releases": [],
+-    "release_status": "未发现已发布版本",
++    "releases": [
++      {
++        "tag": "teamflow-v1.5.0",
++        "commit": "d3d2405775ab363c369d753e032a918bcb44a99d",
++        "url": "https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v1.5.0",
++        "published_at": "2026-09-11T09:06:21Z"
++      }
++    ],
++    "release_status": "✅ 已发布",
+     "prs": [],
+     "warnings": [],
+-    "development": "未登记",
+-    "checked_at": "2026-09-11T08:49:32.384583+00:00"
+-  }
++    "development": "✅ 开发完成",
++    "checked_at": "2026-09-11T09:06:58.856132+00:00"
++  },
++  "card_history": [
++    {
++      "at": "2026-09-11T09:00:37.693797+00:00",
++      "previous_git_status": "- Git 状态：未关联实施提交；Release：未发现已发布版本；详见 delivery/REQ-20260911-018.json"
++    },
++    {
++      "at": "2026-09-11T09:06:58.857877+00:00",
++      "previous_git_status": "- Git 状态：已提交：d3d2405775ab363c369d753e032a918bcb44a99d；Release：未核实；详见 delivery/REQ-20260911-018.json"
++    }
++  ]
+ }
