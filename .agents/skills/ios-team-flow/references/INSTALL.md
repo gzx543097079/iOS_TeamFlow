@@ -107,3 +107,15 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
 ## 可选提交检查
 
 业务项目验证命令配置见 [项目验证](PROJECT-CHECKS.md)，需求与提交/PR/发布关联见 [交付追踪](DELIVERY.md)。本地 Hook 与 GitHub PR 范围检查需团队显式安装，见 [Git 检查](GIT-CHECKS.md)；升级脚本不自动更改现有 Hook 或工作流。
+
+## 接入中断与恢复
+
+新版接入脚本在 `.agents/teamflow-backups/upgrade-*/transaction.json` 保存接入前内容（含原来不存在的文件）和权限，逐文件原子替换；普通写入异常自动恢复。进程被强制终止时下次接入会提示先恢复，不能把多文件更新称为文件系统整体原子事务。
+
+```sh
+python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project . --recover .agents/teamflow-backups/upgrade-实际编号/transaction.json
+```
+
+将路径换成实际提示的记录。恢复会先预检全部目标；发现人工修改时停止，先将差异另存并人工合并，不能强行覆盖。自动恢复失败时保留记录，修复磁盘/权限原因后重试。成功恢复可重复执行；保留创建的空目录，避免删除团队文件。
+
+恢复范围仅是 AGENTS.md、版本记录和根门禁入口，不包含手动替换的 Skill 文件。回退整个版本时还需从 Git 或原 ZIP 恢复对应 Skill；先保存团队定制。备份可能含项目内部规则，请按项目访问范围保管。旧版无 transaction.json 的备份需要人工对比恢复，不能使用此命令。

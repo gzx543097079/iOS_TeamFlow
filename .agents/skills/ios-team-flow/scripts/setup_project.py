@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """将已安装 Skill 接入指定项目，预检冲突并保留既有文件。"""
 import argparse
+import base64
+import os
 import json
 import hashlib
 import re
@@ -35,6 +37,103 @@ def version_tuple(value):
     return tuple(map(int, value.split('.')))
 
 
+MANAGED_FILES = {'.agents/teamflow.json', 'scripts/review_gate.py', 'AGENTS.md'}
+
+
+def atomic_write(path, content, mode=0o644):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temporary = tempfile.mkstemp(prefix='.teamflow-', dir=path.parent)
+    try:
+        with os.fdopen(fd, 'wb') as stream:
+            stream.write(content)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.chmod(temporary, mode)
+        os.replace(temporary, path)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+
+
+def recover(project, journal_path):
+    project = project.expanduser().resolve()
+    journal_path = journal_path.absolute()
+    expected = project / '.agents/teamflow-backups'
+    if not journal_path.resolve().is_relative_to(expected):
+        raise ValueError('恢复记录必须位于本项目 .agents/teamflow-backups')
+    for node in (journal_path, *journal_path.parents):
+        if node == project:
+            break
+        if node.is_symlink():
+            raise ValueError('恢复路径不允许符号链接')
+    data = json.loads(journal_path.read_text())
+    if (data.get('schema') != 1 or data.get('project') != str(project)
+            or not isinstance(data.get('files'), dict) or not data['files']
+            or not set(data['files']).issubset(MANAGED_FILES)):
+        raise ValueError('恢复记录无效或属于其他项目')
+    originals = {}
+    # 在任何恢复写入之前核对所有文件，拒绝覆盖升级后的人工修改。
+    for name, entry in data['files'].items():
+        target = project / name
+        for node in (target, *target.parents):
+            if node == project:
+                break
+            if node.is_symlink():
+                raise ValueError('恢复目标包含符号链接：' + name)
+        old = None if entry['before'] is None else base64.b64decode(entry['before'], validate=True)
+        new = base64.b64decode(entry['after'], validate=True)
+        mode = entry['mode']
+        if type(mode) is not int or not 0 <= mode <= 0o777:
+            raise ValueError('恢复权限无效')
+        current = target.read_bytes() if target.exists() else None
+        if current != old and current != new:
+            raise ValueError('恢复冲突，文件已有其他修改：' + name)
+        originals[name] = (old, mode)
+    for name, (old, mode) in originals.items():
+        target = project / name
+        if old is None:
+            target.unlink(missing_ok=True)
+        else:
+            atomic_write(target, old, mode)
+    data['state'] = 'restored'
+    atomic_write(journal_path, (json.dumps(data, ensure_ascii=False, indent=2) + '\n').encode(), 0o600)
+    print('已恢复接入前托管文件：' + str(journal_path))
+
+
+def apply_transaction(project, changed, before):
+    if not changed:
+        return None
+    backup_root = project / '.agents/teamflow-backups'
+    backup_root.mkdir(parents=True, exist_ok=True)
+    backup = Path(tempfile.mkdtemp(prefix='upgrade-', dir=backup_root))
+    journal = backup / 'transaction.json'
+    files = {}
+    for name, content in changed.items():
+        target = project / name
+        mode = (target.stat().st_mode & 0o777) if target.exists() else 0o644
+        files[name] = {'before': None if before[name] is None else base64.b64encode(before[name]).decode(),
+                       'after': base64.b64encode(content).decode(), 'mode': mode}
+        if before[name] is not None:
+            saved = backup / name
+            atomic_write(saved, before[name], mode)
+    data = {'schema': 1, 'project': str(project), 'state': 'prepared', 'files': files}
+    atomic_write(journal, (json.dumps(data, ensure_ascii=False, indent=2) + '\n').encode(), 0o600)
+    try:
+        for name, content in changed.items():
+            atomic_write(project / name, content, files[name]['mode'])
+        for name in ('requirements', 'logs/reviews'):
+            (project / name).mkdir(parents=True, exist_ok=True)
+        data['state'] = 'applied'
+        atomic_write(journal, (json.dumps(data, ensure_ascii=False, indent=2) + '\n').encode(), 0o600)
+    except OSError as error:
+        try:
+            recover(project, journal)
+        except (OSError, ValueError) as rollback_error:
+            raise OSError(f'接入失败：{error}；自动恢复失败：{rollback_error}；修复原因后使用 --recover {journal}') from error
+        raise OSError(f'接入失败，托管文件已恢复：{error}；记录：{journal}') from error
+    return backup
+
+
 def setup(project, skill):
     project = project.expanduser().resolve()
     skill = skill.resolve()
@@ -67,6 +166,9 @@ def setup(project, skill):
         conflicts.append('存在 AGENTS.override.md，需先将工作流入口合入有效指令文件')
     if conflicts:
         raise ValueError('接入前预检发现冲突，未写入文件：\n' + '\n'.join(sorted(set(conflicts))))
+    for journal in (project / '.agents/teamflow-backups').glob('upgrade-*/transaction.json'):
+        if json.loads(journal.read_text()).get('state') == 'prepared':
+            raise ValueError('发现中断的接入，请先使用 --recover ' + str(journal))
     before = {name: (project / name).read_bytes() if (project / name).exists() else None
               for name in names}
     manifest = {}
@@ -126,20 +228,7 @@ def setup(project, skill):
     planned = {manifest_name: (json.dumps(manifest, ensure_ascii=False, indent=2) + '\n').encode(),
                gate_name: desired_gate, 'AGENTS.md': updated.encode()}
     changed = {name: data for name, data in planned.items() if data != before[name]}
-    backup = None
-    if any(before[name] is not None for name in changed):
-        backup_root = project / '.agents/teamflow-backups'
-        backup_root.mkdir(parents=True, exist_ok=True)
-        backup = Path(tempfile.mkdtemp(prefix='upgrade-', dir=backup_root))
-        for name in changed:
-            if before[name] is not None:
-                target = backup / name
-                target.parent.mkdir(parents=True, exist_ok=True)
-                target.write_bytes(before[name])
-    for name, content in changed.items():
-        target = project / name
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(content)
+    backup = apply_transaction(project, changed, before)
     for name in ('requirements', 'logs/reviews'):
         (project / name).mkdir(parents=True, exist_ok=True)
     print('项目已接入 ios-team-flow ' + version + '：' + str(project))
@@ -150,8 +239,12 @@ def setup(project, skill):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--project', required=True, type=Path)
+    parser.add_argument('--recover', type=Path, help='恢复本项目 transaction.json 中的接入前托管文件')
     args = parser.parse_args()
     try:
-        setup(args.project, Path(__file__).resolve().parents[1])
-    except (ValueError, OSError) as error:
+        if args.recover:
+            recover(args.project, args.recover)
+        else:
+            setup(args.project, Path(__file__).resolve().parents[1])
+    except (ValueError, OSError, KeyError, TypeError) as error:
         parser.exit(1, str(error) + '\n')
