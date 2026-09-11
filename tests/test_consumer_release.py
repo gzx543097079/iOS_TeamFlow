@@ -136,3 +136,30 @@ class ConsumerReleaseTests(unittest.TestCase):
         self.assertEqual([], old_data['snapshot']['commits'])
         self.assertEqual([sha], new_data['snapshot']['commits'])
         self.assertEqual(sha, self.git('rev-parse', 'HEAD').stdout.strip())
+
+    def test_result_acceptance_and_two_sequential_requirements_from_zip(self):
+        self.cli('setup_project.py', '--project', '.')
+        self.initialize()
+        app = self.root / 'App'; app.mkdir()
+        (app / 'A.swift').write_text('A')
+        config = {'schema_version': 1, 'inputs': ['App'],
+                  'checks': {'unit': {'argv': [sys.executable, '-c', 'pass']}},
+                  'profiles': {'change': ['unit']}}
+        (self.root / '.agents/project-checks.json').write_text(json.dumps(config))
+        req = json.loads(self.cli('delivery.py', 'create', '--title', 'A').stdout)['requirement']
+        self.cli('project_checks.py', 'run', '--profile', 'change')
+        result = str(next((self.root / 'logs/project-checks').glob('*/result.json')).relative_to(self.root))
+        card = self.root / 'requirements' / (req + '.md')
+        card.write_text(card.read_text().replace('⬜ 未执行', '✅ 执行完成')
+                        .replace('实施并验证 AC-01', '无').replace('| 未验证 | — |', '| 通过 | ' + result + ' |'))
+        self.cli('delivery.py', '--requirement', req, 'finish', '--accept', '--result', result)
+        self.git('add', '.'); self.git('commit', '-qm', 'A\n\nRequirement: ' + req)
+        self.cli('delivery.py', '--requirement', req, 'finish')
+        second = json.loads(self.cli('delivery.py', 'create', '--title', 'B').stdout)['requirement']
+        (app / 'B.swift').write_text('B')
+        self.git('add', '.'); self.git('commit', '-qm', 'B\n\nRequirement: ' + second)
+        self.cli('delivery.py', 'finish', '--all')
+        record = json.loads((self.root / 'requirements/delivery' / (req + '.json')).read_text())
+        self.assertIn('accepted_commit', record['acceptance_baseline'])
+        self.assertEqual('✅ 执行完成', record['snapshot']['development'])
+        self.cli('delivery.py', 'finish', '--all', '--check')

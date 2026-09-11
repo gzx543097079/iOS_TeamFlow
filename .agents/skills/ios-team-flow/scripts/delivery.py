@@ -7,6 +7,10 @@ import os
 import re
 import subprocess
 import uuid
+import importlib.util
+import sys
+import contextlib
+import io
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
@@ -126,43 +130,69 @@ def commits_for(root, requirement):
     return sorted(set(result))
 
 
-def implementation_snapshot(root, inputs=None):
-    """工作区内容绑定，区分正常提交已验收内容与提交后的额外修改。"""
-    raw = subprocess.check_output(['git', '-C', str(root), 'ls-files', '--cached', '--others',
-                                   '--exclude-standard', '-z'], stderr=subprocess.PIPE)
-    names = set(os.fsdecode(p) for p in raw.split(b'\0') if p)
-    if inputs is not None:
-        if not isinstance(inputs, list) or not inputs or any(not isinstance(n, str) or not n for n in inputs):
-            raise ValueError('验收输入必须是非空项目相对路径列表')
-        selected = set()
-        for name in inputs:
-            if Path(name).is_absolute() or '..' in Path(name).parts:
-                raise ValueError('验收输入必须位于项目内')
-            path = safe_path(root, name)
-            if path.is_dir():
-                selected.update(str(f.relative_to(root)) for f in path.rglob('*') if not f.is_dir())
-            else:
-                selected.add(str(path.relative_to(root)))
-        names = selected
+def checks_module():
+    spec = importlib.util.spec_from_file_location('delivery_checks', Path(__file__).with_name('project_checks.py'))
+    module = importlib.util.module_from_spec(spec)
+    previous = sys.dont_write_bytecode
+    try:
+        sys.dont_write_bytecode = True
+        spec.loader.exec_module(module)
+    finally:
+        sys.dont_write_bytecode = previous
+    return module
+
+
+def implementation_snapshot(root, inputs=None, ref=None):
+    """同一选择规则用于工作区与不可变 Git 对象；归档后不比较后续需求工作区。"""
+    checks = checks_module()
+    entries = {}
+    if ref:
+        raw = subprocess.check_output(['git', '-C', str(root), 'ls-tree', '-rz', ref])
+        for entry in filter(None, raw.split(b'\0')):
+            metadata, name = entry.split(b'\t', 1)
+            mode, kind, oid = metadata.split()
+            entries[os.fsdecode(name)] = (mode, kind, oid)
+    names = checks.input_paths(root, inputs, entries if ref else None)
     digest = hashlib.sha256()
     for name in sorted(names):
-        if '__pycache__' in Path(name).parts or Path(name).suffix in ('.pyc', '.pyo'):
+        if name.startswith('requirements/') and Path(name).suffix in ('.md', '.json'):
             continue
-        if (name.startswith(('logs/reviews/', 'logs/project-checks/', '.agents/teamflow-backups/'))
-                or name.startswith('requirements/') and Path(name).suffix in ('.md', '.json')):
-            continue
-        path = root / name
-        if path.is_symlink():
-            content, mode = os.fsencode(os.readlink(path)), b'link'
-        elif path.is_file():
-            content, mode = path.read_bytes(), str(path.stat().st_mode & 0o111).encode()
-        elif path.is_dir():
-            # 已有 submodule 用其实际 HEAD；不遍历外部目录。
-            content, mode = git(path, 'rev-parse', 'HEAD').encode(), b'gitlink'
+        if ref:
+            git_mode, kind, oid = entries[name]
+            if kind == b'commit':
+                content, mode = oid, b'gitlink'
+            else:
+                content = subprocess.check_output(['git', '-C', str(root), 'cat-file', 'blob', oid])
+                mode = b'link' if git_mode == b'120000' else str(int(git_mode, 8) & 0o111).encode()
         else:
-            continue  # 已删除文件与暂存删除后的树一致。
+            path = root / name
+            if path.is_symlink():
+                content, mode = os.fsencode(os.readlink(path)), b'link'
+            elif path.is_file():
+                content, mode = path.read_bytes(), str(path.stat().st_mode & 0o111).encode()
+            elif path.is_dir():
+                content, mode = git(path, 'rev-parse', 'HEAD').encode(), b'gitlink'
+            else:
+                continue
         digest.update(os.fsencode(name) + b'\0' + mode + b'\0' + hashlib.sha256(content).digest())
     return digest.hexdigest()
+
+
+def result_scope(root, results):
+    checks = checks_module()
+    scopes, evidence = [], []
+    whole_tree = False
+    for result in results:
+        with contextlib.redirect_stdout(io.StringIO()):
+            report = checks.verify(root, result)
+        config = checks.load_config(root)
+        inputs = config.get('profile_inputs', {}).get(report['profile'], config.get('inputs'))
+        if inputs is None:
+            whole_tree = True
+        else:
+            scopes.extend(inputs)
+        evidence.append({'path': result, 'sha256': hashlib.sha256(checks.local_path(root, result).read_bytes()).hexdigest()})
+    return (None if whole_tree else sorted(set(scopes + [checks.CONFIG]))), evidence
 
 
 def validate_pr(url):
@@ -182,7 +212,7 @@ def remote_tag_commit(root, tag):
     return refs.get('refs/tags/' + tag + '^{}', refs.get('refs/tags/' + tag))
 
 
-def refresh(root, data, github=False, accept=False, inputs=None):
+def refresh(root, data, github=False, accept=False, inputs=None, results=None):
     commits = sorted(set(commits_for(root, data['requirement']) + data['linked_commits'])
                      - set(data.get('excluded_commits', [])))
     # 引用失效不能静默丢掉，否则可能把部分需求误认为全部发布。
@@ -203,18 +233,42 @@ def refresh(root, data, github=False, accept=False, inputs=None):
             raise ValueError('--accept 仅用于已完成全部实际验收的需求')
         if card['state'] == '✅ 执行完成':
             scope = inputs if inputs is not None else baseline.get('inputs') if baseline else None
-            current = implementation_snapshot(root, scope)
-            expected = {'implementation_fingerprint': current,
-                        'acceptance_fingerprint': card['acceptance_fingerprint'], 'inputs': scope}
-            if accept:
-                if (baseline and baseline.get('implementation_fingerprint') != current
-                        and baseline.get('acceptance_fingerprint') == card['acceptance_fingerprint']):
-                    raise ValueError('代码变化后需更新实际 AC 复核证据，不能沿用旧证据接受新代码')
-                if baseline is None or any(baseline.get(k) != v for k, v in expected.items()):
-                    data['acceptance_baseline'] = {**expected, 'accepted_at': datetime.now(timezone.utc).isoformat()}
-            elif baseline is None or any(baseline.get(k) != v for k, v in expected.items()):
-                raise ValueError(data['requirement'] + ' 验收基线缺失或内容变化尚未复核；先重开需求并实际复核，再 finish --accept')
+            evidence = baseline.get('results', []) if baseline and not accept else []
+            if results:
+                scope, evidence = result_scope(root, results)
+            sealed = baseline and baseline.get('sealed_commits') == commits and bool(commits)
+            same_evidence = baseline and baseline.get('acceptance_fingerprint') == card['acceptance_fingerprint']
+            if sealed and same_evidence and not accept:
+                current = baseline['implementation_fingerprint']
+            else:
+                current = implementation_snapshot(root, scope)
+                latest = None
+                if commits:
+                    latest = next((sha for sha in git(root, 'rev-list', 'HEAD').splitlines() if sha in commits), None)
+                committed_fingerprint = implementation_snapshot(root, scope, latest) if latest else None
+                # 延后同步时，后续需求可能已经改变工作区，仍以匹配的实施对象封存。
+                if not accept and same_evidence and not baseline.get('reopened') and committed_fingerprint == baseline['implementation_fingerprint']:
+                    current = committed_fingerprint
+                expected = {'implementation_fingerprint': current,
+                            'acceptance_fingerprint': card['acceptance_fingerprint'], 'inputs': scope}
+                if accept:
+                    if (baseline and baseline.get('implementation_fingerprint') != current
+                            and same_evidence):
+                        raise ValueError('代码变化后需更新实际 AC 复核证据，不能沿用旧证据接受新代码')
+                    if baseline is None or any(baseline.get(k) != v for k, v in expected.items()) or evidence != baseline.get('results', []):
+                        data['acceptance_baseline'] = {**expected, 'results': evidence,
+                            'accepted_at': datetime.now(timezone.utc).isoformat()}
+                elif baseline is None or any(baseline.get(k) != v for k, v in expected.items()):
+                    raise ValueError(data['requirement'] + ' 验收基线缺失或内容变化尚未复核；先重开需求并实际复核，再 finish --accept')
+                # 只有确切实施提交包含已验收内容时才封存。未提交工作仍需核对工作区。
+                if latest:
+                    if committed_fingerprint == current:
+                        data['acceptance_baseline'] = {**data['acceptance_baseline'],
+                            'sealed_commits': commits, 'accepted_commit': latest}
             card['implementation_fingerprint'] = current
+        elif baseline and baseline.get('sealed_commits'):
+            data['acceptance_baseline'] = {**{k: v for k, v in baseline.items()
+                                           if k not in ('sealed_commits', 'accepted_commit')}, 'reopened': True}
         snapshot['development'] = card['state']
         snapshot['card'] = card
     release_targets = set(commits)
@@ -302,10 +356,12 @@ def overview(root):
     return '\n'.join(lines) + '\n'
 
 
-def finish(root, requirements, github=False, check=False, accept=False, inputs=None):
+def finish(root, requirements, github=False, check=False, accept=False, inputs=None, results=None):
     """统一收尾：核对提交与交付记录，刷新当前卡片字段；不批准开发验收。"""
     if accept and (check or len(requirements) != 1):
         raise ValueError('--accept 只用于单项实际验收，不与 --check/--all 组合')
+    if results and (not accept or inputs is not None):
+        raise ValueError('--result 仅随 --accept 使用，不与 --inputs 重复指定范围')
     if inputs is not None and not accept:
         raise ValueError('--inputs 仅随 --accept 确定验收范围')
     stale = []
@@ -316,7 +372,7 @@ def finish(root, requirements, github=False, check=False, accept=False, inputs=N
         path, data = load(root, requirement)
         old = data.get('snapshot', {})
         old_baseline = data.get('acceptance_baseline')
-        refresh(root, data, github, accept, inputs)
+        refresh(root, data, github, accept, inputs, results)
         prepared.append((requirement, path, data, old, old_baseline))
     for requirement, path, data, old, old_baseline in prepared:
         snapshot = data['snapshot']
@@ -411,6 +467,7 @@ def main():
     finishing.add_argument('--github', action='store_true')
     finishing.add_argument('--check', action='store_true', help='只核对，不更新文件；过期返回非零')
     finishing.add_argument('--accept', action='store_true', help='实际验收完成后显式绑定证据和代码范围')
+    finishing.add_argument('--result', action='append', help='引用实际通过的 project_checks 结果；可重复，无需手填范围')
     finishing.add_argument('--inputs', nargs='+', help='验收涉及的项目相对文件/目录，默认沿用基线范围或全工作区')
     dev = sub.add_parser('development')
     dev.add_argument('--state', choices=('未执行', '执行中', '待验证', '开发完成'), required=True)
@@ -442,7 +499,7 @@ def main():
             selected = ([args.requirement] if args.requirement else
                         sorted(p.stem for p in (root / 'requirements').glob('REQ-*.md')
                                if ID.fullmatch(p.stem) and CARD_V3 in p.read_text()))
-            return 0 if finish(root, selected, args.github, args.check, args.accept, args.inputs) else 1
+            return 0 if finish(root, selected, args.github, args.check, args.accept, args.inputs, args.result) else 1
         if not args.requirement:
             raise ValueError('该命令需要 --requirement')
         path, data = load(root, args.requirement)

@@ -2,14 +2,14 @@
 
 本仓库使用中文协作。开始读取 `.agents/skills/ios-team-flow/references/WORKFLOW.md`；实施和审查读取本地 Skill。只加载本次相关资料，已读且未变化的文件不重复读取。
 
-- 新需求用 create 生成 UUID/v3 精简卡；状态与验收只维护一份，阶段结束用 finish 生成并核对交付索引，实际验收完成才用 --accept。历史需求不补同步。
+- 新需求用 create 生成 UUID/v3 精简卡；状态与验收只维护一份，状态、验收或交付事实变化时用 finish 生成并核对交付索引，实际验收完成才用 --accept。历史需求不补同步。
 - 新 iOS 产品先确认具体 PRD；已有项目按 EXISTING-PROJECT.md 增量处理，保留既有配置。本仓库维护不属于新建 iOS 产品。
 - 按文件加载 Objective-C、Swift、SwiftUI 规范；UI 改动先读 ui.md，.mm 同时沿用工程 C++ 约定。
 - 产物位于项目根目录 requirements/、logs/、scripts/ 和业务工程目录，不写进 Skill 的 references/。
 
 ## Code Review Rules
 
-提交前按 REVIEW.md 审查本次暂存内容及必要上下文，七个维度给出结论/证据；脚本不代替语义分析。引用的测试证据使用 verify --staged。按指纹复用，变化只复核增量及关联影响；执行 review_gate.py check。需求卡不嵌入覆盖自身的当前审查指纹。
+提交前按 REVIEW.md 审查本次暂存内容及必要上下文，七个维度给出结论/证据；脚本不代替语义分析。引用的测试证据由最终门禁统一核对，无需预先重复 verify。按指纹复用，变化只复核增量及关联影响；执行 review_gate.py check。需求卡不嵌入覆盖自身的当前审查指纹。
 
 <!-- ios-team-flow:start -->
 ## iOS 团队工作流

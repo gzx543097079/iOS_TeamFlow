@@ -59,6 +59,35 @@ def load_config(root):
 EVIDENCE_DIRS = ('logs/project-checks/', 'logs/reviews/', '.agents/teamflow-backups/')
 
 
+def excluded_input(name):
+    parts = Path(name).parts
+    return (name.startswith(EVIDENCE_DIRS) or any(p in ('.git', '__pycache__', '.build', 'DerivedData')
+            or p.endswith('.xcresult') for p in parts) or Path(name).suffix in ('.pyc', '.pyo'))
+
+
+def input_paths(root, inputs=None, candidates=None):
+    """测试和验收共享输入选择；目录使用 Git 可见文件，排除忽略的生成物。"""
+    if inputs is not None:
+        if not isinstance(inputs, list) or not inputs or any(not isinstance(n, str) or not n for n in inputs):
+            raise ValueError('inputs 必须是非空项目相对文件/目录列表')
+        for name in inputs:
+            local_path(root, name)
+        inputs = [str(Path(n)) for n in inputs]
+    if candidates is None:
+        try:
+            raw = subprocess.check_output(['git', '-C', str(root), 'ls-files', '--cached', '--others',
+                                           '--exclude-standard', '-z'], stderr=subprocess.PIPE)
+            candidates = {os.fsdecode(n) for n in raw.split(b'\0') if n}
+        except subprocess.CalledProcessError:
+            if inputs is None:
+                raise ValueError('非 Git 项目必须显式配置 inputs')
+            candidates = {str(p.relative_to(root)) for n in inputs for p in
+                          ([local_path(root, n)] if not local_path(root, n).is_dir() else local_path(root, n).rglob('*'))
+                          if not p.is_dir() or p.is_symlink()}
+    return {n for n in candidates if not excluded_input(n) and (inputs is None or any(
+        item == '.' or n == item or n.startswith(item.rstrip('/') + '/') for item in inputs))}
+
+
 def source_snapshot(root, config, profile=None, staged=False):
     overrides = config.get('profile_inputs', {})
     if not isinstance(overrides, dict) or any(k not in config['profiles'] for k in overrides):
@@ -75,32 +104,13 @@ def source_snapshot(root, config, profile=None, staged=False):
                 raise ValueError('暂存区有未解决冲突')
             index[os.fsdecode(name)] = (mode, oid)
 
-    paths = set()
-    if inputs is not None:
-        if not isinstance(inputs, list) or not inputs or any(not isinstance(n, str) or not n for n in inputs):
-            raise ValueError('inputs 必须是非空项目相对文件/目录列表')
-        inputs = [str(Path(name)) for name in inputs]
-        for name in inputs:
-            path = local_path(root, name)
-            if path.is_dir():
-                paths.update(str(p.relative_to(root)) for p in path.rglob('*') if not p.is_dir() or p.is_symlink())
-            else:
-                paths.add(str(path.relative_to(root)))
-    else:
-        try:
-            raw = subprocess.check_output(['git', '-C', str(root), 'ls-files', '--cached', '--others',
-                                           '--exclude-standard', '-z'], stderr=subprocess.PIPE)
-            paths.update(os.fsdecode(n) for n in raw.split(b'\0') if n)
-        except subprocess.CalledProcessError:
-            raise ValueError('非 Git 项目必须显式配置 inputs，避免把构建产物作为源码')
+    paths = input_paths(root, inputs)
     if staged:
-        paths.update(name for name in index if inputs is None or any(
-            name == item.rstrip('/') or name.startswith(item.rstrip('/') + '/') or item == '.'
-            for item in inputs))
+        paths.update(input_paths(root, inputs, index))
     paths.add(CONFIG)  # profile、命令或输入范围变化也必须令旧证据失效。
     files = {}
     for name in sorted(paths):
-        if name.startswith(EVIDENCE_DIRS) or '__pycache__' in Path(name).parts or Path(name).suffix in ('.pyc', '.pyo'):
+        if excluded_input(name):
             continue
         # 默认业务验证忽略需求管理记录；文档验证可通过 inputs 显式纳入。
         if inputs is None and name.startswith('requirements/') and Path(name).suffix in ('.md', '.json'):

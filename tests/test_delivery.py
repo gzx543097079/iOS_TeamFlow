@@ -239,6 +239,7 @@ class DeliveryTests(unittest.TestCase):
 
 
     def test_finish_cannot_overwrite_accepted_baseline_before_commit(self):
+        (self.root / 'code.txt').write_text('pending accepted code')
         self.v2_card('✅ 执行完成', '通过', '初版实际证据')
         d.finish(self.root, [REQ], accept=True, inputs=['code.txt'])
         record = self.root / 'requirements/delivery' / (REQ + '.json')
@@ -279,3 +280,92 @@ class DeliveryTests(unittest.TestCase):
         with patch.object(d, 'save'):
             with self.assertRaises(OSError):
                 d.finish(self.root, [REQ])
+
+    def test_sealed_acceptance_survives_other_requirement_and_reopens(self):
+        app = self.root / 'App'; app.mkdir()
+        (app / 'A.swift').write_text('A')
+        card = self.v2_card('✅ 执行完成', '通过', 'A实际验收')
+        card.write_text(card.read_text().replace(d.CARD_V2, d.CARD_V3))
+        d.finish(self.root, [REQ], accept=True, inputs=['App'])
+        self.commit('one', 'A implementation\n\nRequirement: ' + REQ)
+        d.finish(self.root, [REQ])
+        _, sealed = d.load(self.root, REQ)
+        self.assertIn('accepted_commit', sealed['acceptance_baseline'])
+        (app / 'B.swift').write_text('unrelated B')
+        self.commit('one', 'B implementation\n\nRequirement: REQ-20260911-888')
+        d.finish(self.root, [REQ])
+        _, after = d.load(self.root, REQ)
+        self.assertEqual(sealed['acceptance_baseline'], after['acceptance_baseline'])
+        self.assertTrue(d.finish(self.root, [REQ], check=True))
+        self.v2_card('🔄 执行中')
+        d.finish(self.root, [REQ])
+        _, reopened = d.load(self.root, REQ)
+        self.assertNotIn('accepted_commit', reopened['acceptance_baseline'])
+        (app / 'A.swift').write_text('A changed')
+        self.v2_card('✅ 执行完成', '通过', 'A实际验收')
+        with self.assertRaisesRegex(ValueError, '尚未复核'):
+            d.finish(self.root, [REQ])
+        self.v2_card('✅ 执行完成', '通过', 'A变更实际复核')
+        d.finish(self.root, [REQ], accept=True)
+
+    def test_delayed_sealing_uses_accepted_commit_not_later_worktree(self):
+        (self.root / 'code.txt').write_text('accepted A')
+        self.v2_card('✅ 执行完成', '通过', 'A evidence')
+        d.finish(self.root, [REQ], accept=True, inputs=['code.txt'])
+        sha = self.commit('accepted A', 'Requirement: ' + REQ)
+        self.commit('B changed same file', 'Requirement: REQ-20260911-888')
+        d.finish(self.root, [REQ])
+        _, data = d.load(self.root, REQ)
+        self.assertEqual(sha, data['acceptance_baseline']['accepted_commit'])
+        self.commit('unverified A followup', 'Requirement: ' + REQ)
+        with self.assertRaisesRegex(ValueError, '尚未复核'):
+            d.finish(self.root, [REQ])
+
+    def test_dot_scope_ignores_metadata_and_ignored_outputs_in_both_tools(self):
+        checks = d.checks_module()
+        (self.root / '.gitignore').write_text('build/\n')
+        config = {'inputs': ['.'], 'profiles': {}}
+        before = d.implementation_snapshot(self.root, ['.'])
+        tested = checks.source_snapshot(self.root, config)
+        output = self.root / 'build'; output.mkdir(); (output / 'out').write_text('generated')
+        (self.root / '.git/probe').write_text('metadata')
+        self.assertEqual(before, d.implementation_snapshot(self.root, ['.']))
+        self.assertEqual(tested, checks.source_snapshot(self.root, config))
+        self.commit('one', 'normal commit')
+        self.assertEqual(before, d.implementation_snapshot(self.root, ['.']))
+        self.assertEqual(before, d.implementation_snapshot(self.root, ['.'], 'HEAD'))
+        self.assertEqual(tested, checks.source_snapshot(self.root, config, staged=True))
+        (self.root / 'real.txt').write_text('new source')
+        self.assertNotEqual(before, d.implementation_snapshot(self.root, ['.']))
+        self.assertNotEqual(tested, checks.source_snapshot(self.root, config))
+
+    def test_accept_result_reuses_profile_scope_and_rejects_stale_result(self):
+        import sys
+        checks = d.checks_module()
+        (self.root / '.agents').mkdir()
+        config = {'schema_version': 1, 'inputs': ['irrelevant'],
+                  'checks': {'unit': {'argv': [sys.executable, '-c', 'pass']}},
+                  'profiles': {'change': ['unit']}, 'profile_inputs': {'change': ['code.txt']}}
+        (self.root / '.agents/project-checks.json').write_text(json.dumps(config))
+        checks.run(self.root, 'change')
+        result = next((self.root / 'logs/project-checks').glob('*/result.json'))
+        relative = str(result.relative_to(self.root))
+        self.v2_card('✅ 执行完成', '通过', relative)
+        d.finish(self.root, [REQ], accept=True, results=[relative])
+        _, data = d.load(self.root, REQ)
+        self.assertEqual(['.agents/project-checks.json', 'code.txt'], data['acceptance_baseline']['inputs'])
+        self.assertEqual(relative, data['acceptance_baseline']['results'][0]['path'])
+        with self.assertRaisesRegex(ValueError, '重复指定'):
+            d.finish(self.root, [REQ], accept=True, inputs=['code.txt'], results=[relative])
+        (self.root / 'code.txt').write_text('changed after test')
+        with self.assertRaisesRegex(ValueError, '旧结果'):
+            d.finish(self.root, [REQ], accept=True, results=[relative])
+        self.v2_card('✅ 执行完成', '通过', '修改后人工复核证据')
+        d.finish(self.root, [REQ], accept=True, inputs=['code.txt'])
+        _, manual = d.load(self.root, REQ)
+        self.assertEqual([], manual['acceptance_baseline']['results'])
+
+    def test_documented_failure_value_is_valid(self):
+        self.v2_card('🔄 执行中', '失败', '真实复现证据')
+        self.assertEqual('🔄 执行中', d.card_state(self.root, REQ)['state'])
+        self.assertNotIn('标通过、未通过', (ROOT / '.agents/skills/ios-team-flow/references/ACCEPTANCE.md').read_text())
