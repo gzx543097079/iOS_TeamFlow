@@ -4,22 +4,20 @@ on:
     paths:
       - 'AGENTS.md'
       - '.agents/**'
+      - '.gitignore'
       - 'README.md'
-      - 'scripts/review_gate.py'
-      - 'scripts/package_release.py'
-      - 'scripts/validate_workflow.py'
-      - 'tests/**/*.py'
-      - '.github/workflows/teamflow-*.yml'
+      - 'scripts/**'
+      - 'tests/**'
+      - '.github/**'
   push:
     paths:
       - 'AGENTS.md'
       - '.agents/**'
+      - '.gitignore'
       - 'README.md'
-      - 'scripts/review_gate.py'
-      - 'scripts/package_release.py'
-      - 'scripts/validate_workflow.py'
-      - 'tests/**/*.py'
-      - '.github/workflows/teamflow-*.yml'
+      - 'scripts/**'
+      - 'tests/**'
+      - '.github/**'
   workflow_dispatch:
 permissions:
   contents: read
@@ -28,12 +26,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: 检查规范入口与工具行为
-        run: |
-          python3 scripts/validate_workflow.py
-          python3 -m unittest discover -s tests -v
+      - name: 按改动检查规范与工具行为
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python3 scripts/run_workflow_checks.py --base "$BASE_SHA"
       - name: 验证可分发压缩包
         run: python3 scripts/package_release.py

@@ -1,0 +1,550 @@
+diff --git a/.agents/skills/ios-team-flow/references/CHANGELOG.md b/.agents/skills/ios-team-flow/references/CHANGELOG.md
+index 7a47b3894391467578a4b23334b8d192e2379503..996f4ed22a87ef253225a26a65fe49084e274798 100644
+--- a/.agents/skills/ios-team-flow/references/CHANGELOG.md
++++ b/.agents/skills/ios-team-flow/references/CHANGELOG.md
+@@ -1,6 +1,10 @@
+ # 版本记录
+ 
+-## 未发布
++## 1.10.2
++
++- CI 按已提交改动选择文档、模板及关联工具测试，合并范围去重；未知/公共变化、基准缺失、手动执行及 Release 保持全量。
++- 文档校验统一由测试执行一次；清理重复状态查询、脆弱措辞断言及重复超时场景，保留行为与 CLI 退出码覆盖。
++- 新增选择器边界、依赖范围、删除/重命名、失败返回和空套件保护回归；不以减少测试条目数量作为目标。
+ 
+ - 新项目需求模板仅默认启用英语 en 和简体中文 zh-Hans；其余 14 个语言/地区条目保留为未启用候选，按需确认。同步启动检查项与 README，既有项目语言配置不变。
+ 
+diff --git a/.agents/skills/ios-team-flow/references/RELEASE.md b/.agents/skills/ios-team-flow/references/RELEASE.md
+index 515a6800dea1888b1430d3320ab1f1fcfb36abaf..c859f07ab75766dc92de61455a10b9c3a68d7177 100644
+--- a/.agents/skills/ios-team-flow/references/RELEASE.md
++++ b/.agents/skills/ios-team-flow/references/RELEASE.md
+@@ -12,7 +12,7 @@
+ 先更新 `<SKILL_ROOT>/references/VERSION`（语义版本 X.Y.Z）和 `<SKILL_ROOT>/references/CHANGELOG.md`，完成相关验证与本次审查，然后执行：
+ 
+ ```sh
+-python3 -m unittest discover -s tests -v
++python3 scripts/run_workflow_checks.py --full
+ python3 scripts/package_release.py
+ ```
+ 
+@@ -34,4 +34,12 @@ python3 scripts/package_release.py
+ 
+ 直接维护 `.agents/skills/ios-team-flow/` 中的规则、模板、版本和工具实现，不再生成或同步第二份规范。根 scripts/review_gate.py 仅加载项目内 Skill 的门禁实现；根 scripts/ 中的校验与打包工具用于分发仓库。新增资源需登记打包清单，两个包均由 Release job 上传。
+ 
++## 按改动执行源仓库检查
++
++日常 CI 使用 `python3 scripts/run_workflow_checks.py --base 完整基准SHA` 比较基准与 HEAD（已提交内容，不含工作区修改）。普通说明执行文档校验，模板增加生成/消费场景，工具脚本执行对应模块及关联门禁、验收与消费测试。文档校验由测试套件统一执行一次，不在 CI 重复调用。
++
++CI 获取完整 Git 历史：push 使用 before，PR 使用事件 base 与检出的合并结果；新分支、基准缺失/不可读、公共脚本、测试、版本、CI 或未知路径变化回退全量。随提交归档的 REQ 卡、交付索引和审查回执不扩大工具测试范围；其他未知文件仍回退全量。多类变化取并集并去重；删除/重命名包含原路径。`--list` 只显示计划，不表示验证通过。手动 workflow_dispatch 和正式 Release 始终全量。
++
++打包校验继续在 CI 执行；首次执行、公共依赖变化或无法确定影响时用 --full。不要把此脚本作为业务 App 测试入口，也不要只为减少测试数量删除独立覆盖。
++
+ 本文件只发布工作流 ZIP；业务 iOS App 使用 [App 发布流程](APP-RELEASE.md)。
+diff --git a/.agents/skills/ios-team-flow/references/VERSION b/.agents/skills/ios-team-flow/references/VERSION
+index 4dae2985b58cc788127f922e33b8e9ae4c41da60..5ad2491cf8808e3c61f8a41daf3766ad973092e4 100644
+--- a/.agents/skills/ios-team-flow/references/VERSION
++++ b/.agents/skills/ios-team-flow/references/VERSION
+@@ -1 +1 @@
+-1.10.1
++1.10.2
+diff --git a/.agents/teamflow.json b/.agents/teamflow.json
+index cf3c3cb6adbf70a501fb0b3e181bab1c54f1eb88..6f445ac9a08e5e1b9fcee02a49326467b2e4f30c 100644
+--- a/.agents/teamflow.json
++++ b/.agents/teamflow.json
+@@ -1,6 +1,6 @@
+ {
+   "skill": "ios-team-flow",
+-  "version": "1.10.1",
++  "version": "1.10.2",
+   "schema_version": 1,
+   "instruction_file": "AGENTS.md",
+   "managed": {
+diff --git a/.github/workflows/teamflow-check.yml b/.github/workflows/teamflow-check.yml
+index 9afedf29db1f476b12adfd4b0617f27daa99f5de..da8ece22a5b89627f1b0359b73713ebf65800ac6 100644
+--- a/.github/workflows/teamflow-check.yml
++++ b/.github/workflows/teamflow-check.yml
+@@ -4,22 +4,20 @@ on:
+     paths:
+       - 'AGENTS.md'
+       - '.agents/**'
++      - '.gitignore'
+       - 'README.md'
+-      - 'scripts/review_gate.py'
+-      - 'scripts/package_release.py'
+-      - 'scripts/validate_workflow.py'
+-      - 'tests/**/*.py'
+-      - '.github/workflows/teamflow-*.yml'
++      - 'scripts/**'
++      - 'tests/**'
++      - '.github/**'
+   push:
+     paths:
+       - 'AGENTS.md'
+       - '.agents/**'
++      - '.gitignore'
+       - 'README.md'
+-      - 'scripts/review_gate.py'
+-      - 'scripts/package_release.py'
+-      - 'scripts/validate_workflow.py'
+-      - 'tests/**/*.py'
+-      - '.github/workflows/teamflow-*.yml'
++      - 'scripts/**'
++      - 'tests/**'
++      - '.github/**'
+   workflow_dispatch:
+ permissions:
+   contents: read
+@@ -28,12 +26,14 @@ jobs:
+     runs-on: ubuntu-latest
+     steps:
+       - uses: actions/checkout@v4
++        with:
++          fetch-depth: 0
+       - uses: actions/setup-python@v5
+         with:
+           python-version: '3.12'
+-      - name: 检查规范入口与工具行为
+-        run: |
+-          python3 scripts/validate_workflow.py
+-          python3 -m unittest discover -s tests -v
++      - name: 按改动检查规范与工具行为
++        env:
++          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
++        run: python3 scripts/run_workflow_checks.py --base "$BASE_SHA"
+       - name: 验证可分发压缩包
+         run: python3 scripts/package_release.py
+diff --git a/.github/workflows/teamflow-release.yml b/.github/workflows/teamflow-release.yml
+index 2b6db4f2f9b3fbedc4f4dc282d4c6e8f8858c9e2..61a89981d536aa6506516138eac13cebe06878d7 100644
+--- a/.github/workflows/teamflow-release.yml
++++ b/.github/workflows/teamflow-release.yml
+@@ -31,8 +31,7 @@ jobs:
+           PY
+       - name: 验证并打包
+         run: |
+-          python3 scripts/validate_workflow.py
+-          python3 -m unittest discover -s tests -v
++          python3 scripts/run_workflow_checks.py --full
+           python3 scripts/package_release.py
+       - name: 上传 ZIP 与 SHA256 到当前 Release
+         env:
+diff --git a/README.md b/README.md
+index 96891ec8efd40993dcfd03a894e4a3b8bc620f00..e56ccb98e4d5df3c9d02d30c9fea5c7770867849 100644
+--- a/README.md
++++ b/README.md
+@@ -1,6 +1,6 @@
+ # iOS TeamFlow
+ 
+-项目级中文 iOS 团队工作流，支持 Objective-C、Swift、SwiftUI、UI 规范、需求追踪、验证、提交审查和交付记录。当前版本为 **1.10.1**。完整规则只维护在项目 `.agents/skills/ios-team-flow/`，团队克隆后共用。
++项目级中文 iOS 团队工作流，支持 Objective-C、Swift、SwiftUI、UI 规范、需求追踪、验证、提交审查和交付记录。当前版本为 **1.10.2**。完整规则只维护在项目 `.agents/skills/ios-team-flow/`，团队克隆后共用。
+ 
+ ## 先看你属于哪种情况
+ 
+@@ -37,7 +37,7 @@ git init
+ 
+ ### 2. 放入完整 Skill
+ 
+-从 [1.10.1 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v1.10.1) 下载 `ios-team-flow-skill-v1.10.1.zip`，解压后把完整的 `ios-team-flow` 文件夹放到 `.agents/skills/`。
++从 [1.10.2 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v1.10.2) 下载 `ios-team-flow-skill-v1.10.2.zip`，解压后把完整的 `ios-team-flow` 文件夹放到 `.agents/skills/`。
+ 
+ 最终必须是 `.agents/skills/ios-team-flow/SKILL.md`，不要只复制 SKILL.md，也不要多套一层同名文件夹。Finder 按 `Command + Shift + .` 显示隐藏文件夹。
+ 
+@@ -51,7 +51,7 @@ MyApp/
+             └── scripts/
+ ```
+ 
+-已有同名 Skill 时先比较版本和定制，按升级流程处理。业务项目使用上述独立 Skill 包；`iOS-TeamFlow-v1.10.1.zip` 是带源仓库测试和发布流水线的完整分发包。
++已有同名 Skill 时先比较版本和定制，按升级流程处理。业务项目使用上述独立 Skill 包；`iOS-TeamFlow-v1.10.2.zip` 是带源仓库测试和发布流水线的完整分发包。
+ 
+ ### 3. 接入项目并查看诊断
+ 
+@@ -134,13 +134,12 @@ Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/refer
+ 
+ ## 源仓库维护与版本
+ 
+-1.10.1 恢复 1.9.2 工具输出：检查逐项显示状态，`status` 默认返回完整快照，历史使用 `--history`。调用脚本应去掉 1.10.0 新增的 `--verbose` / `--json` 参数。其他读取与记录优化、完整证据及七维审查门禁保留。版本变化见 [CHANGELOG](.agents/skills/ios-team-flow/references/CHANGELOG.md)。
++1.10.2 按 Git 改动选择日常 CI 测试，清理重复验证；正式发布、公共或未知变化仍执行全量。文档和模板改动无需每次运行全部工具测试，工具输出沿用 1.10.1。新项目默认英语和简体中文。版本变化见 [CHANGELOG](.agents/skills/ios-team-flow/references/CHANGELOG.md)。
+ 
+ 以下命令用于工作流分发仓库维护，不要求业务项目为了接入而运行：
+ 
+ ```sh
+-python3 scripts/validate_workflow.py
+-python3 -m unittest discover -s tests -v
++python3 scripts/run_workflow_checks.py --full
+ python3 scripts/package_release.py
+ ```
+ 
+diff --git a/requirements/DELIVERY.md b/requirements/DELIVERY.md
+index 8f519a343aba8ceab5615f82925b8fcf32e822ce..27a9113bc8f1eb6da5c1c4695edbd7c0107569cd 100644
+--- a/requirements/DELIVERY.md
++++ b/requirements/DELIVERY.md
+@@ -32,3 +32,4 @@
+ | [REQ-20260911-cf5a83acc9f3488b868d175cd114a4a0](REQ-20260911-cf5a83acc9f3488b868d175cd114a4a0.md) | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-11T11:37:46.656969+00:00 |
+ | [REQ-20260911-d7091eb1815c423e8b71e01dbbf6a811](REQ-20260911-d7091eb1815c423e8b71e01dbbf6a811.md) | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-11T10:58:54.288439+00:00 |
+ | [REQ-20260911-dda30577b7de48149e2f2387b481951e](REQ-20260911-dda30577b7de48149e2f2387b481951e.md) | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-11T12:25:13.490899+00:00 |
++| [REQ-20260911-f60325f1654145508c491a78bc7d506e](REQ-20260911-f60325f1654145508c491a78bc7d506e.md) | ✅ 执行完成 | ⬜ 未关联 | 未核实 | 未核实 | 2026-09-11T12:43:20.779243+00:00 |
+diff --git a/requirements/REQ-20260911-f60325f1654145508c491a78bc7d506e.md b/requirements/REQ-20260911-f60325f1654145508c491a78bc7d506e.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..4424ae51904cfabba740866e3fcd1c4a819f2acf
+--- /dev/null
++++ b/requirements/REQ-20260911-f60325f1654145508c491a78bc7d506e.md
+@@ -0,0 +1,24 @@
++# REQ-20260911-f60325f1654145508c491a78bc7d506e：按改动选择工作流验证并发布 1.10.2
++<!-- teamflow:requirement:v3 -->
++
++- 状态：✅ 执行完成
++- 来源与范围：用户同意精简重复测试与按范围执行，授权提交推送并发布 1.10.2；保留发布全量回归与关键行为覆盖。
++- 拆分：否；测试选择和 CI 接入共同交付。
++- 验收方式：自审
++- 验收依据：工具 CI 调整，通过真实 Git 范围和 CLI 场景、完整回归、分发及线上 CI 验证；无 App 产品范围。
++- 下一步：无
++- 阻塞项：无
++
++## 验收（唯一结果记录）
++
++| 编号 | 条件 | 结果 | 证据或不适用原因 |
++| --- | --- | --- | --- |
++| AC-01 | 文档/模板/工具变化选择相关测试，多类合并去重，未知或基准缺失执行全量 | 通过 | logs/reviews/validation-1.10.2.md |
++| AC-02 | 删除与重命名不漏检查，测试失败和空套件不放行，关键原行为覆盖保留 | 通过 | logs/reviews/validation-1.10.2.md |
++| AC-03 | CI/Release 接入，版本和双包一致，完整回归通过且正式发布全量 | 通过 | logs/reviews/validation-1.10.2.md |
++
++## 过程与决策
++
++- 2026-09-11T20:40:37+08:00：保留全部独立测试目标，精简重复断言与执行；新增选择器回归后总数可能增加，优化目标为日常执行范围和时间。
++
++- 2026-09-11T20:43:20+08:00：最终 106 项全量回归通过，真实模板差异选择 12 项通过；双包生成完成，线上发布事实单独核实。
+diff --git a/requirements/delivery/REQ-20260911-f60325f1654145508c491a78bc7d506e.json b/requirements/delivery/REQ-20260911-f60325f1654145508c491a78bc7d506e.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..7d6c37b3534f218c12713aa812681736547ff6b4
+--- /dev/null
++++ b/requirements/delivery/REQ-20260911-f60325f1654145508c491a78bc7d506e.json
+@@ -0,0 +1,72 @@
++{
++  "schema_version": 1,
++  "requirement": "REQ-20260911-f60325f1654145508c491a78bc7d506e",
++  "linked_commits": [],
++  "prs": [],
++  "events": [
++    {
++      "at": "2026-09-11T12:43:20.779516+00:00",
++      "action": "finish",
++      "changes": {
++        "commits": [],
++        "committed": false,
++        "merged": "未核实",
++        "releases": [],
++        "release_status": "未核实",
++        "prs": [],
++        "warnings": [
++          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++        ],
++        "development": "✅ 执行完成",
++        "card": {
++          "state": "✅ 执行完成",
++          "passed": 3,
++          "applicable": 3,
++          "next": "无",
++          "blocker": "无",
++          "acceptance_fingerprint": "4a0874e04ee85769e3c78ed782f08dcddde3e0b09f1ffd4b4886a90b32606076",
++          "implementation_fingerprint": "44b026be1e2ed254b3ef55b5522ae77aeade16d7a96299a00a17de8f792e8134"
++        },
++        "checked_at": "2026-09-11T12:43:20.779243+00:00"
++      },
++      "removed": []
++    }
++  ],
++  "acceptance_baseline": {
++    "implementation_fingerprint": "44b026be1e2ed254b3ef55b5522ae77aeade16d7a96299a00a17de8f792e8134",
++    "acceptance_fingerprint": "4a0874e04ee85769e3c78ed782f08dcddde3e0b09f1ffd4b4886a90b32606076",
++    "inputs": [
++      ".agents",
++      "scripts",
++      "tests",
++      ".github",
++      "README.md",
++      "AGENTS.md",
++      ".gitignore"
++    ],
++    "results": [],
++    "accepted_at": "2026-09-11T12:43:20.779105+00:00"
++  },
++  "snapshot": {
++    "commits": [],
++    "committed": false,
++    "merged": "未核实",
++    "releases": [],
++    "release_status": "未核实",
++    "prs": [],
++    "warnings": [
++      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++    ],
++    "development": "✅ 执行完成",
++    "card": {
++      "state": "✅ 执行完成",
++      "passed": 3,
++      "applicable": 3,
++      "next": "无",
++      "blocker": "无",
++      "acceptance_fingerprint": "4a0874e04ee85769e3c78ed782f08dcddde3e0b09f1ffd4b4886a90b32606076",
++      "implementation_fingerprint": "44b026be1e2ed254b3ef55b5522ae77aeade16d7a96299a00a17de8f792e8134"
++    },
++    "checked_at": "2026-09-11T12:43:20.779243+00:00"
++  }
++}
+diff --git a/scripts/package_release.py b/scripts/package_release.py
+index ab6c1e9ce1a9415b124b8f7b8c366d97616ba273..7fddec01142504ceedbbd50ac4d268621f57c8db 100644
+--- a/scripts/package_release.py
++++ b/scripts/package_release.py
+@@ -18,8 +18,8 @@ FILES = (
+     '.github/pull_request_template.md',
+     '.github/workflows/teamflow-check.yml', '.github/workflows/teamflow-release.yml',
+     '.github/workflows/teamflow-pr-review.yml',
+-    'scripts/review_gate.py', 'scripts/package_release.py', 'scripts/validate_workflow.py',
+-    'tests/test_consumer_release.py', 'tests/test_skill_upgrade.py', 'tests/test_scenarios.py', 'tests/test_setup_recovery.py', 'tests/test_workflow.py', 'tests/test_project_checks.py', 'tests/test_delivery.py', 'tests/test_git_checks.py', SKILL + '/SKILL.md',
++    'scripts/review_gate.py', 'scripts/package_release.py', 'scripts/validate_workflow.py', 'scripts/run_workflow_checks.py',
++    'tests/test_check_selection.py', 'tests/test_consumer_release.py', 'tests/test_skill_upgrade.py', 'tests/test_scenarios.py', 'tests/test_setup_recovery.py', 'tests/test_workflow.py', 'tests/test_project_checks.py', 'tests/test_delivery.py', 'tests/test_git_checks.py', SKILL + '/SKILL.md',
+     SKILL + '/assets/pr-review.yml', SKILL + '/scripts/range_review.py',
+     SKILL + '/scripts/upgrade_skill.py', SKILL + '/scripts/install_git_checks.py', SKILL + '/scripts/delivery.py', SKILL + '/scripts/project_checks.py', SKILL + '/scripts/setup_project.py', SKILL + '/scripts/review_gate.py',
+ ) + tuple(SKILL + '/references/' + name for name in REFERENCES)
+diff --git a/scripts/run_workflow_checks.py b/scripts/run_workflow_checks.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..2e76058e85426b424614bb43fb8e72e8baad2c4f
+--- /dev/null
++++ b/scripts/run_workflow_checks.py
+@@ -0,0 +1,95 @@
++#!/usr/bin/env python3
++"""按 Git 改动选择源仓库测试；未知范围回退全量，不替代 App 验证。"""
++import argparse
++import json
++import re
++import subprocess
++import sys
++import unittest
++from pathlib import Path
++
++ROOT = Path(__file__).resolve().parents[1]
++SKILL = '.agents/skills/ios-team-flow/'
++DOCUMENTS = 'test_workflow.WorkflowTests.test_repository_documents'
++TEMPLATE = 'test_workflow.WorkflowTests.test_requirement_template_links_at_destination'
++TOOLS = {
++    'project_checks.py': ['test_project_checks', 'test_delivery', 'test_workflow', 'test_consumer_release', 'test_scenarios'],
++    'delivery.py': ['test_delivery', 'test_workflow', 'test_consumer_release'],
++    'review_gate.py': ['test_workflow', 'test_git_checks', 'test_consumer_release', 'test_scenarios'],
++    'range_review.py': ['test_git_checks', 'test_workflow', 'test_consumer_release', 'test_scenarios'],
++    'install_git_checks.py': ['test_git_checks', 'test_workflow', 'test_consumer_release'],
++    'setup_project.py': ['test_workflow', 'test_setup_recovery', 'test_skill_upgrade', 'test_consumer_release', 'test_scenarios'],
++    'upgrade_skill.py': ['test_workflow', 'test_setup_recovery', 'test_skill_upgrade', 'test_consumer_release'],
++}
++
++
++def select_checks(paths):
++    selected = {DOCUMENTS}
++    for path in paths:
++        if (re.fullmatch(r'requirements/(?:DELIVERY\.md|(?:delivery/)?REQ-\d{8}-(?:[0-9a-f]{32}|\d{3,})\.(?:md|json))', path)
++                or (path.startswith('logs/reviews/') and Path(path).suffix in ('.md', '.json', '.patch'))):
++            continue
++        if path in ('AGENTS.md', 'README.md', SKILL + 'SKILL.md'):
++            continue
++        if path.startswith(SKILL + 'references/') and path.endswith('.md'):
++            if '/templates/' in path:
++                selected.update([TEMPLATE, 'test_scenarios', 'test_consumer_release'])
++            continue
++        name = path.removeprefix(SKILL + 'scripts/')
++        if path == 'scripts/review_gate.py':
++            name = 'review_gate.py'
++        if name in TOOLS and (path.startswith(SKILL + 'scripts/') or path == 'scripts/review_gate.py'):
++            selected.update(TOOLS[name])
++            continue
++        # 未知文件、测试/CI/打包及版本变化都执行全量，避免遗漏跨模块依赖。
++        return None
++    # 某个模块已被选择时，不再额外执行该模块内的单项测试。
++    return sorted(item for item in selected if '.' not in item or item.split('.')[0] not in selected)
++
++
++def changed_paths(root, base, head):
++    if not base or not re.fullmatch(r'[0-9a-fA-F]{40,64}', base) or set(base) == {'0'}:
++        return None
++    try:
++        resolved = []
++        for ref in (base, head):
++            resolved.append(subprocess.run(['git', '-C', str(root), 'rev-parse', '--verify', '--end-of-options', ref + '^{commit}'],
++                           check=True, capture_output=True, text=True).stdout.strip())
++        result = subprocess.run(['git', '-C', str(root), 'diff', '--name-only', '--no-renames', '-z', *resolved, '--'],
++                                check=True, capture_output=True)
++        return [p for p in result.stdout.decode().split('\0') if p]
++    except (OSError, UnicodeError, subprocess.CalledProcessError):
++        return None
++
++
++def load_suite(root, selection):
++    loader = unittest.TestLoader()
++    if selection is None:
++        return loader.discover(str(root / 'tests'))
++    sys.path.insert(0, str(root / 'tests'))
++    return loader.loadTestsFromNames(selection)
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('--base', help='完整基准提交 SHA；缺失或无法读取时执行全量')
++    parser.add_argument('--head', default='HEAD')
++    parser.add_argument('--full', action='store_true', help='发布或手动全量验证')
++    parser.add_argument('--list', action='store_true', help='只读显示选择结果，不执行验证')
++    args = parser.parse_args()
++    paths = None if args.full else changed_paths(ROOT, args.base, args.head)
++    selection = None if paths is None else select_checks(paths)
++    print(json.dumps({'scope': 'full' if selection is None else 'changed',
++                      'tests': ['all'] if selection is None else selection,
++                      'reason': '显式全量、基准不可用或包含公共/未知改动' if selection is None else '按变更路径及关联模块选择'}, ensure_ascii=False), flush=True)
++    if args.list:
++        return 0
++    suite = load_suite(ROOT, selection)
++    if suite.countTestCases() == 0:
++        parser.error("未发现测试，不能将空套件视为通过")
++    result = unittest.TextTestRunner(verbosity=2).run(suite)
++    return 0 if result.wasSuccessful() else 1
++
++
++if __name__ == '__main__':
++    raise SystemExit(main())
+diff --git a/tests/test_check_selection.py b/tests/test_check_selection.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..ec636dd4c8a138b40031320ea82ec5f8de5e93a9
+--- /dev/null
++++ b/tests/test_check_selection.py
+@@ -0,0 +1,84 @@
++import importlib.util
++import json
++import shutil
++import subprocess
++import sys
++import tempfile
++import unittest
++from pathlib import Path
++
++ROOT = Path(__file__).resolve().parents[1]
++spec = importlib.util.spec_from_file_location('check_selection', ROOT / 'scripts/run_workflow_checks.py')
++selection = importlib.util.module_from_spec(spec)
++spec.loader.exec_module(selection)
++
++
++class CheckSelectionTests(unittest.TestCase):
++    def test_docs_templates_and_mixed_changes(self):
++        self.assertEqual([selection.DOCUMENTS], selection.select_checks([
++            'README.md', 'requirements/REQ-20260911-001.md',
++            'requirements/delivery/REQ-20260911-001.json', 'requirements/DELIVERY.md',
++            'logs/reviews/fixture.json', 'logs/reviews/fixture.patch']))
++        template = selection.SKILL + 'references/templates/new-project.md'
++        selected = selection.select_checks([template])
++        self.assertIn(selection.TEMPLATE, selected)
++        self.assertIn('test_consumer_release', selected)
++        mixed = selection.select_checks([template, selection.SKILL + 'scripts/project_checks.py'])
++        for name in ('test_project_checks', 'test_delivery', 'test_workflow', 'test_consumer_release', 'test_scenarios'):
++            self.assertIn(name, mixed)
++        self.assertNotIn(selection.DOCUMENTS, mixed)  # 整模块已含文档检查。
++        self.assertNotIn(selection.TEMPLATE, mixed)
++
++    def test_unknown_public_and_test_changes_fall_back_to_full(self):
++        for name in ('scripts/run_workflow_checks.py', 'scripts/package_release.py',
++                     'scripts/validate_workflow.py', 'tests/test_delivery.py', 'delivery.py',
++                     'requirements/source.py', 'logs/reviews/hidden.py',
++                     '.github/workflows/teamflow-check.yml', selection.SKILL + 'references/VERSION',
++                     selection.SKILL + 'scripts/future_tool.py'):
++            self.assertIsNone(selection.select_checks(['README.md', name]), name)
++
++    def test_tool_dependencies_include_consumers_and_gates(self):
++        for tool in selection.TOOLS:
++            selected = selection.select_checks([selection.SKILL + 'scripts/' + tool])
++            self.assertIn('test_consumer_release', selected, tool)
++            self.assertIn('test_workflow', selected, tool)
++        self.assertIn('test_git_checks', selection.select_checks(['scripts/review_gate.py']))
++
++    def test_git_range_preserves_deletions_renames_and_missing_base(self):
++        with tempfile.TemporaryDirectory() as directory:
++            root = Path(directory)
++            def git(*args):
++                return subprocess.check_output(['git', '-C', str(root), *args], text=True).strip()
++            git('init', '-q'); git('config', 'user.email', 'fixture@example.test'); git('config', 'user.name', 'Fixture')
++            (root / 'README.md').write_text('old')
++            (root / 'tool.py').write_text('code')
++            git('add', '.'); git('commit', '-qm', 'base')
++            base = git('rev-parse', 'HEAD')
++            (root / 'README.md').unlink()
++            (root / 'tool.py').rename(root / 'new.py')
++            git('add', '-A'); git('commit', '-qm', 'change')
++            paths = selection.changed_paths(root, base, 'HEAD')
++            self.assertEqual({'README.md', 'tool.py', 'new.py'}, set(paths))
++            self.assertIsNone(selection.select_checks(paths))
++            for missing in (None, '', '0' * 40, 'f' * 40, '--bad-ref'):
++                self.assertIsNone(selection.changed_paths(root, missing, 'HEAD'))
++            self.assertIsNone(selection.changed_paths(root, base, 'missing-head'))
++
++    def test_cli_list_and_failed_test_exit(self):
++        with tempfile.TemporaryDirectory() as directory:
++            root = Path(directory)
++            (root / 'scripts').mkdir(); (root / 'tests').mkdir()
++            script = root / 'scripts/run_workflow_checks.py'
++            shutil.copyfile(ROOT / 'scripts/run_workflow_checks.py', script)
++            (root / 'tests/test_fixture.py').write_text('import unittest\nclass Failure(unittest.TestCase):\n    def test_failure(self):\n        self.fail("intentional failure")\n')
++            command = [sys.executable, str(script), '--full']
++            listing = subprocess.run(command + ['--list'], capture_output=True, text=True)
++            self.assertEqual(0, listing.returncode)
++            self.assertEqual('full', json.loads(listing.stdout)['scope'])
++            failed = subprocess.run(command, capture_output=True, text=True)
++            self.assertEqual(1, failed.returncode)
++            self.assertIn('intentional failure', failed.stderr)
++            (root / 'tests/test_fixture.py').unlink()
++            empty = subprocess.run(command, capture_output=True, text=True)
++            self.assertNotEqual(0, empty.returncode)
++            self.assertIn('未发现测试', empty.stderr)
+diff --git a/tests/test_delivery.py b/tests/test_delivery.py
+index c9e245e76945e0df3b168a606b91ab505b06d3a5..cc070951b2f783a0309af37fdc841ae3df2c6a3f 100644
+--- a/tests/test_delivery.py
++++ b/tests/test_delivery.py
+@@ -368,7 +368,6 @@ class DeliveryTests(unittest.TestCase):
+     def test_documented_failure_value_is_valid(self):
+         self.v2_card('🔄 执行中', '失败', '真实复现证据')
+         self.assertEqual('🔄 执行中', d.card_state(self.root, REQ)['state'])
+-        self.assertNotIn('标通过、未通过', (ROOT / '.agents/skills/ios-team-flow/references/ACCEPTANCE.md').read_text())
+ 
+     def test_history_delta_preserves_complete_snapshots(self):
+         self.v2_card()
+@@ -383,10 +382,6 @@ class DeliveryTests(unittest.TestCase):
+         self.assertEqual(after['snapshot'], expanded[-1]['snapshot'])
+         mixed = {'events': [{'snapshot': {'a': 1, 'b': 2}}, {'changes': {'a': 3}, 'removed': ['b']}]}
+         self.assertEqual({'a': 3}, d.history_snapshots(mixed)[-1]['snapshot'])
+-        import sys
+-        output = subprocess.check_output([sys.executable, str(ROOT / '.agents/skills/ios-team-flow/scripts/delivery.py'),
+-                    '--project', str(self.root), '--requirement', REQ, 'status'], text=True)
+-        self.assertEqual(after['snapshot'], json.loads(output))
+ 
+     def test_status_full_snapshot_and_history_without_writes(self):
+         import sys
+diff --git a/tests/test_project_checks.py b/tests/test_project_checks.py
+index 82d1005400fbea3b57f33bf4f73446e79aea4bf1..d986da0ec4cc5d27b80afb66b36688b71f7b2968 100644
+--- a/tests/test_project_checks.py
++++ b/tests/test_project_checks.py
+@@ -31,13 +31,11 @@ class ProjectChecksTests(unittest.TestCase):
+         self.assertEqual('a b;$(echo test)\n', (path.parent / 'build.log').read_text())
+         self.assertEqual(0, json.loads(path.read_text())['results'][0]['exit_code'])
+ 
+-    def test_failure_missing_tool_timeout_are_not_passes(self):
+-        self.config({'fail': {'argv': [sys.executable, '-c', 'raise SystemExit(7)']},
+-                     'missing': {'argv': ['/no-such-tool']},
+-                     'slow': {'argv': [sys.executable, '-c', 'import time; time.sleep(30)'], 'timeout_seconds': 1}})
++    def test_failure_returns_false(self):
++        self.config({'fail': {'argv': [sys.executable, '-c', 'raise SystemExit(7)']}})
+         path, passed = checks.run(self.root, 'change')
+         self.assertFalse(passed)
+-        self.assertEqual(['失败', '无法执行', '超时'], [r['status'] for r in json.loads(path.read_text())['results']])
++        self.assertEqual('失败', json.loads(path.read_text())['status'])
+ 
+     def test_empty_unknown_and_escape_rejected_before_execution(self):
+         for commands, selected in [({}, []), ({'ok': {'argv': ['echo']}}, ['unknown']),
+@@ -252,6 +250,7 @@ class ProjectChecksTests(unittest.TestCase):
+         for expected in ('fail：失败', 'missing：无法执行', 'slow：超时'):
+             self.assertIn(expected, failed.stdout)
+         target = Path(failed.stdout.split('验证证据：')[1].strip())
++        self.assertEqual(['失败', '无法执行', '超时'], [r['status'] for r in json.loads(target.read_text())['results']])
+         self.assertEqual('failure detail\n', (target.parent / 'fail.log').read_text())
+         self.config({'mutate': {'argv': [sys.executable, '-c', 'from pathlib import Path; Path("source").write_text("changed")']}})
+         changed = subprocess.run(command, capture_output=True, text=True)

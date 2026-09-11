@@ -31,8 +31,7 @@ jobs:
           PY
       - name: 验证并打包
         run: |
-          python3 scripts/validate_workflow.py
-          python3 -m unittest discover -s tests -v
+          python3 scripts/run_workflow_checks.py --full
           python3 scripts/package_release.py
       - name: 上传 ZIP 与 SHA256 到当前 Release
         env:

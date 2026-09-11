@@ -1,6 +1,6 @@
 # iOS TeamFlow
 
-项目级中文 iOS 团队工作流，支持 Objective-C、Swift、SwiftUI、UI 规范、需求追踪、验证、提交审查和交付记录。当前版本为 **1.10.1**。完整规则只维护在项目 `.agents/skills/ios-team-flow/`，团队克隆后共用。
+项目级中文 iOS 团队工作流，支持 Objective-C、Swift、SwiftUI、UI 规范、需求追踪、验证、提交审查和交付记录。当前版本为 **1.10.2**。完整规则只维护在项目 `.agents/skills/ios-team-flow/`，团队克隆后共用。
 
 ## 先看你属于哪种情况
 
@@ -37,7 +37,7 @@ git init
 
 ### 2. 放入完整 Skill
 
-从 [1.10.1 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v1.10.1) 下载 `ios-team-flow-skill-v1.10.1.zip`，解压后把完整的 `ios-team-flow` 文件夹放到 `.agents/skills/`。
+从 [1.10.2 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v1.10.2) 下载 `ios-team-flow-skill-v1.10.2.zip`，解压后把完整的 `ios-team-flow` 文件夹放到 `.agents/skills/`。
 
 最终必须是 `.agents/skills/ios-team-flow/SKILL.md`，不要只复制 SKILL.md，也不要多套一层同名文件夹。Finder 按 `Command + Shift + .` 显示隐藏文件夹。
 
@@ -51,7 +51,7 @@ MyApp/
             └── scripts/
 ```
 
-已有同名 Skill 时先比较版本和定制，按升级流程处理。业务项目使用上述独立 Skill 包；`iOS-TeamFlow-v1.10.1.zip` 是带源仓库测试和发布流水线的完整分发包。
+已有同名 Skill 时先比较版本和定制，按升级流程处理。业务项目使用上述独立 Skill 包；`iOS-TeamFlow-v1.10.2.zip` 是带源仓库测试和发布流水线的完整分发包。
 
 ### 3. 接入项目并查看诊断
 
@@ -134,13 +134,12 @@ Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/refer
 
 ## 源仓库维护与版本
 
-1.10.1 恢复 1.9.2 工具输出：检查逐项显示状态，`status` 默认返回完整快照，历史使用 `--history`。调用脚本应去掉 1.10.0 新增的 `--verbose` / `--json` 参数。其他读取与记录优化、完整证据及七维审查门禁保留。版本变化见 [CHANGELOG](.agents/skills/ios-team-flow/references/CHANGELOG.md)。
+1.10.2 按 Git 改动选择日常 CI 测试，清理重复验证；正式发布、公共或未知变化仍执行全量。文档和模板改动无需每次运行全部工具测试，工具输出沿用 1.10.1。新项目默认英语和简体中文。版本变化见 [CHANGELOG](.agents/skills/ios-team-flow/references/CHANGELOG.md)。
 
 以下命令用于工作流分发仓库维护，不要求业务项目为了接入而运行：
 
 ```sh
-python3 scripts/validate_workflow.py
-python3 -m unittest discover -s tests -v
+python3 scripts/run_workflow_checks.py --full
 python3 scripts/package_release.py
 ```
 

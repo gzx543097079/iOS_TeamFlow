@@ -368,7 +368,6 @@ class DeliveryTests(unittest.TestCase):
     def test_documented_failure_value_is_valid(self):
         self.v2_card('🔄 执行中', '失败', '真实复现证据')
         self.assertEqual('🔄 执行中', d.card_state(self.root, REQ)['state'])
-        self.assertNotIn('标通过、未通过', (ROOT / '.agents/skills/ios-team-flow/references/ACCEPTANCE.md').read_text())
 
     def test_history_delta_preserves_complete_snapshots(self):
         self.v2_card()
@@ -383,10 +382,6 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual(after['snapshot'], expanded[-1]['snapshot'])
         mixed = {'events': [{'snapshot': {'a': 1, 'b': 2}}, {'changes': {'a': 3}, 'removed': ['b']}]}
         self.assertEqual({'a': 3}, d.history_snapshots(mixed)[-1]['snapshot'])
-        import sys
-        output = subprocess.check_output([sys.executable, str(ROOT / '.agents/skills/ios-team-flow/scripts/delivery.py'),
-                    '--project', str(self.root), '--requirement', REQ, 'status'], text=True)
-        self.assertEqual(after['snapshot'], json.loads(output))
 
     def test_status_full_snapshot_and_history_without_writes(self):
         import sys

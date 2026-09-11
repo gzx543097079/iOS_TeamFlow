@@ -31,13 +31,11 @@ class ProjectChecksTests(unittest.TestCase):
         self.assertEqual('a b;$(echo test)\n', (path.parent / 'build.log').read_text())
         self.assertEqual(0, json.loads(path.read_text())['results'][0]['exit_code'])
 
-    def test_failure_missing_tool_timeout_are_not_passes(self):
-        self.config({'fail': {'argv': [sys.executable, '-c', 'raise SystemExit(7)']},
-                     'missing': {'argv': ['/no-such-tool']},
-                     'slow': {'argv': [sys.executable, '-c', 'import time; time.sleep(30)'], 'timeout_seconds': 1}})
+    def test_failure_returns_false(self):
+        self.config({'fail': {'argv': [sys.executable, '-c', 'raise SystemExit(7)']}})
         path, passed = checks.run(self.root, 'change')
         self.assertFalse(passed)
-        self.assertEqual(['失败', '无法执行', '超时'], [r['status'] for r in json.loads(path.read_text())['results']])
+        self.assertEqual('失败', json.loads(path.read_text())['status'])
 
     def test_empty_unknown_and_escape_rejected_before_execution(self):
         for commands, selected in [({}, []), ({'ok': {'argv': ['echo']}}, ['unknown']),
@@ -252,6 +250,7 @@ class ProjectChecksTests(unittest.TestCase):
         for expected in ('fail：失败', 'missing：无法执行', 'slow：超时'):
             self.assertIn(expected, failed.stdout)
         target = Path(failed.stdout.split('验证证据：')[1].strip())
+        self.assertEqual(['失败', '无法执行', '超时'], [r['status'] for r in json.loads(target.read_text())['results']])
         self.assertEqual('failure detail\n', (target.parent / 'fail.log').read_text())
         self.config({'mutate': {'argv': [sys.executable, '-c', 'from pathlib import Path; Path("source").write_text("changed")']}})
         changed = subprocess.run(command, capture_output=True, text=True)

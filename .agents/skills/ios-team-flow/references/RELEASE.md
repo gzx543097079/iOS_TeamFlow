@@ -12,7 +12,7 @@
 先更新 `<SKILL_ROOT>/references/VERSION`（语义版本 X.Y.Z）和 `<SKILL_ROOT>/references/CHANGELOG.md`，完成相关验证与本次审查，然后执行：
 
 ```sh
-python3 -m unittest discover -s tests -v
+python3 scripts/run_workflow_checks.py --full
 python3 scripts/package_release.py
 ```
 
@@ -33,5 +33,13 @@ python3 scripts/package_release.py
 现在同时输出 `ios-team-flow-skill-vX.Y.Z.zip` 及 SHA256，内含完整 `ios-team-flow/` 文件夹；它应安装到每个目标项目的 `.agents/skills/`，执行一次项目接入后随项目提交，无需个人安装或原始仓库。详见 [独立安装说明](INSTALL.md)。
 
 直接维护 `.agents/skills/ios-team-flow/` 中的规则、模板、版本和工具实现，不再生成或同步第二份规范。根 scripts/review_gate.py 仅加载项目内 Skill 的门禁实现；根 scripts/ 中的校验与打包工具用于分发仓库。新增资源需登记打包清单，两个包均由 Release job 上传。
+
+## 按改动执行源仓库检查
+
+日常 CI 使用 `python3 scripts/run_workflow_checks.py --base 完整基准SHA` 比较基准与 HEAD（已提交内容，不含工作区修改）。普通说明执行文档校验，模板增加生成/消费场景，工具脚本执行对应模块及关联门禁、验收与消费测试。文档校验由测试套件统一执行一次，不在 CI 重复调用。
+
+CI 获取完整 Git 历史：push 使用 before，PR 使用事件 base 与检出的合并结果；新分支、基准缺失/不可读、公共脚本、测试、版本、CI 或未知路径变化回退全量。随提交归档的 REQ 卡、交付索引和审查回执不扩大工具测试范围；其他未知文件仍回退全量。多类变化取并集并去重；删除/重命名包含原路径。`--list` 只显示计划，不表示验证通过。手动 workflow_dispatch 和正式 Release 始终全量。
+
+打包校验继续在 CI 执行；首次执行、公共依赖变化或无法确定影响时用 --full。不要把此脚本作为业务 App 测试入口，也不要只为减少测试数量删除独立覆盖。
 
 本文件只发布工作流 ZIP；业务 iOS App 使用 [App 发布流程](APP-RELEASE.md)。
