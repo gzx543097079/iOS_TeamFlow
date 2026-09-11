@@ -77,7 +77,7 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project . --doct
 
 > 做一个习惯记录 App，先整理新项目需求文档，确认后再创建工程。
 
-Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/references/templates/new-project.md) 整理具体 PRD 和需求卡。模板保留工程目录、权限、多语言、订阅等详细条目，按启动、功能、发布阶段填写；先确认启动范围，再创建最小可运行工程。未确认的默认建议不会自动成为产品配置。
+Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/references/templates/new-project.md) 整理具体 PRD 和需求卡。模板保留工程目录、权限、多语言、订阅等详细条目；新项目默认语言为英语和简体中文，其他语言按需启用；按启动、功能、发布阶段填写；先确认启动范围，再创建最小可运行工程。未确认的默认建议不会自动成为产品配置。
 
 已有项目可以直接说“修复登录页的问题”或“增加订阅管理页”，按 [已有项目流程](.agents/skills/ios-team-flow/references/EXISTING-PROJECT.md) 核对相关现状，保留实际框架、语言、部署目标和目录。后续无需每次点名 Skill 或重复接入。
 

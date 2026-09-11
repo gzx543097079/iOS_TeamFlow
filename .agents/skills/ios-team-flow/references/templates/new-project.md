@@ -298,26 +298,26 @@ Package.swift 明确产品、Target、依赖和平台要求；iOS 支持范围�
 
 ## 8. 多语言与地区配置
 
-以下 16 个语言/地区条目默认全部启用，生成 PRD 时保留勾选，纳入首版多语言范围。它们是本工作流为覆盖英语、中文、欧洲、东亚、东南亚及部分其他市场制定的默认组合，不是 Apple 要求或“所有 App 通用”的统计结论。启动阶段确认当前开发/演示语言，其余语言按功能实施与发布阶段完成翻译和验收；项目如需调整默认范围，在 PRD 中记录团队确认的变更。默认启用表示纳入需求范围，未完成翻译与验收不能宣称已经支持。
+默认启用英语 `en` 和简体中文 `zh-Hans`，生成 PRD 时仅保留这两项勾选，作为首版语言范围的默认建议。其余语言/地区条目仅为候选，默认不启用；项目需要时再勾选并记录团队确认。启动阶段确认当前开发/演示语言，启用语言按功能实施与发布阶段完成翻译和验收。默认启用表示纳入需求草案，未确认范围、完成翻译与验收不能宣称已经支持。
 
 | 默认启用 | 语言 / 地区 | App 本地化标识 | 翻译与验收状态 |
 | --- | --- | --- | --- |
 | [x] | 英语 | `en` | 待翻译 / 待验收 |
 | [x] | 简体中文 | `zh-Hans` | 待翻译 / 待验收 |
-| [x] | 繁体中文 | `zh-Hant` | 待翻译 / 待验收 |
-| [x] | 日语 | `ja` | 待翻译 / 待验收 |
-| [x] | 韩语 | `ko` | 待翻译 / 待验收 |
-| [x] | 德语 | `de` | 待翻译 / 待验收 |
-| [x] | 法语 | `fr` | 待翻译 / 待验收 |
-| [x] | 西班牙语 | `es` | 待翻译 / 待验收 |
-| [x] | 意大利语 | `it` | 待翻译 / 待验收 |
-| [x] | 葡萄牙语（巴西） | `pt-BR` | 待翻译 / 待验收 |
-| [x] | 俄语 | `ru` | 待翻译 / 待验收 |
-| [x] | 阿拉伯语（RTL） | `ar` | 待翻译 / 待验收 |
-| [x] | 印地语 | `hi` | 待翻译 / 待验收 |
-| [x] | 印度尼西亚语 | `id` | 待翻译 / 待验收 |
-| [x] | 泰语 | `th` | 待翻译 / 待验收 |
-| [x] | 越南语 | `vi` | 待翻译 / 待验收 |
+| [ ] | 繁体中文 | `zh-Hant` | 未启用；按需确认 |
+| [ ] | 日语 | `ja` | 未启用；按需确认 |
+| [ ] | 韩语 | `ko` | 未启用；按需确认 |
+| [ ] | 德语 | `de` | 未启用；按需确认 |
+| [ ] | 法语 | `fr` | 未启用；按需确认 |
+| [ ] | 西班牙语 | `es` | 未启用；按需确认 |
+| [ ] | 意大利语 | `it` | 未启用；按需确认 |
+| [ ] | 葡萄牙语（巴西） | `pt-BR` | 未启用；按需确认 |
+| [ ] | 俄语 | `ru` | 未启用；按需确认 |
+| [ ] | 阿拉伯语（RTL） | `ar` | 未启用；按需确认 |
+| [ ] | 印地语 | `hi` | 未启用；按需确认 |
+| [ ] | 印度尼西亚语 | `id` | 未启用；按需确认 |
+| [ ] | 泰语 | `th` | 未启用；按需确认 |
+| [ ] | 越南语 | `vi` | 未启用；按需确认 |
 
 - 基础开发语言：英语 `en`（默认建议）；需求文档、团队沟通仍用中文。
 - 跟随系统/App 语言偏好选择支持语言；不支持的语言最终回退到开发语言英语，按系统匹配规则验证。App 内自建语言切换页默认不做，若需要则明确切换、生效和持久化方式。
@@ -365,7 +365,7 @@ Package.swift 明确产品、Target、依赖和平台要求；iOS 支持范围�
 
 - [ ] 项目名称、工程名称、显示名称、Bundle ID 含义与实际值已确认。
 - [ ] UI 框架、主要语言、架构、最低系统与工具链已确认；默认建议已接受或调整。
-- [ ] 启动范围、设备及当前开发/演示语言已确认；其余默认启用语言已纳入首版范围并安排翻译与验收阶段，范围调整已记录团队确认。
+- [ ] 启动范围、设备及当前开发/演示语言已确认；默认英语和简体中文的范围已确认，其他候选语言仅在明确启用后纳入范围；已启用语言的翻译与验收阶段已安排。
 - [ ] 已根据首版功能确认实际目录树、层次职责、Target/资源归属与是否拆 Package；不是照抄示意目录。
 - [ ] 环境/Target/签名/能力配置已确认，暂缺后台资料的事项有负责人、处理阶段与阻塞范围。
 - [ ] 启动范围实际使用的权限与用途已确认；后续功能权限在该功能实施前确认，按第 7 节落实并验证。
@@ -388,7 +388,7 @@ Package.swift 明确产品、Target、依赖和平台要求；iOS 支持范围�
 
 - [Apple Bundle ID](https://developer.apple.com/documentation/bundleresources/information-property-list/cfbundleidentifier) 与 [构建版本](https://developer.apple.com/documentation/bundleresources/information-property-list/cfbundleversion)：标识和版本分开记录。
 - [Apple 本地化](https://developer.apple.com/documentation/xcode/localization)：语言资源、地区格式、翻译与运行验证、商店资料分别处理。
-- [Firefox iOS 语言覆盖示例](https://support.mozilla.org/en-US/kb/firefox-available-iphone-or-ipad-my-language)：参考其英语、中日韩与欧洲等语言覆盖；本模板加入阿拉伯语、印地语、泰语、越南语是团队面向更多市场的建议，并非该示例的支持清单或普遍性统计。
+- [Firefox iOS 语言覆盖示例](https://support.mozilla.org/en-US/kb/firefox-available-iphone-or-ipad-my-language)：参考其英语、中日韩与欧洲等语言覆盖；本模板将阿拉伯语、印地语、泰语、越南语保留为面向更多市场的可选候选，并非该示例的支持清单或普遍性统计。
 
 - [Apple 受保护资源访问](https://developer.apple.com/documentation/uikit/requesting-access-to-protected-resources) 与 [用途说明 key](https://developer.apple.com/documentation/bundleresources/protected-resources)：用途文案、本地化与 Target 配置。
 - [Apple 照片隐私](https://developer.apple.com/documentation/photokit/delivering-an-enhanced-privacy-experience-in-your-photos-app)：系统选择器与有限照片访问。
