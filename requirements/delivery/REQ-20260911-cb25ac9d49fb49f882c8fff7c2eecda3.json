@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "requirement": "REQ-20260911-cb25ac9d49fb49f882c8fff7c2eecda3",
+  "linked_commits": [],
+  "prs": [],
+  "events": [
+    {
+      "at": "2026-09-11T12:51:26.781806+00:00",
+      "action": "finish",
+      "changes": {
+        "commits": [],
+        "committed": false,
+        "merged": "未核实",
+        "releases": [],
+        "release_status": "未核实",
+        "prs": [],
+        "warnings": [
+          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+        ],
+        "development": "✅ 执行完成",
+        "card": {
+          "state": "✅ 执行完成",
+          "passed": 1,
+          "applicable": 1,
+          "next": "无",
+          "blocker": "无",
+          "acceptance_fingerprint": "9a4957aee30dde601a3aa812ef1bf747e578dc8e192cd39f79862a389db2d491",
+          "implementation_fingerprint": "484209a7b0b2e6a02b9b675a406365aa6fb84aea80a1571ffd63169779564722"
+        },
+        "checked_at": "2026-09-11T12:51:26.781564+00:00"
+      },
+      "removed": []
+    }
+  ],
+  "acceptance_baseline": {
+    "implementation_fingerprint": "484209a7b0b2e6a02b9b675a406365aa6fb84aea80a1571ffd63169779564722",
+    "acceptance_fingerprint": "9a4957aee30dde601a3aa812ef1bf747e578dc8e192cd39f79862a389db2d491",
+    "inputs": [
+      ".agents",
+      "scripts",
+      "tests",
+      ".github",
+      "README.md",
+      "AGENTS.md",
+      ".gitignore"
+    ],
+    "results": [],
+    "accepted_at": "2026-09-11T12:51:26.781292+00:00"
+  },
+  "snapshot": {
+    "commits": [],
+    "committed": false,
+    "merged": "未核实",
+    "releases": [],
+    "release_status": "未核实",
+    "prs": [],
+    "warnings": [
+      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+    ],
+    "development": "✅ 执行完成",
+    "card": {
+      "state": "✅ 执行完成",
+      "passed": 1,
+      "applicable": 1,
+      "next": "无",
+      "blocker": "无",
+      "acceptance_fingerprint": "9a4957aee30dde601a3aa812ef1bf747e578dc8e192cd39f79862a389db2d491",
+      "implementation_fingerprint": "484209a7b0b2e6a02b9b675a406365aa6fb84aea80a1571ffd63169779564722"
+    },
+    "checked_at": "2026-09-11T12:51:26.781564+00:00"
+  }
+}
