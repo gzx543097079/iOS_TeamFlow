@@ -10,6 +10,7 @@ REFERENCES = (
     'RELEASE.md', 'SOURCES.md', 'INSTALL.md', 'standards/ui.md',
     'standards/objective-c.md', 'standards/swift.md', 'standards/swiftui.md',
     'templates/new-project.md', 'templates/requirement.md',
+    'EXISTING-PROJECT.md', 'templates/project-context.md',
 )
 # 仅打包明确登记的通用文件，不打包项目接入记录、需求或日志。
 FILES = (

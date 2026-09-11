@@ -20,6 +20,7 @@ Codex 会建需求卡、判断拆分、读取 UI / 对应语言规范，实施�
 | 需求处理、拆分与状态 | [工作流](WORKFLOW.md) |
 | Objective-C / Swift / SwiftUI | [OC](standards/objective-c.md) · [Swift](standards/swift.md) · [SwiftUI](standards/swiftui.md) |
 | 提交审查及去重 | [Review](REVIEW.md) |
+| 已有项目增量开发 | [处理流程](EXISTING-PROJECT.md) · [项目现状模板](templates/project-context.md) |
 | 新项目 PRD 与需求卡 | [PRD 模板](templates/new-project.md) · [需求模板](templates/requirement.md) |
 | GitHub 对比与官方来源 | [调研记录](SOURCES.md) |
 | ZIP 与 GitHub Release | [发布规程](RELEASE.md) |

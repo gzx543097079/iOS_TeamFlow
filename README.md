@@ -47,3 +47,5 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
 完整说明见 [空项目接入](.agents/skills/ios-team-flow/references/INSTALL.md#空项目接入没有-agentsskills-时)。
 
 升级项目内 Skill 后，仍运行同一条 `setup_project.py --project .` 命令。脚本自动更新版本和未定制的托管文件，保留团队规则，并在替换已有文件前备份。支持从 1.2.1 接入记录迁移；具体见 [升级说明](.agents/skills/ios-team-flow/references/INSTALL.md#团队共享与升级)。
+
+已有业务工程按 [已有项目流程](.agents/skills/ios-team-flow/references/EXISTING-PROJECT.md) 处理：首次记录项目现状，后续增量实施并验证相关路径，保留实际架构和配置。

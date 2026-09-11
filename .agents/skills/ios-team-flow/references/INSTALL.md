@@ -99,3 +99,7 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
 源仓库和消费项目都直接维护 `.agents/skills/ios-team-flow/`，没有规范同步步骤。版本以 Skill 内 references/VERSION 为准，.agents/teamflow.json 记录项目接入版本。根 scripts/review_gate.py 只加载 Skill 内的门禁实现。
 
 1.2.0 及更早的旧目录项目升级（不属于上述 1.2.1 基线迁移）：先比较旧 workflow/ 的定制规则与新 Skill，保留需要的修改；将原 workflow/teamflow.json 版本记录迁移到 .agents/teamflow.json，核对 AGENTS.md 入口和门禁加载脚本。接入脚本会报告旧入口或同名脚本冲突，不自动覆盖或删除旧目录。确认旧目录中没有项目资料、入口已改好并验证后，再删除旧 workflow/。历史需求和审查记录中的旧路径保留为当时的证据。
+
+## 已有业务项目接入后
+
+接入成功只代表入口配置完成。首次提出业务需求时，Codex 按 [已有项目流程](EXISTING-PROJECT.md) 识别本次目标并整理 requirements/PROJECT-CONTEXT.md；后续复用现状记录、核对相关变化，沿用项目实际技术栈和产品配置，不套用新项目默认值。

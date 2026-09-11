@@ -4,6 +4,7 @@
 
 - 用户提出“做一个 / 修改 / 修复”即创建或续接 `requirements/` 需求记录。按工作流自行判断拆分，记录状态、过程与验收证据。普通小改动直接推进。
 - 新 iOS 项目先基于 `.agents/skills/ios-team-flow/references/templates/new-project.md` 整理团队需求文档；缺失信息标待确认，交团队确认后再创建工程和业务代码。此仓库本身是工作流分发仓库，维护工作流不属于新建 iOS 产品。
+- 已有业务工程读取 `.agents/skills/ios-team-flow/references/EXISTING-PROJECT.md`，首次建立项目现状记录，后续核对相关变化；只处理本次增量，已有配置不套用新项目默认值。
 - `.h/.m/.mm` 加载 `.agents/skills/ios-team-flow/references/standards/objective-c.md`；`.swift` 加载 `.agents/skills/ios-team-flow/references/standards/swift.md`；SwiftUI 文件另加载 `.agents/skills/ios-team-flow/references/standards/swiftui.md`。所有 UI 改动先加载 `.agents/skills/ios-team-flow/references/standards/ui.md`。`.mm` 还遵守工程现有 C++ 规则。
 - 根目录是 Git 与 Codex 打开目录。`.agents/`、`App/`（新工程默认）、`requirements/`、`logs/`、`scripts/` 同级。现有工程保留原目录。不要在 `.agents/skills/ios-team-flow/references/` 下创建业务工程或运行日志。
 
