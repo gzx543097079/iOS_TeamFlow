@@ -29,6 +29,68 @@
         },
         "checked_at": "2026-09-11T10:26:00.286662+00:00"
       }
+    },
+    {
+      "at": "2026-09-11T10:26:54.079918+00:00",
+      "action": "finish",
+      "snapshot": {
+        "commits": [
+          "18ac2b1387c79c74074e820989aba619c3550e4b"
+        ],
+        "committed": true,
+        "merged": "未核实",
+        "releases": [],
+        "release_status": "未核实",
+        "prs": [],
+        "warnings": [
+          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+        ],
+        "development": "✅ 执行完成",
+        "card": {
+          "state": "✅ 执行完成",
+          "passed": 6,
+          "applicable": 6,
+          "next": "无",
+          "blocker": "无",
+          "acceptance_fingerprint": "9564b0b75e293ab16ef5144d34e29360f337e54129fdda5179fb0c3cfc3efbf8",
+          "implementation_fingerprint": "4d08b3bcc9c5bb4cb7b300e1245205e44d3a62c34ff2c14500444f84744d6dbb"
+        },
+        "checked_at": "2026-09-11T10:26:54.079478+00:00"
+      }
+    },
+    {
+      "at": "2026-09-11T10:28:19.007763+00:00",
+      "action": "finish",
+      "snapshot": {
+        "commits": [
+          "18ac2b1387c79c74074e820989aba619c3550e4b"
+        ],
+        "committed": true,
+        "merged": "未确认全部合并",
+        "releases": [
+          {
+            "tag": "teamflow-v1.8.0",
+            "commit": "18ac2b1387c79c74074e820989aba619c3550e4b",
+            "url": "https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v1.8.0",
+            "published_at": "2026-09-11T10:27:18Z"
+          }
+        ],
+        "release_status": "✅ 已发布",
+        "prs": [],
+        "warnings": [],
+        "development": "✅ 执行完成",
+        "card": {
+          "state": "✅ 执行完成",
+          "passed": 6,
+          "applicable": 6,
+          "next": "无",
+          "blocker": "无",
+          "acceptance_fingerprint": "9564b0b75e293ab16ef5144d34e29360f337e54129fdda5179fb0c3cfc3efbf8",
+          "implementation_fingerprint": "4d08b3bcc9c5bb4cb7b300e1245205e44d3a62c34ff2c14500444f84744d6dbb"
+        },
+        "github_checked_at": "2026-09-11T10:28:13.540029+00:00",
+        "checked_at": "2026-09-11T10:28:19.006816+00:00"
+      }
     }
   ],
   "acceptance_baseline": {
@@ -45,18 +107,29 @@
       ".github"
     ],
     "results": [],
-    "accepted_at": "2026-09-11T10:26:00.286534+00:00"
+    "accepted_at": "2026-09-11T10:26:00.286534+00:00",
+    "sealed_commits": [
+      "18ac2b1387c79c74074e820989aba619c3550e4b"
+    ],
+    "accepted_commit": "18ac2b1387c79c74074e820989aba619c3550e4b"
   },
   "snapshot": {
-    "commits": [],
-    "committed": false,
-    "merged": "未核实",
-    "releases": [],
-    "release_status": "未核实",
-    "prs": [],
-    "warnings": [
-      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+    "commits": [
+      "18ac2b1387c79c74074e820989aba619c3550e4b"
     ],
+    "committed": true,
+    "merged": "未确认全部合并",
+    "releases": [
+      {
+        "tag": "teamflow-v1.8.0",
+        "commit": "18ac2b1387c79c74074e820989aba619c3550e4b",
+        "url": "https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v1.8.0",
+        "published_at": "2026-09-11T10:27:18Z"
+      }
+    ],
+    "release_status": "✅ 已发布",
+    "prs": [],
+    "warnings": [],
     "development": "✅ 执行完成",
     "card": {
       "state": "✅ 执行完成",
@@ -67,6 +140,7 @@
       "acceptance_fingerprint": "9564b0b75e293ab16ef5144d34e29360f337e54129fdda5179fb0c3cfc3efbf8",
       "implementation_fingerprint": "4d08b3bcc9c5bb4cb7b300e1245205e44d3a62c34ff2c14500444f84744d6dbb"
     },
-    "checked_at": "2026-09-11T10:26:00.286662+00:00"
+    "github_checked_at": "2026-09-11T10:28:13.540029+00:00",
+    "checked_at": "2026-09-11T10:28:19.006816+00:00"
   }
 }

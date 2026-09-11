@@ -10,3 +10,11 @@
 - 语义核对：封存绑定确切实施对象；未提交、续接和新实施变化不沿用失效证据。测试/验收输入共用规则；无变化不收尾，最终门禁统一核对，记录归属单一。
 - 模板由405行压缩至44行，当前阶段按需输出；成员职责与 Codex 工具职责分开，未增加模块。
 - 本次工作流维护，未运行或宣称真实 App/Xcode、商店商品和设备内存验收。
+
+## 发布核验
+
+- 实施提交 18ac2b1387c79c74074e820989aba619c3550e4b 已推送，验收封存到该确切提交。
+- 正式 Release：https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v1.8.0
+- GitHub 工作流通过：https://github.com/gzx543097079/iOS_TeamFlow/actions/runs/34589294851
+- 最终提交的完整测试、校验及打包步骤在 GitHub 通过；4 个附件 API digest 与本地两个 ZIP/两份 SHA256 字节一致。
+- finish --github 核实正式发布包含实施提交，原验收和旧需求未改；无 PR，不冒充已合并。
