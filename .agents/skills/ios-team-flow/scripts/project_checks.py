@@ -59,12 +59,27 @@ def load_config(root):
 EVIDENCE_DIRS = ('logs/project-checks/', 'logs/reviews/', '.agents/teamflow-backups/')
 
 
-def source_snapshot(root, config):
-    inputs = config.get('inputs')
+def source_snapshot(root, config, profile=None, staged=False):
+    overrides = config.get('profile_inputs', {})
+    if not isinstance(overrides, dict) or any(k not in config['profiles'] for k in overrides):
+        raise ValueError('profile_inputs 必须引用已配置的 profile')
+    inputs = overrides.get(profile, config.get('inputs'))
+    index = {}
+    if staged:
+        raw = subprocess.check_output(['git', '-C', str(root), 'ls-files', '--stage', '-z'],
+                                      stderr=subprocess.PIPE)
+        for entry in filter(None, raw.split(b'\0')):
+            metadata, name = entry.split(b'\t', 1)
+            mode, oid, stage = metadata.split()
+            if stage != b'0':
+                raise ValueError('暂存区有未解决冲突')
+            index[os.fsdecode(name)] = (mode, oid)
+
     paths = set()
     if inputs is not None:
         if not isinstance(inputs, list) or not inputs or any(not isinstance(n, str) or not n for n in inputs):
             raise ValueError('inputs 必须是非空项目相对文件/目录列表')
+        inputs = [str(Path(name)) for name in inputs]
         for name in inputs:
             path = local_path(root, name)
             if path.is_dir():
@@ -78,12 +93,31 @@ def source_snapshot(root, config):
             paths.update(os.fsdecode(n) for n in raw.split(b'\0') if n)
         except subprocess.CalledProcessError:
             raise ValueError('非 Git 项目必须显式配置 inputs，避免把构建产物作为源码')
+    if staged:
+        paths.update(name for name in index if inputs is None or any(
+            name == item.rstrip('/') or name.startswith(item.rstrip('/') + '/') or item == '.'
+            for item in inputs))
     paths.add(CONFIG)  # profile、命令或输入范围变化也必须令旧证据失效。
     files = {}
     for name in sorted(paths):
         if name.startswith(EVIDENCE_DIRS):
             continue
+        # 默认业务验证忽略需求管理记录；文档验证可通过 inputs 显式纳入。
+        if inputs is None and name.startswith('requirements/') and Path(name).suffix in ('.md', '.json'):
+            continue
         path = local_path(root, name)
+        if staged:
+            entry = index.get(name)
+            if entry is None:
+                files[name] = None
+            else:
+                mode, oid = entry
+                if mode not in (b'100644', b'100755'):
+                    raise ValueError('暂存输入不是普通文件：' + name)
+                content = subprocess.check_output(['git', '-C', str(root), 'cat-file', 'blob', oid.decode()],
+                                                  stderr=subprocess.PIPE)
+                files[name] = {'sha256': hashlib.sha256(content).hexdigest(), 'executable': mode == b'100755'}
+            continue
         if not path.exists():
             files[name] = None
         elif path.is_file():
@@ -95,7 +129,7 @@ def source_snapshot(root, config):
     return {'algorithm': 'sha256-files-v1', 'fingerprint': hashlib.sha256(encoded).hexdigest(), 'files': files}
 
 
-def verify(root, result):
+def verify(root, result, staged=False):
     root = root.resolve()
     result = local_path(root, result)
     report = json.loads(result.read_text())
@@ -103,10 +137,15 @@ def verify(root, result):
         raise ValueError('验证报告必须为 JSON 对象')
     if report.get('status') != '通过' or not report.get('source_unchanged') or not report.get('completed_at'):
         raise ValueError('测试未通过或没有源码绑定证据；请重新执行')
-    current = source_snapshot(root, load_config(root))
+    config = load_config(root)
+    if report.get('profile') not in config['profiles']:
+        raise ValueError('验证报告缺少有效 profile')
+    current = source_snapshot(root, config, report['profile'])
     if report.get('source_before') != current or report.get('source_after') != current:
         raise ValueError('测试后源码或配置已变化，旧结果不能用于当前代码')
-    print('验证结果与当前源码/配置一致：' + str(result))
+    if staged and source_snapshot(root, config, report['profile'], staged=True) != current:
+        raise ValueError('暂存内容与已测试工作区不一致；请暂存正确版本或测试暂存快照')
+    print('验证结果与当前源码/配置' + ('及暂存区' if staged else '') + '一致：' + str(result))
     return report
 
 
@@ -115,7 +154,7 @@ def run(root, profile):
     config = load_config(root)
     if profile not in config['profiles']:
         raise ValueError('未配置所选 profile：' + profile)
-    source_before = source_snapshot(root, config)
+    source_before = source_snapshot(root, config, profile)
     directory = local_path(root, 'logs/project-checks')
     directory.mkdir(parents=True, exist_ok=True)
     run_dir = directory / (datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ-') + uuid.uuid4().hex[:8])
@@ -153,7 +192,7 @@ def run(root, profile):
         (run_dir / 'result.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
     report['status'] = '通过' if all(r['status'] == '通过' for r in report['results']) else '失败'
     try:
-        report['source_after'] = source_snapshot(root, load_config(root))
+        report['source_after'] = source_snapshot(root, load_config(root), profile)
         report['source_unchanged'] = report['source_after'] == source_before
     except (OSError, ValueError) as error:
         report['source_unchanged'] = False
@@ -175,6 +214,7 @@ def main():
     sub.add_parser('list')
     verifier = sub.add_parser('verify')
     verifier.add_argument('--result', required=True, help='项目相对 result.json 路径')
+    verifier.add_argument('--staged', action='store_true', help='同时核对暂存对象；提交前必须使用')
     runner = sub.add_parser('run')
     runner.add_argument('--profile', required=True)
     args = parser.parse_args()
@@ -188,13 +228,13 @@ def main():
                 stream.write('\n')
             print('已创建空配置，请填写实际命令；空配置不能执行成功：' + str(path))
         elif args.command == 'verify':
-            verify(root, args.result)
+            verify(root, args.result, args.staged)
         elif args.command == 'list':
             print(json.dumps(load_config(root), ensure_ascii=False, indent=2))
         else:
             _, passed = run(root, args.profile)
             return 0 if passed else 1
-    except (ValueError, OSError, TypeError) as error:
+    except (ValueError, OSError, TypeError, subprocess.CalledProcessError) as error:
         parser.exit(2, str(error) + '\n')
     return 0
 

@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """以需求标记、Git 提交和可选 GitHub 只读证据生成交付概览。"""
 import argparse
+import hashlib
 import json
+import os
 import re
 import subprocess
 from datetime import datetime, timezone
@@ -9,6 +11,59 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 ID = re.compile(r'REQ-\d{8}-\d{3,}')
+CARD_V2 = '<!-- teamflow:requirement:v2 -->'
+STATES = ('❔ 待确认', '⬜ 未执行', '🔄 执行中', '🧪 待验证', '✅ 执行完成',
+          '⛔ 阻塞', '⏸️ 已暂停', '🚫 已取消')
+
+
+def card_state(root, requirement):
+    """新版需求卡是唯一人工状态源；校验结构与一致性，不代替语义验收。"""
+    text = safe_path(root, 'requirements/' + requirement + '.md').read_text()
+    if CARD_V2 not in text:
+        return None
+    def field(name):
+        values = re.findall(r'^- ' + re.escape(name) + r'：(.+)$', text, re.M)
+        if len(values) != 1 or not values[0].strip():
+            raise ValueError(requirement + ' 必须且只能填写一处：' + name)
+        return values[0].strip()
+    state = field('状态')
+    if state not in STATES:
+        raise ValueError(requirement + ' 状态无效')
+    policy = field('验收方式')
+    if policy not in ('自审', '团队'):
+        raise ValueError(requirement + ' 验收方式须为自审或团队')
+    field('验收依据')
+    next_step, blocker = field('下一步'), field('阻塞项')
+    rows = []
+    for line in text.splitlines():
+        if re.match(r'^\|\s*AC-', line):
+            cells = [c.strip() for c in line.strip().strip('|').split('|')]
+            if len(cells) != 4 or not re.fullmatch(r'AC-\d+', cells[0]) or not cells[1]:
+                raise ValueError(requirement + ' 验收行必须为编号、条件、结果、证据四列')
+            if cells[2] not in ('通过', '失败', '未验证', '不适用'):
+                raise ValueError(requirement + ' 验收结果无效')
+            if cells[2] != '未验证' and (not cells[3] or cells[3] in ('待填写', '—', '无')):
+                raise ValueError(requirement + ' 已判定验收项必须填写证据或不适用原因')
+            rows.append(cells)
+    if not rows or len({r[0] for r in rows}) != len(rows):
+        raise ValueError(requirement + ' 验收项缺失或编号重复')
+    if state == '✅ 执行完成':
+        if any(r[2] not in ('通过', '不适用') for r in rows) or not any(r[2] == '通过' for r in rows):
+            raise ValueError(requirement + ' 适用验收尚未全部通过')
+        if next_step != '无' or blocker != '无':
+            raise ValueError(requirement + ' 完成时下一步和阻塞项须为无')
+        if policy == '团队' and field('团队确认') in ('待确认', '无', '不适用', '待填写'):
+            raise ValueError(requirement + ' 缺少团队实际确认')
+    if state == '⛔ 阻塞' and blocker == '无':
+        raise ValueError(requirement + ' 阻塞时必须记录原因及解除条件')
+    if state in ('⏸️ 已暂停', '🚫 已取消'):
+        field('暂停或取消原因')
+        if state == '⏸️ 已暂停' and next_step == '无':
+            raise ValueError(requirement + ' 暂停时必须记录恢复条件')
+    evidence = json.dumps([rows, policy, field('团队确认') if policy == '团队' else ''], ensure_ascii=False)
+    return {'state': state, 'passed': sum(r[2] == '通过' for r in rows),
+            'applicable': sum(r[2] != '不适用' for r in rows), 'next': next_step, 'blocker': blocker,
+            'acceptance_fingerprint': hashlib.sha256(evidence.encode()).hexdigest()}
 
 
 def git(root, *args):
@@ -51,6 +106,11 @@ def load(root, requirement):
 
 
 def commits_for(root, requirement):
+    git(root, 'rev-parse', '--git-dir')
+    try:
+        resolve(root, 'HEAD')
+    except subprocess.CalledProcessError:
+        return []  # 新仓库尚无首次提交，需求仍需能够同步。
     raw = git(root, 'log', '--format=%H%x00%B%x00', 'HEAD').split('\0')
     result = []
     for i in range(0, len(raw) - 1, 2):
@@ -62,6 +122,29 @@ def commits_for(root, requirement):
                                   or p == 'requirements/DELIVERY.md') for p in paths):
                 result.append(sha)
     return sorted(set(result))
+
+
+def implementation_snapshot(root):
+    """工作区内容绑定，区分正常提交已验收内容与提交后的额外修改。"""
+    raw = subprocess.check_output(['git', '-C', str(root), 'ls-files', '--cached', '--others',
+                                   '--exclude-standard', '-z'], stderr=subprocess.PIPE)
+    digest = hashlib.sha256()
+    for name in sorted(set(os.fsdecode(p) for p in raw.split(b'\0') if p)):
+        if (name.startswith(('logs/reviews/', 'logs/project-checks/', '.agents/teamflow-backups/'))
+                or name.startswith('requirements/') and Path(name).suffix in ('.md', '.json')):
+            continue
+        path = root / name
+        if path.is_symlink():
+            content, mode = os.fsencode(os.readlink(path)), b'link'
+        elif path.is_file():
+            content, mode = path.read_bytes(), str(path.stat().st_mode & 0o111).encode()
+        elif path.is_dir():
+            # 已有 submodule 用其实际 HEAD；不遍历外部目录。
+            content, mode = git(path, 'rev-parse', 'HEAD').encode(), b'gitlink'
+        else:
+            continue  # 已删除文件与暂存删除后的树一致。
+        digest.update(os.fsencode(name) + b'\0' + mode + b'\0' + hashlib.sha256(content).digest())
+    return digest.hexdigest()
 
 
 def validate_pr(url):
@@ -88,13 +171,27 @@ def refresh(root, data, github=False):
         resolve(root, sha)
     snapshot = {'commits': commits, 'committed': bool(commits), 'merged': '未核实',
                 'releases': [], 'release_status': '未核实', 'prs': [], 'warnings': []}
-    dev = data['development']
+    dev = data.get('development', {})
     snapshot['development'] = dev.get('state', '未登记')
     if dev.get('state') == '✅ 开发完成' and dev.get('commits') != commits:
         snapshot['development'] = '🧪 提交变化，需复核开发验收'
+    card = card_state(root, data['requirement'])
+    if card is not None:
+        previous = data.get('snapshot', {})
+        old_card = previous.get('card', {})
+        if card['state'] == '✅ 执行完成':
+            card['implementation_fingerprint'] = implementation_snapshot(root)
+        if (card['state'] == '✅ 执行完成' and old_card.get('state') == '✅ 执行完成'
+                and previous.get('commits') != commits
+                and old_card.get('acceptance_fingerprint') == card['acceptance_fingerprint']
+                and old_card.get('implementation_fingerprint') != card['implementation_fingerprint']):
+            raise ValueError(data['requirement'] + ' 新实施提交尚未复核；重开需求或更新实际验收证据')
+        snapshot['development'] = card['state']
+        snapshot['card'] = card
     release_targets = set(commits)
     covered = set()
     if github:
+        snapshot['github_checked_at'] = datetime.now(timezone.utc).isoformat()
         for url in data['prs']:
             try:
                 info = gh_json(root, 'pr', 'view', url, '--json', 'url,state,mergedAt,mergeCommit,commits')
@@ -135,7 +232,13 @@ def refresh(root, data, github=False):
         snapshot['release_status'] = ('✅ 已发布' if snapshot['releases'] else
                                       '未核实（无有效 Release 证据）' if failures else '未发现已发布版本')
     else:
-        snapshot['warnings'].append('未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布')
+        previous = data.get('snapshot', {})
+        if (card is not None and previous.get('commits') == commits
+                and previous.get('github_checked_at')):
+            for key in ('merged', 'prs', 'releases', 'release_status', 'github_checked_at', 'warnings'):
+                snapshot[key] = previous[key]
+        else:
+            snapshot['warnings'].append('未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布')
     snapshot['checked_at'] = datetime.now(timezone.utc).isoformat()
     data['snapshot'] = snapshot
     return data
@@ -143,6 +246,8 @@ def refresh(root, data, github=False):
 
 def save(root, path, data, action):
     safe_path(root, 'requirements/DELIVERY.md')
+    if 'card' in data.get('snapshot', {}):
+        data.pop('development', None)
     data['events'].append({'at': datetime.now(timezone.utc).isoformat(), 'action': action, 'snapshot': data.get('snapshot', {})})
     path.parent.mkdir(parents=True, exist_ok=True)
     temp = path.with_suffix('.tmp')
@@ -153,7 +258,7 @@ def save(root, path, data, action):
 
 
 def overview(root):
-    lines = ['# 需求交付概览', '', '由 delivery.py 生成；开发、提交、合并与发布分开记录。GitHub 状态以最近核对时间为准。', '',
+    lines = ['# 需求交付概览', '', '由 delivery.py 生成；新版需求状态来自需求卡，旧记录保留。提交、合并与发布独立核对。', '',
              '| 需求 | 开发 | 提交 | PR 合并 | Release | 最近核对 |', '| --- | --- | --- | --- | --- | --- |']
     for item in sorted(safe_path(root, 'requirements/delivery').glob('REQ-*.json')):
         if item.is_symlink():
@@ -161,7 +266,7 @@ def overview(root):
         row = json.loads(item.read_text())
         snap = row.get('snapshot', {})
         req = row['requirement']
-        lines.append('| [' + req + '](' + req + '.md) | ' + snap.get('development', row['development']['state'])
+        lines.append('| [' + req + '](' + req + '.md) | ' + snap.get('development', row.get('development', {}).get('state', '未登记'))
                      + ' | ' + ('✅ ' + str(len(snap['commits'])) + ' 个提交' if snap.get('commits') else '⬜ 未关联')
                      + ' | ' + snap.get('merged', '未核实') + ' | ' + snap.get('release_status', '未核实')
                      + ' | ' + snap.get('checked_at', '—') + ' |')
@@ -172,10 +277,14 @@ def finish(root, requirements, github=False, check=False):
     """统一收尾：核对提交与交付记录，刷新当前卡片字段；不批准开发验收。"""
     stale = []
     unlinked = []
+    # 先校验全部选中项，避免后项格式错误时先写入部分需求。
+    prepared = []
     for requirement in requirements:
         path, data = load(root, requirement)
         old = data.get('snapshot', {})
         refresh(root, data, github)
+        prepared.append((requirement, path, data, old))
+    for requirement, path, data, old in prepared:
         snapshot = data['snapshot']
         if not snapshot['commits']:
             unlinked.append(requirement)
@@ -188,8 +297,11 @@ def finish(root, requirements, github=False, check=False):
         updated = re.sub(pattern, lambda _: line, text, count=1, flags=re.M)
         if not re.search(pattern, text, re.M):
             updated = text.rstrip() + '\n\n' + line + '\n'
+        if CARD_V2 in text:
+            updated = text  # 新卡无 Git 状态副本；仅生成交付索引，不回写需求卡。
         # checked_at 本身变化不意味着记录过期；其他事实和查询范围变化需要归档。
-        strip_time = lambda value: {k: v for k, v in value.items() if k != 'checked_at'}
+        strip_time = lambda value: {k: v for k, v in value.items()
+                                    if k not in ('checked_at', 'github_checked_at')}
         dirty = not path.exists() or strip_time(old) != strip_time(snapshot) or updated != text
         if dirty:
             stale.append(requirement)
@@ -244,12 +356,15 @@ def main():
             if bool(args.requirement) == args.all:
                 raise ValueError('finish 指定 --requirement 或 --all，二选一')
             selected = ([args.requirement] if args.requirement else
-                        sorted(p.stem for p in (root / 'requirements').glob('REQ-*.md') if ID.fullmatch(p.stem)))
+                        sorted(p.stem for p in (root / 'requirements').glob('REQ-*.md')
+                               if ID.fullmatch(p.stem) and CARD_V2 in p.read_text()))
             return 0 if finish(root, selected, args.github, args.check) else 1
         if not args.requirement:
             raise ValueError('该命令需要 --requirement')
         path, data = load(root, args.requirement)
         if args.command == 'development':
+            if card_state(root, args.requirement) is not None:
+                raise ValueError('新版需求仅在需求卡维护状态与验收，然后 finish；无需 development 重复登记')
             if not args.evidence.strip():
                 raise ValueError('验收/状态证据不能为空')
             state = {'未执行': '⬜ 未执行', '执行中': '🔄 执行中', '待验证': '🧪 待验证', '开发完成': '✅ 开发完成'}[args.state]

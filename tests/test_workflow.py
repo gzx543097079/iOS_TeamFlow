@@ -457,5 +457,45 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn('<!-- ios-team-flow:start -->', (project / 'AGENTS.override.md').read_text())
 
 
+    def test_gate_rechecks_linked_test_report_against_index(self):
+        self.stage('App/code.swift', 'old')
+        (self.root / 'App/code.swift').write_text('fixed')
+        (self.root / '.agents').mkdir()
+        (self.root / '.agents/project-checks.json').write_text(json.dumps({
+            'schema_version': 1, 'inputs': ['App'],
+            'checks': {'ok': {'argv': [sys.executable, '-c', 'pass']}}, 'profiles': {'change': ['ok']}}))
+        self.git('add', '.agents/project-checks.json')
+        subprocess.run([sys.executable, str(ROOT / release.SKILL / 'scripts/project_checks.py'),
+                        '--project', str(self.root), 'run', '--profile', 'change'],
+                       check=True, capture_output=True)
+        result = next((self.root / 'logs/project-checks').glob('*/result.json'))
+        self.git('add', str(result.relative_to(self.root)))
+        report_path = self.complete()
+        report = json.loads(report_path.read_text())
+        report['validation_results'] = [str(result.relative_to(self.root))]
+        report_path.write_text(json.dumps(report))
+        self.git('add', str(report_path.relative_to(self.root)))
+        with self.assertRaisesRegex(ValueError, '暂存内容'):
+            gate.check(self.root)
+        self.git('add', 'App/code.swift')
+        report_path = self.complete()
+        report = json.loads(report_path.read_text())
+        report['validation_results'] = [str(result.relative_to(self.root))]
+        report_path.write_text(json.dumps(report))
+        self.git('add', str(report_path.relative_to(self.root)))
+        gate.check(self.root)
+
+    def test_requirement_template_links_at_destination(self):
+        import re
+        template = (ROOT / release.SKILL / 'references/templates/requirement.md').read_text()
+        self.assertNotIn('审查指纹/报告：提交前填写', template)
+        shutil.copytree(ROOT / release.SKILL, self.root / release.SKILL)
+        destination = self.root / 'requirements/REQ-20260911-001.md'
+        destination.parent.mkdir()
+        destination.write_text(template)
+        for target in re.findall(r'\]\(([^)]+)\)', template):
+            self.assertTrue((destination.parent / target).exists(), target)
+
+
 if __name__ == '__main__':
     unittest.main()

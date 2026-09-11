@@ -121,3 +121,117 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual('- Git 状态：未提交', record['card_history'][0]['previous_git_status'])
         self.commit('next', 'Requirement: ' + REQ)
         self.assertFalse(d.finish(self.root, [REQ], check=True))
+
+    def v2_card(self, state='🔄 执行中', result='未验证', evidence='—', policy='自审'):
+        card = self.root / 'requirements' / (REQ + '.md')
+        card.write_text(f'''# 需求
+{d.CARD_V2}
+- 状态：{state}
+- 验收方式：{policy}
+- 验收依据：明确的低风险测试场景
+- 下一步：{'无' if state == '✅ 执行完成' else '实施并验收'}
+- 阻塞项：无
+
+| 编号 | 条件 | 结果 | 证据 |
+| --- | --- | --- | --- |
+| AC-01 | 输入与期望 | {result} | {evidence} |
+''')
+        return card
+
+    def test_v2_single_source_and_idempotent_finish(self):
+        card = self.v2_card()
+        original = card.read_bytes()
+        self.assertTrue(d.finish(self.root, [REQ]))
+        self.assertEqual(original, card.read_bytes())
+        _, data = d.load(self.root, REQ)
+        self.assertNotIn('development', data)
+        self.assertEqual('🔄 执行中', data['snapshot']['development'])
+        files = {p: p.read_bytes() for p in (self.root / 'requirements').rglob('*') if p.is_file()}
+        self.assertTrue(d.finish(self.root, [REQ]))
+        self.assertTrue(d.finish(self.root, [REQ], check=True))
+        self.assertEqual(files, {p: p.read_bytes() for p in files})
+        self.v2_card('✅ 执行完成', '通过', '实际测试证据')
+        self.assertFalse(d.finish(self.root, [REQ], check=True))
+        self.assertTrue(d.finish(self.root, [REQ]))
+        _, data = d.load(self.root, REQ)
+        self.assertEqual('✅ 执行完成', data['snapshot']['development'])
+
+    def test_v2_inconsistent_completion_duplicate_and_team_confirmation_rejected(self):
+        card = self.v2_card('✅ 执行完成')
+        with self.assertRaisesRegex(ValueError, '尚未全部通过'):
+            d.finish(self.root, [REQ])
+        self.assertFalse((self.root / 'requirements/delivery').exists())
+        card = self.v2_card('✅ 执行完成', '通过', '证据', '团队')
+        card.write_text(card.read_text() + '\n- 团队确认：待确认\n')
+        with self.assertRaisesRegex(ValueError, '团队实际确认'):
+            d.finish(self.root, [REQ])
+        card.write_text(card.read_text().replace('团队确认：待确认', '团队确认：用户；2026-09-11+08:00；build 1；通过'))
+        self.assertTrue(d.finish(self.root, [REQ]))
+        card.write_text(card.read_text() + '\n- 状态：🔄 执行中\n')
+        with self.assertRaisesRegex(ValueError, '只能填写一处'):
+            d.finish(self.root, [REQ])
+
+    def test_v2_new_implementation_requires_revalidation(self):
+        self.v2_card('✅ 执行完成', '通过', '第一版测试证据')
+        d.finish(self.root, [REQ])
+        self.commit('changed', 'Requirement: ' + REQ)
+        with self.assertRaisesRegex(ValueError, '尚未复核'):
+            d.finish(self.root, [REQ])
+        self.v2_card('✅ 执行完成', '通过', '第二版实际复测证据')
+        self.assertTrue(d.finish(self.root, [REQ]))
+
+    def test_all_ignores_legacy_and_v2_development_rejected(self):
+        import sys
+        legacy = self.root / 'requirements' / (REQ + '.md')
+        before = legacy.read_bytes()
+        run = subprocess.run([sys.executable, str(ROOT / '.agents/skills/ios-team-flow/scripts/delivery.py'),
+                              '--project', str(self.root), 'finish', '--all'], capture_output=True, text=True)
+        self.assertEqual(0, run.returncode, run.stderr)
+        self.assertEqual(before, legacy.read_bytes())
+        self.assertFalse((self.root / 'requirements/delivery' / (REQ + '.json')).exists())
+        self.v2_card()
+        run = subprocess.run([sys.executable, str(ROOT / '.agents/skills/ios-team-flow/scripts/delivery.py'),
+                              '--project', str(self.root), '--requirement', REQ,
+                              'development', '--state', '开发完成', '--evidence', '证据'], capture_output=True, text=True)
+        self.assertNotEqual(0, run.returncode)
+        self.assertIn('无需 development', run.stderr)
+
+    def test_v2_local_finish_preserves_timestamped_remote_evidence(self):
+        self.v2_card()
+        _, data = d.load(self.root, REQ)
+        d.refresh(self.root, data, True)
+        previous = data['snapshot'].copy()
+        d.refresh(self.root, data, False)
+        self.assertEqual(previous['github_checked_at'], data['snapshot']['github_checked_at'])
+        self.assertEqual(previous['release_status'], data['snapshot']['release_status'])
+        self.commit('another', 'Requirement: ' + REQ)
+        d.refresh(self.root, data, False)
+        self.assertEqual('未核实', data['snapshot']['release_status'])
+        self.assertNotIn('github_checked_at', data['snapshot'])
+
+
+    def test_v2_finish_before_initial_commit_and_remote_check_idempotence(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            d.git(root, 'init', '-q')
+            (root / 'requirements').mkdir()
+            original = self.root
+            try:
+                self.root = root
+                self.v2_card()
+            finally:
+                self.root = original
+            self.assertTrue(d.finish(root, [REQ]))
+            self.assertTrue(d.finish(root, [REQ], check=True))
+            self.assertTrue(d.finish(root, [REQ], github=True))
+            self.assertTrue(d.finish(root, [REQ], github=True, check=True))
+
+    def test_v2_precommit_acceptance_is_reused_after_commit_without_repeat(self):
+        self.v2_card('✅ 执行完成', '通过', '第一次证据')
+        d.finish(self.root, [REQ])
+        (self.root / 'code.txt').write_text('fixed and tested')
+        self.v2_card('✅ 执行完成', '通过', '修复后实际复测证据')
+        d.finish(self.root, [REQ])
+        self.commit('fixed and tested', 'Requirement: ' + REQ)
+        self.assertTrue(d.finish(self.root, [REQ]))
+        self.assertTrue(d.finish(self.root, [REQ], check=True))

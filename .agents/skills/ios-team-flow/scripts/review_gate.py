@@ -2,6 +2,7 @@
 """对暂存提交生成审查快照、复用已完成报告；不执行 AI 语义审查。"""
 import argparse
 import hashlib
+import importlib.util
 import json
 import subprocess
 from datetime import datetime, timezone
@@ -72,6 +73,10 @@ def report_errors(report, base, fingerprint):
                 errors.append('存在未关闭问题或问题格式错误')
             elif item['status'] == 'accepted' and not (item.get('reason') and item.get('accepted_by')):
                 errors.append('接受的问题缺少原因/确认人')
+    for key in ('requirements', 'validation_results'):
+        values = report.get(key, [])  # 旧回执兼容；新回执由 prepare 初始化。
+        if not isinstance(values, list) or any(not isinstance(v, str) or not v.strip() for v in values):
+            errors.append(key + ' 必须为非空字符串组成的数组')
     return errors
 
 
@@ -89,7 +94,7 @@ def prepare(root):
             'created_at': datetime.now(timezone.utc).isoformat(),
             'reviewer': '', 'completed_at': '', 'summary': '', 'previous_review': None,
             'checks': {name: {'status': '未验证', 'evidence': ''} for name in CATEGORIES},
-            'findings': [], 'blockers': []
+            'findings': [], 'blockers': [], 'requirements': [], 'validation_results': []
         }
         # 不覆盖已有报告；并发创建同一指纹时由后续调用续接。
         with target.open('x') as stream:
@@ -121,6 +126,16 @@ def check(root):
         errors.append('提交报告 scope 必须为 staged')
     if errors:
         raise ValueError('；'.join(errors))
+    if report.get('validation_results'):
+        spec = importlib.util.spec_from_file_location('teamflow_project_checks',
+                                                      Path(__file__).with_name('project_checks.py'))
+        checks = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(checks)
+        for result in report['validation_results']:
+            path = checks.local_path(root, result)
+            if git(root, 'show', ':' + result) != path.read_bytes():
+                raise ValueError('验证报告暂存版本与工作区不一致：' + result)
+            checks.verify(root, result, staged=True)
     print('审查门禁通过，复用指纹：' + fingerprint)
 
 

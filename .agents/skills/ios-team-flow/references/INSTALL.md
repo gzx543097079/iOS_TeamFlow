@@ -48,7 +48,7 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
 
 接入后在 Codex 打开该项目根目录，开始新会话，直接描述要做的产品。新项目会先按模板整理需求文档交团队确认，确认后再在 App/ 下创建 iOS 工程。后续无需重复接入或每次点名 Skill。
 
-尚未初始化 Git 不影响接入。第一次使用提交审查前，需要在该项目根目录初始化 Git：
+尚未初始化 Git 不影响接入。首次需求收尾或提交审查前，需要在该项目根目录初始化 Git：
 
 ```sh
 git init

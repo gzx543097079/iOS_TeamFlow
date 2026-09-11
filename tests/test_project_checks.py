@@ -124,3 +124,64 @@ class ProjectChecksTests(unittest.TestCase):
         (self.root / 'source.swift').chmod(0o755)
         with self.assertRaises(ValueError):
             checks.verify(self.root, relative)
+
+    def test_staged_verification_rejects_old_missing_deleted_and_mode_inputs(self):
+        import subprocess
+        def git(*args):
+            subprocess.run(['git', '-C', str(self.root), *args], check=True, capture_output=True)
+        git('init', '-q')
+        self.config({'ok': {'argv': [sys.executable, '-c', 'pass']}})
+        config_path = self.root / checks.CONFIG
+        config = json.loads(config_path.read_text())
+        config['inputs'] = ['./source/']
+        config_path.write_text(json.dumps(config))
+        source = self.root / 'source'
+        source.mkdir()
+        code = source / 'code.swift'
+        code.write_text('old')
+        git('add', '.')
+        code.write_text('fixed')
+        path, passed = checks.run(self.root, 'change')
+        relative = str(path.relative_to(self.root))
+        checks.verify(self.root, relative)
+        with self.assertRaisesRegex(ValueError, '暂存内容'):
+            checks.verify(self.root, relative, staged=True)
+        git('add', 'source')
+        checks.verify(self.root, relative, staged=True)
+        new = source / 'new.swift'
+        new.write_text('new')
+        path, _ = checks.run(self.root, 'change')
+        with self.assertRaisesRegex(ValueError, '暂存内容'):
+            checks.verify(self.root, str(path.relative_to(self.root)), staged=True)
+        git('add', 'source')
+        new.unlink()
+        path, _ = checks.run(self.root, 'change')
+        with self.assertRaisesRegex(ValueError, '暂存内容'):
+            checks.verify(self.root, str(path.relative_to(self.root)), staged=True)
+        git('add', '-u')
+        code.chmod(0o755)
+        path, _ = checks.run(self.root, 'change')
+        with self.assertRaisesRegex(ValueError, '暂存内容'):
+            checks.verify(self.root, str(path.relative_to(self.root)), staged=True)
+        git('add', 'source')
+        checks.verify(self.root, str(path.relative_to(self.root)), staged=True)
+
+    def test_requirement_updates_skip_default_but_invalidate_document_profile(self):
+        import subprocess
+        subprocess.run(['git', '-C', str(self.root), 'init', '-q'], check=True)
+        self.config({'ok': {'argv': [sys.executable, '-c', 'pass']}})
+        config_path = self.root / checks.CONFIG
+        config = json.loads(config_path.read_text())
+        del config['inputs']
+        config['profiles']['docs'] = ['ok']
+        config['profile_inputs'] = {'docs': ['requirements']}
+        config_path.write_text(json.dumps(config))
+        (self.root / 'requirements').mkdir()
+        card = self.root / 'requirements/REQ-20260911-001.md'
+        card.write_text('执行中')
+        result, _ = checks.run(self.root, 'change')
+        docs, _ = checks.run(self.root, 'docs')
+        card.write_text('执行完成')
+        checks.verify(self.root, str(result.relative_to(self.root)))
+        with self.assertRaisesRegex(ValueError, '源码或配置已变化'):
+            checks.verify(self.root, str(docs.relative_to(self.root)))

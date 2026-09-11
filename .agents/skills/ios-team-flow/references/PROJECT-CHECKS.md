@@ -43,11 +43,13 @@ Codex 在需求卡明确本次选用的 profile 和原因；profile 内每项均
 ## 验证结果是否仍适用
 
 ```sh
-python3 .agents/skills/ios-team-flow/scripts/project_checks.py verify --result logs/project-checks/实际运行编号/result.json
+python3 .agents/skills/ios-team-flow/scripts/project_checks.py verify --result logs/project-checks/实际运行编号/result.json --staged
 ```
 
-提交前复用测试证据时运行 verify。源码增加、删除、内容/执行权限改变或验证配置改变都会令旧结果失效；没有源码指纹的旧报告需重测。工具校验所记录范围，不保证测试覆盖充分，也不是防伪签名。当前检测运行前后差异，不能发现运行中改动后又完全还原的瞬时变化；测试期间不要编辑输入文件。
+提交前复用测试证据时运行 verify --staged，同时核对已测试工作区和暂存对象的内容、增删及执行权限（包括尚未暂存的新文件）；只在实施过程复用时可省略 --staged。暂存区不匹配时暂存正确内容或测试隔离的暂存快照，不能仅重跑当前工作区测试。源码增加、删除、内容/执行权限改变或验证配置改变都会令旧结果失效；没有源码指纹的旧报告需重测。工具校验所记录范围，不保证测试覆盖充分，也不是防伪签名。当前检测运行前后差异，不能发现运行中改动后又完全还原的瞬时变化；测试期间不要编辑输入文件。
 
 `inputs` 是项目相对文件/目录列表（不支持 glob），应覆盖本次 App 的源代码、工程配置、资源、依赖锁文件和执行脚本；`.agents/project-checks.json` 始终纳入。目录递归记录普通文件，拒绝符号链接。不要把构建输出目录纳入输入。
 
-省略 inputs 时，Git 项目按已跟踪及未忽略的新文件记录，删除的跟踪文件也参与比较；非 Git 项目必须显式配置 inputs。自动排除 logs/project-checks、logs/reviews 和 .agents/teamflow-backups 的生成证据，其他生成产物由项目 .gitignore 或明确 inputs 排除。此处测试指纹与 review 暂存指纹用途不同：前者证明测试对象，后者证明审查对象。
+可用 `profile_inputs` 按 profile 指定输入列表，优先于全局 inputs，例如 `"profile_inputs": {"docs": ["requirements", ".agents/skills/ios-team-flow/references"]}`。
+
+省略 inputs 时，Git 项目按已跟踪及未忽略的新文件记录，默认排除 requirements/ 下的 Markdown/JSON 管理记录，避免更新状态触发业务重测（该目录不得放业务资源；需要验证需求文档时显式纳入 inputs/profile_inputs）。删除的跟踪文件也参与比较；非 Git 项目必须显式配置 inputs。自动排除 logs/project-checks、logs/reviews 和 .agents/teamflow-backups 的生成证据，其他生成产物由项目 .gitignore 或明确 inputs 排除。此处测试指纹与 review 暂存指纹用途不同：前者证明测试对象，后者证明审查对象。

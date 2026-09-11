@@ -2,6 +2,12 @@
 
 项目级中文 Codex iOS 工作流：Apple UI 规范、Objective-C / Swift / SwiftUI 规范、需求追踪、构建测试、提交审查、团队验收与 App 发布记录。完整规则只维护在 `.agents/skills/ios-team-flow/`。
 
+## 日常最小路径
+
+新需求只维护需求卡的一处状态和 AC 验收表；阶段结束执行本需求 `finish` 与 `--check`，自动生成交付索引。小改动不写重复进度表、不单独登记 development、不回填当前审查指纹。历史需求不自动迁移。
+
+只加载当前阶段和改动类型的规范；未变化的规则与有效验证结果复用。提交前核对测试与暂存对象一致，完整路径见 [工作流](.agents/skills/ios-team-flow/references/WORKFLOW.md)。
+
 ## 每个项目接入一次
 
 需要 Python 3.10+、Git 和支持项目 Skill 的 Codex；业务 App 构建另需匹配的 macOS/Xcode。

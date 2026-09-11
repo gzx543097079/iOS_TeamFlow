@@ -17,7 +17,9 @@ def validate(root):
                 if '://' in link or link.startswith('#'):
                     continue
                 target = link.split('#')[0]
-                if not (path.parent / target).exists():
+                # 需求模板直接落地到 requirements/，链接按使用位置校验。
+                parent = root / 'requirements' if name.endswith('/templates/requirement.md') else path.parent
+                if not (parent / target).resolve().exists():
                     errors.append(f'{name} 的链接不存在：{target}')
     skill = root / '.agents/skills/ios-team-flow/SKILL.md'
     if skill.exists() and not re.match(r'---\nname: ios-team-flow\ndescription: [^\n]+\n---\n', skill.read_text()):
