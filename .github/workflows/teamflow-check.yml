@@ -1,0 +1,41 @@
+name: 工作流工具校验
+on:
+  pull_request:
+    paths:
+      - 'AGENTS.md'
+      - '.agents/**'
+      - 'workflow/**'
+      - 'scripts/review_gate.py'
+      - 'scripts/package_release.py'
+      - 'scripts/validate_workflow.py'
+      - 'scripts/build_skill.py'
+      - 'tests/test_workflow.py'
+      - '.github/workflows/teamflow-*.yml'
+  push:
+    paths:
+      - 'AGENTS.md'
+      - '.agents/**'
+      - 'workflow/**'
+      - 'scripts/review_gate.py'
+      - 'scripts/package_release.py'
+      - 'scripts/validate_workflow.py'
+      - 'scripts/build_skill.py'
+      - 'tests/test_workflow.py'
+      - '.github/workflows/teamflow-*.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: 检查规范入口与工具行为
+        run: |
+          python3 scripts/validate_workflow.py
+          python3 -m unittest discover -s tests -v
+      - name: 验证可分发压缩包
+        run: python3 scripts/package_release.py

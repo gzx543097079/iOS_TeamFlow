@@ -1,0 +1,42 @@
+{
+  "fingerprint": "78fbc049f18a295c9c2657e1208c17010fb951be5cf4b8d527653af8a035e3da",
+  "base": "362eb031b169d875af153cc99772c1d6aad74303",
+  "scope": "staged",
+  "created_at": "2026-09-11T04:39:26.215134+00:00",
+  "reviewer": "Codex",
+  "completed_at": "2026-09-11T12:39:42+08:00",
+  "summary": "发布前仅复核新增空项目说明、版本统一为 1.0.0、CHANGELOG 及过程记录；实现和原规则复用上一报告，不重复审查。17 项测试和官方 Skill 校验通过，未发现阻塞问题。",
+  "previous_review": "91e6fc83aa3f63389ed5959343aba98e81f0f82486514aafc012b0f2aca3b77c",
+  "checks": {
+    "correctness": {
+      "status": "通过",
+      "evidence": "源码与内置 Skill VERSION 均为 1.0.0；README 安装包名一致，CHANGELOG 明确历史编号为未发布草案。空项目说明与已验证 setup 行为一致。17/17 测试通过，发布流水线要求 teamflow-v1.0.0 标签，远端预检未发现已有标签或 Release。"
+    },
+    "standards": {
+      "status": "通过",
+      "evidence": "安装资料及资源链接校验通过，Skill 官方校验通过；项目接入和新项目 PRD 确认语义保持一致，其余标准复用 previous_review。"
+    },
+    "subscription": {
+      "status": "不适用",
+      "evidence": "本次无相关业务代码变化，复用 c2188e27b16c586828fe7c3ce3e637bd51862ba5cae95529a3ed85c5fc53c73d。本次没有实际订阅商品、付费页面或购买逻辑可核对。已审查 workflow/REVIEW.md 和 UI/PRD 模板包含产品 ID、价格来源、周期、文案、优惠资格及购买参数映射要求，不把示例当线上配置。"
+    },
+    "memory": {
+      "status": "不适用",
+      "evidence": "本次无相关业务代码变化，复用 c2188e27b16c586828fe7c3ce3e637bd51862ba5cae95529a3ed85c5fc53c73d。本次没有 iOS 生命周期或 ARC 代码。Python 文件和 ZIP 写入使用上下文管理器，临时测试目录注册清理；没有长期异步任务。未来 iOS 变更要求静态所有权检查及必要的 Instruments 证据。"
+    },
+    "analytics": {
+      "status": "不适用",
+      "evidence": "本次无相关业务代码变化，复用 c2188e27b16c586828fe7c3ce3e637bd51862ba5cae95529a3ed85c5fc53c73d。本次没有运行中的业务埋点或 SDK。流程明确要求对照事件契约、精确触发/去重/隐私检查，未凭空加入产品事件。"
+    },
+    "test_artifacts": {
+      "status": "通过",
+      "evidence": "新增测试只操作临时项目和解压包，分发包不包含运行数据；项目复制测试删除原路径以验证无外部安装依赖。"
+    },
+    "security": {
+      "status": "通过",
+      "evidence": "新增路径比较在任何文件写入前拒绝项目外 Skill；未新增用户级写入、网络上传或 hook 修改。原冲突预检、复制保护与门禁审查结论复用 previous_review。"
+    }
+  },
+  "findings": [],
+  "blockers": []
+}

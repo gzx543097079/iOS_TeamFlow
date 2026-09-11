@@ -1,0 +1,40 @@
+name: 工作流 Release 压缩包
+on:
+  release:
+    types: [published]
+permissions:
+  contents: read
+jobs:
+  package:
+    if: startsWith(github.event.release.tag_name, 'teamflow-v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ github.event.release.tag_name }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: 核对标签与版本
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          version = Path('workflow/VERSION').read_text().strip()
+          if os.environ['RELEASE_TAG'] != 'teamflow-v' + version:
+              raise SystemExit('Release 标签必须与 workflow/VERSION 一致')
+          PY
+      - name: 验证并打包
+        run: |
+          python3 scripts/validate_workflow.py
+          python3 -m unittest discover -s tests -v
+          python3 scripts/package_release.py
+      - name: 上传 ZIP 与 SHA256 到当前 Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$RELEASE_TAG" dist/*.zip dist/*.sha256

@@ -1,0 +1,31 @@
+---
+name: ios-team-flow
+description: 中文 iOS 团队需求实施与提交审查。用于已安装本 Skill 的项目中的 iOS 新需求、缺陷修复、Objective-C、Swift、SwiftUI 代码生成及提交前 review，维护需求状态和审查证据。
+---
+
+# iOS 团队协作
+
+本 Skill 采用项目级独立安装，必须位于当前项目 `.agents/skills/ios-team-flow/`，不依赖用户级目录或原始分发仓库。`SKILL_ROOT` 为本 SKILL.md 所在目录，不能从当前项目路径推算；`PROJECT_ROOT` 为本次工作的项目根目录，已有 Git 时用 git rev-parse --show-toplevel 确定。二者必须分开。
+
+## 接入项目
+
+每个项目只需接入一次。首先确认本 Skill 在当前项目的 `.agents/skills/ios-team-flow/` 内，拒绝用其他项目或用户级同名 Skill 代替。首次用于实施需求时，先检查项目 AGENTS.md 和已有约定，再运行：
+
+```sh
+python3 "<SKILL_ROOT>/scripts/setup_project.py" --project "<PROJECT_ROOT>"
+```
+
+上述为路径占位，执行时替换为已确认的绝对路径。脚本只追加带标记的项目入口、记录工作流版本、复制审查门禁并创建产物目录；不创建业务工程、不改变 Git hook、不初始化嵌套 Git。脚本报告冲突时先读差异，保留团队原有规则再按用户已授权范围合并，禁止直接覆盖。纯咨询不接入项目、不创建需求。
+
+项目版本与本 Skill 不同不得静默升级规则：继续使用项目固定版本，或在用户明确要求升级时调整版本和入口。不能借升级自动覆盖项目定制规范。安装与版本说明见 [安装说明](references/INSTALL.md)。
+
+## 执行
+
+1. 读取 [工作流](references/WORKFLOW.md)。查找 PROJECT_ROOT 下 requirements/ 的相关需求，复用编号和历史。新 iOS 产品按 [PRD 模板](references/templates/new-project.md) 整理具体需求，交团队确认后创建业务工程。
+2. 按改动读取：[OC](references/standards/objective-c.md)、[Swift](references/standards/swift.md)、[SwiftUI](references/standards/swiftui.md)。SwiftUI 同时执行 Swift；所有 UI 改动先读 [UI](references/standards/ui.md)。项目明确约定优先，解释冲突。
+3. 用 [需求模板](references/templates/requirement.md) 记录拆分判断、过程状态与验收。需求、日志、工程和项目辅助脚本均写入 PROJECT_ROOT，不写入安装目录。
+4. 提交前读取 [审查规程](references/REVIEW.md)，在 PROJECT_ROOT 运行 scripts/review_gate.py；同指纹复用，新增变化只复查增量与关联影响。用户未授权时不 commit/push。
+
+参考资料中的 `<SKILL_ROOT>/references/` 表示 Skill 自带的规则和模板；`requirements/`、`logs/`、`scripts/`、`App/` 均表示项目产物目录。参考流程的目录示意为兼容旧项目整包模式；独立安装模式的项目 workflow/ 只需版本绑定，不要求复制全部规范。根项目 AGENTS.md 通过 `.agents/skills/ios-team-flow/SKILL.md` 明确引用本地流程。接入后无需用户再次点名，Skill、版本及项目入口一起提交，团队克隆即可获得相同规则。
+
+本 Skill 不把规则发布流水线安装进消费项目。发布本工作流版本属于源仓库维护，使用源仓库发布工具；业务 App 发布遵守其项目流程。
