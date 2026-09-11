@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "requirement": "REQ-20260911-010",
+  "linked_commits": [],
+  "prs": [],
+  "development": {
+    "state": "✅ 开发完成",
+    "evidence": "交付专项 8 项测试与需求卡；实施提交 4301068",
+    "commits": [
+      "4301068735152397f92caffe8291cd50a6971f2b"
+    ]
+  },
+  "events": [
+    {
+      "at": "2026-09-11T08:08:59.011553+00:00",
+      "action": "development",
+      "snapshot": {
+        "commits": [
+          "4301068735152397f92caffe8291cd50a6971f2b"
+        ],
+        "committed": true,
+        "merged": "未核实",
+        "releases": [],
+        "release_status": "未核实",
+        "prs": [],
+        "warnings": [
+          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+        ],
+        "development": "✅ 开发完成",
+        "checked_at": "2026-09-11T08:08:59.011286+00:00"
+      }
+    }
+  ],
+  "snapshot": {
+    "commits": [
+      "4301068735152397f92caffe8291cd50a6971f2b"
+    ],
+    "committed": true,
+    "merged": "未核实",
+    "releases": [],
+    "release_status": "未核实",
+    "prs": [],
+    "warnings": [
+      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+    ],
+    "development": "✅ 开发完成",
+    "checked_at": "2026-09-11T08:08:59.011286+00:00"
+  }
+}

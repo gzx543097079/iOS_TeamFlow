@@ -49,3 +49,7 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
 升级项目内 Skill 后，仍运行同一条 `setup_project.py --project .` 命令。脚本自动更新版本和未定制的托管文件，保留团队规则，并在替换已有文件前备份。支持从 1.2.1 接入记录迁移；具体见 [升级说明](.agents/skills/ios-team-flow/references/INSTALL.md#团队共享与升级)。
 
 已有业务工程按 [已有项目流程](.agents/skills/ios-team-flow/references/EXISTING-PROJECT.md) 处理：首次记录项目现状，后续增量实施并验证相关路径，保留实际架构和配置。
+
+业务项目可配置 [构建与测试入口](.agents/skills/ios-team-flow/references/PROJECT-CHECKS.md)，通过 [交付追踪](.agents/skills/ios-team-flow/references/DELIVERY.md) 关联需求、提交、PR 和 Release。
+
+[可选 Git 检查](.agents/skills/ios-team-flow/references/GIT-CHECKS.md) 提供保留原 Hook 的安装/卸载，以及按明确 base/head 核验的 PR 工作流。本仓库已配置 PR 检查模板；团队按需将该检查设为分支必需项。本地 Hook 需每个克隆目录显式安装。

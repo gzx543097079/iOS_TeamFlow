@@ -103,3 +103,7 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
 ## 已有业务项目接入后
 
 接入成功只代表入口配置完成。首次提出业务需求时，Codex 按 [已有项目流程](EXISTING-PROJECT.md) 识别本次目标并整理 requirements/PROJECT-CONTEXT.md；后续复用现状记录、核对相关变化，沿用项目实际技术栈和产品配置，不套用新项目默认值。
+
+## 可选提交检查
+
+业务项目验证命令配置见 [项目验证](PROJECT-CHECKS.md)，需求与提交/PR/发布关联见 [交付追踪](DELIVERY.md)。本地 Hook 与 GitHub PR 范围检查需团队显式安装，见 [Git 检查](GIT-CHECKS.md)；升级脚本不自动更改现有 Hook 或工作流。

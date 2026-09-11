@@ -1,0 +1,33 @@
+name: TeamFlow PR 审查门禁
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+permissions:
+  contents: read
+jobs:
+  review-evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: 使用目标分支的检查器核验 PR 范围
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -eu
+          trusted_dir="$RUNNER_TEMP/teamflow-trusted"
+          mkdir -p "$trusted_dir"
+          for script in review_gate.py range_review.py; do
+            if ! git show "$BASE_SHA:.agents/skills/ios-team-flow/scripts/$script" > "$trusted_dir/$script"; then
+              echo "目标分支缺少 TeamFlow 检查器，请先将初次安装合入目标分支。"
+              exit 1
+            fi
+          done
+          python3 -I "$trusted_dir/range_review.py" check --base "$BASE_SHA" --head "$HEAD_SHA"

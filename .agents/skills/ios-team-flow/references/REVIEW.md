@@ -33,3 +33,7 @@ findings 使用 `{id, severity, file, line, trigger, impact, recommendation, sta
 未跟踪/未暂存文件不会进入本次提交审查，prepare 会提示数量；提交前核实有无漏暂存的新文件。不支持用此指纹替代显式要求的全仓审计或 PR 多提交审查；这类范围另记基准 SHA 和范围。
 
 普通 Git 客户端可把 `python3 scripts/review_gate.py check` 接入既有 pre-commit hook（先合并已有 hook，不覆盖）。本包不修改团队全局 Git 配置。无 Codex 的 Git 客户端不会自动生成语义报告，会由门禁提示先完成审查。
+
+## Hook 与 PR 提交范围
+
+按 [Git 检查说明](GIT-CHECKS.md) 可选安装本地 Hook 和 PR 检查。CI 必须调用 range_review.py 并明确 base/head，不可用空暂存区的 check 代替已提交内容审查。线性提交优先复用已提交的逐次报告，合并或基准变化按说明处理。
