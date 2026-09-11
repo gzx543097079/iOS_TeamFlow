@@ -1,0 +1,42 @@
+{
+  "fingerprint": "a2ad694eb5f62ce108a7d8972235be5a664af7a0a6818a2d681e76d4e50e7d77",
+  "base": "4bfb97349a35245cd08696577bd2a2a676cd1df6",
+  "scope": "staged",
+  "created_at": "2026-09-11T07:34:23.856979+00:00",
+  "reviewer": "Codex",
+  "completed_at": "2026-09-11T07:34:44.917936+00:00",
+  "summary": "本次审查 1.3.0 发布版本、安装示例和变更记录，已提交功能不重复审查。24 项行为测试及打包通过，无阻塞问题。",
+  "previous_review": null,
+  "checks": {
+    "correctness": {
+      "status": "通过",
+      "evidence": "版本与两份安装说明一致为 1.3.0，变更记录涵盖已有项目流程与默认导航配置；24 项测试、链接校验和两种打包通过。"
+    },
+    "standards": {
+      "status": "通过",
+      "evidence": "中文文档及版本格式符合仓库发布规范，旧版历史保留。"
+    },
+    "subscription": {
+      "status": "不适用",
+      "evidence": "无订阅产品、价格或购买文案改动。"
+    },
+    "memory": {
+      "status": "不适用",
+      "evidence": "无运行时代码或生命周期改动。"
+    },
+    "analytics": {
+      "status": "不适用",
+      "evidence": "无打点逻辑和参数改动。"
+    },
+    "test_artifacts": {
+      "status": "通过",
+      "evidence": "没有新增测试账号或调试代码，安装示例使用本次发布版本。"
+    },
+    "security": {
+      "status": "通过",
+      "evidence": "无凭据、用户数据或权限变更；未覆盖旧标签及 Release。"
+    }
+  },
+  "findings": [],
+  "blockers": []
+}
