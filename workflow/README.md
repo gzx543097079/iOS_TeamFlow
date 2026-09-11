@@ -30,8 +30,16 @@ Codex 依据入口自动执行流程和语义审查；脚本提供可验证的�
 
 需求和日志可随项目提交；发布 zip 排除 App、需求和日志等项目数据。已配置 GitHub Actions 校验与 Release 附件上传，需推送后才在 GitHub 生效。
 
-## 项目级独立安装（v1.1.0）
+## 项目级独立安装（v1.2.0）
 
-使用 `ios-team-flow-skill-v1.1.0.zip`，将完整 ios-team-flow 目录放入目标项目 `.agents/skills/`，再在项目根目录运行一次 `python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .`。之后直接提 iOS 需求；规则与版本随项目提交，不需要个人安装。详细步骤见 [项目安装说明](../.agents/skills/ios-team-flow/references/INSTALL.md)。
+使用 `ios-team-flow-skill-v1.2.0.zip`，将完整 ios-team-flow 目录放入目标项目 `.agents/skills/`，再在项目根目录运行一次 `python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .`。之后直接提 iOS 需求；规则与版本随项目提交，不需要个人安装。详细步骤见 [项目安装说明](../.agents/skills/ios-team-flow/references/INSTALL.md)。
 
-空项目先运行 `mkdir -p .agents/skills` 创建目录，再放入 Skill 并执行接入命令。不需要预先生成 iOS 工程，先确认需求文档再创建。详见 [空项目接入](../.agents/skills/ios-team-flow/references/INSTALL.md#空项目接入没有-agentsskills-时)。
+空项目先创建并进入项目文件夹，再创建 Skill 目录（将 MyApp 替换为你的项目目录名；已有文件夹直接进入）：
+
+```sh
+mkdir -p ~/Desktop/MyGit/MyApp
+cd ~/Desktop/MyGit/MyApp
+mkdir -p .agents/skills
+```
+
+然后放入完整 Skill 并执行上面的接入命令。在 Codex 打开项目根目录，不需要预先生成 iOS 工程，先确认需求文档再创建。逐步操作见 [根目录 README](../README.md#空项目创建文件夹并接入) 和 [空项目接入](../.agents/skills/ios-team-flow/references/INSTALL.md#空项目接入没有-agentsskills-时)。
