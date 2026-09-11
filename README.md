@@ -14,7 +14,7 @@ python3 scripts/package_release.py
 
 分发时将 ZIP 内容合入项目 Git 根目录，包含 AGENTS.md、.agents 和 .github。工程、.agents、requirements、logs、scripts 同级。规范和工具实现只在 .agents/skills/ios-team-flow 内维护。完整规则见 [工作流](.agents/skills/ios-team-flow/references/WORKFLOW.md)，参考项目与官方资料见 [调研记录](.agents/skills/ios-team-flow/references/SOURCES.md)。
 
-采用项目级独立安装：使用 `ios-team-flow-skill-v1.2.0.zip`，将完整目录放入目标项目 `.agents/skills/`，再从项目根目录运行一次：
+采用项目级独立安装：使用 `ios-team-flow-skill-v1.2.1.zip`，将完整目录放入目标项目 `.agents/skills/`，再从项目根目录运行一次：
 
 ```sh
 python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
@@ -32,7 +32,7 @@ cd ~/Desktop/MyGit/MyApp
 mkdir -p .agents/skills
 ```
 
-2. 下载并解压 `ios-team-flow-skill-v1.2.0.zip`，将其中完整的 `ios-team-flow` 文件夹复制到刚创建的 `.agents/skills/`。最终路径必须是 `.agents/skills/ios-team-flow/SKILL.md`，不要只复制 SKILL.md，也不要多套一层目录。macOS Finder 可按 `Command + Shift + .` 显示隐藏文件夹。
+2. 下载并解压 `ios-team-flow-skill-v1.2.1.zip`，将其中完整的 `ios-team-flow` 文件夹复制到刚创建的 `.agents/skills/`。最终路径必须是 `.agents/skills/ios-team-flow/SKILL.md`，不要只复制 SKILL.md，也不要多套一层目录。macOS Finder 可按 `Command + Shift + .` 显示隐藏文件夹。
 
 3. 在项目根目录执行一次接入命令：
 

@@ -1,0 +1,76 @@
+diff --git a/.agents/skills/ios-team-flow/references/CHANGELOG.md b/.agents/skills/ios-team-flow/references/CHANGELOG.md
+index 61930b81d0613ce8295b834c2b38ffc401b376f3..b3b95b39bc07a5a8e4635db8a4d7575b13dfbbd7 100644
+--- a/.agents/skills/ios-team-flow/references/CHANGELOG.md
++++ b/.agents/skills/ios-team-flow/references/CHANGELOG.md
+@@ -1,11 +1,13 @@
+ # 版本记录
+ 
+-## 未发布
++## 1.2.1 — 2026-09-11
+ 
+ - 规则、模板、版本与门禁实现改为直接维护在 `.agents/skills/ios-team-flow/`，移除旧规范目录和同步脚本。
+ - 项目接入记录改为 `.agents/teamflow.json`；接入、校验和两种分发包均使用 Skill 内资源。
+ - 需求进度采用图标与中文状态，并提供顶部进度概览。
+ 
++- 超大字号默认仅在明确要求时测试；PRD 独立列出深色模式和跟随系统配置，默认均为是。
++
+ ## 1.2.0 — 2026-09-11
+ 
+ - README 增加空项目从创建项目文件夹、进入目录到创建 `.agents/skills/` 的完整命令。
+diff --git a/.agents/skills/ios-team-flow/references/README.md b/.agents/skills/ios-team-flow/references/README.md
+index dff8e4b765459323177c5b7a86b3624a911bde04..dda9e44a43fac24730ca0e94d5e6d269cec0ed2f 100644
+--- a/.agents/skills/ios-team-flow/references/README.md
++++ b/.agents/skills/ios-team-flow/references/README.md
+@@ -30,9 +30,9 @@ Codex 依据入口自动执行流程和语义审查；脚本提供可验证的
+ 
+ 需求和日志可随项目提交；发布 zip 排除 App、需求和日志等项目数据。已配置 GitHub Actions 校验与 Release 附件上传，需推送后才在 GitHub 生效。
+ 
+-## 项目级独立安装（v1.2.0）
++## 项目级独立安装（v1.2.1）
+ 
+-使用 `ios-team-flow-skill-v1.2.0.zip`，将完整 ios-team-flow 目录放入目标项目 `.agents/skills/`，再在项目根目录运行一次 `python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .`。之后直接提 iOS 需求；规则与版本随项目提交，不需要个人安装。详细步骤见 [项目安装说明](INSTALL.md)。
++使用 `ios-team-flow-skill-v1.2.1.zip`，将完整 ios-team-flow 目录放入目标项目 `.agents/skills/`，再在项目根目录运行一次 `python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .`。之后直接提 iOS 需求；规则与版本随项目提交，不需要个人安装。详细步骤见 [项目安装说明](INSTALL.md)。
+ 
+ 空项目先创建并进入项目文件夹，再创建 Skill 目录（将 MyApp 替换为你的项目目录名；已有文件夹直接进入）：
+ 
+diff --git a/.agents/skills/ios-team-flow/references/VERSION b/.agents/skills/ios-team-flow/references/VERSION
+index 26aaba0e86632e4d537006e45b0ec918d780b3b4..6085e946503a10fb4d58a5c7d9a6e572c21ddd2e 100644
+--- a/.agents/skills/ios-team-flow/references/VERSION
++++ b/.agents/skills/ios-team-flow/references/VERSION
+@@ -1 +1 @@
+-1.2.0
++1.2.1
+diff --git a/README.md b/README.md
+index 069e439d75d1eb65c1eaefa73317d2e14e80ff90..7d4158b5a2beabd159e1a75e42bf2126ce204047 100644
+--- a/README.md
++++ b/README.md
+@@ -14,7 +14,7 @@ python3 scripts/package_release.py
+ 
+ 分发时将 ZIP 内容合入项目 Git 根目录，包含 AGENTS.md、.agents 和 .github。工程、.agents、requirements、logs、scripts 同级。规范和工具实现只在 .agents/skills/ios-team-flow 内维护。完整规则见 [工作流](.agents/skills/ios-team-flow/references/WORKFLOW.md)，参考项目与官方资料见 [调研记录](.agents/skills/ios-team-flow/references/SOURCES.md)。
+ 
+-采用项目级独立安装：使用 `ios-team-flow-skill-v1.2.0.zip`，将完整目录放入目标项目 `.agents/skills/`，再从项目根目录运行一次：
++采用项目级独立安装：使用 `ios-team-flow-skill-v1.2.1.zip`，将完整目录放入目标项目 `.agents/skills/`，再从项目根目录运行一次：
+ 
+ ```sh
+ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
+@@ -32,7 +32,7 @@ cd ~/Desktop/MyGit/MyApp
+ mkdir -p .agents/skills
+ ```
+ 
+-2. 下载并解压 `ios-team-flow-skill-v1.2.0.zip`，将其中完整的 `ios-team-flow` 文件夹复制到刚创建的 `.agents/skills/`。最终路径必须是 `.agents/skills/ios-team-flow/SKILL.md`，不要只复制 SKILL.md，也不要多套一层目录。macOS Finder 可按 `Command + Shift + .` 显示隐藏文件夹。
++2. 下载并解压 `ios-team-flow-skill-v1.2.1.zip`，将其中完整的 `ios-team-flow` 文件夹复制到刚创建的 `.agents/skills/`。最终路径必须是 `.agents/skills/ios-team-flow/SKILL.md`，不要只复制 SKILL.md，也不要多套一层目录。macOS Finder 可按 `Command + Shift + .` 显示隐藏文件夹。
+ 
+ 3. 在项目根目录执行一次接入命令：
+ 
+diff --git a/requirements/REQ-20260911-006.md b/requirements/REQ-20260911-006.md
+index db01816035bee3a17c9609814330bd434d322b4c..209a99ea630f682fb0f93282ecfa3943100a106f 100644
+--- a/requirements/REQ-20260911-006.md
++++ b/requirements/REQ-20260911-006.md
+@@ -40,3 +40,7 @@
+ ## 提交授权
+ 
+ 用户已授权提交并推送，版本保持 1.2.0。本次不重建标签、不覆盖既有 Release；本次迁移与 REQ-20260911-005 的进度状态改动一起交付。19 项行为测试及 Skill 校验结果复用上一阶段相同代码的验证证据，提交前再核对文档链接及暂存差异。
++
++## 1.2.1 发布交付
++
++用户授权以 1.2.1 发布最新内容，解决 main 与旧 1.2.0 附件内容不同的问题。版本和安装示例更新为 1.2.1，发布范围包含 Skill 唯一维护位置、进度图标、深色模式配置及超大字号测试范围；旧标签保留。发布前执行验证和本次差异审查，发布后下载验证附件、版本和迁移结果。
