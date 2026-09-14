@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "requirement": "REQ-20260914-100031790Z-3aeb60e4",
+  "linked_commits": [],
+  "prs": [],
+  "events": [
+    {
+      "at": "2026-09-14T10:02:11.461675+00:00",
+      "action": "finish",
+      "changes": {
+        "commits": [],
+        "committed": false,
+        "merged": "未核实",
+        "releases": [],
+        "release_status": "未核实",
+        "prs": [],
+        "warnings": [
+          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+        ],
+        "development": "✅ 执行完成",
+        "card": {
+          "state": "✅ 执行完成",
+          "passed": 2,
+          "applicable": 2,
+          "next": "无",
+          "blocker": "无",
+          "acceptance_fingerprint": "c60076ae71fdedca522b6713c5e79288adeff78e3de462fcd5c863906be1e026",
+          "implementation_fingerprint": "4da85b47af85aebf5362612a6d0e82cc1d09557e958247635feeb49c9dabf9a7"
+        },
+        "checked_at": "2026-09-14T10:02:11.461463+00:00"
+      },
+      "removed": []
+    }
+  ],
+  "acceptance_baseline": {
+    "implementation_fingerprint": "4da85b47af85aebf5362612a6d0e82cc1d09557e958247635feeb49c9dabf9a7",
+    "acceptance_fingerprint": "c60076ae71fdedca522b6713c5e79288adeff78e3de462fcd5c863906be1e026",
+    "inputs": [
+      ".agents/teamflow.json",
+      ".agents/skills/ios-team-flow/references/VERSION",
+      ".agents/skills/ios-team-flow/references/CHANGELOG.md",
+      "README.md"
+    ],
+    "results": [],
+    "accepted_at": "2026-09-14T10:02:11.461346+00:00"
+  },
+  "snapshot": {
+    "commits": [],
+    "committed": false,
+    "merged": "未核实",
+    "releases": [],
+    "release_status": "未核实",
+    "prs": [],
+    "warnings": [
+      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+    ],
+    "development": "✅ 执行完成",
+    "card": {
+      "state": "✅ 执行完成",
+      "passed": 2,
+      "applicable": 2,
+      "next": "无",
+      "blocker": "无",
+      "acceptance_fingerprint": "c60076ae71fdedca522b6713c5e79288adeff78e3de462fcd5c863906be1e026",
+      "implementation_fingerprint": "4da85b47af85aebf5362612a6d0e82cc1d09557e958247635feeb49c9dabf9a7"
+    },
+    "checked_at": "2026-09-14T10:02:11.461463+00:00"
+  }
+}
