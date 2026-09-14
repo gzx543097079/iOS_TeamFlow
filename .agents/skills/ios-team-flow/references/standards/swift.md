@@ -13,3 +13,5 @@
 - String Catalog / 本地化资源承载用户文案；价格从 StoreKit 数据格式化；Logger 不记录 token、完整个人数据或支付凭据。
 - SwiftLint 检查与 formatter 分工明确，采用现有配置；新增工具固定版本，避免 SwiftFormat 与 swift-format 对同一文件互相改写。只对本次文件执行格式整理。
 - 修改逻辑选择相关单元/集成测试；涉及 actor、取消或竞态设计能复现行为的测试，不写只验证实现细节的空泛测试。
+
+- 新生成和本次修改的代码按 [中文注释规范](comments.md) 补充职责、接口契约与关键逻辑说明。

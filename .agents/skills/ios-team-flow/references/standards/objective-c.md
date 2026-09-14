@@ -12,3 +12,5 @@
 - Core Foundation 创建/复制对象确认释放；桥接明确 __bridge / __bridge_transfer 等所有权，不混用 ARC 与 CF 管理。
 - `.mm` 的 C++ 对象释放、RAII、异常边界沿用已有 C++ 规范；OC 规则不能替代 C++ 审查。
 - 变更验证：使用工程现有 clang-format 配置检查改动文件；运行相关构建和测试，涉及所有权时用 Xcode Analyze、Memory Graph / Instruments 补证据。没有工具记录未验证，不声称零泄漏。
+
+- 新生成和本次修改的代码按 [中文注释规范](comments.md) 补充职责、接口契约与关键逻辑说明。

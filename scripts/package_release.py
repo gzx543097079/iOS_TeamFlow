@@ -8,7 +8,7 @@ SKILL = '.agents/skills/ios-team-flow'
 REFERENCES = (
     'EVOLUTION.md', 'SCENARIOS.md', 'APP-RELEASE.md', 'templates/app-release.md', 'ACCEPTANCE.md', 'templates/acceptance.md', 'VERSION', 'README.md', 'CHANGELOG.md', 'WORKFLOW.md', 'REVIEW.md',
     'RELEASE.md', 'SOURCES.md', 'INSTALL.md', 'standards/ui.md',
-    'standards/objective-c.md', 'standards/swift.md', 'standards/swiftui.md',
+    'standards/comments.md', 'standards/objective-c.md', 'standards/swift.md', 'standards/swiftui.md',
     'templates/new-project.md', 'templates/requirement.md',
     'GIT-CHECKS.md', 'DELIVERY.md', 'PROJECT-CHECKS.md', 'EXISTING-PROJECT.md', 'templates/project-context.md',
 )
