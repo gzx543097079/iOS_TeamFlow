@@ -6,3 +6,5 @@
 - 日志：Sources/Support/Logging/TFLogger.swift，Debug 全量，Release 不输出；无第三方运行时依赖。
 - 验证入口：.agents/project-checks.json 的 ios-demo（Debug 单元/UI、Release 单元），scripts/test_demo.py 按实际可用模拟器执行。
 - 默认语言、主题、商城增量按当前需求实施；当前 AC 与阶段结果只在各需求卡维护。
+
+- Demo 入口为本地商城：Sources/DemoCatalog.swift 提供示例商品与内存购物袋，DemoPreferences.swift 管理语言与外观，Resources 提供英文/简体中文。无网络、库存、订单或支付服务。

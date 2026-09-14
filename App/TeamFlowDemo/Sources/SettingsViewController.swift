@@ -66,8 +66,10 @@ final class LanguageViewController: UITableViewController {
     override func viewDidLoad() { super.viewDidLoad(); refresh() }
     private func refresh() {
         title = preferences.text("settings.language")
-        // 返回按钮属于前一页面，选语言时同步更新其可见文案。
-        navigationController?.viewControllers.dropLast().last?.navigationItem.backButtonTitle = preferences.text("common.back")
+        // 返回按钮属于前一页面；同步整个栈，避免返回设置后仍显示旧语言。
+        navigationController?.viewControllers.forEach {
+            $0.navigationItem.backButtonTitle = preferences.text("common.back")
+        }
         tableView.reloadData()
     }
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {

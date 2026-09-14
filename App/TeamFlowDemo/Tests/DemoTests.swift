@@ -76,34 +76,56 @@ final class DemoTests: XCTestCase {
         XCTAssertNil(about)
     }
 
-    func testPlanUsesSamePriceAndPeriod() {
-        let plan = DemoPlan(productID: "fixture.yearly", displayPrice: "$24.99", period: "年")
-        XCTAssertEqual(plan.summary, "$24.99 / 年")
-        XCTAssertEqual(DemoPlan.monthly.summary, "¥6.00 / 月")
+    func testCatalogFiltersAndBagTotalsUseActualProducts() {
+        let audio = DemoProduct.filtered(by: .audio)
+        XCTAssertEqual(audio.map(\.id), ["headphones", "speaker"])
+        XCTAssertEqual(DemoProduct.filtered(by: .all).count, 4)
+        let bag = DemoBag()
+        XCTAssertEqual(bag.count, 0)
+        bag.add(audio[0])
+        bag.add(audio[0])
+        bag.add(audio[1])
+        XCTAssertEqual(bag.count, 3)
+        XCTAssertEqual(bag.totalCents, 79700)
+        bag.remove(audio[0])
+        XCTAssertEqual(bag.count, 1)
+        XCTAssertEqual(bag.totalCents, 19900)
+        bag.remove(audio[1])
+        XCTAssertTrue(bag.products.isEmpty)
+        XCTAssertEqual(bag.totalCents, 0)
     }
 
-    @MainActor func testNavigationRecordsOneEventAndUsesSelectedPlan() {
+    @MainActor func testNavigationRecordsOneEventAndUsesSelectedProduct() {
         let events = DemoEvents()
-        let plan = DemoPlan(productID: "fixture.yearly", displayPrice: "¥60.00", period: "年")
-        let controller = DemoViewController(plan: plan, events: events)
+        let product = DemoProduct.catalog[2]
+        let controller = DemoViewController(events: events)
         let navigation = UINavigationController(rootViewController: controller)
         controller.loadViewIfNeeded()
-        controller.showPlan()
-        XCTAssertEqual(events.names, ["demo_plan_open"])
-        XCTAssertEqual(navigation.topViewController?.title, plan.summary)
+        controller.showProduct(product)
+        XCTAssertEqual(events.names, ["demo_product_open"])
+        XCTAssertEqual((navigation.topViewController as? ProductViewController)?.product, product)
         XCTAssertEqual(navigation.viewControllers.count, 2)
     }
 
-    @MainActor func testControllerReleasesAfterNavigationIsReleased() {
+    @MainActor func testStoreScreensReleaseWithNavigation() {
         weak var reference: DemoViewController?
+        weak var detail: ProductViewController?
+        weak var cart: BagViewController?
         autoreleasepool {
             let controller = DemoViewController()
             reference = controller
             let navigation = UINavigationController(rootViewController: controller)
             controller.loadViewIfNeeded()
-            controller.showPlan()
-            _ = navigation.popViewController(animated: false)
+            controller.showProduct(DemoProduct.catalog[0])
+            detail = navigation.topViewController as? ProductViewController
+            detail?.loadViewIfNeeded()
+            let bagPage = BagViewController(preferences: .shared, bag: controller.bag)
+            cart = bagPage
+            navigation.pushViewController(bagPage, animated: false)
+            bagPage.loadViewIfNeeded()
         }
         XCTAssertNil(reference)
+        XCTAssertNil(detail)
+        XCTAssertNil(cart)
     }
 }

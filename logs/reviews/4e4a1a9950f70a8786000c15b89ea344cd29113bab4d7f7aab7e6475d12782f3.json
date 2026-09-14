@@ -1,0 +1,61 @@
+{
+  "fingerprint": "4e4a1a9950f70a8786000c15b89ea344cd29113bab4d7f7aab7e6475d12782f3",
+  "base": "dba910dfa0c3bf9de461e08b09bd4957cf2e0712",
+  "scope": "staged",
+  "created_at": "2026-09-14T09:54:19.435699+00:00",
+  "reviewer": "Codex",
+  "completed_at": "2026-09-14T09:55:26.365964+00:00",
+  "summary": "提交前发现商城滚动容器左右约束未采用安全区，修正后需更新验证对象。",
+  "previous_review": null,
+  "checks": {
+    "correctness": {
+      "status": "失败",
+      "evidence": "DemoCatalog.swift 的滚动容器左右贴根视图，在带缺口设备横屏时不能保证内容避让；已有测试未覆盖横屏。"
+    },
+    "standards": {
+      "status": "未验证",
+      "evidence": ""
+    },
+    "subscription": {
+      "status": "未验证",
+      "evidence": ""
+    },
+    "memory": {
+      "status": "未验证",
+      "evidence": ""
+    },
+    "analytics": {
+      "status": "未验证",
+      "evidence": ""
+    },
+    "test_artifacts": {
+      "status": "未验证",
+      "evidence": ""
+    },
+    "security": {
+      "status": "未验证",
+      "evidence": ""
+    }
+  },
+  "findings": [
+    {
+      "id": "DEMO-SAFEAREA",
+      "severity": "P2",
+      "file": "App/TeamFlowDemo/Sources/DemoCatalog.swift",
+      "line": 84,
+      "trigger": "带屏幕缺口的 iPhone 横屏打开商城或详情",
+      "impact": "左右内容可能进入不安全区域",
+      "recommendation": "滚动容器左右绑定 safeAreaLayoutGuide，补充横屏截图复核",
+      "status": "open"
+    }
+  ],
+  "blockers": [
+    "修正左右安全区并复核"
+  ],
+  "requirements": [
+    "REQ-20260914-093347091Z-29ecd886"
+  ],
+  "validation_results": [
+    "logs/project-checks/20260914T095200Z-b4e114cd/result.json"
+  ]
+}

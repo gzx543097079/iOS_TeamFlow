@@ -41,6 +41,38 @@
         "checked_at": "2026-09-14T09:44:21.319869+00:00"
       },
       "removed": []
+    },
+    {
+      "at": "2026-09-14T09:54:02.521160+00:00",
+      "action": "finish",
+      "changes": {
+        "card": {
+          "state": "🧪 待验证",
+          "passed": 2,
+          "applicable": 3,
+          "next": "团队确认设置及关于页面效果",
+          "blocker": "无",
+          "acceptance_fingerprint": "d8f0ae553ddb643efc5cb22de0e4697962e218f1174b21673e17387a11ef3a9b"
+        },
+        "checked_at": "2026-09-14T09:54:02.520876+00:00"
+      },
+      "removed": []
+    },
+    {
+      "at": "2026-09-14T09:58:51.096191+00:00",
+      "action": "finish",
+      "changes": {
+        "card": {
+          "state": "🧪 待验证",
+          "passed": 2,
+          "applicable": 3,
+          "next": "团队确认设置及关于页面效果",
+          "blocker": "无",
+          "acceptance_fingerprint": "ad3529bd71856eb166023d03a5fe3f282df2ae5edf6373178ca18b208c218140"
+        },
+        "checked_at": "2026-09-14T09:58:51.095732+00:00"
+      },
+      "removed": []
     }
   ],
   "snapshot": {
@@ -62,8 +94,8 @@
       "applicable": 3,
       "next": "团队确认设置及关于页面效果",
       "blocker": "无",
-      "acceptance_fingerprint": "4d216070ff55de5c83288956ac0d3cb84e29ceaf97ec5835f7df1912cef2e058"
+      "acceptance_fingerprint": "ad3529bd71856eb166023d03a5fe3f282df2ae5edf6373178ca18b208c218140"
     },
-    "checked_at": "2026-09-14T09:44:21.319869+00:00"
+    "checked_at": "2026-09-14T09:58:51.095732+00:00"
   }
 }
