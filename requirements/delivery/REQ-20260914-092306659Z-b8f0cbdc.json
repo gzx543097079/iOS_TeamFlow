@@ -30,6 +30,27 @@
         "checked_at": "2026-09-14T09:26:15.545316+00:00"
       },
       "removed": []
+    },
+    {
+      "at": "2026-09-14T09:27:38.750969+00:00",
+      "action": "finish",
+      "changes": {
+        "commits": [
+          "f238dba6f57f6f496a6904141665dbf9ca1d36cd"
+        ],
+        "committed": true,
+        "development": "🚫 已取消",
+        "card": {
+          "state": "🚫 已取消",
+          "passed": 0,
+          "applicable": 0,
+          "next": "无",
+          "blocker": "无",
+          "acceptance_fingerprint": "6ff2cadd542c68be06e997e6d3198cc8e4da723cc90b2439651d10f464f65958"
+        },
+        "checked_at": "2026-09-14T09:27:38.750625+00:00"
+      },
+      "removed": []
     }
   ],
   "acceptance_baseline": {
@@ -46,8 +67,10 @@
     "accepted_at": "2026-09-14T09:26:15.545202+00:00"
   },
   "snapshot": {
-    "commits": [],
-    "committed": false,
+    "commits": [
+      "f238dba6f57f6f496a6904141665dbf9ca1d36cd"
+    ],
+    "committed": true,
     "merged": "未核实",
     "releases": [],
     "release_status": "未核实",
@@ -55,16 +78,15 @@
     "warnings": [
       "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
     ],
-    "development": "✅ 执行完成",
+    "development": "🚫 已取消",
     "card": {
-      "state": "✅ 执行完成",
-      "passed": 3,
-      "applicable": 3,
+      "state": "🚫 已取消",
+      "passed": 0,
+      "applicable": 0,
       "next": "无",
       "blocker": "无",
-      "acceptance_fingerprint": "bb0542e06024c06e35ae0398c00d37ce422fe64a22a998f470de48d3226056c8",
-      "implementation_fingerprint": "74147fcfd6f9d6a39a2cacb86076b65f21305d8352f2ede62506078295989f50"
+      "acceptance_fingerprint": "6ff2cadd542c68be06e997e6d3198cc8e4da723cc90b2439651d10f464f65958"
     },
-    "checked_at": "2026-09-14T09:26:15.545316+00:00"
+    "checked_at": "2026-09-14T09:27:38.750625+00:00"
   }
 }

@@ -13,5 +13,3 @@ SwiftUI 是 Swift UI 框架，执行本文件前先执行 Swift 与 UI 规范。
 - UIViewRepresentable / UIViewControllerRepresentable 明确 Coordinator 所有权、update 幂等性与 dismantle 清理；不在更新回调中制造状态循环。
 - Preview、mock 数据放预览或测试范围，检查 Release 的 target membership 和构建条件；不要删掉正常测试，只清除误入生产的调试入口。
 - 验证实际交互、导航、列表身份、重新进入、取消、常规动态字号和深浅色。超大字号仅在用户明确要求或已确认需求/验收标准列入时验证，未要求时按 UI 规范记录不适用；不因此关闭动态字号适配。Preview 可辅助验证，不能代替运行和必要测试。
-
-- 新生成及本次修改的 UI 按 [UI 的 RTL 默认要求](ui.md) 使用语义方向布局并核对 LTR/RTL；阿拉伯语资源可不接入，不据此跳过方向适配。

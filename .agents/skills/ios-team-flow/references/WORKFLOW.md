@@ -20,7 +20,7 @@
 
 ## 3. 实施、验证与唯一记录
 
-生成和修改业务代码时按 [中文注释](standards/comments.md) 说明职责、约束和关键原因。按实际改动读取 [OC](standards/objective-c.md)、[Swift](standards/swift.md)、[SwiftUI](standards/swiftui.md)；SwiftUI 同时读 Swift，所有 UI 改动读 [UI](standards/ui.md)，默认支持并验证 RTL，不以启用阿拉伯语为前提，.mm 同时遵守工程 C++ 约定。已有团队明确约定优先，差异说明原因；不顺手迁移无关代码。
+生成和修改业务代码时按 [中文注释](standards/comments.md) 说明职责、约束和关键原因。按实际改动读取 [OC](standards/objective-c.md)、[Swift](standards/swift.md)、[SwiftUI](standards/swiftui.md)；SwiftUI 同时读 Swift，所有 UI 改动读 [UI](standards/ui.md)，.mm 同时遵守工程 C++ 约定。已有团队明确约定优先，差异说明原因；不顺手迁移无关代码。
 
 按 [PROJECT-CHECKS](PROJECT-CHECKS.md) 运行必要检查；缺陷尽量先复现，原有失败与新增问题分开。工具测试不代替 App 验证；关键检查缺工具或失败时保持未验证，不伪填通过。未明确要求不测试超大字号，其他明确验收仍执行。
 
