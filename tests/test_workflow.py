@@ -490,7 +490,7 @@ class WorkflowTests(unittest.TestCase):
         template = (ROOT / release.SKILL / 'references/templates/requirement.md').read_text()
         self.assertNotIn('审查指纹/报告：提交前填写', template)
         shutil.copytree(ROOT / release.SKILL, self.root / release.SKILL)
-        destination = self.root / 'requirements/REQ-20260911-001.md'
+        destination = self.root / 'requirements/REQ-20260911-120000001Z-abcdef01.md'
         destination.parent.mkdir()
         destination.write_text(template)
         for target in re.findall(r'\]\(([^)]+)\)', template):

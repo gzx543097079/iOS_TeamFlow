@@ -16,8 +16,8 @@ spec.loader.exec_module(selection)
 class CheckSelectionTests(unittest.TestCase):
     def test_docs_templates_and_mixed_changes(self):
         self.assertEqual([selection.DOCUMENTS], selection.select_checks([
-            'README.md', 'requirements/REQ-20260911-001.md',
-            'requirements/delivery/REQ-20260911-001.json', 'requirements/DELIVERY.md',
+            'README.md', 'requirements/REQ-20260911-120000001Z-abcdef01.md',
+            'requirements/delivery/REQ-20260911-120000001Z-abcdef01.json', 'requirements/DELIVERY.md',
             'logs/reviews/fixture.json', 'logs/reviews/fixture.patch']))
         template = selection.SKILL + 'references/templates/new-project.md'
         selected = selection.select_checks([template])

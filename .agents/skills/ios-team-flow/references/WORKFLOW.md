@@ -4,7 +4,7 @@
 
 ## 1. 接收与项目识别
 
-先读 Git 状态、相关需求和现有项目入口，续接同一需求，不按对话轮次重复建卡。新需求由 Codex 执行 `delivery.py create --title "需求标题"`，生成 UUID 卡到项目根 requirements/。不补同步历史需求。
+先读 Git 状态、相关需求和现有项目入口，续接同一需求，不按对话轮次重复建卡。新需求由 Codex 执行 `delivery.py create --title "需求标题"`，生成按 UTC 时间排序的需求卡到项目根 requirements/。不补同步历史需求。
 
 新产品先按 [启动模板](templates/new-project.md) 整理具体草案，团队明确确认启动范围后再建工程；确认功能和发布配置的时机由模板规定。默认建议不能视为批准，未回复不是确认。已有工程按 [现状流程](EXISTING-PROJECT.md) 增量处理，保留实际框架、语言、部署目标和目录；没有 .xcodeproj 也可能是生成式工程。工作流工具仓库不是新 iOS 产品。
 

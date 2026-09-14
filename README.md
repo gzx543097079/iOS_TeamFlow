@@ -1,6 +1,6 @@
 # iOS TeamFlow
 
-项目级中文 iOS 团队工作流，支持 Objective-C、Swift、SwiftUI、UI 规范、需求追踪、验证、提交审查和交付记录。当前版本为 **2.0.0**。完整规则只维护在项目 `.agents/skills/ios-team-flow/`，团队克隆后共用。
+项目级中文 iOS 团队工作流，支持 Objective-C、Swift、SwiftUI、UI 规范、需求追踪、验证、提交审查和交付记录。当前版本为 **2.0.1**。完整规则只维护在项目 `.agents/skills/ios-team-flow/`，团队克隆后共用。
 
 ## 先看你属于哪种情况
 
@@ -37,7 +37,7 @@ git init
 
 ### 2. 放入完整 Skill
 
-从 [2.0.0 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v2.0.0) 下载 `ios-team-flow-skill-v2.0.0.zip`，解压后把完整的 `ios-team-flow` 文件夹放到 `.agents/skills/`。
+从 [2.0.1 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v2.0.1) 下载 `ios-team-flow-skill-v2.0.1.zip`，解压后把完整的 `ios-team-flow` 文件夹放到 `.agents/skills/`。
 
 最终必须是 `.agents/skills/ios-team-flow/SKILL.md`，不要只复制 SKILL.md，也不要多套一层同名文件夹。Finder 按 `Command + Shift + .` 显示隐藏文件夹。
 
@@ -51,7 +51,7 @@ MyApp/
             └── scripts/
 ```
 
-已有同名 Skill 时先比较版本和定制，按升级流程处理。业务项目使用上述独立 Skill 包；`iOS-TeamFlow-v2.0.0.zip` 是带源仓库测试和发布流水线的完整分发包。
+已有同名 Skill 时先比较版本和定制，按升级流程处理。业务项目使用上述独立 Skill 包；`iOS-TeamFlow-v2.0.1.zip` 是带源仓库测试和发布流水线的完整分发包。
 
 ### 3. 接入项目并查看诊断
 
@@ -89,7 +89,9 @@ Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/refer
 
 ## 日常怎么协作
 
-成员负责提出需求、确认必要业务决定、实际验收和授权提交/推送/发布。Codex 负责建卡、实施、选择和运行验证、更新记录、提交前审查与交付同步。正常使用不要求成员背诵 UUID、finish 或门禁参数。
+成员负责提出需求、确认必要业务决定、实际验收和授权提交/推送/发布。Codex 负责建卡、实施、选择和运行验证、更新记录、提交前审查与交付同步。正常使用不要求成员背诵需求编号、finish 或门禁参数。
+
+需求编号采用 `REQ-YYYYMMDD-HHMMSSmmmZ-随机码`，文件名按 UTC 创建时间排序。用 `delivery.py list` 查看序号、时间、标题和状态，`list --reverse` 查看最新需求；序号仅用于浏览，引用始终使用固定编号。
 
 提出需求 → 一次确定范围与 AC（验收条件）→ 实施和验证 → 更新验收记录并绑定证据 → 最终提交门禁 → 授权交付后同步事实。
 
@@ -134,7 +136,7 @@ Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/refer
 
 ## 源仓库维护与版本
 
-2.0.0 将 1.10.2 的现有功能重新发布为主版本，不引入新的行为或配置迁移。日常 CI 按 Git 改动选择测试；正式发布、公共或未知变化仍执行全量。文档和模板改动无需每次运行全部工具测试，工具输出沿用 1.10.1。新项目默认英语和简体中文。版本变化见 [CHANGELOG](.agents/skills/ios-team-flow/references/CHANGELOG.md)。
+2.0.1 改用可按 UTC 创建时间排序的需求编号，新增只读列表、倒序和 JSON 查询，交付概览显示序号、时间与标题。旧编号不再支持，历史原件保留但不迁移、不进入新列表。日常 CI 按 Git 改动选择测试；正式发布、公共或未知变化仍执行全量。文档和模板改动无需每次运行全部工具测试，工具输出沿用 1.10.1。新项目默认英语和简体中文。版本变化见 [CHANGELOG](.agents/skills/ios-team-flow/references/CHANGELOG.md)。
 
 以下命令用于工作流分发仓库维护，不要求业务项目为了接入而运行：
 

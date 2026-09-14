@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location('delivery', ROOT / '.agents/skills/ios-team-flow/scripts/delivery.py')
 d = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(d)
-REQ = 'REQ-20260911-999'
+REQ = 'REQ-20260911-120000999Z-abcdef01'
 
 
 class DeliveryTests(unittest.TestCase):
@@ -292,7 +292,7 @@ class DeliveryTests(unittest.TestCase):
         _, sealed = d.load(self.root, REQ)
         self.assertIn('accepted_commit', sealed['acceptance_baseline'])
         (app / 'B.swift').write_text('unrelated B')
-        self.commit('one', 'B implementation\n\nRequirement: REQ-20260911-888')
+        self.commit('one', 'B implementation\n\nRequirement: REQ-20260911-120000888Z-abcdef01')
         d.finish(self.root, [REQ])
         _, after = d.load(self.root, REQ)
         self.assertEqual(sealed['acceptance_baseline'], after['acceptance_baseline'])
@@ -313,7 +313,7 @@ class DeliveryTests(unittest.TestCase):
         self.v2_card('✅ 执行完成', '通过', 'A evidence')
         d.finish(self.root, [REQ], accept=True, inputs=['code.txt'])
         sha = self.commit('accepted A', 'Requirement: ' + REQ)
-        self.commit('B changed same file', 'Requirement: REQ-20260911-888')
+        self.commit('B changed same file', 'Requirement: REQ-20260911-120000888Z-abcdef01')
         d.finish(self.root, [REQ])
         _, data = d.load(self.root, REQ)
         self.assertEqual(sha, data['acceptance_baseline']['accepted_commit'])
@@ -408,3 +408,55 @@ class DeliveryTests(unittest.TestCase):
         snapshot = json.loads(subprocess.check_output(command, text=True))
         self.assertEqual({}, snapshot)
         self.assertFalse(path.exists())
+
+    def test_timestamp_ids_sort_and_retry_without_overwrite(self):
+        from datetime import datetime, timezone
+        from types import SimpleNamespace
+        now = datetime(2026, 9, 12, 10, 30, 15, 123000, tzinfo=timezone.utc)
+        with patch.object(d, 'datetime') as clock, patch.object(d.uuid, 'uuid4') as random:
+            clock.now.return_value = now
+            random.side_effect = [SimpleNamespace(hex='a1b2c3d4' + '0' * 24),
+                                  SimpleNamespace(hex='a1b2c3d4' + '0' * 24),
+                                  SimpleNamespace(hex='b1b2c3d4' + '0' * 24)]
+            first = d.create(self.root, '先创建')
+            before = first.read_bytes()
+            second = d.create(self.root, '同毫秒')
+        self.assertEqual('REQ-20260912-103015123Z-a1b2c3d4', first.stem)
+        self.assertLess(first.name, second.name)
+        self.assertEqual(before, first.read_bytes())
+        self.assertEqual(now, d.created_time(first.stem))
+        self.assertIn(first.stem, first.read_text())
+        self.assertNotIn('REQ-YYYYMMDD', first.read_text())
+
+    def test_list_and_overview_order_titles_unfinished_and_read_only(self):
+        import sys
+        (self.root / 'requirements' / (REQ + '.md')).unlink()
+        ids = ['REQ-20260912-000000002Z-bbbbbbbb', 'REQ-20260911-235959999Z-aaaaaaaa',
+               'REQ-20260912-000000001Z-cccccccc']
+        for i, identifier in enumerate(ids):
+            (self.root / 'requirements' / (identifier + '.md')).write_text(
+                '# ' + identifier + '：标题|' + str(i) + '\n- 状态：⬜ 未执行\n')
+        before = {str(p): p.read_bytes() for p in (self.root / 'requirements').rglob('*') if p.is_file()}
+        rows = d.requirement_rows(self.root)
+        self.assertEqual(sorted(ids), [r['requirement'] for r in rows])
+        self.assertEqual([1, 2, 3], [r['number'] for r in rows])
+        self.assertEqual(list(reversed(rows)), d.requirement_rows(self.root, True))
+        overview = d.overview(self.root)
+        self.assertIn('标题&#124;', overview)
+        self.assertLess(overview.index(ids[1]), overview.index(ids[2]))
+        command = [sys.executable, str(ROOT / '.agents/skills/ios-team-flow/scripts/delivery.py'),
+                   '--project', str(self.root), 'list']
+        output = subprocess.check_output(command + ['--reverse', '--json'], text=True)
+        self.assertEqual(list(reversed(rows)), json.loads(output))
+        self.assertIn('创建时间（UTC）', subprocess.check_output(command, text=True))
+        self.assertEqual(before, {str(p): p.read_bytes() for p in (self.root / 'requirements').rglob('*') if p.is_file()})
+
+    def test_old_identifiers_and_invalid_timestamp_rejected(self):
+        for identifier in ('REQ-20260911-001', 'REQ-20260911-' + 'a' * 32,
+                           'REQ-20260230-120000000Z-aaaaaaaa', 'REQ-20260912-250000000Z-aaaaaaaa'):
+            with self.assertRaises(ValueError):
+                d.load(self.root, identifier)
+        legacy = self.root / 'requirements/REQ-20260911-001.md'
+        legacy.write_text('# 历史原件')
+        self.assertNotIn(legacy.stem, d.list_requirements(self.root))
+        self.assertEqual('# 历史原件', legacy.read_text())

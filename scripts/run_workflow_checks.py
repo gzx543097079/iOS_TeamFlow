@@ -26,7 +26,7 @@ TOOLS = {
 def select_checks(paths):
     selected = {DOCUMENTS}
     for path in paths:
-        if (re.fullmatch(r'requirements/(?:DELIVERY\.md|(?:delivery/)?REQ-\d{8}-(?:[0-9a-f]{32}|\d{3,})\.(?:md|json))', path)
+        if (re.fullmatch(r'requirements/(?:DELIVERY\.md|(?:delivery/)?REQ-\d{8}-\d{9}Z-[0-9a-f]{8}\.(?:md|json))', path)
                 or (path.startswith('logs/reviews/') and Path(path).suffix in ('.md', '.json', '.patch'))):
             continue
         if path in ('AGENTS.md', 'README.md', SKILL + 'SKILL.md'):

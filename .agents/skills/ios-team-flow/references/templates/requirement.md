@@ -1,4 +1,4 @@
-# REQ-YYYYMMDD-UUID：〈需求标题〉
+# REQ-YYYYMMDD-HHMMSSmmmZ-RANDOM：〈需求标题〉
 <!-- teamflow:requirement:v3 -->
 
 - 状态：⬜ 未执行

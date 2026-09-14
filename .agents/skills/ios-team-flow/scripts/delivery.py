@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 
-ID = re.compile(r'REQ-\d{8}-(?:[0-9a-f]{32}|\d{3,})')
+ID = re.compile(r'REQ-\d{8}-\d{9}Z-[0-9a-f]{8}')
 CARD_V2 = '<!-- teamflow:requirement:v2 -->'
 CARD_V3 = '<!-- teamflow:requirement:v3 -->'
 STATES = ('❔ 待确认', '⬜ 未执行', '🔄 执行中', '🧪 待验证', '✅ 执行完成',
@@ -96,8 +96,7 @@ def safe_path(root, relative):
 
 
 def load(root, requirement):
-    if not ID.fullmatch(requirement):
-        raise ValueError('需求编号格式应为 REQ-YYYYMMDD-UUID（兼容旧数字编号）')
+    created_time(requirement)
     if not safe_path(root, 'requirements/' + requirement + '.md').is_file():
         raise ValueError('先创建对应需求卡')
     path = safe_path(root, 'requirements/delivery/' + requirement + '.json')
@@ -359,19 +358,58 @@ def save(root, path, data, action):
     safe_path(root, 'requirements/DELIVERY.md').write_text(overview(root))
 
 
-def overview(root):
-    lines = ['# 需求交付概览', '', '由 delivery.py 生成；新版需求状态来自需求卡，旧记录保留。提交、合并与发布独立核对。', '',
-             '| 需求 | 开发 | 提交 | PR 合并 | Release | 最近核对 |', '| --- | --- | --- | --- | --- | --- |']
-    for item in sorted(safe_path(root, 'requirements/delivery').glob('REQ-*.json')):
-        if item.is_symlink():
+def created_time(requirement):
+    if not ID.fullmatch(requirement):
+        raise ValueError('需求编号格式应为 REQ-YYYYMMDD-HHMMSSmmmZ-8位随机码，不支持旧编号')
+    _, date, clock, _ = requirement.split('-')
+    return datetime(int(date[:4]), int(date[4:6]), int(date[6:]),
+                    int(clock[:2]), int(clock[2:4]), int(clock[4:6]),
+                    int(clock[6:9]) * 1000, tzinfo=timezone.utc)
+
+
+def requirement_rows(root, reverse=False):
+    """直接读取当前卡片，未 finish 的新卡也可查询；不维护第二份状态。"""
+    rows = []
+    for card in sorted(safe_path(root, 'requirements').glob('REQ-*.md')):
+        if not ID.fullmatch(card.stem):
             continue
-        row = json.loads(item.read_text())
-        snap = row.get('snapshot', {})
+        created = created_time(card.stem)
+        content = safe_path(root, str(card.relative_to(root))).read_text()
+        heading = next((line[2:] for line in content.splitlines() if line.startswith('# ')), card.stem)
+        title = heading.removeprefix(card.stem + '：')
+        state = re.search(r'^- 状态：(.+)$', content, re.M)
+        rows.append({'requirement': card.stem, 'created_at': created.isoformat(timespec='milliseconds'),
+                     'title': title, 'state': state.group(1).strip() if state else '未登记'})
+    rows = [{**row, 'number': i} for i, row in enumerate(rows, 1)]
+    return list(reversed(rows)) if reverse else rows
+
+
+def table_cell(value):
+    return str(value).replace('\n', ' ').replace('|', '&#124;')
+
+
+def list_requirements(root, reverse=False):
+    lines = ['| 序号 | 创建时间（UTC） | 需求 | 标题 | 状态 |', '| --- | --- | --- | --- | --- |']
+    for row in requirement_rows(root, reverse):
+        lines.append('| ' + ' | '.join(table_cell(row[key]) for key in ('number', 'created_at', 'requirement', 'title', 'state')) + ' |')
+    return '\n'.join(lines)
+
+
+def overview(root):
+    lines = ['# 需求交付概览', '', '由 delivery.py 按创建时间升序生成；序号仅用于浏览，引用使用固定需求编号。仅收录当前编号格式，旧文件不改写。', '',
+             '| 序号 | 创建时间（UTC） | 需求 | 标题 | 开发 | 提交 | PR 合并 | Release | 最近核对 |',
+             '| --- | --- | --- | --- | --- | --- | --- | --- | --- |']
+    for row in requirement_rows(root):
         req = row['requirement']
-        lines.append('| [' + req + '](' + req + '.md) | ' + snap.get('development', row.get('development', {}).get('state', '未登记'))
-                     + ' | ' + ('✅ ' + str(len(snap['commits'])) + ' 个提交' if snap.get('commits') else '⬜ 未关联')
-                     + ' | ' + snap.get('merged', '未核实') + ' | ' + snap.get('release_status', '未核实')
-                     + ' | ' + snap.get('checked_at', '—') + ' |')
+        path = safe_path(root, 'requirements/delivery/' + req + '.json')
+        data = json.loads(path.read_text()) if path.exists() else {}
+        if data and data.get('requirement') != req:
+            raise ValueError('交付记录编号不匹配：' + req)
+        snap = data.get('snapshot', {})
+        values = [row['number'], row['created_at'], '[' + req + '](' + req + '.md)', row['title'], row['state'],
+                  '✅ ' + str(len(snap['commits'])) + ' 个提交' if snap.get('commits') else '⬜ 未关联',
+                  snap.get('merged', '未核实'), snap.get('release_status', '未核实'), snap.get('checked_at', '—')]
+        lines.append('| ' + ' | '.join(table_cell(value) for value in values) + ' |')
     return '\n'.join(lines) + '\n'
 
 
@@ -459,11 +497,11 @@ def create(root, title):
     directory = safe_path(root, 'requirements')
     directory.mkdir(parents=True, exist_ok=True)
     template = Path(__file__).resolve().parents[1] / 'references/templates/requirement.md'
-    now = datetime.now().astimezone()
-    while True:
-        requirement = 'REQ-' + now.strftime('%Y%m%d') + '-' + uuid.uuid4().hex
+    for _ in range(128):
+        now = datetime.now(timezone.utc)
+        requirement = 'REQ-' + now.strftime('%Y%m%d-%H%M%S') + f'{now.microsecond // 1000:03d}Z-' + uuid.uuid4().hex[:8]
         target = directory / (requirement + '.md')
-        content = template.read_text().replace('REQ-YYYYMMDD-UUID', requirement).replace('〈需求标题〉', title.strip())
+        content = template.read_text().replace('REQ-YYYYMMDD-HHMMSSmmmZ-RANDOM', requirement).replace('〈需求标题〉', title.strip())
         content = content.replace('YYYY-MM-DDTHH:MM:SS+08:00', now.isoformat(timespec='seconds'))
         try:
             with target.open('x') as stream:
@@ -472,6 +510,7 @@ def create(root, title):
             continue
         print(json.dumps({'requirement': requirement, 'card': str(target)}, ensure_ascii=False))
         return target
+    raise ValueError('需求编号连续冲突，请检查随机源后重试')
 
 
 def main():
@@ -479,6 +518,9 @@ def main():
     parser.add_argument('--project', type=Path, default=Path('.'))
     parser.add_argument('--requirement')
     sub = parser.add_subparsers(dest='command', required=True)
+    listing = sub.add_parser('list', help='按创建时间列出当前需求，序号不用于引用')
+    listing.add_argument('--reverse', action='store_true', help='最新需求在前，保留升序序号')
+    listing.add_argument('--json', action='store_true', help='输出结构化列表')
     status = sub.add_parser('status')
     status.add_argument('--history', action='store_true', help='按需展开完整历史事件')
     creator = sub.add_parser('create')
@@ -509,6 +551,12 @@ def main():
             if args.requirement:
                 raise ValueError('create 自动分配编号，不接收 --requirement')
             create(root, args.title)
+            return 0
+        if args.command == 'list':
+            if args.requirement:
+                raise ValueError('list 不接收 --requirement')
+            print(json.dumps(requirement_rows(root, args.reverse), ensure_ascii=False, indent=2)
+                  if args.json else list_requirements(root, args.reverse))
             return 0
         if Path(git(root, 'rev-parse', '--show-toplevel')).resolve() != root:
             raise ValueError('请指定 Git 根目录')
