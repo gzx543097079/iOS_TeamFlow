@@ -1,0 +1,46 @@
+{
+  "fingerprint": "12fc8911cafd12532626b4e0ac5d8179dc4f6c0a2ec3095fa757691427a47d5b",
+  "base": "a6c600b8ffd1d0bc365a1b8f97c44a22d06a1d80",
+  "scope": "staged",
+  "created_at": "2026-09-14T09:26:15.730367+00:00",
+  "reviewer": "Codex",
+  "completed_at": "2026-09-14T17:26:41.880066+08:00",
+  "summary": "RTL 默认实现及验证与阿拉伯语翻译解耦，OC/Swift/SwiftUI、模板和审查一致；2.1.2 仅源码推送，113 项回归通过。",
+  "previous_review": null,
+  "checks": {
+    "correctness": {
+      "status": "通过",
+      "evidence": "UI 规范区分实际界面方向、文本方向与图标语义；模板移除只有启用 ar 才验证 RTL 的前提，保留 ar 未启用及 en/zh-Hans 默认。明确验证强制方向不进入生产路径，非 UI 不扩大改动。validation-2.1.2.md 记录 113 项回归与场景核对。"
+    },
+    "standards": {
+      "status": "通过",
+      "evidence": "UIKit 语义约束/边距与 SwiftUI layoutDirection 按 Apple 资料核对；没有把所有内容统一镜像，保留局部物理方向；OC/Swift/SwiftUI 和 standards 审查均路由到 UI 规范。"
+    },
+    "subscription": {
+      "status": "不适用",
+      "evidence": "仅布局生成规则，不修改购买、价格或权益行为。"
+    },
+    "memory": {
+      "status": "不适用",
+      "evidence": "无运行时代码或生命周期变更。"
+    },
+    "analytics": {
+      "status": "不适用",
+      "evidence": "无业务事件或数据采集变更。"
+    },
+    "test_artifacts": {
+      "status": "通过",
+      "evidence": "强制 RTL 仅限测试/预览容器，明确不得进入生产默认路径；本次未添加 App 强制配置或虚构运行证据。"
+    },
+    "security": {
+      "status": "通过",
+      "evidence": "文档不包含用户数据或凭据，未改变生产语言/方向设置；附带日志需求交付记录源自 finish，保留验收及历史并正确关联 a6c600b。不创建 Release 或移动标签。"
+    }
+  },
+  "findings": [],
+  "blockers": [],
+  "requirements": [
+    "REQ-20260914-092306659Z-b8f0cbdc"
+  ],
+  "validation_results": []
+}
