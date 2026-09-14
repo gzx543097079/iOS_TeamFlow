@@ -367,14 +367,22 @@ def created_time(requirement):
                     int(clock[6:9]) * 1000, tzinfo=timezone.utc)
 
 
-def requirement_rows(root, reverse=False):
+def requirement_rows(root, reverse=False, warnings=None):
     """直接读取当前卡片，未 finish 的新卡也可查询；不维护第二份状态。"""
     rows = []
     for card in sorted(safe_path(root, 'requirements').glob('REQ-*.md')):
         if not ID.fullmatch(card.stem):
             continue
-        created = created_time(card.stem)
-        content = safe_path(root, str(card.relative_to(root))).read_text()
+        try:
+            created = created_time(card.stem)
+            content = safe_path(root, str(card.relative_to(root))).read_text()
+        except (ValueError, OSError) as error:
+            warning = '已跳过异常需求卡 ' + str(card.relative_to(root)) + '：' + str(error)
+            if warnings is None:
+                print(warning, file=sys.stderr)
+            else:
+                warnings.append(warning)
+            continue
         heading = next((line[2:] for line in content.splitlines() if line.startswith('# ')), card.stem)
         title = heading.removeprefix(card.stem + '：')
         state = re.search(r'^- 状态：(.+)$', content, re.M)
@@ -399,7 +407,8 @@ def overview(root):
     lines = ['# 需求交付概览', '', '由 delivery.py 按创建时间升序生成；序号仅用于浏览，引用使用固定需求编号。仅收录当前编号格式，旧文件不改写。', '',
              '| 序号 | 创建时间（UTC） | 需求 | 标题 | 开发 | 提交 | PR 合并 | Release | 最近核对 |',
              '| --- | --- | --- | --- | --- | --- | --- | --- | --- |']
-    for row in requirement_rows(root):
+    warnings = []
+    for row in requirement_rows(root, warnings=warnings):
         req = row['requirement']
         path = safe_path(root, 'requirements/delivery/' + req + '.json')
         data = json.loads(path.read_text()) if path.exists() else {}
@@ -410,6 +419,9 @@ def overview(root):
                   '✅ ' + str(len(snap['commits'])) + ' 个提交' if snap.get('commits') else '⬜ 未关联',
                   snap.get('merged', '未核实'), snap.get('release_status', '未核实'), snap.get('checked_at', '—')]
         lines.append('| ' + ' | '.join(table_cell(value) for value in values) + ' |')
+    if warnings:
+        lines.extend(['', '以下异常需求卡未纳入概览，请修复后重新同步：', ''])
+        lines.extend('- ' + table_cell(warning) for warning in warnings)
     return '\n'.join(lines) + '\n'
 
 

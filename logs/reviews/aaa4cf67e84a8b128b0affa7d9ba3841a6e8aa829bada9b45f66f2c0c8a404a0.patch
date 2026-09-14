@@ -1,0 +1,235 @@
+diff --git a/.agents/skills/ios-team-flow/references/CHANGELOG.md b/.agents/skills/ios-team-flow/references/CHANGELOG.md
+index 1207d4b00c2bd14cb014ddba8a1858c551183a1b..c055bf7dc3dce42f04a1c6954cfbef46972950d7 100644
+--- a/.agents/skills/ios-team-flow/references/CHANGELOG.md
++++ b/.agents/skills/ios-team-flow/references/CHANGELOG.md
+@@ -1,5 +1,9 @@
+ # 版本记录
+ 
++## 未发布
++
++- 需求列表隔离日期或读取异常的单张卡，正常结果继续输出；警告定位异常文件，JSON 数组格式不变，交付概览保留异常清单。
++
+ ## 2.0.1
+ 
+ - 需求编号改为 UTC 日期、时分秒毫秒与短随机码，文件名可直接按创建时间排序；不保留旧编号兼容。
+diff --git a/.agents/skills/ios-team-flow/references/DELIVERY.md b/.agents/skills/ios-team-flow/references/DELIVERY.md
+index 7c69163581bc7174f13d9ee512a22ed1c5d0f8d9..47bf8c54ebe797e8a9d348aa0677f472ad4b52a2 100644
+--- a/.agents/skills/ios-team-flow/references/DELIVERY.md
++++ b/.agents/skills/ios-team-flow/references/DELIVERY.md
+@@ -63,3 +63,5 @@ python3 .agents/skills/ios-team-flow/scripts/delivery.py list --json
+ 序号为当前集合中的浏览位置，合并更早需求后可能变化；文件名、引用、父子关系及 Requirement 尾注使用固定完整编号，不能使用序号。列表不写文件或联网，交付概览随 finish 更新，不维护第二套人工状态。
+ 
+ 本次直接采用新编号，不提供旧数字/UUID 编号兼容或自动迁移。旧需求及交付原始文件保留，当前列表和交付概览只收录新格式；旧概览可从 Git 历史查看。不要批量重命名旧文件后声称其历史提交关联仍有效。
++
++单张新格式需求卡日期无效、内容无法解码或读取被拒绝时，列表跳过该卡并在标准错误中提示具体文件与原因；标准输出保持 Markdown 表格或 JSON 数组，查询退出码为 0。全部卡异常时返回空列表并保留警告，空列表不代表没有异常需求。概览末尾保留异常清单，修复后重新同步。根目录错误仍使查询失败；直接操作无效编号仍拒绝，异常卡不会因此获得验收。
+diff --git a/.agents/skills/ios-team-flow/scripts/delivery.py b/.agents/skills/ios-team-flow/scripts/delivery.py
+index 95b0030944e986e3419b12a36d36a03ce7f4521d..7296e01192ad8d04f72cb7eae22f1241c9d2d18b 100644
+--- a/.agents/skills/ios-team-flow/scripts/delivery.py
++++ b/.agents/skills/ios-team-flow/scripts/delivery.py
+@@ -367,14 +367,22 @@ def created_time(requirement):
+                     int(clock[6:9]) * 1000, tzinfo=timezone.utc)
+ 
+ 
+-def requirement_rows(root, reverse=False):
++def requirement_rows(root, reverse=False, warnings=None):
+     """直接读取当前卡片，未 finish 的新卡也可查询；不维护第二份状态。"""
+     rows = []
+     for card in sorted(safe_path(root, 'requirements').glob('REQ-*.md')):
+         if not ID.fullmatch(card.stem):
+             continue
+-        created = created_time(card.stem)
+-        content = safe_path(root, str(card.relative_to(root))).read_text()
++        try:
++            created = created_time(card.stem)
++            content = safe_path(root, str(card.relative_to(root))).read_text()
++        except (ValueError, OSError) as error:
++            warning = '已跳过异常需求卡 ' + str(card.relative_to(root)) + '：' + str(error)
++            if warnings is None:
++                print(warning, file=sys.stderr)
++            else:
++                warnings.append(warning)
++            continue
+         heading = next((line[2:] for line in content.splitlines() if line.startswith('# ')), card.stem)
+         title = heading.removeprefix(card.stem + '：')
+         state = re.search(r'^- 状态：(.+)$', content, re.M)
+@@ -399,7 +407,8 @@ def overview(root):
+     lines = ['# 需求交付概览', '', '由 delivery.py 按创建时间升序生成；序号仅用于浏览，引用使用固定需求编号。仅收录当前编号格式，旧文件不改写。', '',
+              '| 序号 | 创建时间（UTC） | 需求 | 标题 | 开发 | 提交 | PR 合并 | Release | 最近核对 |',
+              '| --- | --- | --- | --- | --- | --- | --- | --- | --- |']
+-    for row in requirement_rows(root):
++    warnings = []
++    for row in requirement_rows(root, warnings=warnings):
+         req = row['requirement']
+         path = safe_path(root, 'requirements/delivery/' + req + '.json')
+         data = json.loads(path.read_text()) if path.exists() else {}
+@@ -410,6 +419,9 @@ def overview(root):
+                   '✅ ' + str(len(snap['commits'])) + ' 个提交' if snap.get('commits') else '⬜ 未关联',
+                   snap.get('merged', '未核实'), snap.get('release_status', '未核实'), snap.get('checked_at', '—')]
+         lines.append('| ' + ' | '.join(table_cell(value) for value in values) + ' |')
++    if warnings:
++        lines.extend(['', '以下异常需求卡未纳入概览，请修复后重新同步：', ''])
++        lines.extend('- ' + table_cell(warning) for warning in warnings)
+     return '\n'.join(lines) + '\n'
+ 
+ 
+diff --git a/requirements/DELIVERY.md b/requirements/DELIVERY.md
+index feb505be0167519b8a04c44b7d59ffdc6a1c422b..fc10b8e4536cd58ae7ceabda7fc3611a304946ca 100644
+--- a/requirements/DELIVERY.md
++++ b/requirements/DELIVERY.md
+@@ -5,3 +5,4 @@
+ | 序号 | 创建时间（UTC） | 需求 | 标题 | 开发 | 提交 | PR 合并 | Release | 最近核对 |
+ | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+ | 1 | 2026-09-12T14:40:10.879+00:00 | [REQ-20260912-144010879Z-a64fa32f](REQ-20260912-144010879Z-a64fa32f.md) | 需求编号按时间排序并提供可读列表 | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-14T01:09:10.025061+00:00 |
++| 2 | 2026-09-14T08:45:53.223+00:00 | [REQ-20260914-084553223Z-521fb817](REQ-20260914-084553223Z-521fb817.md) | 异常需求卡隔离并保留正常查询结果 | ✅ 执行完成 | ⬜ 未关联 | 未核实 | 未核实 | 2026-09-14T08:48:14.679331+00:00 |
+diff --git a/requirements/REQ-20260914-084553223Z-521fb817.md b/requirements/REQ-20260914-084553223Z-521fb817.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..869d5dce40c1e926ae564b3cc08fcd1ea7109d6d
+--- /dev/null
++++ b/requirements/REQ-20260914-084553223Z-521fb817.md
+@@ -0,0 +1,23 @@
++# REQ-20260914-084553223Z-521fb817：异常需求卡隔离并保留正常查询结果
++<!-- teamflow:requirement:v3 -->
++
++- 状态：✅ 执行完成
++- 来源与范围：用户要求解决完整度检查的问题 1；单张日期无效或不可读取的需求卡不再阻断正常列表，提示具体文件；不处理分支合并。
++- 拆分：否；同一查询容错行为。
++- 验收方式：自审
++- 验收依据：工作流工具行为，由真实 CLI、异常文件和只读验证确认，无 App 变化。
++- 下一步：无
++- 阻塞项：无
++
++## 验收（唯一结果记录）
++
++| 编号 | 条件 | 结果 | 证据或不适用原因 |
++| --- | --- | --- | --- |
++| AC-01 | 日期无效、解码失败和符号链接卡被隔离，正常列表及倒序 JSON 可读，警告定位文件 | 通过 | logs/reviews/validation-card-tolerance.md |
++| AC-02 | 概览保留异常提示，查询不改原件；全部异常时输出空列表与警告，直接操作无效编号仍拒绝 | 通过 | logs/reviews/validation-card-tolerance.md |
++
++## 过程与决策
++
++- 2026-09-14T16:46:00+08:00：仅对逐卡读取做容错；根目录错误仍失败。JSON 标准输出保留数组，异常提示写标准错误；概览附异常清单。
++
++- 2026-09-14T16:48:14+08:00：110 项全量回归通过，查询及正常需求收尾容错验证完成。
+diff --git a/requirements/delivery/REQ-20260914-084553223Z-521fb817.json b/requirements/delivery/REQ-20260914-084553223Z-521fb817.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..940721d69d23d29655639f9aac2a97f8c5764f3b
+--- /dev/null
++++ b/requirements/delivery/REQ-20260914-084553223Z-521fb817.json
+@@ -0,0 +1,69 @@
++{
++  "schema_version": 1,
++  "requirement": "REQ-20260914-084553223Z-521fb817",
++  "linked_commits": [],
++  "prs": [],
++  "events": [
++    {
++      "at": "2026-09-14T08:48:14.679543+00:00",
++      "action": "finish",
++      "changes": {
++        "commits": [],
++        "committed": false,
++        "merged": "未核实",
++        "releases": [],
++        "release_status": "未核实",
++        "prs": [],
++        "warnings": [
++          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++        ],
++        "development": "✅ 执行完成",
++        "card": {
++          "state": "✅ 执行完成",
++          "passed": 2,
++          "applicable": 2,
++          "next": "无",
++          "blocker": "无",
++          "acceptance_fingerprint": "b9a686632ecfb8b6e4d66f8bb242fda3218c91a81065cd1834c619a54c3f60ae",
++          "implementation_fingerprint": "6a7c47523a9a13fbd7b979e0e8bc880eb8e0c3eaedb898679e40757ec7882ffd"
++        },
++        "checked_at": "2026-09-14T08:48:14.679331+00:00"
++      },
++      "removed": []
++    }
++  ],
++  "acceptance_baseline": {
++    "implementation_fingerprint": "6a7c47523a9a13fbd7b979e0e8bc880eb8e0c3eaedb898679e40757ec7882ffd",
++    "acceptance_fingerprint": "b9a686632ecfb8b6e4d66f8bb242fda3218c91a81065cd1834c619a54c3f60ae",
++    "inputs": [
++      ".agents",
++      "scripts",
++      "tests",
++      "README.md"
++    ],
++    "results": [],
++    "accepted_at": "2026-09-14T08:48:14.679214+00:00"
++  },
++  "snapshot": {
++    "commits": [],
++    "committed": false,
++    "merged": "未核实",
++    "releases": [],
++    "release_status": "未核实",
++    "prs": [],
++    "warnings": [
++      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++    ],
++    "development": "✅ 执行完成",
++    "card": {
++      "state": "✅ 执行完成",
++      "passed": 2,
++      "applicable": 2,
++      "next": "无",
++      "blocker": "无",
++      "acceptance_fingerprint": "b9a686632ecfb8b6e4d66f8bb242fda3218c91a81065cd1834c619a54c3f60ae",
++      "implementation_fingerprint": "6a7c47523a9a13fbd7b979e0e8bc880eb8e0c3eaedb898679e40757ec7882ffd"
++    },
++    "checked_at": "2026-09-14T08:48:14.679331+00:00"
++  }
++}
+diff --git a/tests/test_delivery.py b/tests/test_delivery.py
+index c960319823445f7379ff4ade53ab1b4e5a70ba69..653712304409b7ae7065e69e4e218d63186f8816 100644
+--- a/tests/test_delivery.py
++++ b/tests/test_delivery.py
+@@ -460,3 +460,43 @@ class DeliveryTests(unittest.TestCase):
+         legacy.write_text('# 历史原件')
+         self.assertNotIn(legacy.stem, d.list_requirements(self.root))
+         self.assertEqual('# 历史原件', legacy.read_text())
++
++
++    def test_list_isolates_bad_cards_and_preserves_json_and_files(self):
++        import sys
++        bad_date = self.root / 'requirements/REQ-20260230-120000000Z-aaaaaaaa.md'
++        bad_date.write_text('# invalid date')
++        bad_text = self.root / 'requirements/REQ-20260912-120000000Z-bbbbbbbb.md'
++        bad_text.write_bytes(b'\xff')
++        link = self.root / 'requirements/REQ-20260912-120000001Z-cccccccc.md'
++        link.symlink_to(self.root / 'code.txt')
++        before = {p.name: p.read_bytes() for p in (self.root / 'requirements').iterdir()}
++        command = [sys.executable, str(ROOT / '.agents/skills/ios-team-flow/scripts/delivery.py'),
++                   '--project', str(self.root), 'list']
++        for args in (['--json'], ['--reverse', '--json'], []):
++            result = subprocess.run(command + args, capture_output=True, text=True)
++            self.assertEqual(0, result.returncode, result.stderr)
++            if '--json' in args:
++                rows = json.loads(result.stdout)
++                self.assertEqual([REQ], [row['requirement'] for row in rows])
++                self.assertEqual([1], [row['number'] for row in rows])
++            else:
++                self.assertIn(REQ, result.stdout)
++            for bad in (bad_date, bad_text, link):
++                self.assertIn(bad.name, result.stderr)
++                self.assertNotIn(bad.name, result.stdout)
++        overview = d.overview(self.root)
++        self.assertIn(REQ, overview)
++        self.assertIn('以下异常需求卡未纳入概览', overview)
++        for bad in (bad_date, bad_text, link):
++            self.assertIn(bad.name, overview)
++        self.assertEqual(before, {p.name: p.read_bytes() for p in (self.root / 'requirements').iterdir()})
++        with self.assertRaises(ValueError):
++            d.load(self.root, bad_date.stem)
++        d.finish(self.root, [REQ])
++        self.assertIn(bad_date.name, (self.root / 'requirements/DELIVERY.md').read_text())
++        (self.root / 'requirements' / (REQ + '.md')).unlink()
++        result = subprocess.run(command + ['--json'], capture_output=True, text=True)
++        self.assertEqual(0, result.returncode)
++        self.assertEqual([], json.loads(result.stdout))
++        self.assertIn(bad_date.name, result.stderr)

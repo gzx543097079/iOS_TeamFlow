@@ -460,3 +460,43 @@ class DeliveryTests(unittest.TestCase):
         legacy.write_text('# 历史原件')
         self.assertNotIn(legacy.stem, d.list_requirements(self.root))
         self.assertEqual('# 历史原件', legacy.read_text())
+
+
+    def test_list_isolates_bad_cards_and_preserves_json_and_files(self):
+        import sys
+        bad_date = self.root / 'requirements/REQ-20260230-120000000Z-aaaaaaaa.md'
+        bad_date.write_text('# invalid date')
+        bad_text = self.root / 'requirements/REQ-20260912-120000000Z-bbbbbbbb.md'
+        bad_text.write_bytes(b'\xff')
+        link = self.root / 'requirements/REQ-20260912-120000001Z-cccccccc.md'
+        link.symlink_to(self.root / 'code.txt')
+        before = {p.name: p.read_bytes() for p in (self.root / 'requirements').iterdir()}
+        command = [sys.executable, str(ROOT / '.agents/skills/ios-team-flow/scripts/delivery.py'),
+                   '--project', str(self.root), 'list']
+        for args in (['--json'], ['--reverse', '--json'], []):
+            result = subprocess.run(command + args, capture_output=True, text=True)
+            self.assertEqual(0, result.returncode, result.stderr)
+            if '--json' in args:
+                rows = json.loads(result.stdout)
+                self.assertEqual([REQ], [row['requirement'] for row in rows])
+                self.assertEqual([1], [row['number'] for row in rows])
+            else:
+                self.assertIn(REQ, result.stdout)
+            for bad in (bad_date, bad_text, link):
+                self.assertIn(bad.name, result.stderr)
+                self.assertNotIn(bad.name, result.stdout)
+        overview = d.overview(self.root)
+        self.assertIn(REQ, overview)
+        self.assertIn('以下异常需求卡未纳入概览', overview)
+        for bad in (bad_date, bad_text, link):
+            self.assertIn(bad.name, overview)
+        self.assertEqual(before, {p.name: p.read_bytes() for p in (self.root / 'requirements').iterdir()})
+        with self.assertRaises(ValueError):
+            d.load(self.root, bad_date.stem)
+        d.finish(self.root, [REQ])
+        self.assertIn(bad_date.name, (self.root / 'requirements/DELIVERY.md').read_text())
+        (self.root / 'requirements' / (REQ + '.md')).unlink()
+        result = subprocess.run(command + ['--json'], capture_output=True, text=True)
+        self.assertEqual(0, result.returncode)
+        self.assertEqual([], json.loads(result.stdout))
+        self.assertIn(bad_date.name, result.stderr)
