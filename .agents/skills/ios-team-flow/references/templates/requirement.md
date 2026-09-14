@@ -23,6 +23,7 @@
 团队验收添加一处“- 团队确认：…”并填写确认人、时间、对象版本及原文/链接。
 暂停/取消添加“- 暂停或取消原因：…”；暂停的下一步为恢复条件。
 当前状态只维护顶部，步骤引用 AC；不写当前审查指纹、提交 SHA 或交付状态副本。
+仅触发流程改进时，在过程与决策按需记录改进依据：触发与来源、根因证据、最小改动、验证方法及撤销方式；预期和条件写正文与 AC，当前结果仍只写 AC 表。普通需求不添加此记录。
 验收绑定与收尾命令见下方交付规程。 -->
 
 交付索引由首次 finish 创建在 `requirements/DELIVERY.md`。操作规程：[交付追踪](../.agents/skills/ios-team-flow/references/DELIVERY.md)、[团队验收](../.agents/skills/ios-team-flow/references/ACCEPTANCE.md)。

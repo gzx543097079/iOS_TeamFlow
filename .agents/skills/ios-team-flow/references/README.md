@@ -6,7 +6,7 @@
 
 首次接入、空目录创建、团队共享和升级恢复统一见 [安装说明](INSTALL.md)。本 Skill 必须完整安装在项目 `.agents/skills/ios-team-flow/` 并完成接入，然后在 Codex 的项目会话直接提需求；不使用个人级安装。
 
-版本见 [VERSION](VERSION)，源码后续新增能力见 [未发布变更](CHANGELOG.md#未发布)。已发布 ZIP 只包含其标签提交的内容，不能将新文档中的功能推断为旧附件已有。
+版本见 [VERSION](VERSION)，源码后续新增能力见 [版本记录](CHANGELOG.md)。已发布 ZIP 只包含其标签提交的内容，不能将新文档中的功能推断为旧附件已有。
 
 ## 内容导航
 
@@ -24,6 +24,7 @@
 | GitHub 对比与官方来源 | [调研记录](SOURCES.md) |
 | 团队验收与问题复核 | [验收规程](ACCEPTANCE.md) · [记录模板](templates/acceptance.md) |
 | App 发布 | [发布流程](APP-RELEASE.md) · [发布记录](templates/app-release.md) |
+| 实际问题驱动的自我进化 | [触发、验证与回退](EVOLUTION.md) |
 | 业务场景试运行 | [验证矩阵](SCENARIOS.md) |
 | ZIP 与 GitHub Release | [发布规程](RELEASE.md) |
 
