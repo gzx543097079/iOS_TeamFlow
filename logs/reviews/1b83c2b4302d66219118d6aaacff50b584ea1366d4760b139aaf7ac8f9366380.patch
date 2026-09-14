@@ -1,0 +1,62 @@
+diff --git a/requirements/DELIVERY.md b/requirements/DELIVERY.md
+index fc10b8e4536cd58ae7ceabda7fc3611a304946ca..76cd7be04ce416f28fcc661deb21b396b8b7a0b2 100644
+--- a/requirements/DELIVERY.md
++++ b/requirements/DELIVERY.md
+@@ -5,4 +5,4 @@
+ | 序号 | 创建时间（UTC） | 需求 | 标题 | 开发 | 提交 | PR 合并 | Release | 最近核对 |
+ | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+ | 1 | 2026-09-12T14:40:10.879+00:00 | [REQ-20260912-144010879Z-a64fa32f](REQ-20260912-144010879Z-a64fa32f.md) | 需求编号按时间排序并提供可读列表 | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-14T01:09:10.025061+00:00 |
+-| 2 | 2026-09-14T08:45:53.223+00:00 | [REQ-20260914-084553223Z-521fb817](REQ-20260914-084553223Z-521fb817.md) | 异常需求卡隔离并保留正常查询结果 | ✅ 执行完成 | ⬜ 未关联 | 未核实 | 未核实 | 2026-09-14T08:48:14.679331+00:00 |
++| 2 | 2026-09-14T08:45:53.223+00:00 | [REQ-20260914-084553223Z-521fb817](REQ-20260914-084553223Z-521fb817.md) | 异常需求卡隔离并保留正常查询结果 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-14T08:50:03.004906+00:00 |
+diff --git a/requirements/delivery/REQ-20260914-084553223Z-521fb817.json b/requirements/delivery/REQ-20260914-084553223Z-521fb817.json
+index 940721d69d23d29655639f9aac2a97f8c5764f3b..d24b81b8585a7f58ef2450f489a36d96bb682b61 100644
+--- a/requirements/delivery/REQ-20260914-084553223Z-521fb817.json
++++ b/requirements/delivery/REQ-20260914-084553223Z-521fb817.json
+@@ -30,6 +30,18 @@
+         "checked_at": "2026-09-14T08:48:14.679331+00:00"
+       },
+       "removed": []
++    },
++    {
++      "at": "2026-09-14T08:50:03.005407+00:00",
++      "action": "finish",
++      "changes": {
++        "commits": [
++          "4d64cc4b90f6420fa30d688a15d54c6cd282dd16"
++        ],
++        "committed": true,
++        "checked_at": "2026-09-14T08:50:03.004906+00:00"
++      },
++      "removed": []
+     }
+   ],
+   "acceptance_baseline": {
+@@ -42,11 +54,17 @@
+       "README.md"
+     ],
+     "results": [],
+-    "accepted_at": "2026-09-14T08:48:14.679214+00:00"
++    "accepted_at": "2026-09-14T08:48:14.679214+00:00",
++    "sealed_commits": [
++      "4d64cc4b90f6420fa30d688a15d54c6cd282dd16"
++    ],
++    "accepted_commit": "4d64cc4b90f6420fa30d688a15d54c6cd282dd16"
+   },
+   "snapshot": {
+-    "commits": [],
+-    "committed": false,
++    "commits": [
++      "4d64cc4b90f6420fa30d688a15d54c6cd282dd16"
++    ],
++    "committed": true,
+     "merged": "未核实",
+     "releases": [],
+     "release_status": "未核实",
+@@ -64,6 +82,6 @@
+       "acceptance_fingerprint": "b9a686632ecfb8b6e4d66f8bb242fda3218c91a81065cd1834c619a54c3f60ae",
+       "implementation_fingerprint": "6a7c47523a9a13fbd7b979e0e8bc880eb8e0c3eaedb898679e40757ec7882ffd"
+     },
+-    "checked_at": "2026-09-14T08:48:14.679331+00:00"
++    "checked_at": "2026-09-14T08:50:03.004906+00:00"
+   }
+ }
