@@ -9,9 +9,12 @@
 /* Begin PBXBuildFile section */
 		0DBFAD40ACA71A5561BC4D5B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC890BEF7046D4F141D0F5F /* AppDelegate.swift */; };
 		3C8E0FCE6983C65C83F5D571 /* DemoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E17AC72F0B949233946E5E2F /* DemoViewController.swift */; };
+		424148D6AA6EE54E0DF34DFD /* DemoPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFB522DF955E7E863101B24 /* DemoPreferences.swift */; };
+		444FB0F90CABA7D2CABEEAC0 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 2E0FA90EFB087797C486E84C /* Localizable.strings */; };
 		AFC1A4ADB959A11339C25FD4 /* TFLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27B0B962F56DAC9AFC50B756 /* TFLogger.swift */; };
 		C104EB4D492BDBFAA94E6E94 /* DemoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 254C9AC74E7604512C0B6A29 /* DemoTests.swift */; };
 		CD4B06BA47E0C831F272C405 /* DemoUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A2892530978295C461DB91A /* DemoUITests.swift */; };
+		EE27C43E369C12AD3B140685 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3737FA107DEFBE133A436EFC /* SettingsViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,9 +39,13 @@
 		254C9AC74E7604512C0B6A29 /* DemoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoTests.swift; sourceTree = "<group>"; };
 		26438125DF437720EC7EC938 /* TeamFlowDemo.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = TeamFlowDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		27B0B962F56DAC9AFC50B756 /* TFLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFLogger.swift; sourceTree = "<group>"; };
+		3737FA107DEFBE133A436EFC /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		7A05920A630CFE1229D6DF5C /* TeamFlowDemoUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TeamFlowDemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7E73A8EF27AF0F19B7418A01 /* TeamFlowDemoTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TeamFlowDemoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9BFB522DF955E7E863101B24 /* DemoPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoPreferences.swift; sourceTree = "<group>"; };
+		AFCCA58E026CF6A27BABB24E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		CAC890BEF7046D4F141D0F5F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		D61047A79D4CA13D09ED48DA /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		E17AC72F0B949233946E5E2F /* DemoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -54,6 +61,7 @@
 		18FCD3507497D56D94B4EF57 = {
 			isa = PBXGroup;
 			children = (
+				F4FD78BE82F4BC24B6755FBD /* Resources */,
 				E938A142813262D498090D2B /* Sources */,
 				F6B78D33BF4D870E17B880A4 /* Tests */,
 				5507C07A872EEB3FB0883C3C /* UITests */,
@@ -81,7 +89,9 @@
 			isa = PBXGroup;
 			children = (
 				CAC890BEF7046D4F141D0F5F /* AppDelegate.swift */,
+				9BFB522DF955E7E863101B24 /* DemoPreferences.swift */,
 				E17AC72F0B949233946E5E2F /* DemoViewController.swift */,
+				3737FA107DEFBE133A436EFC /* SettingsViewController.swift */,
 				085AF6421BA5D5A3A2D08CCE /* Support */,
 			);
 			path = Sources;
@@ -95,6 +105,14 @@
 				7A05920A630CFE1229D6DF5C /* TeamFlowDemoUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		F4FD78BE82F4BC24B6755FBD /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				2E0FA90EFB087797C486E84C /* Localizable.strings */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		F6B78D33BF4D870E17B880A4 /* Tests */ = {
@@ -131,6 +149,7 @@
 			buildConfigurationList = D4DE1E275F6EF768CA6B4C36 /* Build configuration list for PBXNativeTarget "TeamFlowDemo" */;
 			buildPhases = (
 				B8E79793C4541C24F21E0A65 /* Sources */,
+				A9ADC45219571BD6C8A35752 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -181,6 +200,7 @@
 			knownRegions = (
 				Base,
 				en,
+				"zh-Hans",
 			);
 			mainGroup = 18FCD3507497D56D94B4EF57;
 			minimizedProjectReferenceProxies = 1;
@@ -195,6 +215,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A9ADC45219571BD6C8A35752 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				444FB0F90CABA7D2CABEEAC0 /* Localizable.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		8D8B6718351F233B457D9047 /* Sources */ = {
@@ -218,7 +249,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				0DBFAD40ACA71A5561BC4D5B /* AppDelegate.swift in Sources */,
+				424148D6AA6EE54E0DF34DFD /* DemoPreferences.swift in Sources */,
 				3C8E0FCE6983C65C83F5D571 /* DemoViewController.swift in Sources */,
+				EE27C43E369C12AD3B140685 /* SettingsViewController.swift in Sources */,
 				AFC1A4ADB959A11339C25FD4 /* TFLogger.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -237,6 +270,18 @@
 			targetProxy = 96DFA9E1921638E297A52C1C /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		2E0FA90EFB087797C486E84C /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				AFCCA58E026CF6A27BABB24E /* en */,
+				D61047A79D4CA13D09ED48DA /* zh-Hans */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		1E2B69AA3E28DC2016D98191 /* Debug */ = {
@@ -260,6 +305,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -267,6 +313,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.example.teamflow.demo;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -353,6 +400,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -360,6 +408,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.example.teamflow.demo;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";

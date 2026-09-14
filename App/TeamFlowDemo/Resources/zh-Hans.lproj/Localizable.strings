@@ -1,0 +1,12 @@
+"settings.title" = "设置";
+"settings.language" = "语言";
+"settings.about" = "关于我们";
+"common.back" = "返回";
+"language.system" = "跟随系统";
+"language.en" = "English";
+"language.zh-Hans" = "简体中文";
+"about.description" = "使用 iOS TeamFlow 工作流构建的本地商城演示。商品与价格为示例，不提供真实购买。";
+"about.version" = "版本";
+"demo.title" = "工作流测试";
+"demo.plan" = "测试套餐：%@\n仅用于工作流验证，不提供真实购买。";
+"demo.open" = "查看套餐";

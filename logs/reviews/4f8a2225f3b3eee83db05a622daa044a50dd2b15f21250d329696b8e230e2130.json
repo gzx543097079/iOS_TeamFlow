@@ -1,0 +1,48 @@
+{
+  "fingerprint": "4f8a2225f3b3eee83db05a622daa044a50dd2b15f21250d329696b8e230e2130",
+  "base": "85388761a9bdd3602da6c80a862edf080abeb378",
+  "scope": "staged",
+  "created_at": "2026-09-14T09:43:40.282819+00:00",
+  "reviewer": "Codex",
+  "completed_at": "2026-09-14T09:44:01.485463+00:00",
+  "summary": "设置、三种语言选项及关于页面已验证；视觉确认保留待验证，不阻止已授权提交。",
+  "previous_review": null,
+  "checks": {
+    "correctness": {
+      "status": "通过",
+      "evidence": "偏好非法值回退系统，本地 bundle 切换与重启持久化测试通过；两配置通过，UI 包含关于中英文及往返。"
+    },
+    "standards": {
+      "status": "通过",
+      "evidence": "保持 UIKit/iOS14；Swift 中文职责注释，本地资源进入 Target，语义颜色及原导航栈。"
+    },
+    "subscription": {
+      "status": "不适用",
+      "evidence": "无真实交易，关于页明确示例价格与无购买。"
+    },
+    "memory": {
+      "status": "通过",
+      "evidence": "三个设置页面使用普通导航所有权，页面释放针对性测试通过；无闭包回持有。"
+    },
+    "analytics": {
+      "status": "通过",
+      "evidence": "语言变更只记录不带用户数据的本地 Debug 日志，原事件契约保持。"
+    },
+    "test_artifacts": {
+      "status": "通过",
+      "evidence": "独立测试存储及重置入口受 DEBUG 编译保护；Release 无 TFLog 输出，未更改生产默认偏好。"
+    },
+    "security": {
+      "status": "通过",
+      "evidence": "仅本机保存语言值，不修改全局 AppleLanguages，不联网、不新增权限或个人信息。"
+    }
+  },
+  "findings": [],
+  "blockers": [],
+  "requirements": [
+    "REQ-20260914-093346983Z-82b96fe5"
+  ],
+  "validation_results": [
+    "logs/project-checks/20260914T094203Z-5d29fcd0/result.json"
+  ]
+}

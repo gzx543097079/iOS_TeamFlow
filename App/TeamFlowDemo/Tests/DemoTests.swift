@@ -17,6 +17,43 @@ final class DemoTests: XCTestCase {
         #endif
     }
 
+    func testLanguagePersistsAndResolvesBothTranslations() {
+        let suite = "DemoTests." + UUID().uuidString
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let preferences = DemoPreferences(defaults: defaults)
+        XCTAssertEqual(preferences.language, .system)
+        preferences.language = .chinese
+        XCTAssertEqual(preferences.text("settings.title"), "设置")
+        let reopened = DemoPreferences(defaults: defaults)
+        XCTAssertEqual(reopened.language, .chinese)
+        reopened.language = .english
+        XCTAssertEqual(reopened.text("settings.title"), "Settings")
+        XCTAssertEqual(reopened.text("settings.about"), "About Us")
+    }
+
+    @MainActor func testSettingsScreensReleaseWithNavigation() {
+        weak var settings: SettingsViewController?
+        weak var language: LanguageViewController?
+        weak var about: AboutViewController?
+        autoreleasepool {
+            let controller = SettingsViewController()
+            settings = controller
+            let navigation = UINavigationController(rootViewController: controller)
+            let picker = LanguageViewController(preferences: .shared)
+            language = picker
+            navigation.pushViewController(picker, animated: false)
+            picker.loadViewIfNeeded()
+            let info = AboutViewController(preferences: .shared)
+            about = info
+            navigation.pushViewController(info, animated: false)
+            info.loadViewIfNeeded()
+        }
+        XCTAssertNil(settings)
+        XCTAssertNil(language)
+        XCTAssertNil(about)
+    }
+
     func testPlanUsesSamePriceAndPeriod() {
         let plan = DemoPlan(productID: "fixture.yearly", displayPrice: "$24.99", period: "年")
         XCTAssertEqual(plan.summary, "$24.99 / 年")

@@ -1,0 +1,12 @@
+"settings.title" = "Settings";
+"settings.language" = "Language";
+"settings.about" = "About Us";
+"common.back" = "Back";
+"language.system" = "Follow System";
+"language.en" = "English";
+"language.zh-Hans" = "简体中文";
+"about.description" = "A local shopping demo built with the iOS TeamFlow workflow. Products and prices are examples; no real purchases are available.";
+"about.version" = "Version";
+"demo.title" = "Workflow Demo";
+"demo.plan" = "Sample plan: %@\nFor workflow validation only. No real purchases.";
+"demo.open" = "View Plan";

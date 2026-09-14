@@ -38,3 +38,5 @@ xcodegen generate --spec App/TeamFlowDemo/project.yml
 当前测试不覆盖真实 StoreKit 商品、支付恢复、系统权限弹窗、OC/SwiftUI、完整多语言或所有主题/辅助功能。页面释放断言只证明本场景，不代表 App 全面无内存泄漏。最低部署配置不等于已经在 iOS 14 设备运行。
 
 本工程和根 scripts/test_demo.py、.agents/project-checks.json 仅随源码提供，均不进入通用工作流或独立 Skill ZIP，避免将示例 App 安装到业务项目。
+
+设置入口位于首页右上角：语言支持跟随系统、English、简体中文，切换立即生效并保存；关于我们展示应用说明和构建版本。UI 测试使用独立偏好存储。
