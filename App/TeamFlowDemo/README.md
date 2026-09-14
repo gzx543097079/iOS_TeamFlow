@@ -10,6 +10,8 @@
 python3 .agents/skills/ios-team-flow/scripts/project_checks.py --project . run --profile ios-demo
 ```
 
+ios-demo profile 同时执行 Debug 的单元/UI 测试和 Release 的单元测试；日志消息求值测试分别验证 Debug 执行、Release 不执行。源码通过项目内 TFLog 接入，五等级仅 Debug 输出，生产调用不含测试开关。
+
 需要完整 Xcode 与可用的 iPhone 模拟器。脚本优先使用环境变量 DEVELOPER_DIR，未设置时使用 /Applications/Xcode.app；只影响当前进程，不切换全局开发目录。自动选可用已启动 iPhone，也可通过 TEAMFLOW_SIMULATOR_ID 指定设备 UDID。不可用、超时、构建或测试失败均返回非零结果。
 
 已提交的 TeamFlowDemo.xcodeproj 与共享 Scheme 可直接由 Xcode 打开，无需 XcodeGen。修改 project.yml 后用 XcodeGen 2.46.0 重新生成：

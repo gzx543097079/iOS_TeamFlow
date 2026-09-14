@@ -7,6 +7,11 @@ settings:
     SWIFT_VERSION: '5.0'
     TARGETED_DEVICE_FAMILY: '1,2'
     CODE_SIGNING_ALLOWED: NO
+  configs:
+    Debug:
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
+    Release:
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: ''
 targets:
   TeamFlowDemo:
     type: application

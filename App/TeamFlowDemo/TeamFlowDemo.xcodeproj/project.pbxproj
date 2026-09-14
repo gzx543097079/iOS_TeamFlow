@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0DBFAD40ACA71A5561BC4D5B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC890BEF7046D4F141D0F5F /* AppDelegate.swift */; };
 		3C8E0FCE6983C65C83F5D571 /* DemoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E17AC72F0B949233946E5E2F /* DemoViewController.swift */; };
+		AFC1A4ADB959A11339C25FD4 /* TFLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27B0B962F56DAC9AFC50B756 /* TFLogger.swift */; };
 		C104EB4D492BDBFAA94E6E94 /* DemoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 254C9AC74E7604512C0B6A29 /* DemoTests.swift */; };
 		CD4B06BA47E0C831F272C405 /* DemoUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A2892530978295C461DB91A /* DemoUITests.swift */; };
 /* End PBXBuildFile section */
@@ -34,6 +35,7 @@
 		0A2892530978295C461DB91A /* DemoUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoUITests.swift; sourceTree = "<group>"; };
 		254C9AC74E7604512C0B6A29 /* DemoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoTests.swift; sourceTree = "<group>"; };
 		26438125DF437720EC7EC938 /* TeamFlowDemo.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = TeamFlowDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		27B0B962F56DAC9AFC50B756 /* TFLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFLogger.swift; sourceTree = "<group>"; };
 		7A05920A630CFE1229D6DF5C /* TeamFlowDemoUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TeamFlowDemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7E73A8EF27AF0F19B7418A01 /* TeamFlowDemoTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TeamFlowDemoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CAC890BEF7046D4F141D0F5F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -41,6 +43,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		085AF6421BA5D5A3A2D08CCE /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				64683C2117B10C202E8A2847 /* Logging */,
+			);
+			path = Support;
+			sourceTree = "<group>";
+		};
 		18FCD3507497D56D94B4EF57 = {
 			isa = PBXGroup;
 			children = (
@@ -59,11 +69,20 @@
 			path = UITests;
 			sourceTree = "<group>";
 		};
+		64683C2117B10C202E8A2847 /* Logging */ = {
+			isa = PBXGroup;
+			children = (
+				27B0B962F56DAC9AFC50B756 /* TFLogger.swift */,
+			);
+			path = Logging;
+			sourceTree = "<group>";
+		};
 		E938A142813262D498090D2B /* Sources */ = {
 			isa = PBXGroup;
 			children = (
 				CAC890BEF7046D4F141D0F5F /* AppDelegate.swift */,
 				E17AC72F0B949233946E5E2F /* DemoViewController.swift */,
+				085AF6421BA5D5A3A2D08CCE /* Support */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -200,6 +219,7 @@
 			files = (
 				0DBFAD40ACA71A5561BC4D5B /* AppDelegate.swift in Sources */,
 				3C8E0FCE6983C65C83F5D571 /* DemoViewController.swift in Sources */,
+				AFC1A4ADB959A11339C25FD4 /* TFLogger.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -320,6 +340,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;

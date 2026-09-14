@@ -2,6 +2,21 @@ import XCTest
 @testable import TeamFlowDemo
 
 final class DemoTests: XCTestCase {
+    func testLogMessageEvaluationMatchesBuildConfiguration() {
+        var count = 0
+        func message() -> String { count += 1; return "本地测试消息" }
+        TFLog.debug(message())
+        TFLog.info(message())
+        TFLog.warning(message())
+        TFLog.error(message())
+        TFLog.fault(message())
+        #if DEBUG
+        XCTAssertEqual(count, 5)
+        #else
+        XCTAssertEqual(count, 0)
+        #endif
+    }
+
     func testPlanUsesSamePriceAndPeriod() {
         let plan = DemoPlan(productID: "fixture.yearly", displayPrice: "$24.99", period: "年")
         XCTAssertEqual(plan.summary, "$24.99 / 年")

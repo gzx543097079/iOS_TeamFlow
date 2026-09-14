@@ -12,7 +12,11 @@ struct DemoPlan {
 
 final class DemoEvents {
     private(set) var names: [String] = []
-    func record(_ name: String) { names.append(name) }
+    /// 记录本地演练事件，日志仅包含内部事件名称。
+    func record(_ name: String) {
+        names.append(name)
+        TFLog.debug("Demo 事件：\(name)")
+    }
 }
 
 final class DemoViewController: UIViewController {

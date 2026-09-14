@@ -8,11 +8,23 @@
       ],
       "cwd": ".",
       "timeout_seconds": 900
+    },
+    "ios-demo-release": {
+      "argv": [
+        "python3",
+        "scripts/test_demo.py",
+        "--configuration",
+        "Release",
+        "--unit-tests-only"
+      ],
+      "cwd": ".",
+      "timeout_seconds": 900
     }
   },
   "profiles": {
     "ios-demo": [
-      "ios-demo"
+      "ios-demo",
+      "ios-demo-release"
     ]
   },
   "inputs": [

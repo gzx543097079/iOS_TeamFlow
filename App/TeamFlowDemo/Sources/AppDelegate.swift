@@ -1,5 +1,6 @@
 import UIKit
 
+/// 组装 Demo 窗口与导航入口。
 @main
 final class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
@@ -11,6 +12,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         let window = UIWindow(frame: UIScreen.main.bounds)
         window.rootViewController = UINavigationController(rootViewController: DemoViewController())
         window.makeKeyAndVisible()
+        TFLog.info("Demo 已启动")
         self.window = window
         return true
     }

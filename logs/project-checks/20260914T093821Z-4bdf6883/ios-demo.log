@@ -1,0 +1,118 @@
+Xcode 26.6
+Build version 17F113
+测试模拟器：iPhone 17 Pro 1792BBB8-2CBF-4650-AD9C-3050A91A923B
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test -project /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/App/TeamFlowDemo/TeamFlowDemo.xcodeproj -scheme TeamFlowDemo -configuration Debug -destination "platform=iOS Simulator,id=1792BBB8-2CBF-4650-AD9C-3050A91A923B" -derivedDataPath /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO
+
+Build settings from command line:
+    CODE_SIGNING_ALLOWED = NO
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (3 targets)
+    Target 'TeamFlowDemoUITests' in project 'TeamFlowDemo'
+        ➜ Explicit dependency on target 'TeamFlowDemo' in project 'TeamFlowDemo'
+    Target 'TeamFlowDemoTests' in project 'TeamFlowDemo'
+        ➜ Explicit dependency on target 'TeamFlowDemo' in project 'TeamFlowDemo'
+    Target 'TeamFlowDemo' in project 'TeamFlowDemo' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-6cfe768891a92b912361537c460fe42b.sdkstatcache
+    cd /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/App/TeamFlowDemo/TeamFlowDemo.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -o /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-6cfe768891a92b912361537c460fe42b.sdkstatcache
+
+2026-09-14 17:38:25.381900+0800 TeamFlowDemo[33986:8454365] [UIKit App Config] `UIScene` lifecycle will soon be required. Failure to adopt will result in an assert in the future.
+2026-09-14 17:38:25.443046+0800 TeamFlowDemo[33986:8454365] [TFLog][INFO] [TeamFlowDemo/AppDelegate.swift:15 application(_:didFinishLaunchingWithOptions:)] Demo 已启动
+Test Suite 'All tests' started at 2026-09-14 17:38:25.772.
+Test Suite 'TeamFlowDemoTests.xctest' started at 2026-09-14 17:38:25.772.
+Test Suite 'DemoTests' started at 2026-09-14 17:38:25.772.
+Test Case '-[TeamFlowDemoTests.DemoTests testControllerReleasesAfterNavigationIsReleased]' started.
+2026-09-14 17:38:25.779539+0800 TeamFlowDemo[33986:8454365] [TFLog][DEBUG] [TeamFlowDemo/DemoViewController.swift:18 record(_:)] Demo 事件：demo_plan_open
+Test Case '-[TeamFlowDemoTests.DemoTests testControllerReleasesAfterNavigationIsReleased]' passed (0.009 seconds).
+Test Case '-[TeamFlowDemoTests.DemoTests testLogMessageEvaluationMatchesBuildConfiguration]' started.
+2026-09-14 17:38:25.782366+0800 TeamFlowDemo[33986:8454365] [TFLog][DEBUG] [TeamFlowDemoTests/DemoTests.swift:8 testLogMessageEvaluationMatchesBuildConfiguration()] 本地测试消息
+2026-09-14 17:38:25.782413+0800 TeamFlowDemo[33986:8454365] [TFLog][INFO] [TeamFlowDemoTests/DemoTests.swift:9 testLogMessageEvaluationMatchesBuildConfiguration()] 本地测试消息
+2026-09-14 17:38:25.782440+0800 TeamFlowDemo[33986:8454365] [TFLog][WARNING] [TeamFlowDemoTests/DemoTests.swift:10 testLogMessageEvaluationMatchesBuildConfiguration()] 本地测试消息
+2026-09-14 17:38:25.782475+0800 TeamFlowDemo[33986:8454365] [TFLog][ERROR] [TeamFlowDemoTests/DemoTests.swift:11 testLogMessageEvaluationMatchesBuildConfiguration()] 本地测试消息
+2026-09-14 17:38:25.782512+0800 TeamFlowDemo[33986:8454365] [TFLog][FAULT] [TeamFlowDemoTests/DemoTests.swift:12 testLogMessageEvaluationMatchesBuildConfiguration()] 本地测试消息
+Test Case '-[TeamFlowDemoTests.DemoTests testLogMessageEvaluationMatchesBuildConfiguration]' passed (0.001 seconds).
+Test Case '-[TeamFlowDemoTests.DemoTests testNavigationRecordsOneEventAndUsesSelectedPlan]' started.
+2026-09-14 17:38:25.784378+0800 TeamFlowDemo[33986:8454365] [TFLog][DEBUG] [TeamFlowDemo/DemoViewController.swift:18 record(_:)] Demo 事件：demo_plan_open
+Test Case '-[TeamFlowDemoTests.DemoTests testNavigationRecordsOneEventAndUsesSelectedPlan]' passed (0.002 seconds).
+Test Case '-[TeamFlowDemoTests.DemoTests testPlanUsesSamePriceAndPeriod]' started.
+Test Case '-[TeamFlowDemoTests.DemoTests testPlanUsesSamePriceAndPeriod]' passed (0.000 seconds).
+Test Suite 'DemoTests' passed at 2026-09-14 17:38:25.786.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.013 (0.014) seconds
+Test Suite 'TeamFlowDemoTests.xctest' passed at 2026-09-14 17:38:25.786.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.013 (0.014) seconds
+Test Suite 'All tests' passed at 2026-09-14 17:38:25.789.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.013 (0.017) seconds
+2026-09-14 17:38:26.637419+0800 TeamFlowDemoUITests-Runner[33996:8454524] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'All tests' started at 2026-09-14 17:38:27.595.
+Test Suite 'TeamFlowDemoUITests.xctest' started at 2026-09-14 17:38:27.595.
+Test Suite 'DemoUITests' started at 2026-09-14 17:38:27.595.
+Test Case '-[TeamFlowDemoUITests.DemoUITests testOpenPlanAndReturn]' started.
+    t =     0.00s Start Test at 2026-09-14 17:38:27.596
+    t =     0.04s Set Up
+    t =     0.04s Open org.example.teamflow.demo
+    t =     0.04s     Launch org.example.teamflow.demo
+2026-09-14 17:38:27.846 xcodebuild[33936:8453952] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-09-14 17:38:27.846 xcodebuild[33936:8453952] [MT] IDELaunchParametersSnapshot: no debugger version
+objc[33996]: Class UIAccessibilityLoaderWebShared is implemented in both /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x1062c8310) and /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x1063c4398). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     0.46s         Setting up automation session
+    t =     1.20s         Wait for org.example.teamflow.demo to idle
+    t =     2.35s Waiting 10.0s for "showPlan" Button to exist
+    t =     3.39s     Checking `Expect predicate `existsNoRetry == 1` for object "showPlan" Button`
+    t =     3.39s         Checking existence of `"showPlan" Button`
+    t =     3.43s Find the "planSummary" StaticText
+    t =     3.45s Get number of matches for: Descendants matching type TabBar
+    t =     3.45s Tap "showPlan" Button
+    t =     3.45s     Wait for org.example.teamflow.demo to idle
+    t =     3.46s     Find the "showPlan" Button
+    t =     3.46s     Check for interrupting elements affecting "showPlan" Button
+    t =     3.48s     Synthesize event
+    t =     3.78s     Wait for org.example.teamflow.demo to idle
+    t =     4.60s Waiting 5.0s for "¥6.00 / 月" NavigationBar to exist
+    t =     5.64s     Checking `Expect predicate `existsNoRetry == 1` for object "¥6.00 / 月" NavigationBar`
+    t =     5.64s         Checking existence of `"¥6.00 / 月" NavigationBar`
+    t =     5.66s Tap Button (Element at index 0)
+    t =     5.66s     Wait for org.example.teamflow.demo to idle
+    t =     5.66s     Find the Button (Element at index 0)
+    t =     5.67s     Check for interrupting elements affecting "BackButton" Button
+    t =     5.68s     Synthesize event
+    t =     5.97s     Wait for org.example.teamflow.demo to idle
+    t =     6.26s Waiting 5.0s for "showPlan" Button to exist
+    t =     7.30s     Checking `Expect predicate `existsNoRetry == 1` for object "showPlan" Button`
+    t =     7.30s         Checking existence of `"showPlan" Button`
+    t =     7.32s Tear Down
+Test Case '-[TeamFlowDemoUITests.DemoUITests testOpenPlanAndReturn]' passed (7.545 seconds).
+Test Suite 'DemoUITests' passed at 2026-09-14 17:38:35.141.
+	 Executed 1 test, with 0 failures (0 unexpected) in 7.545 (7.546) seconds
+Test Suite 'TeamFlowDemoUITests.xctest' passed at 2026-09-14 17:38:35.142.
+	 Executed 1 test, with 0 failures (0 unexpected) in 7.545 (7.547) seconds
+Test Suite 'All tests' passed at 2026-09-14 17:38:35.142.
+	 Executed 1 test, with 0 failures (0 unexpected) in 7.545 (7.548) seconds
+2026-09-14 17:38:35.448 xcodebuild[33936:8453952] [MT] IDETestOperationsObserverDebug: 11.873 elapsed -- Testing started completed.
+2026-09-14 17:38:35.448 xcodebuild[33936:8453952] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-09-14 17:38:35.448 xcodebuild[33936:8453952] [MT] IDETestOperationsObserverDebug: 11.873 sec, +11.873 sec -- end
+
+Test session results, code coverage, and logs:
+	/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Logs/Test/Test-TeamFlowDemo-2026.09.14_17-38-22-+0800.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started
