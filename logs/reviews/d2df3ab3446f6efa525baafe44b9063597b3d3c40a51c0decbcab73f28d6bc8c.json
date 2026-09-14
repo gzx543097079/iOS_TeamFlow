@@ -1,0 +1,46 @@
+{
+  "fingerprint": "d2df3ab3446f6efa525baafe44b9063597b3d3c40a51c0decbcab73f28d6bc8c",
+  "base": "7ae147055df32439def02ab6d98d012b717891b8",
+  "scope": "staged",
+  "created_at": "2026-09-14T09:04:28.669346+00:00",
+  "reviewer": "Codex",
+  "completed_at": "2026-09-14T17:04:52.102168+08:00",
+  "summary": "仅归档 2.1.0 两项需求发布事实；CI 和发布流水线成功，四附件 SHA256 与本地一致。",
+  "previous_review": "46df45269ba8f1f715109caa46ef56c3bf624fa9a41be015389cd922df45ea9d",
+  "checks": {
+    "correctness": {
+      "status": "通过",
+      "evidence": "finish --github 关联 teamflow-v2.1.0 与 7ae147055df32439def02ab6d98d012b717891b8，覆盖异常卡修复及进化机制。程序核对旧事件完整保留、验收源码指纹未变；CI 34825728370、发布 34825806596 成功，四附件状态 uploaded 且摘要一致。无 PR 合并宣称。"
+    },
+    "standards": {
+      "status": "不适用",
+      "evidence": "复用 46df45269ba8f1f715109caa46ef56c3bf624fa9a41be015389cd922df45ea9d 的 standards；仅生成记录归档，无业务变化。"
+    },
+    "subscription": {
+      "status": "不适用",
+      "evidence": "复用 46df45269ba8f1f715109caa46ef56c3bf624fa9a41be015389cd922df45ea9d 的 subscription；仅生成记录归档，无业务变化。"
+    },
+    "memory": {
+      "status": "不适用",
+      "evidence": "复用 46df45269ba8f1f715109caa46ef56c3bf624fa9a41be015389cd922df45ea9d 的 memory；仅生成记录归档，无业务变化。"
+    },
+    "analytics": {
+      "status": "不适用",
+      "evidence": "复用 46df45269ba8f1f715109caa46ef56c3bf624fa9a41be015389cd922df45ea9d 的 analytics；仅生成记录归档，无业务变化。"
+    },
+    "test_artifacts": {
+      "status": "通过",
+      "evidence": "复用 46df45269ba8f1f715109caa46ef56c3bf624fa9a41be015389cd922df45ea9d 的 test_artifacts；仅生成记录归档，无业务变化。"
+    },
+    "security": {
+      "status": "通过",
+      "evidence": "差异仅生成的 SHA、公开链接、时间、状态及验收封存记录，无凭据或额外数据。"
+    }
+  },
+  "findings": [],
+  "blockers": [],
+  "requirements": [
+    "REQ-20260914-085258614Z-3cc615d4"
+  ],
+  "validation_results": []
+}

@@ -47,6 +47,30 @@
         "checked_at": "2026-09-14T09:00:41.938476+00:00"
       },
       "removed": []
+    },
+    {
+      "at": "2026-09-14T09:04:03.753675+00:00",
+      "action": "finish",
+      "changes": {
+        "commits": [
+          "7ae147055df32439def02ab6d98d012b717891b8"
+        ],
+        "committed": true,
+        "merged": "未确认全部合并",
+        "releases": [
+          {
+            "tag": "teamflow-v2.1.0",
+            "commit": "7ae147055df32439def02ab6d98d012b717891b8",
+            "url": "https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v2.1.0",
+            "published_at": "2026-09-14T09:02:35Z"
+          }
+        ],
+        "release_status": "✅ 已发布",
+        "warnings": [],
+        "github_checked_at": "2026-09-14T09:03:45.721661+00:00",
+        "checked_at": "2026-09-14T09:04:03.752857+00:00"
+      },
+      "removed": []
     }
   ],
   "acceptance_baseline": {
@@ -59,18 +83,29 @@
       "README.md"
     ],
     "results": [],
-    "accepted_at": "2026-09-14T09:00:41.938365+00:00"
+    "accepted_at": "2026-09-14T09:00:41.938365+00:00",
+    "sealed_commits": [
+      "7ae147055df32439def02ab6d98d012b717891b8"
+    ],
+    "accepted_commit": "7ae147055df32439def02ab6d98d012b717891b8"
   },
   "snapshot": {
-    "commits": [],
-    "committed": false,
-    "merged": "未核实",
-    "releases": [],
-    "release_status": "未核实",
-    "prs": [],
-    "warnings": [
-      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+    "commits": [
+      "7ae147055df32439def02ab6d98d012b717891b8"
     ],
+    "committed": true,
+    "merged": "未确认全部合并",
+    "releases": [
+      {
+        "tag": "teamflow-v2.1.0",
+        "commit": "7ae147055df32439def02ab6d98d012b717891b8",
+        "url": "https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v2.1.0",
+        "published_at": "2026-09-14T09:02:35Z"
+      }
+    ],
+    "release_status": "✅ 已发布",
+    "prs": [],
+    "warnings": [],
     "development": "✅ 执行完成",
     "card": {
       "state": "✅ 执行完成",
@@ -81,6 +116,7 @@
       "acceptance_fingerprint": "522693ddbe8cf4a3a4d3481ca64e698f3774b16ad8163a51dd68a50fcaf366d0",
       "implementation_fingerprint": "b86245ead4e1f19c1bf3a05f4904985d44150f91da48529e2045685c72f6f7ea"
     },
-    "checked_at": "2026-09-14T09:00:41.938476+00:00"
+    "github_checked_at": "2026-09-14T09:03:45.721661+00:00",
+    "checked_at": "2026-09-14T09:04:03.752857+00:00"
   }
 }
