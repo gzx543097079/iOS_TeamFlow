@@ -19,7 +19,7 @@
 | subscription | 产品 ID ↔ 选中套餐 ↔ 周期/权益 ↔ StoreKit 本地化价格 ↔ 试用资格/续订文案 ↔ CTA ↔ 购买参数。检查远程开关、String Catalog、StoreKit 配置及可得的 App Store Connect 产品证据。验证恢复、pending、取消、失败、重复交易、退款撤销；实际商品配置不可得时明确未验证，不能宣称价格正确。 |
 | memory | owner/闭包/代理/计时器/通知/订阅/Task/CF/C++ 所有权，页面退出后释放和取消；风险路径用 Memory Graph / Leaks / Allocations 或针对性测试。静态无发现只证明审查范围内无明显问题，不证明无泄漏。 |
 | analytics | 对照需求事件表检查命名、参数、触发时机、重复曝光、购买成功必须在验证后、取消与失败区分、隐私脱敏；已有契约不可得时记录缺项，不凭空新增事件。 |
-| test_artifacts | 生产 target 中的 mock、硬编码测试帐号/价格、localhost/测试环境、debug 菜单、print/NSLog、跳过校验、强制成功/VIP、临时开关；结合 Release 构建条件判断，正常 Tests/Preview 不当作泄露。 |
+| test_artifacts | 生产 target 中的 mock、硬编码测试帐号/价格、localhost/测试环境、debug 菜单、print/NSLog、跳过校验、强制成功/VIP、临时开关；结合 Release 构建条件判断，正常 Tests/Preview 不当作泄露。日志组件接入时核对实际 Target 成员及两种语言的编译条件、Release 消息不求值和无输出证据。 |
 | security | 本次改动的凭据、权限、隐私、输入验证与日志；涉及系统权限时对照 PRD 的首版权限清单，核对实际 Target 用途 key、多语言提示、能力配置、请求时机、拒绝/部分授权处理及 SDK 访问。只基于具体代码证据报告问题。 |
 
 七个维度逐项判断；通过项用一句可核对结论及文件/测试证据引用，不适用项用一句范围理由。共用证据引用同一文件，不重复贴日志或整段需求；问题仍按 findings 完整记录，不用统一套话代替语义审查。

@@ -5,7 +5,19 @@ on:
 permissions:
   contents: read
 jobs:
+  native-logging:
+    if: startsWith(github.event.release.tag_name, 'teamflow-v')
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 scripts/check_logging.py
   package:
+    needs: native-logging
     if: startsWith(github.event.release.tag_name, 'teamflow-v')
     runs-on: ubuntu-latest
     permissions:

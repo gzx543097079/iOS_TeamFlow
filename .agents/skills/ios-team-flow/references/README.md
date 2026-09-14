@@ -12,6 +12,7 @@
 
 | 内容 | 入口 |
 | --- | --- |
+| 新工程自动接入分级日志 | [日志组件](LOGGING.md) |
 | 生成代码的中文注释 | [注释规范](standards/comments.md) |
 | UI 标准（Apple 来源与团队约定） | [UI 规范](standards/ui.md) |
 | 需求处理、拆分与状态 | [工作流](WORKFLOW.md) |

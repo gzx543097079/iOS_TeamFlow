@@ -1,0 +1,899 @@
+diff --git a/.agents/skills/ios-team-flow/SKILL.md b/.agents/skills/ios-team-flow/SKILL.md
+index 767fb34cfd8c803831bdf073e79b6616cbc31c4f..c7fc13e6ba5eb1945e623b7a6d89b106f4419645 100644
+--- a/.agents/skills/ios-team-flow/SKILL.md
++++ b/.agents/skills/ios-team-flow/SKILL.md
+@@ -16,6 +16,7 @@ SKILL_ROOT 是本文件所在目录；PROJECT_ROOT 是当前 Git 根（新目录
+ | 已有工程首次现状或相关变化 | [EXISTING-PROJECT](references/EXISTING-PROJECT.md) |
+ | 实际失败、返工或明确纠正触发的流程改进 | [自我进化](references/EVOLUTION.md) |
+ | 生成或修改业务代码的注释 | [中文注释](references/standards/comments.md) |
++| 新工程生成或业务日志接入 | [分级日志组件](references/LOGGING.md) |
+ | 业务验证 | [PROJECT-CHECKS](references/PROJECT-CHECKS.md) |
+ | 验收绑定、状态/交付事实变化 | [DELIVERY](references/DELIVERY.md) |
+ | 提交前审查 | [REVIEW](references/REVIEW.md) |
+diff --git a/.agents/skills/ios-team-flow/assets/logging/TFLogger.h b/.agents/skills/ios-team-flow/assets/logging/TFLogger.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..6902867a56e90b9bee18384c589841e2a169104e
+--- /dev/null
++++ b/.agents/skills/ios-team-flow/assets/logging/TFLogger.h
+@@ -0,0 +1,37 @@
++#import <Foundation/Foundation.h>
++
++NS_ASSUME_NONNULL_BEGIN
++
++/// 五个日志等级均在 Debug 默认输出，Fault 不触发崩溃或远程上报。
++typedef NS_ENUM(NSInteger, TFLogLevel) {
++    TFLogLevelDebug,
++    TFLogLevelInfo,
++    TFLogLevelWarning,
++    TFLogLevelError,
++    TFLogLevelFault
++};
++
++#if defined(DEBUG) && DEBUG
++/// 宏的内部输出入口；业务代码使用下方宏以保证 Release 不计算日志参数。
++FOUNDATION_EXPORT void TFLogWrite(TFLogLevel level, const char *file, const char *function,
++                                 NSUInteger line, NSString *format, ...) NS_FORMAT_FUNCTION(5, 6);
++
++/// 在调用点捕获位置；宏作为单条语句使用，不改变外部 if/else 结构。
++#define TFLLog(level, ...) do { TFLogWrite((level), __FILE__, __PRETTY_FUNCTION__, __LINE__, __VA_ARGS__); } while (0)
++#else
++// Release 直接移除整次调用，包括等级、格式串和所有参数的求值。
++#define TFLLog(level, ...) do { } while (0)
++#endif
++
++/// 记录开发排错信息。
++#define TFLDebug(...) TFLLog(TFLogLevelDebug, __VA_ARGS__)
++/// 记录正常业务过程中的重要信息。
++#define TFLInfo(...) TFLLog(TFLogLevelInfo, __VA_ARGS__)
++/// 记录可恢复异常。
++#define TFLWarning(...) TFLLog(TFLogLevelWarning, __VA_ARGS__)
++/// 记录操作失败，不替代 NSError 或回调处理。
++#define TFLError(...) TFLLog(TFLogLevelError, __VA_ARGS__)
++/// 记录严重异常，不终止进程。
++#define TFLFault(...) TFLLog(TFLogLevelFault, __VA_ARGS__)
++
++NS_ASSUME_NONNULL_END
+diff --git a/.agents/skills/ios-team-flow/assets/logging/TFLogger.m b/.agents/skills/ios-team-flow/assets/logging/TFLogger.m
+new file mode 100644
+index 0000000000000000000000000000000000000000..53460adcebc9fc0ffd77c8a0dba2272f3d7f670b
+--- /dev/null
++++ b/.agents/skills/ios-team-flow/assets/logging/TFLogger.m
+@@ -0,0 +1,26 @@
++#import "TFLogger.h"
++
++#if defined(DEBUG) && DEBUG
++/// 无共享可变状态；每条日志组装完后交给 Foundation 输出。
++void TFLogWrite(TFLogLevel level, const char *file, const char *function,
++                NSUInteger line, NSString *format, ...) {
++    @autoreleasepool {
++        NSString *label;
++        switch (level) {
++            case TFLogLevelDebug: label = @"DEBUG"; break;
++            case TFLogLevelInfo: label = @"INFO"; break;
++            case TFLogLevelWarning: label = @"WARNING"; break;
++            case TFLogLevelError: label = @"ERROR"; break;
++            case TFLogLevelFault: label = @"FAULT"; break;
++            default: label = @"UNKNOWN"; break;
++        }
++        va_list arguments;
++        va_start(arguments, format);
++        NSString *message = [[NSString alloc] initWithFormat:format arguments:arguments];
++        va_end(arguments);
++        // 仅输出源文件名，避免携带开发机器上的完整路径。
++        NSString *filename = [@(file) lastPathComponent];
++        NSLog(@"[TFLog][%@] [%@:%lu %s] %@", label, filename, (unsigned long)line, function, message);
++    }
++}
++#endif
+diff --git a/.agents/skills/ios-team-flow/assets/logging/TFLogger.swift b/.agents/skills/ios-team-flow/assets/logging/TFLogger.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..9eaf0debdf52bfa7e807cb9dd84ac620a0b2addf
+--- /dev/null
++++ b/.agents/skills/ios-team-flow/assets/logging/TFLogger.swift
+@@ -0,0 +1,54 @@
++import Foundation
++
++/// 仅在定义 DEBUG 的构建中输出业务日志；没有全局可变配置。
++public enum TFLog {
++    /// 五个等级均默认输出，等级只描述严重程度，不触发崩溃或上报。
++    public enum Level: String {
++        case debug = "DEBUG"
++        case info = "INFO"
++        case warning = "WARNING"
++        case error = "ERROR"
++        case fault = "FAULT"
++    }
++
++    /// 延迟生成消息，Release 下不会执行插值、函数调用或其他消息表达式。
++    public static func log(
++        _ level: Level, _ message: @autoclosure () -> String,
++        file: StaticString = #fileID, function: StaticString = #function, line: UInt = #line
++    ) {
++        #if DEBUG
++        // 使用固定格式串，避免把消息中的百分号当成格式指令。
++        NSLog("%@", "[TFLog][\(level.rawValue)] [\(file):\(line) \(function)] \(message())")
++        #endif
++    }
++
++    /// 输出开发排错信息，自动保留实际调用位置。
++    public static func debug(_ message: @autoclosure () -> String, file: StaticString = #fileID,
++                             function: StaticString = #function, line: UInt = #line) {
++        log(.debug, message(), file: file, function: function, line: line)
++    }
++
++    /// 输出正常业务过程中的重要信息。
++    public static func info(_ message: @autoclosure () -> String, file: StaticString = #fileID,
++                            function: StaticString = #function, line: UInt = #line) {
++        log(.info, message(), file: file, function: function, line: line)
++    }
++
++    /// 输出可恢复的异常情况。
++    public static func warning(_ message: @autoclosure () -> String, file: StaticString = #fileID,
++                               function: StaticString = #function, line: UInt = #line) {
++        log(.warning, message(), file: file, function: function, line: line)
++    }
++
++    /// 输出操作失败的信息，不替代业务错误处理。
++    public static func error(_ message: @autoclosure () -> String, file: StaticString = #fileID,
++                             function: StaticString = #function, line: UInt = #line) {
++        log(.error, message(), file: file, function: function, line: line)
++    }
++
++    /// 输出严重异常信息；本方法不会终止进程。
++    public static func fault(_ message: @autoclosure () -> String, file: StaticString = #fileID,
++                             function: StaticString = #function, line: UInt = #line) {
++        log(.fault, message(), file: file, function: function, line: line)
++    }
++}
+diff --git a/.agents/skills/ios-team-flow/references/CHANGELOG.md b/.agents/skills/ios-team-flow/references/CHANGELOG.md
+index f829940a2c606c030863ed9de4eda6fc7b470ee6..42314ce6e398d692753cf32d4a31a9df4b378485 100644
+--- a/.agents/skills/ios-team-flow/references/CHANGELOG.md
++++ b/.agents/skills/ios-team-flow/references/CHANGELOG.md
+@@ -1,6 +1,8 @@
+ # 版本记录
+ 
+-## 未发布
++## 2.1.1（源码版本，未发布 Release）
++
++- 新增 OC/Swift 五级日志组件与项目内安装工具，生成工程时自动纳入目标；Debug 全量输出，Release 不输出且不执行消息表达式。
+ 
+ - 生成代码采用中文注释：重点说明职责、接口契约、复杂逻辑及约束，避免逐行翻译，提交前核对准确性。
+ 
+diff --git a/.agents/skills/ios-team-flow/references/LOGGING.md b/.agents/skills/ios-team-flow/references/LOGGING.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..94619c4c8f5e859ce028a21639911ae42909ba85
+--- /dev/null
++++ b/.agents/skills/ios-team-flow/references/LOGGING.md
+@@ -0,0 +1,47 @@
++# OC / Swift 分级日志
++
++工程生成时自动加入本组件，按已确认语言选择 Swift、Objective-C 或混编版本。五个等级为 Debug、Info、Warning、Error、Fault，Debug 构建默认全部输出；Release 编译关闭输出，包括 Error/Fault。等级不触发崩溃、持久化或远程上报，也不替代业务错误处理。
++
++## 新工程自动接入
++
++新产品仍先确认启动范围；确认后生成工程时，Codex 将以下步骤与工程生成一并完成，无需再次询问是否添加日志。仅安装工作流的 setup_project 不生成 App 或提前复制业务组件。
++
++1. 从当前工程语言选择 swift / objc / mixed，确定真实业务源码目录；从项目根调用 `python3 .agents/skills/ios-team-flow/scripts/install_logging.py --language swift --destination App/MyApp/Sources/Support/Logging`，将示例路径和语言替换为实际值。源码来自 Skill 的 assets/logging，不依赖个人安装。相同内容重复执行不重写；不同内容拒绝覆盖，先比较并合并。
++2. 将返回的 .swift/.m 文件自动加入目标的 Compile Sources，.h 加入工程可见文件；使用 XcodeGen 时纳入目标 sources，SwiftPM 放入实际 target 源目录或 sources 列表，直接生成 .xcodeproj 时建立文件引用和 Sources Build Phase。禁止只复制文件就宣布接入完成。多个 Target 按实际调用范围分别加入，不能同时重复编译同一份实现。
++3. 配置实际 Debug：Swift Active Compilation Conditions 含 DEBUG，OC Preprocessor Macros 含 DEBUG=1；Release 及用于分发的自定义配置均移除 DEBUG（OC 可设 DEBUG=0），保留其他继承配置。仅设置 -O 优化不会关闭 DEBUG。混编要分别核对两套条件；SwiftPM 用构建系统对应条件，不混用 Xcode 字段。
++4. 新生成业务代码使用 TFLog / TFL 宏。至少加入一个有实际意义的 Debug 调用；核对 Debug 和 Release 构建设置，实际构建/运行验证输出与目标成员关系。验证写入项目的检查配置和需求 AC，工具缺失时保留未验证，不用文件存在证明接入。
++
++Swift 项目只需要 [TFLogger.swift](../assets/logging/TFLogger.swift)。OC 项目使用 [TFLogger.h](../assets/logging/TFLogger.h) 与 [TFLogger.m](../assets/logging/TFLogger.m)。混编可同时使用两套原生入口，格式一致，不需要为日志新增桥接头。已有桥接头可导入 OC 头；宏不可从 Swift 调用，Swift 使用 TFLog。
++
++已有工程增量需求不重复安装；相关需求需要日志时，优先核对既有组件是否满足分级、Debug 全量及 Release 关闭要求，再整合或补齐，保护已有定制。不在 unrelated 模块批量替换日志。
++
++## 使用
++
++```swift
++TFLog.debug("开始加载列表")
++TFLog.info("已加载条目：\(items.count)")
++TFLog.warning("缓存已过期")
++TFLog.error("加载失败：\(errorCode)")
++TFLog.fault("发现无法恢复的本地状态")
++TFLog.log(.info, "一次阶段性检查完成")
++```
++
++```objc
++#import "TFLogger.h"
++TFLDebug(@"开始加载列表");
++TFLInfo(@"已加载条目：%lu", (unsigned long)items.count);
++TFLWarning(@"缓存已过期");
++TFLError(@"加载失败：%ld", (long)errorCode);
++TFLFault(@"发现无法恢复的本地状态");
++TFLLog(TFLogLevelInfo, @"一次阶段性检查完成");
++```
++
++输出使用 Foundation NSLog，包含时间/进程信息及 `[TFLog][等级] [文件:行号 函数] 消息`。不设置可变全局开关，Debug 不过滤等级。Swift 的消息参数使用 @autoclosure；OC 通过编译宏整体移除 Release 调用。不要把业务必需的副作用放进日志参数，Release 不会执行它们；提前计算的值不属于日志组件可阻止的求值范围。
++
++仅输出已脱敏信息，不记录 token、完整用户信息、支付凭据或完整服务响应；Debug 全量是等级全量，不代表允许输出全部业务数据。此关闭策略只控制本组件，系统、第三方 SDK、已有 print/NSLog 需在相关范围另行核对。
++
++## 验证与维护
++
++源仓库运行 `python3 scripts/check_logging.py`，使用 macOS/Xcode 实际编译、运行 OC/Swift 的 Debug 与 Release，验证等级、调用位置、消息求值及 iOS 模拟器 SDK 编译。运行 `python3 -m unittest discover -s tests -p test_logging_install.py` 验证从独立 ZIP 接入、语言选择、幂等和冲突保护。普通 Python 回归不代替原生日志验证。
++
++生成业务工程后仍需实际 Target 的 Debug/Release 验证，不把源仓库组件测试当产品构建成功。组件和规程属于当前源码未发布变更，旧 2.1.0 Release 附件不包含它们。
+diff --git a/.agents/skills/ios-team-flow/references/README.md b/.agents/skills/ios-team-flow/references/README.md
+index 374fa1b505c8937e0cea33c978c0df059b8181c6..41b7a7f3f248d9ecba91050cee80d6b2b4d3ffaf 100644
+--- a/.agents/skills/ios-team-flow/references/README.md
++++ b/.agents/skills/ios-team-flow/references/README.md
+@@ -12,6 +12,7 @@
+ 
+ | 内容 | 入口 |
+ | --- | --- |
++| 新工程自动接入分级日志 | [日志组件](LOGGING.md) |
+ | 生成代码的中文注释 | [注释规范](standards/comments.md) |
+ | UI 标准（Apple 来源与团队约定） | [UI 规范](standards/ui.md) |
+ | 需求处理、拆分与状态 | [工作流](WORKFLOW.md) |
+diff --git a/.agents/skills/ios-team-flow/references/RELEASE.md b/.agents/skills/ios-team-flow/references/RELEASE.md
+index c859f07ab75766dc92de61455a10b9c3a68d7177..3bf812d0786e26ed923d2158ba89c5b42dd7f2cd 100644
+--- a/.agents/skills/ios-team-flow/references/RELEASE.md
++++ b/.agents/skills/ios-team-flow/references/RELEASE.md
+@@ -43,3 +43,5 @@ CI 获取完整 Git 历史：push 使用 before，PR 使用事件 base 与检出
+ 打包校验继续在 CI 执行；首次执行、公共依赖变化或无法确定影响时用 --full。不要把此脚本作为业务 App 测试入口，也不要只为减少测试数量删除独立覆盖。
+ 
+ 本文件只发布工作流 ZIP；业务 iOS App 使用 [App 发布流程](APP-RELEASE.md)。
++
++源码包含原生日志组件时，正式发布先在 macOS/Xcode 上运行 `python3 scripts/check_logging.py`，通过后才生成和上传 ZIP；Linux 上的 Python 回归不能替代该检查。日志源码变化另由原生日志工作流验证 Debug/Release。
+diff --git a/.agents/skills/ios-team-flow/references/REVIEW.md b/.agents/skills/ios-team-flow/references/REVIEW.md
+index 21a2a9511b7db7509a2c76bf5b88c78cd4897757..1ebd1b57f3f7a2e32fd4d80961ec501c2ffb41b1 100644
+--- a/.agents/skills/ios-team-flow/references/REVIEW.md
++++ b/.agents/skills/ios-team-flow/references/REVIEW.md
+@@ -19,7 +19,7 @@
+ | subscription | 产品 ID ↔ 选中套餐 ↔ 周期/权益 ↔ StoreKit 本地化价格 ↔ 试用资格/续订文案 ↔ CTA ↔ 购买参数。检查远程开关、String Catalog、StoreKit 配置及可得的 App Store Connect 产品证据。验证恢复、pending、取消、失败、重复交易、退款撤销；实际商品配置不可得时明确未验证，不能宣称价格正确。 |
+ | memory | owner/闭包/代理/计时器/通知/订阅/Task/CF/C++ 所有权，页面退出后释放和取消；风险路径用 Memory Graph / Leaks / Allocations 或针对性测试。静态无发现只证明审查范围内无明显问题，不证明无泄漏。 |
+ | analytics | 对照需求事件表检查命名、参数、触发时机、重复曝光、购买成功必须在验证后、取消与失败区分、隐私脱敏；已有契约不可得时记录缺项，不凭空新增事件。 |
+-| test_artifacts | 生产 target 中的 mock、硬编码测试帐号/价格、localhost/测试环境、debug 菜单、print/NSLog、跳过校验、强制成功/VIP、临时开关；结合 Release 构建条件判断，正常 Tests/Preview 不当作泄露。 |
++| test_artifacts | 生产 target 中的 mock、硬编码测试帐号/价格、localhost/测试环境、debug 菜单、print/NSLog、跳过校验、强制成功/VIP、临时开关；结合 Release 构建条件判断，正常 Tests/Preview 不当作泄露。日志组件接入时核对实际 Target 成员及两种语言的编译条件、Release 消息不求值和无输出证据。 |
+ | security | 本次改动的凭据、权限、隐私、输入验证与日志；涉及系统权限时对照 PRD 的首版权限清单，核对实际 Target 用途 key、多语言提示、能力配置、请求时机、拒绝/部分授权处理及 SDK 访问。只基于具体代码证据报告问题。 |
+ 
+ 七个维度逐项判断；通过项用一句可核对结论及文件/测试证据引用，不适用项用一句范围理由。共用证据引用同一文件，不重复贴日志或整段需求；问题仍按 findings 完整记录，不用统一套话代替语义审查。
+diff --git a/.agents/skills/ios-team-flow/references/VERSION b/.agents/skills/ios-team-flow/references/VERSION
+index 7ec1d6db40877765247db18e7f9a4e36a0def4ad..3e3c2f1e5edb083aab93646ac7b076daa38516dd 100644
+--- a/.agents/skills/ios-team-flow/references/VERSION
++++ b/.agents/skills/ios-team-flow/references/VERSION
+@@ -1 +1 @@
+-2.1.0
++2.1.1
+diff --git a/.agents/skills/ios-team-flow/references/WORKFLOW.md b/.agents/skills/ios-team-flow/references/WORKFLOW.md
+index b5b03d25eba17c3547994ada919e1bd53eafad8d..2a6e4d5e7f8d01a064153d1eade5e5a90d886db0 100644
+--- a/.agents/skills/ios-team-flow/references/WORKFLOW.md
++++ b/.agents/skills/ios-team-flow/references/WORKFLOW.md
+@@ -8,6 +8,8 @@
+ 
+ 新产品先按 [启动模板](templates/new-project.md) 整理具体草案，团队明确确认启动范围后再建工程；确认功能和发布配置的时机由模板规定。默认建议不能视为批准，未回复不是确认。已有工程按 [现状流程](EXISTING-PROJECT.md) 增量处理，保留实际框架、语言、部署目标和目录；没有 .xcodeproj 也可能是生成式工程。工作流工具仓库不是新 iOS 产品。
+ 
++新工程启动范围确认后，按 [日志组件](LOGGING.md) 自动复制对应语言源码、加入实际构建目标并配置 Debug/Release；使用安装工具返回的文件清单完成工程生成，不另行询问是否加入。
++
+ 接入只在首次或明确升级时按 [INSTALL](INSTALL.md) 执行。空目录首次收尾前初始化 Git；已有仓库使用原根，不嵌套。
+ 
+ ## 2. 一次确定范围与验收
+diff --git a/.agents/skills/ios-team-flow/references/standards/objective-c.md b/.agents/skills/ios-team-flow/references/standards/objective-c.md
+index f2af459b16dfba9a21a18dfebb211e1ef7504d6f..5399dee20bf49f433dcbdfd66c68d5536ce82382 100644
+--- a/.agents/skills/ios-team-flow/references/standards/objective-c.md
++++ b/.agents/skills/ios-team-flow/references/standards/objective-c.md
+@@ -14,3 +14,5 @@
+ - 变更验证：使用工程现有 clang-format 配置检查改动文件；运行相关构建和测试，涉及所有权时用 Xcode Analyze、Memory Graph / Instruments 补证据。没有工具记录未验证，不声称零泄漏。
+ 
+ - 新生成和本次修改的代码按 [中文注释规范](comments.md) 补充职责、接口契约与关键逻辑说明。
++
++- 新工程自动接入 [分级日志](../LOGGING.md)，Debug 默认全量、Release 关闭；新增日志使用对应原生入口，消息不得含敏感数据或业务必需副作用。
+diff --git a/.agents/skills/ios-team-flow/references/standards/swift.md b/.agents/skills/ios-team-flow/references/standards/swift.md
+index 17f67c9f424f8173db8ef85ee5d8ab71ab3c7655..f19da677af18b3495496b56455dc372fdd53b6a8 100644
+--- a/.agents/skills/ios-team-flow/references/standards/swift.md
++++ b/.agents/skills/ios-team-flow/references/standards/swift.md
+@@ -15,3 +15,5 @@
+ - 修改逻辑选择相关单元/集成测试；涉及 actor、取消或竞态设计能复现行为的测试，不写只验证实现细节的空泛测试。
+ 
+ - 新生成和本次修改的代码按 [中文注释规范](comments.md) 补充职责、接口契约与关键逻辑说明。
++
++- 新工程自动接入 [分级日志](../LOGGING.md)，Debug 默认全量、Release 关闭；新增日志使用对应原生入口，消息不得含敏感数据或业务必需副作用。
+diff --git a/.agents/skills/ios-team-flow/references/templates/new-project.md b/.agents/skills/ios-team-flow/references/templates/new-project.md
+index 4c11637ffc97223f03e3b4130835b76ce5a8c103..5b48107e6a58db88388b4ef7906d0b3cd810d27f 100644
+--- a/.agents/skills/ios-team-flow/references/templates/new-project.md
++++ b/.agents/skills/ios-team-flow/references/templates/new-project.md
+@@ -351,6 +351,8 @@ Package.swift 明确产品、Target、依赖和平台要求；iOS 支持范围
+ 
+ ## 11. 打点、质量与交付
+ 
++- 工作流内置日志：启动范围确认后生成工程时自动加入对应 OC/Swift 组件、目标成员关系和编译条件；Debug 默认输出所有等级，Release 无日志。由 Codex 按 [日志规程](../LOGGING.md) 接入并实际验证，无需重复确认。已有明确日志方案时整合以满足同一输出要求。
++
+ | 事件 | 精确触发时机 | 必需参数/类型 | 去重键或规则 | 隐私处理 | 验收方式 |
+ | --- | --- | --- | --- | --- | --- |
+ | 待确认 / 不适用 | 待填写 | 待填写 | 待填写 | 待填写 | 待填写 |
+diff --git a/.agents/skills/ios-team-flow/scripts/install_logging.py b/.agents/skills/ios-team-flow/scripts/install_logging.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..a12807353b2c738f871a70bb500cc0198b19dd3f
+--- /dev/null
++++ b/.agents/skills/ios-team-flow/scripts/install_logging.py
+@@ -0,0 +1,77 @@
++#!/usr/bin/env python3
++"""在工程生成阶段复制对应语言日志源码，返回待纳入构建的文件清单。"""
++import argparse
++import json
++from pathlib import Path
++
++SOURCES = {
++    'swift': ('TFLogger.swift',),
++    'objc': ('TFLogger.h', 'TFLogger.m'),
++    'mixed': ('TFLogger.swift', 'TFLogger.h', 'TFLogger.m'),
++}
++
++
++def install(project, destination, language):
++    """预检全部目标，保留既有定制；重复安装相同内容不会重写文件。"""
++    root = project.resolve()
++    skill = Path(__file__).resolve().parents[1]
++    if skill != root / '.agents/skills/ios-team-flow':
++        raise ValueError('请使用当前项目内的日志安装工具')
++    relative = Path(destination)
++    if (relative.is_absolute() or '..' in relative.parts or not relative.parts
++            or relative.parts[0] in ('.agents', '.git', 'requirements', 'logs')):
++        raise ValueError('日志目标须为项目内的业务源码目录')
++    directory = root / relative
++    for node in (directory, *directory.parents):
++        if node == root:
++            break
++        if node.is_symlink() or (node.exists() and not node.is_dir()):
++            raise ValueError('日志目录不能包含符号链接或普通文件：' + str(node))
++    pending = []
++    for name in SOURCES[language]:
++        source = skill / 'assets/logging' / name
++        if any(node.is_symlink() for node in (source, source.parent, source.parent.parent)):
++            raise ValueError('日志源文件不能为符号链接')
++        data = source.read_bytes()
++        target = directory / name
++        if target.is_symlink() or (target.exists() and not target.is_file()):
++            raise ValueError('日志目标不是普通文件：' + str(target))
++        if target.exists():
++            if target.read_bytes() != data:
++                raise ValueError('日志文件已有定制，请先比较并合并：' + str(target))
++        else:
++            pending.append((target, data))
++    written = []
++    try:
++        directory.mkdir(parents=True, exist_ok=True)
++        for target, data in pending:
++            # 排他创建避免覆盖预检后出现的文件；失败时仅撤销本次创建内容。
++            with target.open('xb') as stream:
++                written.append(target)
++                stream.write(data)
++    except OSError:
++        for target in written:
++            target.unlink()
++        raise
++    return {
++        'files': [str(relative / name) for name in SOURCES[language]],
++        'created': [str(path.relative_to(root)) for path in written],
++        'next': '生成工程时将 .swift/.m 纳入目标 Sources，并核对 Debug 定义 DEBUG、Release 不定义 DEBUG；复制成功不代表已加入构建目标。',
++    }
++
++
++def main():
++    """由 Codex 按已确认工程语言和真实源码目录调用，无需用户再次选择日志组件。"""
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('--project', type=Path, default=Path('.'))
++    parser.add_argument('--destination', required=True)
++    parser.add_argument('--language', choices=SOURCES, required=True)
++    args = parser.parse_args()
++    try:
++        print(json.dumps(install(args.project, args.destination, args.language), ensure_ascii=False, indent=2))
++    except (ValueError, OSError) as error:
++        parser.exit(2, '日志安装失败：' + str(error) + '\n')
++
++
++if __name__ == '__main__':
++    main()
+diff --git a/.agents/teamflow.json b/.agents/teamflow.json
+index 4c3400a858d4856ac114d8f6ebbd5d19dbad0a25..41b332d6033c03c5348a6318e1d7ccd8e57d56f6 100644
+--- a/.agents/teamflow.json
++++ b/.agents/teamflow.json
+@@ -1,6 +1,6 @@
+ {
+   "skill": "ios-team-flow",
+-  "version": "2.1.0",
++  "version": "2.1.1",
+   "schema_version": 1,
+   "instruction_file": "AGENTS.md",
+   "managed": {
+diff --git a/.github/workflows/teamflow-logging.yml b/.github/workflows/teamflow-logging.yml
+new file mode 100644
+index 0000000000000000000000000000000000000000..e740acdd1134493ecd9ae56a1d57009413280416
+--- /dev/null
++++ b/.github/workflows/teamflow-logging.yml
+@@ -0,0 +1,26 @@
++name: 原生日志组件验证
++on:
++  push:
++    paths:
++      - '.agents/skills/ios-team-flow/assets/logging/**'
++      - '.agents/skills/ios-team-flow/scripts/install_logging.py'
++      - 'scripts/check_logging.py'
++      - '.github/workflows/teamflow-logging.yml'
++  pull_request:
++    paths:
++      - '.agents/skills/ios-team-flow/assets/logging/**'
++      - '.agents/skills/ios-team-flow/scripts/install_logging.py'
++      - 'scripts/check_logging.py'
++      - '.github/workflows/teamflow-logging.yml'
++  workflow_dispatch:
++permissions:
++  contents: read
++jobs:
++  native:
++    runs-on: macos-latest
++    steps:
++      - uses: actions/checkout@v4
++      - uses: actions/setup-python@v5
++        with:
++          python-version: '3.12'
++      - run: python3 scripts/check_logging.py
+diff --git a/.github/workflows/teamflow-release.yml b/.github/workflows/teamflow-release.yml
+index 61a89981d536aa6506516138eac13cebe06878d7..20ad6fa56f3bb3372c2101bf5b65e22187b14ae1 100644
+--- a/.github/workflows/teamflow-release.yml
++++ b/.github/workflows/teamflow-release.yml
+@@ -5,7 +5,19 @@ on:
+ permissions:
+   contents: read
+ jobs:
++  native-logging:
++    if: startsWith(github.event.release.tag_name, 'teamflow-v')
++    runs-on: macos-latest
++    steps:
++      - uses: actions/checkout@v4
++        with:
++          ref: ${{ github.event.release.tag_name }}
++      - uses: actions/setup-python@v5
++        with:
++          python-version: '3.12'
++      - run: python3 scripts/check_logging.py
+   package:
++    needs: native-logging
+     if: startsWith(github.event.release.tag_name, 'teamflow-v')
+     runs-on: ubuntu-latest
+     permissions:
+diff --git a/README.md b/README.md
+index bd5e17aea08374f745d1741164ceccae9ce511fd..e176ccf04d6264e42d8eee42ecc090c403105db9 100644
+--- a/README.md
++++ b/README.md
+@@ -1,6 +1,6 @@
+ # iOS TeamFlow
+ 
+-项目级中文 iOS 团队工作流，支持 Objective-C、Swift、SwiftUI、UI 规范、需求追踪、验证、提交审查和交付记录。当前版本为 **2.1.0**。完整规则只维护在项目 `.agents/skills/ios-team-flow/`，团队克隆后共用。
++项目级中文 iOS 团队工作流，支持 Objective-C、Swift、SwiftUI、UI 规范、需求追踪、验证、提交审查和交付记录。当前版本为 **2.1.1**。完整规则只维护在项目 `.agents/skills/ios-team-flow/`，团队克隆后共用。
+ 
+ ## 先看你属于哪种情况
+ 
+@@ -37,6 +37,8 @@ git init
+ 
+ ### 2. 放入完整 Skill
+ 
++当前 2.1.1 仅推送源码，包含中文注释规则及生成工程自动接入日志；使用这些新增能力请从本仓库源码接入。以下为上一正式发布版本：
++
+ 从 [2.1.0 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v2.1.0) 下载 `ios-team-flow-skill-v2.1.0.zip`，解压后把完整的 `ios-team-flow` 文件夹放到 `.agents/skills/`。
+ 
+ 最终必须是 `.agents/skills/ios-team-flow/SKILL.md`，不要只复制 SKILL.md，也不要多套一层同名文件夹。Finder 按 `Command + Shift + .` 显示隐藏文件夹。
+@@ -104,6 +106,8 @@ Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/refer
+ 
+ 出现实际流程缺陷、重复返工或明确纠正时，按 [自我进化机制](.agents/skills/ios-team-flow/references/EVOLUTION.md) 改进相关规则、模板或工具；复用现有需求与验证记录，无问题不额外复盘。机制在任务内执行，提交和发布仍按授权。该能力随 2.1.0 分发。
+ 
++新生成工程会自动加入对应 OC/Swift [分级日志组件](.agents/skills/ios-team-flow/references/LOGGING.md)，完成目标成员关系和编译条件设置；Debug 全等级输出，Release 关闭。此能力为源码未发布变更。
++
+ ## 资料和记录在哪里
+ 
+ | 要处理的事情 | 入口 |
+@@ -138,7 +142,7 @@ Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/refer
+ 
+ ## 源仓库维护与版本
+ 
+-2.1.0 加入按证据触发的自我进化机制，修复异常需求卡阻断列表的问题。需求编号继续按 UTC 创建时间排序，支持列表、倒序和 JSON 查询。旧编号不再支持，历史原件保留但不迁移、不进入新列表。日常 CI 按 Git 改动选择测试；正式发布、公共或未知变化仍执行全量。文档和模板改动无需每次运行全部工具测试，工具输出沿用 1.10.1。新项目默认英语和简体中文。版本变化见 [CHANGELOG](.agents/skills/ios-team-flow/references/CHANGELOG.md)。
++2.1.1 源码新增中文注释规范和自动接入的 OC/Swift 分级日志；尚未创建对应 Release。保留 2.1.0 的自我进化与异常需求卡容错。需求编号继续按 UTC 创建时间排序，支持列表、倒序和 JSON 查询。旧编号不再支持，历史原件保留但不迁移、不进入新列表。日常 CI 按 Git 改动选择测试；正式发布、公共或未知变化仍执行全量。文档和模板改动无需每次运行全部工具测试，工具输出沿用 1.10.1。新项目默认英语和简体中文。版本变化见 [CHANGELOG](.agents/skills/ios-team-flow/references/CHANGELOG.md)。
+ 
+ 以下命令用于工作流分发仓库维护，不要求业务项目为了接入而运行：
+ 
+diff --git a/requirements/DELIVERY.md b/requirements/DELIVERY.md
+index 7ca7c7c211157c193a71292aca9fd4bda26f3758..c8e98afff15aca23c1ff3fb339441ca720ef6248 100644
+--- a/requirements/DELIVERY.md
++++ b/requirements/DELIVERY.md
+@@ -7,4 +7,5 @@
+ | 1 | 2026-09-12T14:40:10.879+00:00 | [REQ-20260912-144010879Z-a64fa32f](REQ-20260912-144010879Z-a64fa32f.md) | 需求编号按时间排序并提供可读列表 | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-14T01:09:10.025061+00:00 |
+ | 2 | 2026-09-14T08:45:53.223+00:00 | [REQ-20260914-084553223Z-521fb817](REQ-20260914-084553223Z-521fb817.md) | 异常需求卡隔离并保留正常查询结果 | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-14T09:04:21.544805+00:00 |
+ | 3 | 2026-09-14T08:52:58.614+00:00 | [REQ-20260914-085258614Z-3cc615d4](REQ-20260914-085258614Z-3cc615d4.md) | 按证据触发的工作流自我进化机制 | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-14T09:04:03.752857+00:00 |
+-| 4 | 2026-09-14T09:07:44.372+00:00 | [REQ-20260914-090744372Z-811cc80f](REQ-20260914-090744372Z-811cc80f.md) | 生成代码采用中文注释规范 | ✅ 执行完成 | ⬜ 未关联 | 未核实 | 未核实 | 2026-09-14T09:09:43.885918+00:00 |
++| 4 | 2026-09-14T09:07:44.372+00:00 | [REQ-20260914-090744372Z-811cc80f](REQ-20260914-090744372Z-811cc80f.md) | 生成代码采用中文注释规范 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-14T09:10:47.123500+00:00 |
++| 5 | 2026-09-14T09:10:47.189+00:00 | [REQ-20260914-091047189Z-4db83a32](REQ-20260914-091047189Z-4db83a32.md) | 提供 OC 与 Swift 分级日志组件 | ✅ 执行完成 | ⬜ 未关联 | 未核实 | 未核实 | 2026-09-14T09:22:05.569329+00:00 |
+diff --git a/requirements/REQ-20260914-091047189Z-4db83a32.md b/requirements/REQ-20260914-091047189Z-4db83a32.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..cb7f11e5b8309ee05d1881bf16c1fe2508ba8e4a
+--- /dev/null
++++ b/requirements/REQ-20260914-091047189Z-4db83a32.md
+@@ -0,0 +1,26 @@
++# REQ-20260914-091047189Z-4db83a32：提供 OC 与 Swift 分级日志组件
++<!-- teamflow:requirement:v3 -->
++
++- 状态：✅ 执行完成
++- 来源与范围：用户要求 OC/Swift 日志等级，Debug 默认全量、Release 无日志；补充要求生成工程时自动加入源码、目标成员与编译条件，本需求独立一次提交；用户追加要求版本 2.1.1 并推送、不创建 Release。
++- 拆分：否；同一日志组件及生成接入能力。
++- 验收方式：自审
++- 验收依据：工具/组件行为可用真实原生编译运行及消费项目验证，无产品业务变化。
++- 下一步：无
++- 阻塞项：无
++
++## 验收（唯一结果记录）
++
++| 编号 | 条件 | 结果 | 证据或不适用原因 |
++| --- | --- | --- | --- |
++| AC-01 | OC/Swift 的五级日志在 Debug 全量输出位置和消息，Release 无输出且消息不求值 | 通过 | logs/reviews/validation-2.1.1.md |
++| AC-02 | 新工程自动接入规则、安装工具及双包完整，语言选择正确，幂等、不覆盖定制，实际生成工程纳入并构建 | 通过 | logs/reviews/validation-2.1.1.md |
++| AC-03 | 中文注释、输入与脱敏边界、相关回归和原生持续验证齐备 | 通过 | logs/reviews/validation-2.1.1.md |
++
++## 过程与决策
++
++- 2026-09-14T17:11:00+08:00：两套无外部依赖原生入口共用格式，Debug/Info/Warning/Error/Fault；不添加可变全局开关。用户补充的生成时自动接入纳入同一需求。
++
++- 2026-09-14T17:20:15+08:00：113 项回归、OC/OC++/Swift 原生运行、iOS SDK 编译及临时混编工程 Debug/Release 构建通过。
++
++- 2026-09-14T17:22:00+08:00：用户授权推送 2.1.1、不 Release；版本更新纳入第二次提交，保留每需求一次提交。
+diff --git a/requirements/delivery/REQ-20260914-090744372Z-811cc80f.json b/requirements/delivery/REQ-20260914-090744372Z-811cc80f.json
+index 0de63e7baf4973069f63114044a386510eff4caa..80e1fe51aaf6717eaa55883732b28f68dd507bfe 100644
+--- a/requirements/delivery/REQ-20260914-090744372Z-811cc80f.json
++++ b/requirements/delivery/REQ-20260914-090744372Z-811cc80f.json
+@@ -30,6 +30,18 @@
+         "checked_at": "2026-09-14T09:09:43.885918+00:00"
+       },
+       "removed": []
++    },
++    {
++      "at": "2026-09-14T09:10:47.124558+00:00",
++      "action": "finish",
++      "changes": {
++        "commits": [
++          "8a5a2d87c5aa610c95d15d00018c1e99eeb53580"
++        ],
++        "committed": true,
++        "checked_at": "2026-09-14T09:10:47.123500+00:00"
++      },
++      "removed": []
+     }
+   ],
+   "acceptance_baseline": {
+@@ -42,11 +54,17 @@
+       "README.md"
+     ],
+     "results": [],
+-    "accepted_at": "2026-09-14T09:09:43.885784+00:00"
++    "accepted_at": "2026-09-14T09:09:43.885784+00:00",
++    "sealed_commits": [
++      "8a5a2d87c5aa610c95d15d00018c1e99eeb53580"
++    ],
++    "accepted_commit": "8a5a2d87c5aa610c95d15d00018c1e99eeb53580"
+   },
+   "snapshot": {
+-    "commits": [],
+-    "committed": false,
++    "commits": [
++      "8a5a2d87c5aa610c95d15d00018c1e99eeb53580"
++    ],
++    "committed": true,
+     "merged": "未核实",
+     "releases": [],
+     "release_status": "未核实",
+@@ -64,6 +82,6 @@
+       "acceptance_fingerprint": "73e7b2b23658692c5426ecdba1b6b187a6f189350877c70ce9880e5f9e6c2b0a",
+       "implementation_fingerprint": "eb796dc4a544678edda3696f18b61ca2dc321d15b8244823e1e070336e9971d3"
+     },
+-    "checked_at": "2026-09-14T09:09:43.885918+00:00"
++    "checked_at": "2026-09-14T09:10:47.123500+00:00"
+   }
+ }
+diff --git a/requirements/delivery/REQ-20260914-091047189Z-4db83a32.json b/requirements/delivery/REQ-20260914-091047189Z-4db83a32.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..2426de9c639dbea781474108d497ac91dfa99cc0
+--- /dev/null
++++ b/requirements/delivery/REQ-20260914-091047189Z-4db83a32.json
+@@ -0,0 +1,87 @@
++{
++  "schema_version": 1,
++  "requirement": "REQ-20260914-091047189Z-4db83a32",
++  "linked_commits": [],
++  "prs": [],
++  "events": [
++    {
++      "at": "2026-09-14T09:20:15.395687+00:00",
++      "action": "finish",
++      "changes": {
++        "commits": [],
++        "committed": false,
++        "merged": "未核实",
++        "releases": [],
++        "release_status": "未核实",
++        "prs": [],
++        "warnings": [
++          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++        ],
++        "development": "✅ 执行完成",
++        "card": {
++          "state": "✅ 执行完成",
++          "passed": 3,
++          "applicable": 3,
++          "next": "无",
++          "blocker": "无",
++          "acceptance_fingerprint": "41618a2d3f953032395897aaed5d9842178d5e9f67435a11eef45a556304f562",
++          "implementation_fingerprint": "a9029047681d3162ca2d2c23a3e88f0eda70cbcaa38ef5123cbabd4a5a9f3866"
++        },
++        "checked_at": "2026-09-14T09:20:15.395459+00:00"
++      },
++      "removed": []
++    },
++    {
++      "at": "2026-09-14T09:22:05.569686+00:00",
++      "action": "finish",
++      "changes": {
++        "card": {
++          "state": "✅ 执行完成",
++          "passed": 3,
++          "applicable": 3,
++          "next": "无",
++          "blocker": "无",
++          "acceptance_fingerprint": "be232ec80aea749a0a291e39c008439e9ef8511f645dd544536d49fbf2dd6a99",
++          "implementation_fingerprint": "e7f9730bedf221a9fc1f42743f93dc7c4d81e0e7815e5d4aa22776a993b1598e"
++        },
++        "checked_at": "2026-09-14T09:22:05.569329+00:00"
++      },
++      "removed": []
++    }
++  ],
++  "acceptance_baseline": {
++    "implementation_fingerprint": "e7f9730bedf221a9fc1f42743f93dc7c4d81e0e7815e5d4aa22776a993b1598e",
++    "acceptance_fingerprint": "be232ec80aea749a0a291e39c008439e9ef8511f645dd544536d49fbf2dd6a99",
++    "inputs": [
++      ".agents",
++      "scripts",
++      "tests",
++      ".github",
++      "README.md"
++    ],
++    "results": [],
++    "accepted_at": "2026-09-14T09:22:05.569176+00:00"
++  },
++  "snapshot": {
++    "commits": [],
++    "committed": false,
++    "merged": "未核实",
++    "releases": [],
++    "release_status": "未核实",
++    "prs": [],
++    "warnings": [
++      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++    ],
++    "development": "✅ 执行完成",
++    "card": {
++      "state": "✅ 执行完成",
++      "passed": 3,
++      "applicable": 3,
++      "next": "无",
++      "blocker": "无",
++      "acceptance_fingerprint": "be232ec80aea749a0a291e39c008439e9ef8511f645dd544536d49fbf2dd6a99",
++      "implementation_fingerprint": "e7f9730bedf221a9fc1f42743f93dc7c4d81e0e7815e5d4aa22776a993b1598e"
++    },
++    "checked_at": "2026-09-14T09:22:05.569329+00:00"
++  }
++}
+diff --git a/scripts/check_logging.py b/scripts/check_logging.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..fb7609f1943241bd65fe0db0079ab7ded518b9d9
+--- /dev/null
++++ b/scripts/check_logging.py
+@@ -0,0 +1,115 @@
++#!/usr/bin/env python3
++"""用 Apple 编译器验证真实日志行为；缺少 macOS/Xcode 时失败，不伪称通过。"""
++import os
++from pathlib import Path
++import subprocess
++import sys
++import tempfile
++
++ROOT = Path(__file__).resolve().parents[1]
++ASSETS = ROOT / '.agents/skills/ios-team-flow/assets/logging'
++SWIFT_MAIN = r'''
++var calls = 0
++// 副作用仅用于验证 Release 的延迟求值边界。
++@MainActor func message() -> String { calls += 1; return "中文消息100%" }
++TFLog.debug(message())
++TFLog.info(message())
++TFLog.warning(message())
++TFLog.error(message())
++TFLog.fault(message())
++TFLog.log(.info, message())
++print("calls=\(calls)")
++'''
++OBJC_MAIN = r'''
++#import "TFLogger.h"
++static int calls = 0;
++// 日志宏在 Release 中不能执行本函数。
++static NSString *message(void) { calls++; return @"中文消息100%"; }
++int main(void) {
++    @autoreleasepool {
++        if (YES) TFLDebug(@"%@", message()); else return 9;
++        TFLInfo(@"%@", message());
++        TFLWarning(@"%@", message());
++        TFLError(@"%@", message());
++        TFLFault(@"%@", message());
++        TFLLog(TFLogLevelInfo, @"%@", message());
++        printf("calls=%d\n", calls);
++    }
++    return 0;
++}
++'''
++
++
++def run(argv, env):
++    """保留编译/运行的失败诊断，避免截断输出掩盖失败。"""
++    result = subprocess.run(argv, env=env, capture_output=True, text=True, timeout=180)
++    if result.returncode:
++        raise RuntimeError(result.stdout + result.stderr)
++    return result
++
++
++def verify_output(binary, env, debug):
++    """同时验证等级、中文消息、调用位置和消息副作用次数。"""
++    result = run([str(binary)], env)
++    if result.stdout.strip() != ('calls=6' if debug else 'calls=0'):
++        raise RuntimeError('消息求值次数错误：' + result.stdout)
++    if debug:
++        if result.stderr.count('中文消息100%') != 6:
++            raise RuntimeError('Debug 未全量输出：' + result.stderr)
++        for level in ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'FAULT'):
++            if '[TFLog][' + level + ']' not in result.stderr:
++                raise RuntimeError('缺少日志等级：' + level)
++        if 'main.' not in result.stderr or 'TFLogger.swift:' in result.stderr:
++            raise RuntimeError('未保留真实调用位置：' + result.stderr)
++    elif result.stderr:
++        raise RuntimeError('Release 仍有日志：' + result.stderr)
++
++
++def main():
++    """Debug、未定义 DEBUG、OC DEBUG=0 均用实际可执行文件验证。"""
++    if sys.platform != 'darwin':
++        raise RuntimeError('原生日志检查需要 macOS 和 Xcode')
++    env = os.environ.copy()
++    if not env.get('DEVELOPER_DIR') and Path('/Applications/Xcode.app').exists():
++        env['DEVELOPER_DIR'] = '/Applications/Xcode.app/Contents/Developer'
++    sdk = run(['xcrun', '--sdk', 'iphonesimulator', '--show-sdk-path'], env).stdout.strip()
++    with tempfile.TemporaryDirectory() as name:
++        temp = Path(name)
++        swift_main, objc_main = temp / 'main.swift', temp / 'main.m'
++        swift_main.write_text(SWIFT_MAIN)
++        objc_main.write_text(OBJC_MAIN)
++        for debug in (True, False):
++            flags = ['-D', 'DEBUG'] if debug else []
++            binary = temp / 'swift-log'
++            run(['xcrun', 'swiftc', '-swift-version', '6', '-strict-concurrency=complete',
++                 '-import-objc-header', str(ASSETS / 'TFLogger.h'),
++                 *flags, str(ASSETS / 'TFLogger.swift'), str(swift_main), '-o', str(binary)], env)
++            verify_output(binary, env, debug)
++            # 同时用 iOS 14 模拟器 SDK 编译，不把 macOS 运行等同于 iOS 产品验证。
++            run(['xcrun', 'swiftc', '-swift-version', '5', '-sdk', sdk,
++                 '-target', 'arm64-apple-ios14.0-simulator', '-emit-module', '-parse-as-library',
++                 *flags, str(ASSETS / 'TFLogger.swift'), '-o', str(temp / 'TFLog.swiftmodule')], env)
++            print('Swift ' + ('Debug' if debug else 'Release') + '：运行及 iOS SDK 编译通过')
++        for flags, debug in [(['-DDEBUG=1'], True), ([], False), (['-DDEBUG=0'], False)]:
++            binary = temp / 'objc-log'
++            common = ['-fobjc-arc', '-I', str(ASSETS), *flags]
++            run(['xcrun', 'clang', *common, str(ASSETS / 'TFLogger.m'), str(objc_main),
++                 '-framework', 'Foundation', '-o', str(binary)], env)
++            verify_output(binary, env, debug)
++            # Objective-C++ 调用同一 C 链接入口，验证 .mm 与 .m 混合链接。
++            objcxx = temp / 'main.mm'
++            objcxx.write_text(OBJC_MAIN)
++            run(['xcrun', 'clang++', *common, str(ASSETS / 'TFLogger.m'), str(objcxx),
++                 '-framework', 'Foundation', '-o', str(binary)], env)
++            verify_output(binary, env, debug)
++            run(['xcrun', 'clang', *common, '-isysroot', sdk, '-target', 'arm64-apple-ios14.0-simulator',
++                 '-fsyntax-only', str(ASSETS / 'TFLogger.m'), str(objc_main)], env)
++            print('OC/OC++ ' + ('Debug' if debug else 'Release') + '：运行及 iOS SDK 编译通过')
++
++
++if __name__ == '__main__':
++    try:
++        main()
++    except (OSError, RuntimeError, subprocess.TimeoutExpired) as error:
++        print('原生日志检查失败：' + str(error), file=sys.stderr)
++        raise SystemExit(1)
+diff --git a/scripts/package_release.py b/scripts/package_release.py
+index ae84e360d998546bf58212d2c8f82dc489b84dd4..415cc0af3ea3807c63ad8a85ad9f21177b0e3fae 100644
+--- a/scripts/package_release.py
++++ b/scripts/package_release.py
+@@ -6,7 +6,7 @@ import zipfile
+ from pathlib import Path
+ SKILL = '.agents/skills/ios-team-flow'
+ REFERENCES = (
+-    'EVOLUTION.md', 'SCENARIOS.md', 'APP-RELEASE.md', 'templates/app-release.md', 'ACCEPTANCE.md', 'templates/acceptance.md', 'VERSION', 'README.md', 'CHANGELOG.md', 'WORKFLOW.md', 'REVIEW.md',
++    'LOGGING.md', 'EVOLUTION.md', 'SCENARIOS.md', 'APP-RELEASE.md', 'templates/app-release.md', 'ACCEPTANCE.md', 'templates/acceptance.md', 'VERSION', 'README.md', 'CHANGELOG.md', 'WORKFLOW.md', 'REVIEW.md',
+     'RELEASE.md', 'SOURCES.md', 'INSTALL.md', 'standards/ui.md',
+     'standards/comments.md', 'standards/objective-c.md', 'standards/swift.md', 'standards/swiftui.md',
+     'templates/new-project.md', 'templates/requirement.md',
+@@ -18,9 +18,11 @@ FILES = (
+     '.github/pull_request_template.md',
+     '.github/workflows/teamflow-check.yml', '.github/workflows/teamflow-release.yml',
+     '.github/workflows/teamflow-pr-review.yml',
++    'scripts/check_logging.py', '.github/workflows/teamflow-logging.yml', 'tests/test_logging_install.py',
+     'scripts/review_gate.py', 'scripts/package_release.py', 'scripts/validate_workflow.py', 'scripts/run_workflow_checks.py',
+     'tests/test_check_selection.py', 'tests/test_consumer_release.py', 'tests/test_skill_upgrade.py', 'tests/test_scenarios.py', 'tests/test_setup_recovery.py', 'tests/test_workflow.py', 'tests/test_project_checks.py', 'tests/test_delivery.py', 'tests/test_git_checks.py', SKILL + '/SKILL.md',
+-    SKILL + '/assets/pr-review.yml', SKILL + '/scripts/range_review.py',
++    SKILL + '/assets/logging/TFLogger.swift', SKILL + '/assets/logging/TFLogger.h', SKILL + '/assets/logging/TFLogger.m',
++    SKILL + '/scripts/install_logging.py', SKILL + '/assets/pr-review.yml', SKILL + '/scripts/range_review.py',
+     SKILL + '/scripts/upgrade_skill.py', SKILL + '/scripts/install_git_checks.py', SKILL + '/scripts/delivery.py', SKILL + '/scripts/project_checks.py', SKILL + '/scripts/setup_project.py', SKILL + '/scripts/review_gate.py',
+ ) + tuple(SKILL + '/references/' + name for name in REFERENCES)
+ 
+diff --git a/tests/test_logging_install.py b/tests/test_logging_install.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..1b80ac469e299b6badb972a555c2e69a612e2d6f
+--- /dev/null
++++ b/tests/test_logging_install.py
+@@ -0,0 +1,66 @@
++"""从独立 ZIP 验证日志源码安装，不用文件存在替代实际工程构建。"""
++import contextlib
++import io
++import json
++from pathlib import Path
++import subprocess
++import sys
++import tempfile
++import unittest
++import zipfile
++
++ROOT = Path(__file__).resolve().parents[1]
++sys.path.insert(0, str(ROOT / 'scripts'))
++import package_release
++
++
++class LoggingInstallTests(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        with contextlib.redirect_stdout(io.StringIO()):
++            cls.archive = package_release.package_skill(ROOT)
++
++    def setUp(self):
++        self.temp = tempfile.TemporaryDirectory()
++        self.addCleanup(self.temp.cleanup)
++        self.root = Path(self.temp.name)
++        with zipfile.ZipFile(self.archive) as archive:
++            archive.extractall(self.root / '.agents/skills')
++        self.script = self.root / '.agents/skills/ios-team-flow/scripts/install_logging.py'
++
++    def run_install(self, language='mixed', destination='App/Sources/Logging'):
++        return subprocess.run([sys.executable, str(self.script), '--project', str(self.root),
++                               '--language', language, '--destination', destination],
++                              capture_output=True, text=True)
++
++    def test_language_selection_and_idempotence_from_zip(self):
++        for language, names in [('swift', {'TFLogger.swift'}), ('objc', {'TFLogger.h', 'TFLogger.m'}),
++                                ('mixed', {'TFLogger.h', 'TFLogger.m', 'TFLogger.swift'})]:
++            destination = 'App/' + language
++            first = self.run_install(language, destination)
++            self.assertEqual(0, first.returncode, first.stderr)
++            self.assertEqual(names, {Path(p).name for p in json.loads(first.stdout)['files']})
++            folder = self.root / destination
++            before = {p.name: (p.read_bytes(), p.stat().st_mtime_ns) for p in folder.iterdir()}
++            second = self.run_install(language, destination)
++            self.assertEqual(0, second.returncode, second.stderr)
++            self.assertEqual([], json.loads(second.stdout)['created'])
++            self.assertEqual(before, {p.name: (p.read_bytes(), p.stat().st_mtime_ns) for p in folder.iterdir()})
++
++    def test_conflict_is_preflighted_before_any_copy(self):
++        folder = self.root / 'App/Sources/Logging'
++        folder.mkdir(parents=True)
++        (folder / 'TFLogger.m').write_text('team customization')
++        result = self.run_install()
++        self.assertEqual(2, result.returncode)
++        self.assertEqual(['TFLogger.m'], [p.name for p in folder.iterdir()])
++        self.assertEqual('team customization', (folder / 'TFLogger.m').read_text())
++
++    def test_paths_and_external_tool_rejected(self):
++        for destination in ('../outside', str(self.root / 'absolute'), '.agents/overwrite'):
++            self.assertEqual(2, self.run_install(destination=destination).returncode)
++        (self.root / 'App').symlink_to(self.root / '.agents', target_is_directory=True)
++        self.assertEqual(2, self.run_install().returncode)
++        result = subprocess.run([sys.executable, str(self.script), '--project', str(self.root / 'Other'),
++                                 '--language', 'swift', '--destination', 'Sources'], capture_output=True)
++        self.assertEqual(2, result.returncode)

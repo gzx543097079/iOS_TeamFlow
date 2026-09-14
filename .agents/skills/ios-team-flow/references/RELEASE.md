@@ -43,3 +43,5 @@ CI 获取完整 Git 历史：push 使用 before，PR 使用事件 base 与检出
 打包校验继续在 CI 执行；首次执行、公共依赖变化或无法确定影响时用 --full。不要把此脚本作为业务 App 测试入口，也不要只为减少测试数量删除独立覆盖。
 
 本文件只发布工作流 ZIP；业务 iOS App 使用 [App 发布流程](APP-RELEASE.md)。
+
+源码包含原生日志组件时，正式发布先在 macOS/Xcode 上运行 `python3 scripts/check_logging.py`，通过后才生成和上传 ZIP；Linux 上的 Python 回归不能替代该检查。日志源码变化另由原生日志工作流验证 Debug/Release。
