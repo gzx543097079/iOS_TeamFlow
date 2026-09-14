@@ -1,7 +1,20 @@
 import UIKit
 
 /// 保存用户选择；系统语言变化在下次启动时由 Bundle 重新解析。
-final class DemoPreferences {
+final class DemoPreferences: NSObject {
+    static let appearanceDidChange = Notification.Name("DemoAppearanceDidChange")
+
+    enum Appearance: String, CaseIterable {
+        case system, light, dark
+        var titleKey: String { "appearance.\(rawValue)" }
+        var interfaceStyle: UIUserInterfaceStyle {
+            switch self {
+            case .system: return .unspecified
+            case .light: return .light
+            case .dark: return .dark
+            }
+        }
+    }
     enum Language: String, CaseIterable {
         case system, english = "en", chinese = "zh-Hans"
         var titleKey: String { "language.\(rawValue)" }
@@ -22,11 +35,20 @@ final class DemoPreferences {
     }()
 
     private let defaults: UserDefaults
-    init(defaults: UserDefaults) { self.defaults = defaults }
+    init(defaults: UserDefaults) { self.defaults = defaults; super.init() }
 
     var language: Language {
         get { Language(rawValue: defaults.string(forKey: "demo.language") ?? "") ?? .system }
         set { defaults.set(newValue.rawValue, forKey: "demo.language") }
+    }
+
+    /// 未保存或非法值均跟随系统；切换时通知窗口立即更新。
+    var appearance: Appearance {
+        get { Appearance(rawValue: defaults.string(forKey: "demo.appearance") ?? "") ?? .system }
+        set {
+            defaults.set(newValue.rawValue, forKey: "demo.appearance")
+            NotificationCenter.default.post(name: Self.appearanceDidChange, object: self)
+        }
     }
 
     var locale: Locale {
@@ -42,5 +64,21 @@ final class DemoPreferences {
         let bundle = Bundle.main.path(forResource: resolvedLanguage, ofType: "lproj")
             .flatMap(Bundle.init(path:)) ?? .main
         return bundle.localizedString(forKey: key, value: nil, table: nil)
+    }
+}
+
+/// 窗口级外观覆盖统一作用于导航栏和所有页面，跟随系统不固定亮暗。
+final class DemoAppearanceBinding {
+    private var observer: NSObjectProtocol?
+    init(window: UIWindow, preferences: DemoPreferences) {
+        window.overrideUserInterfaceStyle = preferences.appearance.interfaceStyle
+        observer = NotificationCenter.default.addObserver(
+            forName: DemoPreferences.appearanceDidChange, object: preferences, queue: .main
+        ) { [weak window] _ in
+            window?.overrideUserInterfaceStyle = preferences.appearance.interfaceStyle
+        }
+    }
+    deinit {
+        if let observer = observer { NotificationCenter.default.removeObserver(observer) }
     }
 }

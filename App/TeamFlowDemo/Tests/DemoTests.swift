@@ -17,6 +17,28 @@ final class DemoTests: XCTestCase {
         #endif
     }
 
+    @MainActor func testAppearanceAppliesPersistsAndReturnsToSystem() {
+        let suite = "DemoTests." + UUID().uuidString
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let preferences = DemoPreferences(defaults: defaults)
+        let window = UIWindow()
+        var binding: DemoAppearanceBinding? = DemoAppearanceBinding(window: window, preferences: preferences)
+        XCTAssertEqual(window.overrideUserInterfaceStyle, .unspecified)
+        preferences.appearance = .dark
+        XCTAssertEqual(window.overrideUserInterfaceStyle, .dark)
+        XCTAssertEqual(DemoPreferences(defaults: defaults).appearance, .dark)
+        preferences.appearance = .light
+        XCTAssertEqual(window.overrideUserInterfaceStyle, .light)
+        preferences.appearance = .system
+        XCTAssertEqual(window.overrideUserInterfaceStyle, .unspecified)
+        weak var released = binding
+        binding = nil
+        XCTAssertNil(released)
+        preferences.appearance = .dark
+        XCTAssertEqual(window.overrideUserInterfaceStyle, .unspecified, "释放绑定后不再响应通知")
+    }
+
     func testLanguagePersistsAndResolvesBothTranslations() {
         let suite = "DemoTests." + UUID().uuidString
         let defaults = UserDefaults(suiteName: suite)!

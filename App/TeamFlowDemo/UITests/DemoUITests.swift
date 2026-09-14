@@ -40,4 +40,24 @@ final class DemoUITests: XCTestCase {
         app.cells["settingsAbout"].tap()
         XCTAssertTrue(app.staticTexts["aboutDescription"].label.contains("不提供真实购买"))
     }
+    func testAppearanceSelectionPersistsAndCanFollowSystem() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-demo-ui-testing", "-reset-demo-preferences"]
+        app.launch()
+        app.buttons["openSettings"].tap()
+        app.cells["settingsAppearance"].tap()
+        XCTAssertTrue(app.cells["appearance-system"].isSelected)
+        app.cells["appearance-dark"].tap()
+        XCTAssertTrue(app.cells["appearance-dark"].isSelected)
+        app.terminate()
+        app.launchArguments = ["-demo-ui-testing"]
+        app.launch()
+        app.buttons["openSettings"].tap()
+        app.cells["settingsAppearance"].tap()
+        XCTAssertTrue(app.cells["appearance-dark"].isSelected)
+        app.cells["appearance-light"].tap()
+        XCTAssertTrue(app.cells["appearance-light"].isSelected)
+        app.cells["appearance-system"].tap()
+        XCTAssertTrue(app.cells["appearance-system"].isSelected)
+    }
 }

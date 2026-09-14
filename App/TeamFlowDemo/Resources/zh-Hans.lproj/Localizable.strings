@@ -10,3 +10,8 @@
 "demo.title" = "工作流测试";
 "demo.plan" = "测试套餐：%@\n仅用于工作流验证，不提供真实购买。";
 "demo.open" = "查看套餐";
+"settings.appearance" = "外观模式";
+"appearance.system" = "跟随系统";
+"appearance.light" = "浅色模式";
+"appearance.dark" = "暗黑模式";
+"appearance.help" = "选择跟随系统后，将随设备的浅色或深色外观自动切换。";

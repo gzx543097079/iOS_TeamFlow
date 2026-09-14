@@ -10,3 +10,8 @@
 "demo.title" = "Workflow Demo";
 "demo.plan" = "Sample plan: %@\nFor workflow validation only. No real purchases.";
 "demo.open" = "View Plan";
+"settings.appearance" = "Appearance";
+"appearance.system" = "Follow System";
+"appearance.light" = "Light";
+"appearance.dark" = "Dark";
+"appearance.help" = "Follow System switches automatically with your device appearance.";

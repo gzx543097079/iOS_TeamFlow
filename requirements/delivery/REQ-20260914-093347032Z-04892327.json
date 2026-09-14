@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "requirement": "REQ-20260914-093347032Z-04892327",
+  "linked_commits": [],
+  "prs": [],
+  "events": [
+    {
+      "at": "2026-09-14T09:48:26.294052+00:00",
+      "action": "finish",
+      "changes": {
+        "commits": [],
+        "committed": false,
+        "merged": "未核实",
+        "releases": [],
+        "release_status": "未核实",
+        "prs": [],
+        "warnings": [
+          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+        ],
+        "development": "🧪 待验证",
+        "card": {
+          "state": "🧪 待验证",
+          "passed": 2,
+          "applicable": 3,
+          "next": "团队确认外观效果",
+          "blocker": "无",
+          "acceptance_fingerprint": "8560491e7388db3151e74e21abd675e183cab8aec8b87d0cd3a692c1d7d2ee76"
+        },
+        "checked_at": "2026-09-14T09:48:26.293753+00:00"
+      },
+      "removed": []
+    }
+  ],
+  "snapshot": {
+    "commits": [],
+    "committed": false,
+    "merged": "未核实",
+    "releases": [],
+    "release_status": "未核实",
+    "prs": [],
+    "warnings": [
+      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+    ],
+    "development": "🧪 待验证",
+    "card": {
+      "state": "🧪 待验证",
+      "passed": 2,
+      "applicable": 3,
+      "next": "团队确认外观效果",
+      "blocker": "无",
+      "acceptance_fingerprint": "8560491e7388db3151e74e21abd675e183cab8aec8b87d0cd3a692c1d7d2ee76"
+    },
+    "checked_at": "2026-09-14T09:48:26.293753+00:00"
+  }
+}

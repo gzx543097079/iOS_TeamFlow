@@ -17,7 +17,7 @@ final class SettingsViewController: UITableViewController {
         tableView.reloadData()
     }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { 2 }
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { 3 }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .value1, reuseIdentifier: nil)
@@ -30,6 +30,11 @@ final class SettingsViewController: UITableViewController {
             cell.detailTextLabel?.text = preferences.text(preferences.language.titleKey)
             cell.imageView?.image = UIImage(systemName: "globe")
             cell.accessibilityIdentifier = "settingsLanguage"
+        } else if indexPath.row == 1 {
+            cell.textLabel?.text = preferences.text("settings.appearance")
+            cell.detailTextLabel?.text = preferences.text(preferences.appearance.titleKey)
+            cell.imageView?.image = UIImage(systemName: "moon.circle")
+            cell.accessibilityIdentifier = "settingsAppearance"
         } else {
             cell.textLabel?.text = preferences.text("settings.about")
             cell.imageView?.image = UIImage(systemName: "info.circle")
@@ -40,9 +45,12 @@ final class SettingsViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let destination: UIViewController = indexPath.row == 0
-            ? LanguageViewController(preferences: preferences)
-            : AboutViewController(preferences: preferences)
+        let destination: UIViewController
+        switch indexPath.row {
+        case 0: destination = LanguageViewController(preferences: preferences)
+        case 1: destination = AppearanceViewController(preferences: preferences)
+        default: destination = AboutViewController(preferences: preferences)
+        }
         navigationController?.pushViewController(destination, animated: true)
     }
 }
@@ -123,5 +131,39 @@ final class AboutViewController: UIViewController {
             stack.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 32),
             stack.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -32)
         ])
+    }
+}
+
+/// 提供系统、浅色、深色三个互斥选项，避免开关丢失「跟随系统」语义。
+final class AppearanceViewController: UITableViewController {
+    private let preferences: DemoPreferences
+    init(preferences: DemoPreferences) {
+        self.preferences = preferences
+        super.init(style: .insetGrouped)
+    }
+    required init?(coder: NSCoder) { nil }
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        title = preferences.text("settings.appearance")
+    }
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        DemoPreferences.Appearance.allCases.count
+    }
+    override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+        preferences.text("appearance.help")
+    }
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let appearance = DemoPreferences.Appearance.allCases[indexPath.row]
+        let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
+        cell.textLabel?.text = preferences.text(appearance.titleKey)
+        cell.accessoryType = preferences.appearance == appearance ? .checkmark : .none
+        cell.accessibilityIdentifier = "appearance-\(appearance.rawValue)"
+        cell.accessibilityTraits = preferences.appearance == appearance ? [.button, .selected] : .button
+        return cell
+    }
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        preferences.appearance = DemoPreferences.Appearance.allCases[indexPath.row]
+        TFLog.info("Demo 外观设置已更新")
+        tableView.reloadData()
     }
 }

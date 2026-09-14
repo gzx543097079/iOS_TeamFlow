@@ -40,3 +40,5 @@ xcodegen generate --spec App/TeamFlowDemo/project.yml
 本工程和根 scripts/test_demo.py、.agents/project-checks.json 仅随源码提供，均不进入通用工作流或独立 Skill ZIP，避免将示例 App 安装到业务项目。
 
 设置入口位于首页右上角：语言支持跟随系统、English、简体中文，切换立即生效并保存；关于我们展示应用说明和构建版本。UI 测试使用独立偏好存储。
+
+外观默认跟随系统，设置中也可选择浅色或暗黑模式；窗口立即切换，重启保留选择。

@@ -29,11 +29,25 @@
         "checked_at": "2026-09-14T09:43:40.087027+00:00"
       },
       "removed": []
+    },
+    {
+      "at": "2026-09-14T09:44:21.320219+00:00",
+      "action": "finish",
+      "changes": {
+        "commits": [
+          "17bc2fc68b824cccf6bef48c350691f253960dab"
+        ],
+        "committed": true,
+        "checked_at": "2026-09-14T09:44:21.319869+00:00"
+      },
+      "removed": []
     }
   ],
   "snapshot": {
-    "commits": [],
-    "committed": false,
+    "commits": [
+      "17bc2fc68b824cccf6bef48c350691f253960dab"
+    ],
+    "committed": true,
     "merged": "未核实",
     "releases": [],
     "release_status": "未核实",
@@ -50,6 +64,6 @@
       "blocker": "无",
       "acceptance_fingerprint": "4d216070ff55de5c83288956ac0d3cb84e29ceaf97ec5835f7df1912cef2e058"
     },
-    "checked_at": "2026-09-14T09:43:40.087027+00:00"
+    "checked_at": "2026-09-14T09:44:21.319869+00:00"
   }
 }

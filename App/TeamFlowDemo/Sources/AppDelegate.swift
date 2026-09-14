@@ -4,6 +4,7 @@ import UIKit
 @main
 final class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
+    private var appearanceBinding: DemoAppearanceBinding?
 
     func application(
         _ application: UIApplication,
@@ -11,6 +12,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     ) -> Bool {
         let window = UIWindow(frame: UIScreen.main.bounds)
         window.rootViewController = UINavigationController(rootViewController: DemoViewController())
+        appearanceBinding = DemoAppearanceBinding(window: window, preferences: .shared)
         window.makeKeyAndVisible()
         TFLog.info("Demo 已启动")
         self.window = window
