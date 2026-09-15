@@ -1,0 +1,1203 @@
+diff --git a/.agents/skills/ios-team-flow/references/CHANGELOG.md b/.agents/skills/ios-team-flow/references/CHANGELOG.md
+index 1a8ae4201877aa61485bb88632d97ef5d50c4a83..4917f37019be15a982ff3b8b612481155f92d77b 100644
+--- a/.agents/skills/ios-team-flow/references/CHANGELOG.md
++++ b/.agents/skills/ios-team-flow/references/CHANGELOG.md
+@@ -1,5 +1,11 @@
+ # 版本记录
+ 
++## 2.2.2（源码版本，未发布 Release）
++
++- 生成与审查以需求文档确认的架构为准，核对实际职责、依赖、状态更新和复用使用方。
++- Demo 按功能模块重构为 MVVM，统一组装依赖与导航，复用单选列表、商品展示及布局组件，保留 CocoaPods/Masonry。
++- 本次仅推送源码，不创建 Release；正式下载仍为 2.2.0。
++
+ ## 2.2.1（源码版本，未发布 Release）
+ 
+ - Demo 通过 CocoaPods 固定接入 Masonry 1.1.0，使用 workspace 构建与测试。
+diff --git a/.agents/skills/ios-team-flow/references/VERSION b/.agents/skills/ios-team-flow/references/VERSION
+index c043eea7767eecb5567ebcbe8d671e45ef2833a8..b1b25a5ffae43c2f07d222b53240d871e7c1789b 100644
+--- a/.agents/skills/ios-team-flow/references/VERSION
++++ b/.agents/skills/ios-team-flow/references/VERSION
+@@ -1 +1 @@
+-2.2.1
++2.2.2
+diff --git a/.agents/teamflow.json b/.agents/teamflow.json
+index e6bd33d544ae3a3a9c5c693c86849b142e7faa00..543ab989356f3275552180f8c195d0d9b23e0def 100644
+--- a/.agents/teamflow.json
++++ b/.agents/teamflow.json
+@@ -1,6 +1,6 @@
+ {
+   "skill": "ios-team-flow",
+-  "version": "2.2.1",
++  "version": "2.2.2",
+   "schema_version": 1,
+   "instruction_file": "AGENTS.md",
+   "managed": {
+diff --git a/README.md b/README.md
+index 44d2746d905aa43566db0a789903a43e4f2a2e89..73bad770f6c76f66bf4f11b1e4b0eed940191318 100644
+--- a/README.md
++++ b/README.md
+@@ -1,6 +1,6 @@
+ # iOS TeamFlow
+ 
+-项目级中文 iOS 团队工作流，支持 Objective-C、Swift、SwiftUI、UI 规范、需求追踪、验证、提交审查和交付记录。当前版本为 **2.2.1**。完整规则只维护在项目 `.agents/skills/ios-team-flow/`，团队克隆后共用。
++项目级中文 iOS 团队工作流，支持 Objective-C、Swift、SwiftUI、UI 规范、需求追踪、验证、提交审查和交付记录。当前版本为 **2.2.2**。完整规则只维护在项目 `.agents/skills/ios-team-flow/`，团队克隆后共用。
+ 
+ ## 先看你属于哪种情况
+ 
+@@ -37,7 +37,7 @@ git init
+ 
+ ### 2. 放入完整 Skill
+ 
+-当前源码版本为 2.2.1，Demo 通过 CocoaPods 接入 Masonry 自动布局；本次不创建 Release。最近正式版本为 2.2.0，包含 Scene 生命周期生成与验收规范、Bug Fix 模板、中文注释规则及自动接入的 OC/Swift 日志组件。商城 Demo 仅保留在源码仓库，不进入分发包。
++当前源码版本为 2.2.2，新增需求架构一致性规则，Demo 已按功能模块重构为 MVVM，并保留 CocoaPods/Masonry；本次不创建 Release。最近正式版本为 2.2.0，包含 Scene 生命周期生成与验收规范、Bug Fix 模板、中文注释规则及自动接入的 OC/Swift 日志组件。商城 Demo 仅保留在源码仓库，不进入分发包。
+ 
+ 从 [2.2.0 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v2.2.0) 下载 `ios-team-flow-skill-v2.2.0.zip`，解压后把完整的 `ios-team-flow` 文件夹放到 `.agents/skills/`。
+ 
+@@ -142,7 +142,7 @@ Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/refer
+ 
+ ## 源仓库维护与版本
+ 
+-2.2.1 源码将 Demo 自定义布局迁移到 CocoaPods 管理的 Masonry，构建及测试使用 workspace；未创建对应 Release。2.2.0 新增 Scene 生命周期生成与验收规范，并修复源码 Demo 的旧生命周期警告；正式分发 Bug Fix 模板、处理规程、中文注释规范和自动接入的 OC/Swift 分级日志。源码保留商城 Demo、语言与外观设置。保留 2.1.0 的自我进化与异常需求卡容错。需求编号继续按 UTC 创建时间排序，支持列表、倒序和 JSON 查询。旧编号不再支持，历史原件保留但不迁移、不进入新列表。日常 CI 按 Git 改动选择测试；正式发布、公共或未知变化仍执行全量。文档和模板改动无需每次运行全部工具测试，工具输出沿用 1.10.1。新项目默认英语和简体中文。版本变化见 [CHANGELOG](.agents/skills/ios-team-flow/references/CHANGELOG.md)。
++2.2.2 源码增加按需求架构生成及模块复用审查，Demo 重构为 MVVM。此前 2.2.1 将 Demo 自定义布局迁移到 CocoaPods 管理的 Masonry，构建及测试使用 workspace；未创建对应 Release。2.2.0 新增 Scene 生命周期生成与验收规范，并修复源码 Demo 的旧生命周期警告；正式分发 Bug Fix 模板、处理规程、中文注释规范和自动接入的 OC/Swift 分级日志。源码保留商城 Demo、语言与外观设置。保留 2.1.0 的自我进化与异常需求卡容错。需求编号继续按 UTC 创建时间排序，支持列表、倒序和 JSON 查询。旧编号不再支持，历史原件保留但不迁移、不进入新列表。日常 CI 按 Git 改动选择测试；正式发布、公共或未知变化仍执行全量。文档和模板改动无需每次运行全部工具测试，工具输出沿用 1.10.1。新项目默认英语和简体中文。版本变化见 [CHANGELOG](.agents/skills/ios-team-flow/references/CHANGELOG.md)。
+ 
+ 以下命令用于工作流分发仓库维护，不要求业务项目为了接入而运行：
+ 
+diff --git a/logs/version-2.2.2/workflow-checks.log b/logs/version-2.2.2/workflow-checks.log
+new file mode 100644
+index 0000000000000000000000000000000000000000..c2d9e3b6d88fe734858b57fc7c61a0e1e3f96274
+--- /dev/null
++++ b/logs/version-2.2.2/workflow-checks.log
+@@ -0,0 +1,966 @@
++{"scope": "full", "tests": ["all"], "reason": "显式全量、基准不可用或包含公共/未知改动"}
++test_cli_list_and_failed_test_exit (test_check_selection.CheckSelectionTests.test_cli_list_and_failed_test_exit) ... ok
++test_docs_templates_and_mixed_changes (test_check_selection.CheckSelectionTests.test_docs_templates_and_mixed_changes) ... ok
++test_git_range_preserves_deletions_renames_and_missing_base (test_check_selection.CheckSelectionTests.test_git_range_preserves_deletions_renames_and_missing_base) ... ok
++test_tool_dependencies_include_consumers_and_gates (test_check_selection.CheckSelectionTests.test_tool_dependencies_include_consumers_and_gates) ... ok
++test_unknown_public_and_test_changes_fall_back_to_full (test_check_selection.CheckSelectionTests.test_unknown_public_and_test_changes_fall_back_to_full) ... ok
++test_bug_template_in_package_preserves_history_through_finish (test_consumer_release.ConsumerReleaseTests.test_bug_template_in_package_preserves_history_through_finish) ... ok
++test_cold_install_diagnoses_without_changing_project (test_consumer_release.ConsumerReleaseTests.test_cold_install_diagnoses_without_changing_project) ... ok
++test_document_validation_survives_acceptance_and_rejects_content_changes (test_consumer_release.ConsumerReleaseTests.test_document_validation_survives_acceptance_and_rejects_content_changes) ... ok
++test_existing_v2_cards_are_not_implicitly_migrated (test_consumer_release.ConsumerReleaseTests.test_existing_v2_cards_are_not_implicitly_migrated) ... ok
++test_first_gate_without_gitignore_and_importing_test_passes (test_consumer_release.ConsumerReleaseTests.test_first_gate_without_gitignore_and_importing_test_passes) ... ok
++test_result_acceptance_and_two_sequential_requirements_from_zip (test_consumer_release.ConsumerReleaseTests.test_result_acceptance_and_two_sequential_requirements_from_zip) ... ok
++test_shared_commit_collision_can_be_relinked_without_rewriting_history (test_consumer_release.ConsumerReleaseTests.test_shared_commit_collision_can_be_relinked_without_rewriting_history) ... ok
++test_two_branches_create_distinct_cards_and_merge (test_consumer_release.ConsumerReleaseTests.test_two_branches_create_distinct_cards_and_merge) ... ok
++test_accept_result_reuses_profile_scope_and_rejects_stale_result (test_delivery.DeliveryTests.test_accept_result_reuses_profile_scope_and_rejects_stale_result) ... ok
++test_acceptance_scope_ignores_unrelated_work_and_accept_is_idempotent (test_delivery.DeliveryTests.test_acceptance_scope_ignores_unrelated_work_and_accept_is_idempotent) ... ok
++test_all_ignores_legacy_and_v2_development_rejected (test_delivery.DeliveryTests.test_all_ignores_legacy_and_v2_development_rejected) ... ok
++test_bad_id_and_unknown_commit_rejected (test_delivery.DeliveryTests.test_bad_id_and_unknown_commit_rejected) ... ok
++test_complete_stales_when_implementation_changes (test_delivery.DeliveryTests.test_complete_stales_when_implementation_changes) ... ok
++test_delayed_sealing_uses_accepted_commit_not_later_worktree (test_delivery.DeliveryTests.test_delayed_sealing_uses_accepted_commit_not_later_worktree) ... ok
++test_documented_failure_value_is_valid (test_delivery.DeliveryTests.test_documented_failure_value_is_valid) ... ok
++test_dot_scope_ignores_metadata_and_ignored_outputs_in_both_tools (test_delivery.DeliveryTests.test_dot_scope_ignores_metadata_and_ignored_outputs_in_both_tools) ... ok
++test_finish_cannot_overwrite_accepted_baseline_before_commit (test_delivery.DeliveryTests.test_finish_cannot_overwrite_accepted_baseline_before_commit) ... ok
++test_finish_detects_failed_persistence_without_second_command (test_delivery.DeliveryTests.test_finish_detects_failed_persistence_without_second_command) ... ok
++test_finish_updates_stale_card_and_reports_without_approving (test_delivery.DeliveryTests.test_finish_updates_stale_card_and_reports_without_approving) ... ok
++test_history_delta_preserves_complete_snapshots (test_delivery.DeliveryTests.test_history_delta_preserves_complete_snapshots) ... ok
++test_list_and_overview_order_titles_unfinished_and_read_only (test_delivery.DeliveryTests.test_list_and_overview_order_titles_unfinished_and_read_only) ... ok
++test_list_isolates_bad_cards_and_preserves_json_and_files (test_delivery.DeliveryTests.test_list_isolates_bad_cards_and_preserves_json_and_files) ... ok
++test_local_commit_and_tag_not_release_or_merge (test_delivery.DeliveryTests.test_local_commit_and_tag_not_release_or_merge) ... ok
++test_metadata_only_commit_not_implementation (test_delivery.DeliveryTests.test_metadata_only_commit_not_implementation) ... ok
++test_old_identifiers_and_invalid_timestamp_rejected (test_delivery.DeliveryTests.test_old_identifiers_and_invalid_timestamp_rejected) ... ok
++test_old_release_does_not_cover_new_commit (test_delivery.DeliveryTests.test_old_release_does_not_cover_new_commit) ... ok
++test_remote_failure_not_marked_pass (test_delivery.DeliveryTests.test_remote_failure_not_marked_pass) ... ok
++test_remote_tag_mismatch_not_published (test_delivery.DeliveryTests.test_remote_tag_mismatch_not_published) ... ok
++test_sealed_acceptance_survives_other_requirement_and_reopens (test_delivery.DeliveryTests.test_sealed_acceptance_survives_other_requirement_and_reopens) ... unit：通过
++验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpwkhf3y6o/logs/project-checks/20260915T083749Z-9f7e762f/result.json
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md"
++  ],
++  "github_checked": false,
++  "overview_outdated": true
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": true
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/REQ-20260230-120000000Z-aaaaaaaa.md",
++    "?? requirements/REQ-20260912-120000000Z-bbbbbbbb.md",
++    "?? requirements/REQ-20260912-120000001Z-cccccccc.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}ok
++test_status_full_snapshot_and_history_without_writes (test_delivery.DeliveryTests.test_status_full_snapshot_and_history_without_writes) ... ok
++test_status_unsynced_does_not_claim_completion_or_create_record (test_delivery.DeliveryTests.test_status_unsynced_does_not_claim_completion_or_create_record) ... ok
++test_timestamp_ids_sort_and_retry_without_overwrite (test_delivery.DeliveryTests.test_timestamp_ids_sort_and_retry_without_overwrite) ... ok
++test_unknown_template_rejected_without_writing (test_delivery.DeliveryTests.test_unknown_template_rejected_without_writing) ... ok
++test_v2_finish_before_initial_commit_and_remote_check_idempotence (test_delivery.DeliveryTests.test_v2_finish_before_initial_commit_and_remote_check_idempotence) ... ok
++test_v2_inconsistent_completion_duplicate_and_team_confirmation_rejected (test_delivery.DeliveryTests.test_v2_inconsistent_completion_duplicate_and_team_confirmation_rejected) ... ok
++test_v2_local_finish_preserves_timestamped_remote_evidence (test_delivery.DeliveryTests.test_v2_local_finish_preserves_timestamped_remote_evidence) ... ok
++test_v2_new_implementation_requires_revalidation (test_delivery.DeliveryTests.test_v2_new_implementation_requires_revalidation) ... ok
++test_v2_precommit_acceptance_is_reused_after_commit_without_repeat (test_delivery.DeliveryTests.test_v2_precommit_acceptance_is_reused_after_commit_without_repeat) ... ok
++test_v2_single_source_and_idempotent_finish (test_delivery.DeliveryTests.test_v2_single_source_and_idempotent_finish) ... ok
++test_verified_merge_release_and_draft (test_delivery.DeliveryTests.test_verified_merge_release_and_draft) ... ok
++test_binary_mode_and_receipt_boundary (test_git_checks.GitChecksTests.test_binary_mode_and_receipt_boundary) ... ok
++test_ci_install_idempotent_and_no_overwrite (test_git_checks.GitChecksTests.test_ci_install_idempotent_and_no_overwrite) ... ok
++test_custom_hooks_path_and_conflict_protection (test_git_checks.GitChecksTests.test_custom_hooks_path_and_conflict_protection) ... ok
++test_empty_index_does_not_pass_unreviewed_range (test_git_checks.GitChecksTests.test_empty_index_does_not_pass_unreviewed_range) ... ok
++test_existing_hook_exit_preserved_and_restored (test_git_checks.GitChecksTests.test_existing_hook_exit_preserved_and_restored) ... ok
++test_linear_reports_reused_independent_of_worktree (test_git_checks.GitChecksTests.test_linear_reports_reused_independent_of_worktree) ... 
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{"requirement": "REQ-20260912-103015123Z-a1b2c3d4", "card": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp2zi24nhr/requirements/REQ-20260912-103015123Z-a1b2c3d4.md"}
++{"requirement": "REQ-20260912-103015123Z-b1b2c3d4", "card": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp2zi24nhr/requirements/REQ-20260912-103015123Z-b1b2c3d4.md"}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "unarchived_changes": [
++    "?? requirements/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "unarchived_changes": [
++    "?? requirements/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "unarchived_changes": [
++    "?? requirements/"
++  ],
++  "github_checked": true,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "unarchived_changes": [
++    "?? requirements/"
++  ],
++  "github_checked": true,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++需要 Codex 审查并填写报告
++{"fingerprint": "f57f95128e7da6bf35b9d35f1862336d740cc5a18b88e835b91939c7935a88bd", "report": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git jsk81qut/logs/reviews/f57f95128e7da6bf35b9d35f1862336d740cc5a18b88e835b91939c7935a88bd.json", "patch": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git jsk81qut/logs/reviews/f57f95128e7da6bf35b9d35f1862336d740cc5a18b88e835b91939c7935a88bd.patch", "unstaged_changes": false, "untracked_count": 2}
++需要 Codex 审查并填写报告
++{"fingerprint": "8fb7ec16ad29edc5be2362a587ed6d4b509194c3e3b1df4919db560fa6fb937d", "report": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git jsk81qut/logs/reviews/8fb7ec16ad29edc5be2362a587ed6d4b509194c3e3b1df4919db560fa6fb937d.json", "patch": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git jsk81qut/logs/reviews/8fb7ec16ad29edc5be2362a587ed6d4b509194c3e3b1df4919db560fa6fb937d.patch", "unstaged_changes": false, "untracked_count": 2}
++范围审查通过：已复用每个实施提交的审查报告；base=ab9fb6b9c9eef5f6d75b359f14685d06cb9798a2 head=8c5210b5dc726d80b9f3e7525d3104802ef50c77
++已生成 PR 检查；提交到目标分支后生效，并在仓库规则中按需设为必需检查
++PR 检查模板已安装
++Hook 已安装；已有 Hook 会先执行并保留退出码
++Hook 已安装；已有 Hook 会先执行并保留退出码
++Hook 已移除，原 Hook 已恢复（如有）
++需要 Codex 审查并填写报告
++{"fingerprint": "530d189fec7b0a0f514663f022c9477fcc8527b069c198a52e15f3368e9d354f", "report": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git m2qmq4n9/logs/reviews/530d189fec7b0a0f514663f022c9477fcc8527b069c198a52e15f3368e9d354f.json", "patch": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git m2qmq4n9/logs/reviews/530d189fec7b0a0f514663f022c9477fcc8527b069c198a52e15f3368e9d354f.patch", "unstaged_changes": false, "untracked_count": 2}
++需要 Codex 审查并填写报告
++{"fingerprint": "d04228cb7d2c0bed2046e9e863fccb1ef1a8c485750b0ca9083e5c88e0d85db9", "report": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git m2qmq4n9/logs/reviews/d04228cb7d2c0bed2046e9e863fccb1ef1a8c485750b0ca9083e5c88e0d85db9.json", "patch": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git m2qmq4n9/logs/reviews/d04228cb7d2c0bed2046e9e863fccb1ef1a8c485750b0ca9083e5c88e0d85db9.patch", "unstaged_changes": false, "untracked_count": 2}
++范围审查通过：已复用每个实施提交的审查报告；base=e214a483ffa5cb37d77a8bf12f3ce5d45c2cbe11 head=a72a0e1a0e58f91174b4b367f8be83b62b73fbb2
++范围审查通过：已复用每个实施提交的审查报告；base=e214a483ffa5cb37d77a8bf12f3ce5d45c2cbe11 head=7776771796928eb868d891d7fd62aff463681177ok
++test_merge_requires_range_review (test_git_checks.GitChecksTests.test_merge_requires_range_review) ... ok
++test_pending_report_rejected_and_bad_ref_rejected (test_git_checks.GitChecksTests.test_pending_report_rejected_and_bad_ref_rejected) ... ok
++test_range_receipt_commit_and_new_code_invalidates (test_git_checks.GitChecksTests.test_range_receipt_commit_and_new_code_invalidates) ... ok
++test_real_commit_hook_blocks_then_passes (test_git_checks.GitChecksTests.test_real_commit_hook_blocks_then_passes) ... ok
++test_target_base_change_invalidates_range_report (test_git_checks.GitChecksTests.test_target_base_change_invalidates_range_report) ... ok
++test_trusted_checker_ignores_head_python (test_git_checks.GitChecksTests.test_trusted_checker_ignores_head_python) ... ok
++test_conflict_is_preflighted_before_any_copy (test_logging_install.LoggingInstallTests.test_conflict_is_preflighted_before_any_copy) ... ok
++test_language_selection_and_idempotence_from_zip (test_logging_install.LoggingInstallTests.test_language_selection_and_idempotence_from_zip) ... ok
++test_paths_and_external_tool_rejected (test_logging_install.LoggingInstallTests.test_paths_and_external_tool_rejected) ... ok
++test_cli_original_output_failure_and_complete_logs (test_project_checks.ProjectChecksTests.test_cli_original_output_failure_and_complete_logs) ... ok
++test_default_deletion_then_staging_preserves_verified_snapshot (test_project_checks.ProjectChecksTests.test_default_deletion_then_staging_preserves_verified_snapshot) ... ok
++test_empty_unknown_and_escape_rejected_before_execution (test_project_checks.ProjectChecksTests.test_empty_unknown_and_escape_rejected_before_execution) ... ok
++test_failure_returns_false (test_project_checks.ProjectChecksTests.test_failure_returns_false) ... ok
++test_git_default_tracks_new_files_but_ignores_generated_evidence (test_project_checks.ProjectChecksTests.test_git_default_tracks_new_files_but_ignores_generated_evidence) ... ok
++test_input_change_during_successful_command_is_not_pass (test_project_checks.ProjectChecksTests.test_input_change_during_successful_command_is_not_pass) ... ok
++test_invalid_input_rejected_and_tracked_deletion_allowed (test_project_checks.ProjectChecksTests.test_invalid_input_rejected_and_tracked_deletion_allowed) ... ok
++test_requirement_updates_skip_default_but_invalidate_document_profile (test_project_checks.ProjectChecksTests.test_requirement_updates_skip_default_but_invalidate_document_profile) ... ok
++test_source_edit_add_delete_and_config_change_invalidate (test_project_checks.ProjectChecksTests.test_source_edit_add_delete_and_config_change_invalidate) ... ok
++test_staged_verification_rejects_old_missing_deleted_and_mode_inputs (test_project_checks.ProjectChecksTests.test_staged_verification_rejects_old_missing_deleted_and_mode_inputs) ... ok
++test_success_and_literal_arguments (test_project_checks.ProjectChecksTests.test_success_and_literal_arguments) ... ok
++test_symlink_log_directory_rejected (test_project_checks.ProjectChecksTests.test_symlink_log_directory_rejected) ... ok
++test_unselected_command_not_executed_and_profiles_required (test_project_checks.ProjectChecksTests.test_unselected_command_not_executed_and_profiles_required) ... ok
++test_existing_project_preserves_config_and_failing_baseline (test_scenarios.ConsumerScenarios.test_existing_project_preserves_config_and_failing_baseline) ... ok
++test_new_project_setup_does_not_create_unconfirmed_app (test_scenarios.ConsumerScenarios.test_new_project_setup_does_not_create_unconfirmed_app) ... ok
++test_subscription_missing_evidence_blocks_and_content_change_invalidates (test_scenarios.ConsumerScenarios.test_subscription_missing_evidence_blocks_and_content_change_invalidates) ... ok
++test_failure_restores_existing_and_removes_new_file (test_setup_recovery.RecoveryTests.test_failure_restores_existing_and_removes_new_file) ... ok
++test_interrupted_install_requires_recovery (test_setup_recovery.RecoveryTests.test_interrupted_install_requires_recovery) ... ok
++test_manual_recovery_preflights_changes_and_is_repeatable (test_setup_recovery.RecoveryTests.test_manual_recovery_preflights_changes_and_is_repeatable) ... ok
++test_both_sides_edit_conflict_writes_nothing (test_skill_upgrade.SkillUpgradeTests.test_both_sides_edit_conflict_writes_nothing) ... ok
++test_explicit_merged_file_resolves_both_sides_without_losing_rule (test_skill_upgrade.SkillUpgradeTests.test_explicit_merged_file_resolves_both_sides_without_losing_rule) ... 
++需要 Codex 审查并填写报告
++{"fingerprint": "b81582dbd0e06204bb4f648826e8958515543ee26c8ae4c2c3f9c8cafc334b25", "report": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git dj8x6h7r/logs/reviews/b81582dbd0e06204bb4f648826e8958515543ee26c8ae4c2c3f9c8cafc334b25.json", "patch": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git dj8x6h7r/logs/reviews/b81582dbd0e06204bb4f648826e8958515543ee26c8ae4c2c3f9c8cafc334b25.patch", "unstaged_changes": false, "untracked_count": 2}
++需要 Codex 审查并填写报告
++{"fingerprint": "364aa6c071df63fef4817d9e9b7a4db6e2dfaa4319703a9971122bdeb3b56aa6", "report": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git dj8x6h7r/logs/reviews/364aa6c071df63fef4817d9e9b7a4db6e2dfaa4319703a9971122bdeb3b56aa6.json", "patch": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git dj8x6h7r/logs/reviews/364aa6c071df63fef4817d9e9b7a4db6e2dfaa4319703a9971122bdeb3b56aa6.patch", "unstaged_changes": false, "untracked_count": 2}
++范围报告：/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git dj8x6h7r/logs/reviews/cb375e9c8019bfab893073aa75c7ce62eff50f76e336511b37906719ee23a9d9.json；审查完成后提交回执，再以新 head 执行 check
++范围审查通过，复用报告：cb375e9c8019bfab893073aa75c7ce62eff50f76e336511b37906719ee23a9d9
++需要 Codex 审查并填写报告
++{"fingerprint": "d8dd2f6e763c4bf1cceb8c43b8b3fb53b40916445991857214f6a332bd393ab0", "report": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git w2yfimk8/logs/reviews/d8dd2f6e763c4bf1cceb8c43b8b3fb53b40916445991857214f6a332bd393ab0.json", "patch": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git w2yfimk8/logs/reviews/d8dd2f6e763c4bf1cceb8c43b8b3fb53b40916445991857214f6a332bd393ab0.patch", "unstaged_changes": false, "untracked_count": 2}
++范围报告：/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git _7qylmlz/logs/reviews/716c994dfe75eaeb8f03fac41a8a0dc7cd9aca80cbf4d8610c2b099b143fd561.json；审查完成后提交回执，再以新 head 执行 check
++范围审查通过，复用报告：716c994dfe75eaeb8f03fac41a8a0dc7cd9aca80cbf4d8610c2b099b143fd561
++Hook 已安装；已有 Hook 会先执行并保留退出码
++Hook 已安装
++需要 Codex 审查并填写报告
++{"fingerprint": "afe5e2e7b0227472e887da2e05ef3fa5d20b4361046f62a5d107a36e67a5f878", "report": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git qm2n_8og/logs/reviews/afe5e2e7b0227472e887da2e05ef3fa5d20b4361046f62a5d107a36e67a5f878.json", "patch": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git qm2n_8og/logs/reviews/afe5e2e7b0227472e887da2e05ef3fa5d20b4361046f62a5d107a36e67a5f878.patch", "unstaged_changes": false, "untracked_count": 3}
++Hook 已移除，原 Hook 已恢复（如有）
++范围报告：/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git 5gl97xbo/logs/reviews/b01e27396e8f72b7e0c01bf941e9d2dfc5c2b1a5e0fcc9bc4a072accea1298c5.json；审查完成后提交回执，再以新 head 执行 check
++范围审查通过，复用报告：b01e27396e8f72b7e0c01bf941e9d2dfc5c2b1a5e0fcc9bc4a072accea1298c5
++ok：通过
++验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpct6dc99w/logs/project-checks/20260915T083811Z-4f5e0043/result.json
++验证结果与当前源码/配置及暂存区一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpct6dc99w/logs/project-checks/20260915T083811Z-4f5e0043/result.json
++fail：失败
++验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpg30k9z7y/logs/project-checks/20260915T083811Z-dccb770a/result.json
++ok：通过
++验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmptdjqzw_s/logs/project-checks/20260915T083811Z-e17076c4/result.json
++验证结果与当前源码/配置一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmptdjqzw_s/logs/project-checks/20260915T083811Z-e17076c4/result.json
++验证结果与当前源码/配置一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmptdjqzw_s/logs/project-checks/20260915T083811Z-e17076c4/result.json
++mutate：通过
++验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpmekk6e_m/logs/project-checks/20260915T083811Z-998b8933/result.json
++ok：通过
++验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpprtkmdiw/logs/project-checks/20260915T083812Z-d4e42c64/result.json
++ok：通过
++验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpprtkmdiw/logs/project-checks/20260915T083812Z-ea654a15/result.json
++验证结果与当前源码/配置一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpprtkmdiw/logs/project-checks/20260915T083812Z-d4e42c64/result.json
++ok：通过
++验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmph7zn23vv/logs/project-checks/20260915T083812Z-dc107534/result.json
++验证结果与当前源码/配置一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmph7zn23vv/logs/project-checks/20260915T083812Z-dc107534/result.json
++ok：通过
++验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpwccbi5ow/logs/project-checks/20260915T083812Z-3976a241/result.json
++验证结果与当前源码/配置一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpwccbi5ow/logs/project-checks/20260915T083812Z-3976a241/result.json
++验证结果与当前源码/配置及暂存区一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpwccbi5ow/logs/project-checks/20260915T083812Z-3976a241/result.json
++ok：通过
++验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpwccbi5ow/logs/project-checks/20260915T083812Z-497a0bc2/result.json
++ok：通过
++验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpwccbi5ow/logs/project-checks/20260915T083812Z-d8923a34/result.json
++ok：通过
++验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpwccbi5ow/logs/project-checks/20260915T083813Z-e0cbe3c0/result.json
++验证结果与当前源码/配置及暂存区一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpwccbi5ow/logs/project-checks/20260915T083813Z-e0cbe3c0/result.json
++build：通过
++验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp2cukq6ra/logs/project-checks/20260915T083813Z-ac160a27/result.json
++ok：通过
++验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpl2wwcka7/logs/project-checks/20260915T083813Z-718aff65/result.json
++已恢复接入前托管文件：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp6ixffclr/.agents/teamflow-backups/upgrade-979eipzu/transaction.json
++已恢复接入前托管文件：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp_o7a_4m7/.agents/teamflow-backups/upgrade-67bsbcvf/transaction.json
++项目已接入 ios-team-flow 2.2.2：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp_o7a_4m7
++升级前文件备份：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp_o7a_4m7/.agents/teamflow-backups/upgrade-c0cgob4z
++已恢复接入前托管文件：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpda15x4om/.agents/teamflow-backups/upgrade-7pgecsmh/transaction.json
++已恢复接入前托管文件：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpda15x4om/.agents/teamflow-backups/upgrade-7pgecsmh/transaction.json
++项目已接入 ios-team-flow 2.2.2：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp8bsxxx56/project
++升级前文件备份：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp8bsxxx56/project/.agents/teamflow-backups/upgrade-ppicck4u
++{
++  "from": "2.2.2",
++  "to": "2.3.0",
++  "changes": [
++    {
++      "path": "references/VERSION",
++      "action": "更新"
++    },
++    {
++      "path": "references/new.md",
++      "action": "新增"
++    }
++  ],
++  "conflicts": [
++    "references/README.md"
++  ],
++  "resolved": []
++}
++项目已接入 ios-team-flow 2.2.2：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpbt2tovfk/project
++升级前文件备份：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpbt2tovfk/project/.agents/teamflow-backups/upgrade-100a8i5nok
++test_missing_baseline_and_traversal_rejected (test_skill_upgrade.SkillUpgradeTests.test_missing_baseline_and_traversal_rejected) ... ok
++test_preview_preserves_customization_apply_and_restore_all (test_skill_upgrade.SkillUpgradeTests.test_preview_preserves_customization_apply_and_restore_all) ... ok
++test_removed_upstream_file_restored_after_successful_upgrade (test_skill_upgrade.SkillUpgradeTests.test_removed_upstream_file_restored_after_successful_upgrade) ... ok
++test_restore_preserves_changes_made_after_upgrade (test_skill_upgrade.SkillUpgradeTests.test_restore_preserves_changes_made_after_upgrade) ... ok
++test_upstream_removal_and_write_failure_restore_whole_skill (test_skill_upgrade.SkillUpgradeTests.test_upstream_removal_and_write_failure_restore_whole_skill) ... ok
++test_archive_prepare_inherits_only_unchanged_dimensions (test_workflow.WorkflowTests.test_archive_prepare_inherits_only_unchanged_dimensions) ... ok
++test_delete_rename_binary_and_mode_change_invalidate (test_workflow.WorkflowTests.test_delete_rename_binary_and_mode_change_invalidate) ... ok
++test_direct_skill_edits_used_by_package_without_sync (test_workflow.WorkflowTests.test_direct_skill_edits_used_by_package_without_sync) ... ok
++test_external_skill_cannot_bind_project (test_workflow.WorkflowTests.test_external_skill_cannot_bind_project) ... ok
++test_future_upgrade_with_baseline (test_workflow.WorkflowTests.test_future_upgrade_with_baseline) ... ok
++test_gate_rechecks_linked_test_report_against_index (test_workflow.WorkflowTests.test_gate_rechecks_linked_test_report_against_index) ... ok
++test_head_only_change_invalidates_identical_patch (test_workflow.WorkflowTests.test_head_only_change_invalidates_identical_patch) ... ok
++test_initial_commit_pending_then_reuse (test_workflow.WorkflowTests.test_initial_commit_pending_then_reuse) ... ok
++test_package_is_repeatable_and_excludes_project_data (test_workflow.WorkflowTests.test_package_is_repeatable_and_excludes_project_data) ... ok
++test_package_rejects_symlink (test_workflow.WorkflowTests.test_package_rejects_symlink) ... ok
++test_partial_staging_uses_index (test_workflow.WorkflowTests.test_partial_staging_uses_index) ... ok
++test_pending_and_open_findings_rejected (test_workflow.WorkflowTests.test_pending_and_open_findings_rejected) ... ok
++test_project_copy_keeps_local_workflow (test_workflow.WorkflowTests.test_project_copy_keeps_local_workflow) ... ok
++test_project_gate_uses_current_skill_implementation (test_workflow.WorkflowTests.test_project_gate_uses_current_skill_implementation) ... ok
++test_receipts_do_not_retrigger_but_executables_rejected (test_workflow.WorkflowTests.test_receipts_do_not_retrigger_but_executables_rejected) ... ok
++test_repository_documents (test_workflow.WorkflowTests.test_repository_documents) ... ok
++test_requirement_template_links_at_destination (test_workflow.WorkflowTests.test_requirement_template_links_at_destination) ... ok
++test_setup_conflict_does_not_modify_project (test_workflow.WorkflowTests.test_setup_conflict_does_not_modify_project) ... ok
++test_setup_uses_overriding_instructions_and_upgrades (test_workflow.WorkflowTests.test_setup_uses_overriding_instructions_and_upgrades) ... 
++{
++  "from": "2.2.2",
++  "to": "2.3.0",
++  "changes": [
++    {
++      "path": "references/README.md",
++      "action": "更新"
++    },
++    {
++      "path": "references/VERSION",
++      "action": "更新"
++    },
++    {
++      "path": "references/new.md",
++      "action": "新增"
++    }
++  ],
++  "conflicts": [],
++  "resolved": [
++    "references/README.md"
++  ]
++}
++入口计划：.agents/teamflow.json, AGENTS.md, scripts/review_gate.py
++完整备份及恢复记录：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpbt2tovfk/project/.agents/teamflow-backups/upgrade-shca1wah/transaction.json
++项目已接入 ios-team-flow 2.2.2：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmptk4sw4tz/project
++升级前文件备份：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmptk4sw4tz/project/.agents/teamflow-backups/upgrade-cf3nmjzs
++项目已接入 ios-team-flow 2.2.2：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpoagr73m7/project
++升级前文件备份：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpoagr73m7/project/.agents/teamflow-backups/upgrade-5vuotq6c
++{
++  "from": "2.2.2",
++  "to": "2.3.0",
++  "changes": [
++    {
++      "path": "references/VERSION",
++      "action": "更新"
++    },
++    {
++      "path": "references/new.md",
++      "action": "新增"
++    }
++  ],
++  "conflicts": [],
++  "resolved": []
++}
++入口计划：.agents/teamflow.json, AGENTS.md, scripts/review_gate.py
++仅预览；核对差异后加 --apply 执行。
++{
++  "from": "2.2.2",
++  "to": "2.3.0",
++  "changes": [
++    {
++      "path": "references/VERSION",
++      "action": "更新"
++    },
++    {
++      "path": "references/new.md",
++      "action": "新增"
++    }
++  ],
++  "conflicts": [],
++  "resolved": []
++}
++入口计划：.agents/teamflow.json, AGENTS.md, scripts/review_gate.py
++完整备份及恢复记录：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpoagr73m7/project/.agents/teamflow-backups/upgrade-fq9zoybd/transaction.json
++{
++  "from": "2.3.0",
++  "to": "2.3.0",
++  "changes": [],
++  "conflicts": [],
++  "resolved": []
++}
++入口计划：.agents/teamflow.json, AGENTS.md, scripts/review_gate.py
++当前内容与升级结果一致，无需写入。
++已恢复接入前托管文件：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpoagr73m7/project/.agents/teamflow-backups/upgrade-fq9zoybd/transaction.json
++项目已接入 ios-team-flow 2.2.2：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmput20z29j/project
++升级前文件备份：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmput20z29j/project/.agents/teamflow-backups/upgrade-r83n8yn2
++{
++  "from": "2.2.2",
++  "to": "2.3.0",
++  "changes": [
++    {
++      "path": "references/README.md",
++      "action": "删除"
++    },
++    {
++      "path": "references/VERSION",
++      "action": "更新"
++    },
++    {
++      "path": "references/new.md",
++      "action": "新增"
++    }
++  ],
++  "conflicts": [],
++  "resolved": []
++}
++入口计划：.agents/teamflow.json, AGENTS.md, scripts/review_gate.py
++完整备份及恢复记录：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmput20z29j/project/.agents/teamflow-backups/upgrade-_2en5hev/transaction.json
++已恢复接入前托管文件：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmput20z29j/project/.agents/teamflow-backups/upgrade-_2en5hev/transaction.json
++项目已接入 ios-team-flow 2.2.2：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpy0tjhti1/project
++升级前文件备份：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpy0tjhti1/project/.agents/teamflow-backups/upgrade-_a0waxs3
++{
++  "from": "2.2.2",
++  "to": "2.3.0",
++  "changes": [
++    {
++      "path": "references/VERSION",
++      "action": "更新"
++    },
++    {
++      "path": "references/new.md",
++      "action": "新增"
++    }
++  ],
++  "conflicts": [],
++  "resolved": []
++}
++入口计划：.agents/teamflow.json, AGENTS.md, scripts/review_gate.py
++完整备份及恢复记录：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpy0tjhti1/project/.agents/teamflow-backups/upgrade-29qq6sw6/transaction.json
++项目已接入 ios-team-flow 2.2.2：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp0uw3znju/project
++升级前文件备份：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp0uw3znju/project/.agents/teamflow-backups/upgrade-7n3ippj0
++{
++  "from": "2.2.2",
++  "to": "2.3.0",
++  "changes": [
++    {
++      "path": "references/README.md",
++      "action": "删除"
++    },
++    {
++      "path": "references/VERSION",
++      "action": "更新"
++    },
++    {
++      "path": "references/new.md",
++      "action": "新增"
++    }
++  ],
++  "conflicts": [],
++  "resolved": []
++}
++入口计划：.agents/teamflow.json, AGENTS.md, scripts/review_gate.py
++已恢复接入前托管文件：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp0uw3znju/project/.agents/teamflow-backups/upgrade-z089y_33/transaction.json
++需要 Codex 审查并填写报告
++{"fingerprint": "4d43e7aab7e3aa22cabd4ee2925bfbff61c1db3d8bdaffb55d1c7f67a9711dec", "report": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp9dc7ajq6/logs/reviews/4d43e7aab7e3aa22cabd4ee2925bfbff61c1db3d8bdaffb55d1c7f67a9711dec.json", "patch": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp9dc7ajq6/logs/reviews/4d43e7aab7e3aa22cabd4ee2925bfbff61c1db3d8bdaffb55d1c7f67a9711dec.patch", "unstaged_changes": false, "untracked_count": 2}
++工作流入口、版本、文件清单和内部链接检查通过
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmppmh8iy6k/dist/iOS-TeamFlow-v2.2.2.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmppmh8iy6k/dist/ios-team-flow-skill-v2.2.2.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp37a2vj_2/source/dist/ios-team-flow-skill-v2.2.2.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp37a2vj_2/source/dist/ios-team-flow-skill-v2.2.2.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp1o4m9gus/source/dist/ios-team-flow-skill-v2.2.2.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp1o4m9gus/source/dist/ios-team-flow-skill-v2.2.2.zip
++验证结果与当前源码/配置及暂存区一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpbc7g1q4c/logs/project-checks/20260915T083817Z-68c1bf01/result.json
++审查门禁通过，复用指纹：f5dc4e4ce81459054b1204b1018a51f602c16319915e90df031fba7cee9fac8d
++审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
++复用已完成审查
++{"fingerprint": "df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf", "report": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpw91hrtlv/logs/reviews/df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf.json", "patch": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpw91hrtlv/logs/reviews/df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf.patch", "unstaged_changes": false, "untracked_count": 1}
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpeb7h6fak/dist/iOS-TeamFlow-v2.2.2.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpeb7h6fak/dist/iOS-TeamFlow-v2.2.2.zip
++审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp5_j0cr5i/source/dist/ios-team-flow-skill-v2.2.2.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp5_j0cr5i/source/dist/ios-team-flow-skill-v2.2.2.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp4vvvi7dq/source/dist/ios-team-flow-skill-v2.2.2.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp4vvvi7dq/source/dist/ios-team-flow-skill-v2.2.2.zip
++审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
++工作流入口、版本、文件清单和内部链接检查通过
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmppjoao_7k/source/dist/ios-team-flow-skill-v2.2.2.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmppjoao_7k/source/dist/ios-team-flow-skill-v2.2.2.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp3wcyt9a3/source/dist/ios-team-flow-skill-v2.2.2.zipok
++test_setup_version_conflict_and_symlink (test_workflow.WorkflowTests.test_setup_version_conflict_and_symlink) ... ok
++test_staged_change_and_head_invalidate (test_workflow.WorkflowTests.test_staged_change_and_head_invalidate) ... ok
++test_standalone_skill_two_projects_and_idempotence (test_workflow.WorkflowTests.test_standalone_skill_two_projects_and_idempotence) ... ok
++test_switch_from_agents_to_override_keeps_old_rules (test_workflow.WorkflowTests.test_switch_from_agents_to_override_keeps_old_rules) ... ok
++test_unstaged_report_cannot_replace_pending_index_report (test_workflow.WorkflowTests.test_unstaged_report_cannot_replace_pending_index_report) ... ok
++test_upgrade_121_without_baseline (test_workflow.WorkflowTests.test_upgrade_121_without_baseline) ... ok
++test_upgrade_customization_conflicts_write_nothing (test_workflow.WorkflowTests.test_upgrade_customization_conflicts_write_nothing) ... ok
++test_upgrade_rejects_downgrade_bad_manifest_and_markers (test_workflow.WorkflowTests.test_upgrade_rejects_downgrade_bad_manifest_and_markers) ... ok
++test_version_only_upgrade_preserves_team_customization (test_workflow.WorkflowTests.test_version_only_upgrade_preserves_team_customization) ... ok
++test_workflow_policy_change_requires_review (test_workflow.WorkflowTests.test_workflow_policy_change_requires_review) ... ok
++
++----------------------------------------------------------------------
++Ran 115 tests in 40.434s
++
++OK
++
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp3wcyt9a3/source/dist/ios-team-flow-skill-v2.2.2.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpfdf4e90z/source/dist/ios-team-flow-skill-v2.2.2.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpfdf4e90z/source/dist/ios-team-flow-skill-v2.2.2.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpos4zp3yc/source/dist/ios-team-flow-skill-v2.2.2.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpos4zp3yc/source/dist/ios-team-flow-skill-v2.2.2.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp7msh5_qz/source/dist/ios-team-flow-skill-v2.2.2.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp7msh5_qz/source/dist/ios-team-flow-skill-v2.2.2.zip
++需要 Codex 审查并填写报告
++{"fingerprint": "df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf", "report": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp7vma3y0l/logs/reviews/df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf.json", "patch": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp7vma3y0l/logs/reviews/df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf.patch", "unstaged_changes": false, "untracked_count": 2}
++审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
++审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpi53j2b61/source/dist/ios-team-flow-skill-v2.2.2.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpi53j2b61/source/dist/ios-team-flow-skill-v2.2.2.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpgy4fzjl8/source/dist/ios-team-flow-skill-v2.2.2.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpgy4fzjl8/source/dist/ios-team-flow-skill-v2.2.2.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpmng_1xl1/source/dist/ios-team-flow-skill-v2.2.2.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpmng_1xl1/source/dist/ios-team-flow-skill-v2.2.2.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpnx2xfhdb/source/dist/ios-team-flow-skill-v2.2.2.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpnx2xfhdb/source/dist/ios-team-flow-skill-v2.2.2.zip
+diff --git a/requirements/DELIVERY.md b/requirements/DELIVERY.md
+index 058f694a70a5e70432f1abe207ce43c3d951a5d9..117032038ccf6c7bd689733270c9fc6918da8123 100644
+--- a/requirements/DELIVERY.md
++++ b/requirements/DELIVERY.md
+@@ -22,5 +22,6 @@
+ | 16 | 2026-09-15T02:50:58.258+00:00 | [REQ-20260915-025058258Z-f3fb7916](REQ-20260915-025058258Z-f3fb7916.md) | 发布工作流 2.2.0 | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-15T02:55:03.482523+00:00 |
+ | 17 | 2026-09-15T07:27:11.813+00:00 | [REQ-20260915-072711813Z-10d9d478](REQ-20260915-072711813Z-10d9d478.md) | Demo 接入 Masonry 自动布局 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-15T07:33:56.719012+00:00 |
+ | 18 | 2026-09-15T07:36:04.146+00:00 | [REQ-20260915-073604146Z-d1f92840](REQ-20260915-073604146Z-d1f92840.md) | 推送源码版本 2.2.1 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-15T07:37:54.730096+00:00 |
+-| 19 | 2026-09-15T07:49:41.506+00:00 | [REQ-20260915-074941506Z-ea88625b](REQ-20260915-074941506Z-ea88625b.md) | Demo 重构为 MVVM 架构 | ✅ 执行完成 | ⬜ 未关联 | 未核实 | 未核实 | 2026-09-15T08:00:23.576771+00:00 |
++| 19 | 2026-09-15T07:49:41.506+00:00 | [REQ-20260915-074941506Z-ea88625b](REQ-20260915-074941506Z-ea88625b.md) | Demo 重构为 MVVM 架构 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-15T08:01:05.773690+00:00 |
+ | 20 | 2026-09-15T07:51:23.794+00:00 | [REQ-20260915-075123794Z-73d854b0](REQ-20260915-075123794Z-73d854b0.md) | 生成代码遵循需求架构与模块复用边界 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-15T07:59:04.535702+00:00 |
++| 21 | 2026-09-15T08:37:24.172+00:00 | [REQ-20260915-083724172Z-6efa3c57](REQ-20260915-083724172Z-6efa3c57.md) | 推送源码版本 2.2.2 | ✅ 执行完成 | ⬜ 未关联 | 未核实 | 未核实 | 2026-09-15T08:38:36.967929+00:00 |
+diff --git a/requirements/REQ-20260915-083724172Z-6efa3c57.md b/requirements/REQ-20260915-083724172Z-6efa3c57.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..2426052bc097583183f77a0dacc726a202cca7aa
+--- /dev/null
++++ b/requirements/REQ-20260915-083724172Z-6efa3c57.md
+@@ -0,0 +1,21 @@
++# REQ-20260915-083724172Z-6efa3c57：推送源码版本 2.2.2
++<!-- teamflow:requirement:v3 -->
++
++- 状态：✅ 执行完成
++- 来源与范围：用户要求推送 2.2.2，沿用源码推送、不创建 Release 或标签的约定；包含架构生成规范和 Demo MVVM 重构。
++- 拆分：否；单一版本交付。
++- 验收方式：自审
++- 验收依据：版本与说明变更可客观验证，既有实现复用有效测试。
++- 下一步：无
++- 阻塞项：无
++
++## 验收（唯一结果记录）
++
++| 编号 | 条件 | 结果 | 证据或不适用原因 |
++| --- | --- | --- | --- |
++| AC-01 | 源码版本一致为 2.2.2，更新说明包含架构规范和 MVVM，正式下载仍为 2.2.0 | 通过 | VERSION、README、CHANGELOG、teamflow.json |
++| AC-02 | 全量工具检查通过，Demo 输入未变且已有有效测试 | 通过 | logs/version-2.2.2/workflow-checks.log；logs/project-checks/20260915T075656Z-a3b86675/result.json |
++
++## 过程与决策
++
++- 2026-09-15T16:37:24+08:00：仅更新源码版本并推送 main，不创建 Release。复用 Demo Debug 14 单元+3 UI、Release 14 单元通过的证据，不重复测试未变化的 App 输入。
+diff --git a/requirements/delivery/REQ-20260915-074941506Z-ea88625b.json b/requirements/delivery/REQ-20260915-074941506Z-ea88625b.json
+index 9c05929924961d36bef25071d37afa91f8c3523b..c8bfa21b488328829f7b30d105cb9a5546e52ad9 100644
+--- a/requirements/delivery/REQ-20260915-074941506Z-ea88625b.json
++++ b/requirements/delivery/REQ-20260915-074941506Z-ea88625b.json
+@@ -30,6 +30,18 @@
+         "checked_at": "2026-09-15T08:00:23.576771+00:00"
+       },
+       "removed": []
++    },
++    {
++      "at": "2026-09-15T08:01:05.774360+00:00",
++      "action": "finish",
++      "changes": {
++        "commits": [
++          "d99e2ddba7eef2bf161a0b1824e199b4aed0808c"
++        ],
++        "committed": true,
++        "checked_at": "2026-09-15T08:01:05.773690+00:00"
++      },
++      "removed": []
+     }
+   ],
+   "acceptance_baseline": {
+@@ -46,11 +58,17 @@
+         "sha256": "f8e778a208bf0a34ed7fc7347480dadd3e55597eafb580f642473c940bd348b1"
+       }
+     ],
+-    "accepted_at": "2026-09-15T08:00:23.576548+00:00"
++    "accepted_at": "2026-09-15T08:00:23.576548+00:00",
++    "sealed_commits": [
++      "d99e2ddba7eef2bf161a0b1824e199b4aed0808c"
++    ],
++    "accepted_commit": "d99e2ddba7eef2bf161a0b1824e199b4aed0808c"
+   },
+   "snapshot": {
+-    "commits": [],
+-    "committed": false,
++    "commits": [
++      "d99e2ddba7eef2bf161a0b1824e199b4aed0808c"
++    ],
++    "committed": true,
+     "merged": "未核实",
+     "releases": [],
+     "release_status": "未核实",
+@@ -68,6 +86,6 @@
+       "acceptance_fingerprint": "4a668c75b02114dd9d64f4cf12225f1ba6c97684ceb421501153f189798e4a19",
+       "implementation_fingerprint": "f654b24731808d4729742fb81c517cffc6babf305d2c8303eecf53a032214b37"
+     },
+-    "checked_at": "2026-09-15T08:00:23.576771+00:00"
++    "checked_at": "2026-09-15T08:01:05.773690+00:00"
+   }
+ }
+diff --git a/requirements/delivery/REQ-20260915-083724172Z-6efa3c57.json b/requirements/delivery/REQ-20260915-083724172Z-6efa3c57.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..7f7c8d858e78f4ef77c1580b0d393464a06b9aa8
+--- /dev/null
++++ b/requirements/delivery/REQ-20260915-083724172Z-6efa3c57.json
+@@ -0,0 +1,69 @@
++{
++  "schema_version": 1,
++  "requirement": "REQ-20260915-083724172Z-6efa3c57",
++  "linked_commits": [],
++  "prs": [],
++  "events": [
++    {
++      "at": "2026-09-15T08:38:36.968222+00:00",
++      "action": "finish",
++      "changes": {
++        "commits": [],
++        "committed": false,
++        "merged": "未核实",
++        "releases": [],
++        "release_status": "未核实",
++        "prs": [],
++        "warnings": [
++          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++        ],
++        "development": "✅ 执行完成",
++        "card": {
++          "state": "✅ 执行完成",
++          "passed": 2,
++          "applicable": 2,
++          "next": "无",
++          "blocker": "无",
++          "acceptance_fingerprint": "4a1048f8a3b49cedbcc99bc01c14ef3d66869353d34ba3536cee50446ebba2a8",
++          "implementation_fingerprint": "25db8887bf6e41339581c700c8f5fcc496a60701322c1f72e19dbddcf53f0fe3"
++        },
++        "checked_at": "2026-09-15T08:38:36.967929+00:00"
++      },
++      "removed": []
++    }
++  ],
++  "acceptance_baseline": {
++    "implementation_fingerprint": "25db8887bf6e41339581c700c8f5fcc496a60701322c1f72e19dbddcf53f0fe3",
++    "acceptance_fingerprint": "4a1048f8a3b49cedbcc99bc01c14ef3d66869353d34ba3536cee50446ebba2a8",
++    "inputs": [
++      "README.md",
++      ".agents/teamflow.json",
++      ".agents/skills/ios-team-flow/references/VERSION",
++      ".agents/skills/ios-team-flow/references/CHANGELOG.md"
++    ],
++    "results": [],
++    "accepted_at": "2026-09-15T08:38:36.967783+00:00"
++  },
++  "snapshot": {
++    "commits": [],
++    "committed": false,
++    "merged": "未核实",
++    "releases": [],
++    "release_status": "未核实",
++    "prs": [],
++    "warnings": [
++      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++    ],
++    "development": "✅ 执行完成",
++    "card": {
++      "state": "✅ 执行完成",
++      "passed": 2,
++      "applicable": 2,
++      "next": "无",
++      "blocker": "无",
++      "acceptance_fingerprint": "4a1048f8a3b49cedbcc99bc01c14ef3d66869353d34ba3536cee50446ebba2a8",
++      "implementation_fingerprint": "25db8887bf6e41339581c700c8f5fcc496a60701322c1f72e19dbddcf53f0fe3"
++    },
++    "checked_at": "2026-09-15T08:38:36.967929+00:00"
++  }
++}
