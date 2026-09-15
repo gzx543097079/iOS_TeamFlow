@@ -86,17 +86,17 @@ final class DemoTests: XCTestCase {
 
     @MainActor func testSettingsScreensReleaseWithNavigation() {
         weak var settings: SettingsViewController?
-        weak var language: LanguageViewController?
+        weak var language: ChoiceViewController?
         weak var about: AboutViewController?
         autoreleasepool {
-            let controller = SettingsViewController()
+            let controller = SettingsViewController(viewModel: SettingsViewModel(preferences: DemoPreferences.shared))
             settings = controller
             let navigation = UINavigationController(rootViewController: controller)
-            let picker = LanguageViewController(preferences: .shared)
+            let picker = ChoiceViewController(viewModel: LanguageViewModel(preferences: DemoPreferences.shared))
             language = picker
             navigation.pushViewController(picker, animated: false)
             picker.loadViewIfNeeded()
-            let info = AboutViewController(preferences: .shared)
+            let info = AboutViewController(viewModel: AboutViewModel(preferences: DemoPreferences.shared, version: "1.0", build: "1"))
             about = info
             navigation.pushViewController(info, animated: false)
             info.loadViewIfNeeded()
@@ -125,15 +125,17 @@ final class DemoTests: XCTestCase {
         XCTAssertEqual(bag.totalCents, 0)
     }
 
-    @MainActor func testNavigationRecordsOneEventAndUsesSelectedProduct() {
+    @MainActor func testNavigationRecordsOneEventAndUsesSelectedProduct() throws {
         let events = DemoEvents()
         let product = DemoProduct.catalog[2]
-        let controller = DemoViewController(events: events)
-        let navigation = UINavigationController(rootViewController: controller)
+        let coordinator = DemoCoordinator(preferences: DemoPreferences.shared, events: events)
+        coordinator.start()
+        let navigation = coordinator.navigationController
+        let controller = try XCTUnwrap(navigation.viewControllers.first as? DemoViewController)
         controller.loadViewIfNeeded()
         controller.showProduct(product)
         XCTAssertEqual(events.names, ["demo_product_open"])
-        XCTAssertEqual((navigation.topViewController as? ProductViewController)?.product, product)
+        XCTAssertEqual((navigation.topViewController as? ProductViewController)?.viewModel.product, product)
         XCTAssertEqual(navigation.viewControllers.count, 2)
     }
 
@@ -142,14 +144,15 @@ final class DemoTests: XCTestCase {
         weak var detail: ProductViewController?
         weak var cart: BagViewController?
         autoreleasepool {
-            let controller = DemoViewController()
+            let controller = DemoViewController(viewModel: StoreViewModel(preferences: DemoPreferences.shared, events: DemoEvents()))
             reference = controller
             let navigation = UINavigationController(rootViewController: controller)
             controller.loadViewIfNeeded()
-            controller.showProduct(DemoProduct.catalog[0])
-            detail = navigation.topViewController as? ProductViewController
+            let detailPage = ProductViewController(viewModel: ProductViewModel(product: DemoProduct.catalog[0], preferences: DemoPreferences.shared, bag: DemoBag()))
+            navigation.pushViewController(detailPage, animated: false)
+            detail = detailPage
             detail?.loadViewIfNeeded()
-            let bagPage = BagViewController(preferences: .shared, bag: controller.bag)
+            let bagPage = BagViewController(viewModel: BagViewModel(preferences: DemoPreferences.shared, bag: DemoBag()))
             cart = bagPage
             navigation.pushViewController(bagPage, animated: false)
             bagPage.loadViewIfNeeded()

@@ -53,3 +53,11 @@ pod install --project-directory=App/TeamFlowDemo
 通过 CocoaPods 接入官方 [Masonry](https://github.com/SnapKit/Masonry) 1.1.0，提交 Podfile 与 Podfile.lock，Pods 目录不入库。使用 CocoaPods 1.16.2 安装；版本由锁文件固定。工程生成后必须再次执行 pod install 恢复集成，构建和测试使用 TeamFlowDemo.xcworkspace。
 
 桥接头向 Swift 暴露 Masonry；商城容器、横幅、商品卡片、详情和关于页使用 mas_makeConstraints。UILayoutGuide 桥接保留真实安全区域、滚动内容和视口对象；Stack View 内部排列与系统表格行由 UIKit 管理。
+
+## MVVM 与模块组织
+
+需求架构及实际职责映射见根 requirements/PROJECT-CONTEXT.md「已确认架构与实现映射」。Sources 按 Application、Features、Shared、Infrastructure 组织；Features 内分 Views 与 ViewModels。ViewModel 通过 Shared 协议使用存储和事件能力，不引用 UIKit 或具体页面。
+
+控制器只负责渲染、布局、事件转发；DemoCoordinator 组装依赖并协调导航，Masonry 仍通过 CocoaPods 管理。语言/外观共用 ChoiceViewController，商城/详情/购物袋共用 ProductItem 格式化，布局共用 StoreStyle。同步操作后重新渲染快照，页面返回时刷新共享状态。
+
+ViewModelTests 使用内存替身检查筛选、加购/移除、设置共享状态、版本注入及 Coordinator 释放；DemoTests 和 UI 测试继续检查真实窗口、布局、语言与外观持久化、商城操作。

@@ -1,57 +1,5 @@
 import UIKit
 
-/// 本地展示商品，金额以分保存，避免购物袋汇总的浮点误差。
-struct DemoProduct: Equatable {
-    enum Category: String, CaseIterable { case all, audio, daily }
-    let id: String
-    let category: Category
-    let symbol: String
-    let priceCents: Int
-    var nameKey: String { "product.\(id).name" }
-    var descriptionKey: String { "product.\(id).description" }
-
-    static let catalog = [
-        DemoProduct(id: "headphones", category: .audio, symbol: "headphones", priceCents: 29900),
-        DemoProduct(id: "bag", category: .daily, symbol: "bag.fill", priceCents: 8900),
-        DemoProduct(id: "speaker", category: .audio, symbol: "hifispeaker.fill", priceCents: 19900),
-        DemoProduct(id: "keyboard", category: .daily, symbol: "keyboard", priceCents: 15900)
-    ]
-
-    static func filtered(by category: Category) -> [DemoProduct] {
-        catalog.filter { category == .all || $0.category == category }
-    }
-    static func price(_ cents: Int, preferences: DemoPreferences) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.currencyCode = "CNY"
-        formatter.locale = preferences.locale
-        return formatter.string(from: NSDecimalNumber(value: cents).dividing(by: 100)) ?? "CNY \(cents / 100)"
-    }
-}
-
-/// 购物袋仅在本次运行内保存，商品来自本地目录，不提交订单或调用支付。
-final class DemoBag {
-    private(set) var quantities: [String: Int] = [:]
-    var products: [DemoProduct] { DemoProduct.catalog.filter { quantities[$0.id] != nil } }
-    var count: Int { quantities.values.reduce(0, +) }
-    var totalCents: Int { products.reduce(0) { $0 + $1.priceCents * (quantities[$1.id] ?? 0) } }
-    func add(_ product: DemoProduct) {
-        guard DemoProduct.catalog.contains(product) else { return }
-        quantities[product.id, default: 0] += 1
-        TFLog.debug("Demo 购物袋已添加商品")
-    }
-    func remove(_ product: DemoProduct) { quantities.removeValue(forKey: product.id) }
-}
-
-/// 本地演练事件不上传，仅供导航验证及 Debug 排错。
-final class DemoEvents {
-    private(set) var names: [String] = []
-    func record(_ name: String) {
-        names.append(name)
-        TFLog.debug("Demo 事件：\(name)")
-    }
-}
-
 /// 品牌色随系统外观调整，内容颜色仍采用系统语义颜色。
 enum StoreStyle {
     static let accent = UIColor { $0.userInterfaceStyle == .dark

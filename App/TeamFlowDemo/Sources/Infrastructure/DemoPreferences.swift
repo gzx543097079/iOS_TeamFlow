@@ -1,24 +1,11 @@
-import UIKit
+import Foundation
 
 /// 保存用户选择；系统语言变化在下次启动时由 Bundle 重新解析。
-final class DemoPreferences: NSObject {
+final class DemoPreferences: NSObject, PreferencesStore {
     static let appearanceDidChange = Notification.Name("DemoAppearanceDidChange")
 
-    enum Appearance: String, CaseIterable {
-        case system, light, dark
-        var titleKey: String { "appearance.\(rawValue)" }
-        var interfaceStyle: UIUserInterfaceStyle {
-            switch self {
-            case .system: return .unspecified
-            case .light: return .light
-            case .dark: return .dark
-            }
-        }
-    }
-    enum Language: String, CaseIterable {
-        case system, english = "en", chinese = "zh-Hans"
-        var titleKey: String { "language.\(rawValue)" }
-    }
+    typealias Appearance = DemoAppearance
+    typealias Language = DemoLanguage
 
     static let shared: DemoPreferences = {
         #if DEBUG
@@ -67,18 +54,3 @@ final class DemoPreferences: NSObject {
     }
 }
 
-/// 窗口级外观覆盖统一作用于导航栏和所有页面，跟随系统不固定亮暗。
-final class DemoAppearanceBinding {
-    private var observer: NSObjectProtocol?
-    init(window: UIWindow, preferences: DemoPreferences) {
-        window.overrideUserInterfaceStyle = preferences.appearance.interfaceStyle
-        observer = NotificationCenter.default.addObserver(
-            forName: DemoPreferences.appearanceDidChange, object: preferences, queue: .main
-        ) { [weak window] _ in
-            window?.overrideUserInterfaceStyle = preferences.appearance.interfaceStyle
-        }
-    }
-    deinit {
-        if let observer = observer { NotificationCenter.default.removeObserver(observer) }
-    }
-}
