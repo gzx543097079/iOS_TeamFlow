@@ -29,7 +29,7 @@ python3 .agents/skills/ios-team-flow/scripts/delivery.py --requirement REQ-实�
 python3 .agents/skills/ios-team-flow/scripts/delivery.py --requirement REQ-实际编号 finish --github
 ```
 
-新需求用 create --title 生成，续接原卡不要重复创建。历史需求不补同步，--all 只处理结构化 v3 卡；日常只指定本需求。
+新需求用 create --title 生成；新缺陷使用 create --template bug-fix --title，见 [Bug 修复与历史](BUGFIX.md)。续接原卡不要重复创建。历史需求不补同步，--all 只处理结构化 v3 卡；日常只指定本需求。
 
 ## 提交与远端证据
 

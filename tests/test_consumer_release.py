@@ -47,6 +47,28 @@ class ConsumerReleaseTests(unittest.TestCase):
         self.git('config', 'user.name', 'Consumer Fixture')
         self.git('config', 'user.email', 'fixture@example.invalid')
 
+    def test_bug_template_in_package_preserves_history_through_finish(self):
+        self.initialize()
+        created = json.loads(self.cli('delivery.py', 'create', '--template', 'bug-fix', '--title', '切换语言后返回按钮未更新').stdout)
+        identifier = created['requirement']
+        card = Path(created['card'])
+        self.assertEqual(self.root / 'requirements' / (identifier + '.md'), card)
+        self.assertIn('- 类型：Bug Fix', card.read_text())
+        self.assertNotIn('REQ-YYYYMMDD', card.read_text())
+        history = '\n| 2026-09-15T10:00:00+08:00 | Test | 复现 | 首次尝试仍失败，保留证据 | fixture-log |\n'
+        content = card.read_text().replace('⬜ 未执行', '🔄 执行中') + history
+        card.write_text(content)
+        rows = json.loads(self.cli('delivery.py', 'list', '--json').stdout)
+        self.assertEqual([identifier], [row['requirement'] for row in rows])
+        self.cli('delivery.py', '--requirement', identifier, 'finish')
+        self.assertEqual(content, card.read_text())
+        record = self.root / 'requirements/delivery' / (identifier + '.json')
+        before = record.read_bytes()
+        self.cli('delivery.py', '--requirement', identifier, 'finish')
+        self.assertEqual(before, record.read_bytes())
+        self.assertEqual(content, card.read_text())
+        self.assertTrue((self.root / '.agents/skills/ios-team-flow/references/BUGFIX.md').is_file())
+
     def test_cold_install_diagnoses_without_changing_project(self):
         (self.root / 'AGENTS.md').write_text('团队原规则\n')
         (self.root / 'project.yml').write_text('deploymentTarget: 17.0\nframework: SwiftUI\n')

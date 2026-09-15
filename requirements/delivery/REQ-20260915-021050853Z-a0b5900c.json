@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "requirement": "REQ-20260915-021050853Z-a0b5900c",
+  "linked_commits": [],
+  "prs": [],
+  "events": [
+    {
+      "at": "2026-09-15T02:14:39.509500+00:00",
+      "action": "finish",
+      "changes": {
+        "commits": [],
+        "committed": false,
+        "merged": "未核实",
+        "releases": [],
+        "release_status": "未核实",
+        "prs": [],
+        "warnings": [
+          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+        ],
+        "development": "✅ 执行完成",
+        "card": {
+          "state": "✅ 执行完成",
+          "passed": 2,
+          "applicable": 2,
+          "next": "无",
+          "blocker": "无",
+          "acceptance_fingerprint": "c1af04374f036c2543adf0bb17dd76209d8bd1702052814ad4a581785e75a7ad",
+          "implementation_fingerprint": "89aeec2beef165aae891dffc7c002531ae3d82429c932763d87dae685995ddee"
+        },
+        "checked_at": "2026-09-15T02:14:39.509215+00:00"
+      },
+      "removed": []
+    }
+  ],
+  "acceptance_baseline": {
+    "implementation_fingerprint": "89aeec2beef165aae891dffc7c002531ae3d82429c932763d87dae685995ddee",
+    "acceptance_fingerprint": "c1af04374f036c2543adf0bb17dd76209d8bd1702052814ad4a581785e75a7ad",
+    "inputs": [
+      ".agents/skills/ios-team-flow/SKILL.md",
+      ".agents/skills/ios-team-flow/references/BUGFIX.md",
+      ".agents/skills/ios-team-flow/references/templates/bug-fix.md",
+      ".agents/skills/ios-team-flow/references/WORKFLOW.md",
+      ".agents/skills/ios-team-flow/references/DELIVERY.md",
+      ".agents/skills/ios-team-flow/scripts/delivery.py",
+      "scripts/package_release.py",
+      "tests/test_delivery.py",
+      "tests/test_consumer_release.py",
+      "README.md"
+    ],
+    "results": [],
+    "accepted_at": "2026-09-15T02:14:39.509073+00:00"
+  },
+  "snapshot": {
+    "commits": [],
+    "committed": false,
+    "merged": "未核实",
+    "releases": [],
+    "release_status": "未核实",
+    "prs": [],
+    "warnings": [
+      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+    ],
+    "development": "✅ 执行完成",
+    "card": {
+      "state": "✅ 执行完成",
+      "passed": 2,
+      "applicable": 2,
+      "next": "无",
+      "blocker": "无",
+      "acceptance_fingerprint": "c1af04374f036c2543adf0bb17dd76209d8bd1702052814ad4a581785e75a7ad",
+      "implementation_fingerprint": "89aeec2beef165aae891dffc7c002531ae3d82429c932763d87dae685995ddee"
+    },
+    "checked_at": "2026-09-15T02:14:39.509215+00:00"
+  }
+}

@@ -503,12 +503,15 @@ def finish(root, requirements, github=False, check=False, accept=False, inputs=N
     return (not stale and not overview_outdated) if check else True
 
 
-def create(root, title):
+def create(root, title, template_name="requirement"):
+    # 模板名使用白名单，不允许外部路径替换项目内模板。
+    if template_name not in ("requirement", "bug-fix"):
+        raise ValueError("未知需求模板：" + str(template_name))
     if not title.strip() or '\n' in title or '\r' in title:
         raise ValueError('标题须为单行非空文本')
     directory = safe_path(root, 'requirements')
     directory.mkdir(parents=True, exist_ok=True)
-    template = Path(__file__).resolve().parents[1] / 'references/templates/requirement.md'
+    template = Path(__file__).resolve().parents[1] / ('references/templates/' + template_name + '.md')
     for _ in range(128):
         now = datetime.now(timezone.utc)
         requirement = 'REQ-' + now.strftime('%Y%m%d-%H%M%S') + f'{now.microsecond // 1000:03d}Z-' + uuid.uuid4().hex[:8]
@@ -537,6 +540,8 @@ def main():
     status.add_argument('--history', action='store_true', help='按需展开完整历史事件')
     creator = sub.add_parser('create')
     creator.add_argument('--title', required=True)
+    creator.add_argument('--template', choices=('requirement', 'bug-fix'), default='requirement',
+                         help='普通需求或含复现与处理历史的 Bug Fix 模板')
     finishing = sub.add_parser('finish')
     finishing.add_argument('--all', action='store_true', help='处理所有需求卡')
     finishing.add_argument('--github', action='store_true')
@@ -562,7 +567,7 @@ def main():
         if args.command == 'create':
             if args.requirement:
                 raise ValueError('create 自动分配编号，不接收 --requirement')
-            create(root, args.title)
+            create(root, args.title, args.template)
             return 0
         if args.command == 'list':
             if args.requirement:

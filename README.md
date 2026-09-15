@@ -152,3 +152,7 @@ python3 scripts/package_release.py
 ```
 
 工作流 ZIP 发布按 [RELEASE](.agents/skills/ios-team-flow/references/RELEASE.md)，本地打包不代表已发布；完整分发包中的发布流水线不直接覆盖进业务项目。真实 App 示例只在源码 `App/TeamFlowDemo/`，不随独立 Skill 包分发。参考来源见 [SOURCES](.agents/skills/ios-team-flow/references/SOURCES.md)。
+
+## Bug 修复模板与历史
+
+缺陷使用 [Bug Fix 模板](.agents/skills/ios-team-flow/references/templates/bug-fix.md)，包含复现、根因、修复、回归和处理历史。创建与续接规则见 [缺陷处理规程](.agents/skills/ios-team-flow/references/BUGFIX.md)。本仓库已有记录入口见 `requirements/BUGFIX-HISTORY.md`；业务项目的真实记录保留在各自 requirements/。

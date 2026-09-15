@@ -409,6 +409,13 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual({}, snapshot)
         self.assertFalse(path.exists())
 
+    def test_unknown_template_rejected_without_writing(self):
+        before = {p: p.read_bytes() for p in (self.root / 'requirements').rglob('*') if p.is_file()}
+        for name in ('../requirement', 'missing', ''):
+            with self.assertRaises(ValueError):
+                d.create(self.root, '缺陷', name)
+        self.assertEqual(before, {p: p.read_bytes() for p in (self.root / 'requirements').rglob('*') if p.is_file()})
+
     def test_timestamp_ids_sort_and_retry_without_overwrite(self):
         from datetime import datetime, timezone
         from types import SimpleNamespace

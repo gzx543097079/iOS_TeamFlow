@@ -9,7 +9,7 @@ REFERENCES = (
     'LOGGING.md', 'EVOLUTION.md', 'SCENARIOS.md', 'APP-RELEASE.md', 'templates/app-release.md', 'ACCEPTANCE.md', 'templates/acceptance.md', 'VERSION', 'README.md', 'CHANGELOG.md', 'WORKFLOW.md', 'REVIEW.md',
     'RELEASE.md', 'SOURCES.md', 'INSTALL.md', 'standards/ui.md',
     'standards/comments.md', 'standards/objective-c.md', 'standards/swift.md', 'standards/swiftui.md',
-    'templates/new-project.md', 'templates/requirement.md',
+    'templates/new-project.md', 'templates/requirement.md', 'BUGFIX.md', 'templates/bug-fix.md',
     'GIT-CHECKS.md', 'DELIVERY.md', 'PROJECT-CHECKS.md', 'EXISTING-PROJECT.md', 'templates/project-context.md',
 )
 # 仅打包明确登记的通用文件，不打包项目接入记录、需求或日志。
