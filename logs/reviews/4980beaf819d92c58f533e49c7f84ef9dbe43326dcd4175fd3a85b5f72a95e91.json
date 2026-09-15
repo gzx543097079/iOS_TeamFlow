@@ -1,0 +1,46 @@
+{
+  "fingerprint": "4980beaf819d92c58f533e49c7f84ef9dbe43326dcd4175fd3a85b5f72a95e91",
+  "base": "fd24833fbe111a891860b561dd5f92498ff29626",
+  "scope": "staged",
+  "created_at": "2026-09-15T02:34:15.186455+00:00",
+  "reviewer": "Codex",
+  "completed_at": "2026-09-15T02:38:43.678344+00:00",
+  "summary": "本次生成规则、分发清单及需求记录审查通过；UIKit 与 SwiftUI 入口分别约束，真实启动验收纳入生成和提交流程。",
+  "previous_review": null,
+  "checks": {
+    "correctness": {
+      "status": "通过",
+      "evidence": "已审查暂存差异：入口、启动模板、单一生命周期专题、项目检查及提交审查完整关联。115 项工具检查通过，两种分发包内容与源码一致，见 logs/scene-generation-rules/verification.md。本次未新建 OC/SwiftUI App 实测，不将规则验证等同于实际生成 App 启动通过。"
+    },
+    "standards": {
+      "status": "通过",
+      "evidence": "中文规程区分 OC/UIKit、Swift/UIKit 和 SwiftUI App，窗口数量与部署目标遵循产品范围；普通既有页面不强制迁移，无新增人工审批。"
+    },
+    "subscription": {
+      "status": "不适用",
+      "evidence": "仅工作流生成规则及分发引用，无购买、订阅或商品配置改动。"
+    },
+    "memory": {
+      "status": "不适用",
+      "evidence": "无运行时代码修改；窗口归属及重复创建要求已纳入生成后实际验收。"
+    },
+    "analytics": {
+      "status": "不适用",
+      "evidence": "无埋点或业务事件变更。"
+    },
+    "test_artifacts": {
+      "status": "通过",
+      "evidence": "logs/scene-generation-rules/workflow-checks.log 记录 115 项检查通过；distribution-check.json 验证两种分发包规则文件。证据明确未新建各框架 App 实测，未改动 Demo 输入，不重复运行其有效验证。"
+    },
+    "security": {
+      "status": "通过",
+      "evidence": "无凭证、权限或网络行为修改；沿用显式分发清单，仅加入生命周期专题，不通过过滤警告伪造启动验证。"
+    }
+  },
+  "findings": [],
+  "blockers": [],
+  "requirements": [
+    "REQ-20260915-022947173Z-dec776a7"
+  ],
+  "validation_results": []
+}

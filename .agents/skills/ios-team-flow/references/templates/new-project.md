@@ -153,6 +153,10 @@
 - 提交 `.xcodeproj` 必要文件、共享 Scheme、依赖锁定记录及源资源；多人共享所需 Scheme 用共享配置。忽略 DerivedData、构建产物和 xcuserdata 等个人状态；不把项目工作流、requirements/、logs/ 当作 App 资源打包。
 - 默认一个 App 工程即可；只有多个工程协作或现有工具确需 Workspace 时，才引入 `.xcworkspace`。不要额外建立空 Workspace 或嵌套 Git 仓库。
 
+### 启动生命周期（生成约束）
+
+按 [Scene 生命周期](../APP-LIFECYCLE.md) 生成并验证入口：UIKit 主 App 在 iOS 13 及以上采用有效 Scene Manifest 与场景代理，窗口使用连接中的 UIWindowScene；SwiftUI App 使用 App/Scene，不额外强加 SceneDelegate。静态或动态 Scene 配置以成品 App 的有效设置和运行时结果为准，不以目录里存在 SceneDelegate 文件代替接入。单/多窗口范围遵循已确认产品需求。
+
 ### 3.4 何时拆为本地 Swift Package
 
 满足明确的独立复用、稳定边界、独立测试或维护需求时再拆，例如网络组件或通用业务能力。包仍保存在当前 Git 仓库的 App/Packages/，不因本地模块化创建新仓库。
@@ -375,6 +379,15 @@ Package.swift 明确产品、Target、依赖和平台要求；iOS 支持范围�
 - [ ] 团队对具体启动文档版本及延后项给出明确确认，再创建 App/ 工程；后续功能/发布再确认对应范围。
 
 工程生成后补齐实际 Target/Scheme/配置与构建命令并核验本节配置一致性；未跑通的检查记录“未验证”，不能提前勾选工程验收。尚未上架不必阻塞原型开发，但必须明确签名/商店等缺项何时补齐。
+
+### 生成后生命周期验收（由 Codex 执行并引用实际证据）
+
+- [ ] Debug、Release 成品配置与所选 UIKit / SwiftUI 入口一致，场景相关代码进入实际 Target。
+- [ ] 实际启动窗口属于 UIWindowScene，根页面正常显示；UIKit 代理配置可解析，SwiftUI Scene 内容正常。
+- [ ] 冷启动、前后台切换与重启通过，已有语言/主题偏好按约定恢复。
+- [ ] 两配置实际启动日志无未采用 UIScene 的警告，验证结果已引用到需求 AC；缺设备或证据时保持未验证。
+
+此处是工程生成后的验证，不增加创建工程前的人工审批。细则见 [Scene 生命周期](../APP-LIFECYCLE.md)。
 
 ## 13. 团队确认记录
 
