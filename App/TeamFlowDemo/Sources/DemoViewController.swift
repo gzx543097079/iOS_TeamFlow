@@ -74,14 +74,10 @@ final class DemoViewController: UIViewController {
         let stack = UIStackView(arrangedSubviews: [eyebrow, heading, description])
         stack.axis = .vertical
         stack.spacing = 12
-        stack.translatesAutoresizingMaskIntoConstraints = false
         panel.addSubview(stack)
-        NSLayoutConstraint.activate([
-            stack.leadingAnchor.constraint(equalTo: panel.leadingAnchor, constant: 24),
-            stack.trailingAnchor.constraint(equalTo: panel.trailingAnchor, constant: -24),
-            stack.topAnchor.constraint(equalTo: panel.topAnchor, constant: 24),
-            stack.bottomAnchor.constraint(equalTo: panel.bottomAnchor, constant: -24)
-        ])
+        stack.mas_makeConstraints { make in
+            make?.edges.equalTo()(panel)?.insets()(UIEdgeInsets(top: 24, left: 24, bottom: 24, right: 24))
+        }
         return panel
     }
 
@@ -146,15 +142,13 @@ private final class ProductCard: UIControl {
         stack.axis = .vertical
         stack.spacing = 10
         stack.isUserInteractionEnabled = false
-        stack.translatesAutoresizingMaskIntoConstraints = false
         addSubview(stack)
-        NSLayoutConstraint.activate([
-            illustration.heightAnchor.constraint(equalToConstant: 108),
-            stack.topAnchor.constraint(equalTo: topAnchor, constant: 12),
-            stack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
-            stack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
-            stack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16)
-        ])
+        illustration.mas_makeConstraints { make in
+            make?.height.equalTo()(108)
+        }
+        stack.mas_makeConstraints { make in
+            make?.edges.equalTo()(self)?.insets()(UIEdgeInsets(top: 12, left: 12, bottom: 16, right: 12))
+        }
         isAccessibilityElement = true
         accessibilityTraits = .button
         accessibilityIdentifier = "product-\(product.id)"

@@ -14,10 +14,11 @@ ios-demo profile 同时执行 Debug 的单元/UI 测试和 Release 的单元测�
 
 需要完整 Xcode 与可用的 iPhone 模拟器。脚本优先使用环境变量 DEVELOPER_DIR，未设置时使用 /Applications/Xcode.app；只影响当前进程，不切换全局开发目录。自动选可用已启动 iPhone，也可通过 TEAMFLOW_SIMULATOR_ID 指定设备 UDID。不可用、超时、构建或测试失败均返回非零结果。
 
-已提交的 TeamFlowDemo.xcodeproj 与共享 Scheme 可直接由 Xcode 打开，无需 XcodeGen。修改 project.yml 后用 XcodeGen 2.46.0 重新生成：
+首次在 App/TeamFlowDemo 执行 `pod install`，随后打开 TeamFlowDemo.xcworkspace（包含 Pods）。已提交工程无需 XcodeGen 即可安装依赖并构建。修改 project.yml 后用 XcodeGen 2.46.0 重新生成：
 
 ```sh
 xcodegen generate --spec App/TeamFlowDemo/project.yml
+pod install --project-directory=App/TeamFlowDemo
 ```
 
 在仓库根目录执行该命令。工程关闭代码签名用于模拟器；真机测试需另行配置团队与签名。
@@ -46,3 +47,9 @@ xcodegen generate --spec App/TeamFlowDemo/project.yml
 商城首页包含四个本地示例商品、全部/音频/日常分类、详情及演示购物袋。购物袋使用整数金额汇总，左滑移除，仅在本次运行保存；没有真实库存、订单、支付或网络请求。商品插图使用系统符号，无远程图片依赖。主路径 UI 测试保留浅色商城、暗黑商城、设置、关于及详情截图。
 
 启动采用 UIKit Scene 生命周期：project.yml 生成 Info.plist 中的单窗口 Scene 配置；SceneDelegate 使用 UIWindow(windowScene:) 组装导航与主题，AppDelegate 只处理进程启动。修改配置后重新运行 XcodeGen，并同时提交生成的 plist 与工程。
+
+## Masonry 自动布局
+
+通过 CocoaPods 接入官方 [Masonry](https://github.com/SnapKit/Masonry) 1.1.0，提交 Podfile 与 Podfile.lock，Pods 目录不入库。使用 CocoaPods 1.16.2 安装；版本由锁文件固定。工程生成后必须再次执行 pod install 恢复集成，构建和测试使用 TeamFlowDemo.xcworkspace。
+
+桥接头向 Swift 暴露 Masonry；商城容器、横幅、商品卡片、详情和关于页使用 mas_makeConstraints。UILayoutGuide 桥接保留真实安全区域、滚动内容和视口对象；Stack View 内部排列与系统表格行由 UIKit 管理。

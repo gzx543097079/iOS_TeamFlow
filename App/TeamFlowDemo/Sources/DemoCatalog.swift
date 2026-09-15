@@ -78,21 +78,22 @@ enum StoreStyle {
         let stack = UIStackView()
         stack.axis = .vertical
         stack.spacing = 20
-        scroll.translatesAutoresizingMaskIntoConstraints = false
-        stack.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(scroll)
         scroll.addSubview(stack)
-        NSLayoutConstraint.activate([
-            scroll.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            scroll.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
-            scroll.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
-            scroll.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            stack.topAnchor.constraint(equalTo: scroll.contentLayoutGuide.topAnchor, constant: 20),
-            stack.leadingAnchor.constraint(equalTo: scroll.contentLayoutGuide.leadingAnchor, constant: 20),
-            stack.trailingAnchor.constraint(equalTo: scroll.contentLayoutGuide.trailingAnchor, constant: -20),
-            stack.bottomAnchor.constraint(equalTo: scroll.contentLayoutGuide.bottomAnchor, constant: -28),
-            stack.widthAnchor.constraint(equalTo: scroll.frameLayoutGuide.widthAnchor, constant: -40)
-        ])
+        // 内容边界决定滚动高度，框架宽度约束避免横向溢出。
+        scroll.mas_makeConstraints { make in
+            make?.top.equalTo()(view.safeAreaLayoutGuide.masAttribute(.top))
+            make?.leading.equalTo()(view.safeAreaLayoutGuide.masAttribute(.leading))
+            make?.trailing.equalTo()(view.safeAreaLayoutGuide.masAttribute(.trailing))
+            make?.bottom.equalTo()(view.safeAreaLayoutGuide.masAttribute(.bottom))
+        }
+        stack.mas_makeConstraints { make in
+            make?.top.equalTo()(scroll.contentLayoutGuide.masAttribute(.top))?.offset()(20)
+            make?.leading.equalTo()(scroll.contentLayoutGuide.masAttribute(.leading))?.offset()(20)
+            make?.trailing.equalTo()(scroll.contentLayoutGuide.masAttribute(.trailing))?.offset()(-20)
+            make?.bottom.equalTo()(scroll.contentLayoutGuide.masAttribute(.bottom))?.offset()(-28)
+            make?.width.equalTo()(scroll.frameLayoutGuide.masAttribute(.width))?.offset()(-40)
+        }
         return stack
     }
 }

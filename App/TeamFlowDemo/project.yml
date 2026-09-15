@@ -31,6 +31,8 @@ targets:
                 UISceneDelegateClassName: $(PRODUCT_MODULE_NAME).SceneDelegate
     settings:
       base:
+        SWIFT_OBJC_BRIDGING_HEADER: Sources/TeamFlowDemo-Bridging-Header.h
+        CLANG_ENABLE_OBJC_ARC: YES
         PRODUCT_BUNDLE_IDENTIFIER: org.example.teamflow.demo
         MARKETING_VERSION: 1.0
         CURRENT_PROJECT_VERSION: 1

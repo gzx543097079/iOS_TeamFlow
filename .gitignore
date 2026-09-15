@@ -14,3 +14,5 @@ xcuserdata/
 *.p8
 *.mobileprovision
 /.agents/teamflow-backups/
+
+/App/TeamFlowDemo/Pods/

@@ -25,8 +25,8 @@ final class ProductViewController: UIViewController {
         image.tintColor = StoreStyle.accent
         image.backgroundColor = StoreStyle.tile
         image.layer.cornerRadius = 24
-        image.heightAnchor.constraint(equalToConstant: 240).isActive = true
         content.addArrangedSubview(image)
+        image.mas_makeConstraints { make in make?.height.equalTo()(240) }
         content.addArrangedSubview(StoreStyle.label(preferences.text(product.nameKey), style: .title1))
         let price = StoreStyle.label(DemoProduct.price(product.priceCents, preferences: preferences), style: .title2, color: StoreStyle.accent)
         price.accessibilityIdentifier = "productPrice"
@@ -38,10 +38,10 @@ final class ProductViewController: UIViewController {
         add.setTitleColor(StoreStyle.background, for: .normal)
         add.titleLabel?.font = .preferredFont(forTextStyle: .headline)
         add.layer.cornerRadius = 16
-        add.heightAnchor.constraint(greaterThanOrEqualToConstant: 54).isActive = true
         add.accessibilityIdentifier = "addToBag"
         add.addTarget(self, action: #selector(addToBag), for: .touchUpInside)
         content.addArrangedSubview(add)
+        add.mas_makeConstraints { make in make?.height.greaterThanOrEqualTo()(54) }
         feedback.font = .preferredFont(forTextStyle: .subheadline)
         feedback.textColor = StoreStyle.accent
         feedback.numberOfLines = 0

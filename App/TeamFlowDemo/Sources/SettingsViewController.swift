@@ -125,14 +125,13 @@ final class AboutViewController: UIViewController {
         let stack = UIStackView(arrangedSubviews: [icon, name, description, version])
         stack.axis = .vertical
         stack.spacing = 20
-        stack.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(stack)
-        NSLayoutConstraint.activate([
-            icon.heightAnchor.constraint(equalToConstant: 88),
-            stack.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 48),
-            stack.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 32),
-            stack.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -32)
-        ])
+        icon.mas_makeConstraints { make in make?.height.equalTo()(88) }
+        stack.mas_makeConstraints { make in
+            make?.top.equalTo()(view.safeAreaLayoutGuide.masAttribute(.top))?.offset()(48)
+            make?.leading.equalTo()(view.safeAreaLayoutGuide.masAttribute(.leading))?.offset()(32)
+            make?.trailing.equalTo()(view.safeAreaLayoutGuide.masAttribute(.trailing))?.offset()(-32)
+        }
     }
 }
 

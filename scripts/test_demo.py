@@ -30,7 +30,10 @@ try:
     else:
         selected = next((d for d in reversed(devices) if d['state'] == 'Booted'), devices[-1])
     print('测试模拟器：' + selected['name'] + ' ' + selected['udid'], flush=True)
-    command = ['xcodebuild', 'test', '-project', str(root / 'App/TeamFlowDemo/TeamFlowDemo.xcodeproj'),
+    workspace = root / 'App/TeamFlowDemo/TeamFlowDemo.xcworkspace'
+    if not (root / 'App/TeamFlowDemo/Pods/Manifest.lock').exists():
+        raise ValueError('请先在 App/TeamFlowDemo 执行 pod install，再运行测试')
+    command = ['xcodebuild', 'test', '-workspace', str(workspace),
                '-scheme', 'TeamFlowDemo', '-configuration', args.configuration, '-destination', 'platform=iOS Simulator,id=' + selected['udid'],
                '-derivedDataPath', str(root / 'DerivedData/TeamFlowDemo'),
                '-parallel-testing-enabled', 'NO', 'CODE_SIGNING_ALLOWED=NO']

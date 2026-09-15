@@ -2,6 +2,25 @@ import XCTest
 @testable import TeamFlowDemo
 
 final class DemoTests: XCTestCase {
+    @MainActor func testScrollableContentFitsResizedViewport() throws {
+        // 验证滚动指南桥接后的真实尺寸，覆盖窄屏、横屏和 iPad 宽度。
+        for size in [CGSize(width: 320, height: 568), CGSize(width: 844, height: 390), CGSize(width: 768, height: 1024)] {
+            let host = UIView(frame: CGRect(origin: .zero, size: size))
+            let content = StoreStyle.content(in: host)
+            let label = UILabel()
+            label.numberOfLines = 0
+            label.text = String(repeating: "商品说明 Product description ", count: 300)
+            content.addArrangedSubview(label)
+            host.layoutIfNeeded()
+            let scroll = try XCTUnwrap(content.superview as? UIScrollView)
+            XCTAssertEqual(scroll.frame.width, size.width, accuracy: 0.5)
+            XCTAssertEqual(content.frame.width, scroll.bounds.width - 40, accuracy: 0.5)
+            XCTAssertEqual(scroll.contentSize.width, scroll.bounds.width, accuracy: 0.5)
+            XCTAssertGreaterThan(scroll.contentSize.height, scroll.bounds.height)
+            XCTAssertFalse(content.hasAmbiguousLayout)
+        }
+    }
+
     func testLogMessageEvaluationMatchesBuildConfiguration() {
         var count = 0
         func message() -> String { count += 1; return "本地测试消息" }
