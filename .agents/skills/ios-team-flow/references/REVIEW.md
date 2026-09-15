@@ -15,7 +15,7 @@
 | JSON key | 内容与判定证据 |
 | --- | --- |
 | correctness | 验收一致性、边界/空值、错误处理、兼容性、线程安全、资源变更、测试覆盖；注明跑了哪些检查；新主 App 或生命周期变更同时核对 [Scene 启动证据](APP-LIFECYCLE.md)，按 UIKit / SwiftUI 实际入口判定。 |
-| standards | 按 OC / Swift / SwiftUI / UI 加载规范，混编兼顾桥接；按中文注释规范核对本次职责、契约和关键原因的说明及准确性；不要因个人偏好提出无关重构。 |
+| standards | 按 [架构一致性](ARCHITECTURE.md) 核对需求架构、实际职责/依赖与复用调用方；不以目录或类型名称代替实现证据。按 OC / Swift / SwiftUI / UI 加载规范，混编兼顾桥接；按中文注释规范核对本次职责、契约和关键原因的说明及准确性；不要因个人偏好提出无关重构。 |
 | subscription | 产品 ID ↔ 选中套餐 ↔ 周期/权益 ↔ StoreKit 本地化价格 ↔ 试用资格/续订文案 ↔ CTA ↔ 购买参数。检查远程开关、String Catalog、StoreKit 配置及可得的 App Store Connect 产品证据。验证恢复、pending、取消、失败、重复交易、退款撤销；实际商品配置不可得时明确未验证，不能宣称价格正确。 |
 | memory | owner/闭包/代理/计时器/通知/订阅/Task/CF/C++ 所有权，页面退出后释放和取消；风险路径用 Memory Graph / Leaks / Allocations 或针对性测试。静态无发现只证明审查范围内无明显问题，不证明无泄漏。 |
 | analytics | 对照需求事件表检查命名、参数、触发时机、重复曝光、购买成功必须在验证后、取消与失败区分、隐私脱敏；已有契约不可得时记录缺项，不凭空新增事件。 |

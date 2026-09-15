@@ -15,6 +15,7 @@ SKILL_ROOT 是本文件所在目录；PROJECT_ROOT 是当前 Git 根（新目录
 | 新产品启动草案 | [启动模板](references/templates/new-project.md) |
 | 已有工程首次现状或相关变化 | [EXISTING-PROJECT](references/EXISTING-PROJECT.md) |
 | 实际失败、返工或明确纠正触发的流程改进 | [自我进化](references/EVOLUTION.md) |
+| 业务代码生成、模块扩展或架构重构 | [架构一致性](references/ARCHITECTURE.md) |
 | 生成或修改业务代码的注释 | [中文注释](references/standards/comments.md) |
 | 新工程生成或业务日志接入 | [分级日志组件](references/LOGGING.md) |
 | Bug 修复、复现与处理历史 | [缺陷处理](references/BUGFIX.md) |

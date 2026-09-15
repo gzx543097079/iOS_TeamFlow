@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "requirement": "REQ-20260915-075123794Z-73d854b0",
+  "linked_commits": [],
+  "prs": [],
+  "events": [
+    {
+      "at": "2026-09-15T07:58:28.046444+00:00",
+      "action": "finish",
+      "changes": {
+        "commits": [],
+        "committed": false,
+        "merged": "未核实",
+        "releases": [],
+        "release_status": "未核实",
+        "prs": [],
+        "warnings": [
+          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+        ],
+        "development": "✅ 执行完成",
+        "card": {
+          "state": "✅ 执行完成",
+          "passed": 3,
+          "applicable": 3,
+          "next": "无",
+          "blocker": "无",
+          "acceptance_fingerprint": "2d483ca8eb5feeef61e709d82b4a291b093fc90a74f67276a05696bee7be7b52",
+          "implementation_fingerprint": "8ede2057212027930ce5b01651385b1e1bd887f9d8cd59e53366aeee6ce06e94"
+        },
+        "checked_at": "2026-09-15T07:58:28.046177+00:00"
+      },
+      "removed": []
+    }
+  ],
+  "acceptance_baseline": {
+    "implementation_fingerprint": "8ede2057212027930ce5b01651385b1e1bd887f9d8cd59e53366aeee6ce06e94",
+    "acceptance_fingerprint": "2d483ca8eb5feeef61e709d82b4a291b093fc90a74f67276a05696bee7be7b52",
+    "inputs": [
+      ".agents/skills/ios-team-flow/SKILL.md",
+      ".agents/skills/ios-team-flow/references/ARCHITECTURE.md",
+      ".agents/skills/ios-team-flow/references/WORKFLOW.md",
+      ".agents/skills/ios-team-flow/references/REVIEW.md",
+      ".agents/skills/ios-team-flow/references/templates/new-project.md",
+      "scripts/package_release.py"
+    ],
+    "results": [],
+    "accepted_at": "2026-09-15T07:58:28.046042+00:00"
+  },
+  "snapshot": {
+    "commits": [],
+    "committed": false,
+    "merged": "未核实",
+    "releases": [],
+    "release_status": "未核实",
+    "prs": [],
+    "warnings": [
+      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+    ],
+    "development": "✅ 执行完成",
+    "card": {
+      "state": "✅ 执行完成",
+      "passed": 3,
+      "applicable": 3,
+      "next": "无",
+      "blocker": "无",
+      "acceptance_fingerprint": "2d483ca8eb5feeef61e709d82b4a291b093fc90a74f67276a05696bee7be7b52",
+      "implementation_fingerprint": "8ede2057212027930ce5b01651385b1e1bd887f9d8cd59e53366aeee6ce06e94"
+    },
+    "checked_at": "2026-09-15T07:58:28.046177+00:00"
+  }
+}
