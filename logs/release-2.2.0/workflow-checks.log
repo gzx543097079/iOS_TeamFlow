@@ -1,0 +1,966 @@
+{"scope": "full", "tests": ["all"], "reason": "显式全量、基准不可用或包含公共/未知改动"}
+test_cli_list_and_failed_test_exit (test_check_selection.CheckSelectionTests.test_cli_list_and_failed_test_exit) ... ok
+test_docs_templates_and_mixed_changes (test_check_selection.CheckSelectionTests.test_docs_templates_and_mixed_changes) ... ok
+test_git_range_preserves_deletions_renames_and_missing_base (test_check_selection.CheckSelectionTests.test_git_range_preserves_deletions_renames_and_missing_base) ... ok
+test_tool_dependencies_include_consumers_and_gates (test_check_selection.CheckSelectionTests.test_tool_dependencies_include_consumers_and_gates) ... ok
+test_unknown_public_and_test_changes_fall_back_to_full (test_check_selection.CheckSelectionTests.test_unknown_public_and_test_changes_fall_back_to_full) ... ok
+test_bug_template_in_package_preserves_history_through_finish (test_consumer_release.ConsumerReleaseTests.test_bug_template_in_package_preserves_history_through_finish) ... ok
+test_cold_install_diagnoses_without_changing_project (test_consumer_release.ConsumerReleaseTests.test_cold_install_diagnoses_without_changing_project) ... ok
+test_document_validation_survives_acceptance_and_rejects_content_changes (test_consumer_release.ConsumerReleaseTests.test_document_validation_survives_acceptance_and_rejects_content_changes) ... ok
+test_existing_v2_cards_are_not_implicitly_migrated (test_consumer_release.ConsumerReleaseTests.test_existing_v2_cards_are_not_implicitly_migrated) ... ok
+test_first_gate_without_gitignore_and_importing_test_passes (test_consumer_release.ConsumerReleaseTests.test_first_gate_without_gitignore_and_importing_test_passes) ... ok
+test_result_acceptance_and_two_sequential_requirements_from_zip (test_consumer_release.ConsumerReleaseTests.test_result_acceptance_and_two_sequential_requirements_from_zip) ... ok
+test_shared_commit_collision_can_be_relinked_without_rewriting_history (test_consumer_release.ConsumerReleaseTests.test_shared_commit_collision_can_be_relinked_without_rewriting_history) ... ok
+test_two_branches_create_distinct_cards_and_merge (test_consumer_release.ConsumerReleaseTests.test_two_branches_create_distinct_cards_and_merge) ... ok
+test_accept_result_reuses_profile_scope_and_rejects_stale_result (test_delivery.DeliveryTests.test_accept_result_reuses_profile_scope_and_rejects_stale_result) ... ok
+test_acceptance_scope_ignores_unrelated_work_and_accept_is_idempotent (test_delivery.DeliveryTests.test_acceptance_scope_ignores_unrelated_work_and_accept_is_idempotent) ... ok
+test_all_ignores_legacy_and_v2_development_rejected (test_delivery.DeliveryTests.test_all_ignores_legacy_and_v2_development_rejected) ... ok
+test_bad_id_and_unknown_commit_rejected (test_delivery.DeliveryTests.test_bad_id_and_unknown_commit_rejected) ... ok
+test_complete_stales_when_implementation_changes (test_delivery.DeliveryTests.test_complete_stales_when_implementation_changes) ... ok
+test_delayed_sealing_uses_accepted_commit_not_later_worktree (test_delivery.DeliveryTests.test_delayed_sealing_uses_accepted_commit_not_later_worktree) ... ok
+test_documented_failure_value_is_valid (test_delivery.DeliveryTests.test_documented_failure_value_is_valid) ... ok
+test_dot_scope_ignores_metadata_and_ignored_outputs_in_both_tools (test_delivery.DeliveryTests.test_dot_scope_ignores_metadata_and_ignored_outputs_in_both_tools) ... ok
+test_finish_cannot_overwrite_accepted_baseline_before_commit (test_delivery.DeliveryTests.test_finish_cannot_overwrite_accepted_baseline_before_commit) ... ok
+test_finish_detects_failed_persistence_without_second_command (test_delivery.DeliveryTests.test_finish_detects_failed_persistence_without_second_command) ... ok
+test_finish_updates_stale_card_and_reports_without_approving (test_delivery.DeliveryTests.test_finish_updates_stale_card_and_reports_without_approving) ... ok
+test_history_delta_preserves_complete_snapshots (test_delivery.DeliveryTests.test_history_delta_preserves_complete_snapshots) ... ok
+test_list_and_overview_order_titles_unfinished_and_read_only (test_delivery.DeliveryTests.test_list_and_overview_order_titles_unfinished_and_read_only) ... ok
+test_list_isolates_bad_cards_and_preserves_json_and_files (test_delivery.DeliveryTests.test_list_isolates_bad_cards_and_preserves_json_and_files) ... ok
+test_local_commit_and_tag_not_release_or_merge (test_delivery.DeliveryTests.test_local_commit_and_tag_not_release_or_merge) ... ok
+test_metadata_only_commit_not_implementation (test_delivery.DeliveryTests.test_metadata_only_commit_not_implementation) ... ok
+test_old_identifiers_and_invalid_timestamp_rejected (test_delivery.DeliveryTests.test_old_identifiers_and_invalid_timestamp_rejected) ... ok
+test_old_release_does_not_cover_new_commit (test_delivery.DeliveryTests.test_old_release_does_not_cover_new_commit) ... ok
+test_remote_failure_not_marked_pass (test_delivery.DeliveryTests.test_remote_failure_not_marked_pass) ... ok
+test_remote_tag_mismatch_not_published (test_delivery.DeliveryTests.test_remote_tag_mismatch_not_published) ... ok
+test_sealed_acceptance_survives_other_requirement_and_reopens (test_delivery.DeliveryTests.test_sealed_acceptance_survives_other_requirement_and_reopens) ... unit：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpta6ti5fg/logs/project-checks/20260915T025141Z-0d34ccb7/result.json
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md"
+  ],
+  "github_checked": false,
+  "overview_outdated": true
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": true
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/REQ-20260230-120000000Z-aaaaaaaa.md",
+    "?? requirements/REQ-20260912-120000000Z-bbbbbbbb.md",
+    "?? requirements/REQ-20260912-120000001Z-cccccccc.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}ok
+test_status_full_snapshot_and_history_without_writes (test_delivery.DeliveryTests.test_status_full_snapshot_and_history_without_writes) ... ok
+test_status_unsynced_does_not_claim_completion_or_create_record (test_delivery.DeliveryTests.test_status_unsynced_does_not_claim_completion_or_create_record) ... ok
+test_timestamp_ids_sort_and_retry_without_overwrite (test_delivery.DeliveryTests.test_timestamp_ids_sort_and_retry_without_overwrite) ... ok
+test_unknown_template_rejected_without_writing (test_delivery.DeliveryTests.test_unknown_template_rejected_without_writing) ... ok
+test_v2_finish_before_initial_commit_and_remote_check_idempotence (test_delivery.DeliveryTests.test_v2_finish_before_initial_commit_and_remote_check_idempotence) ... ok
+test_v2_inconsistent_completion_duplicate_and_team_confirmation_rejected (test_delivery.DeliveryTests.test_v2_inconsistent_completion_duplicate_and_team_confirmation_rejected) ... ok
+test_v2_local_finish_preserves_timestamped_remote_evidence (test_delivery.DeliveryTests.test_v2_local_finish_preserves_timestamped_remote_evidence) ... ok
+test_v2_new_implementation_requires_revalidation (test_delivery.DeliveryTests.test_v2_new_implementation_requires_revalidation) ... ok
+test_v2_precommit_acceptance_is_reused_after_commit_without_repeat (test_delivery.DeliveryTests.test_v2_precommit_acceptance_is_reused_after_commit_without_repeat) ... ok
+test_v2_single_source_and_idempotent_finish (test_delivery.DeliveryTests.test_v2_single_source_and_idempotent_finish) ... ok
+test_verified_merge_release_and_draft (test_delivery.DeliveryTests.test_verified_merge_release_and_draft) ... ok
+test_binary_mode_and_receipt_boundary (test_git_checks.GitChecksTests.test_binary_mode_and_receipt_boundary) ... ok
+test_ci_install_idempotent_and_no_overwrite (test_git_checks.GitChecksTests.test_ci_install_idempotent_and_no_overwrite) ... ok
+test_custom_hooks_path_and_conflict_protection (test_git_checks.GitChecksTests.test_custom_hooks_path_and_conflict_protection) ... ok
+test_empty_index_does_not_pass_unreviewed_range (test_git_checks.GitChecksTests.test_empty_index_does_not_pass_unreviewed_range) ... ok
+test_existing_hook_exit_preserved_and_restored (test_git_checks.GitChecksTests.test_existing_hook_exit_preserved_and_restored) ... ok
+test_linear_reports_reused_independent_of_worktree (test_git_checks.GitChecksTests.test_linear_reports_reused_independent_of_worktree) ... 
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{"requirement": "REQ-20260912-103015123Z-a1b2c3d4", "card": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpxhlgo5qp/requirements/REQ-20260912-103015123Z-a1b2c3d4.md"}
+{"requirement": "REQ-20260912-103015123Z-b1b2c3d4", "card": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpxhlgo5qp/requirements/REQ-20260912-103015123Z-b1b2c3d4.md"}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "unarchived_changes": [
+    "?? requirements/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "unarchived_changes": [
+    "?? requirements/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "unarchived_changes": [
+    "?? requirements/"
+  ],
+  "github_checked": true,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "unarchived_changes": [
+    "?? requirements/"
+  ],
+  "github_checked": true,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+需要 Codex 审查并填写报告
+{"fingerprint": "742848c9ceec42aaf13e624c1b6598b2be6f3a98dc0f35c35cd38fb85caf65b9", "report": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git qe_44xv6/logs/reviews/742848c9ceec42aaf13e624c1b6598b2be6f3a98dc0f35c35cd38fb85caf65b9.json", "patch": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git qe_44xv6/logs/reviews/742848c9ceec42aaf13e624c1b6598b2be6f3a98dc0f35c35cd38fb85caf65b9.patch", "unstaged_changes": false, "untracked_count": 2}
+需要 Codex 审查并填写报告
+{"fingerprint": "8a1cded57a3b9bb43474b9f6fb41a681bd73b8849e63382473f05846d5a4e9af", "report": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git qe_44xv6/logs/reviews/8a1cded57a3b9bb43474b9f6fb41a681bd73b8849e63382473f05846d5a4e9af.json", "patch": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git qe_44xv6/logs/reviews/8a1cded57a3b9bb43474b9f6fb41a681bd73b8849e63382473f05846d5a4e9af.patch", "unstaged_changes": false, "untracked_count": 2}
+范围审查通过：已复用每个实施提交的审查报告；base=35cb27ae176c0e7d9855e1d619a8faa65bb46ceb head=fa6f2a9ca350d840ac2f075d0f69feec78a2a6b9
+已生成 PR 检查；提交到目标分支后生效，并在仓库规则中按需设为必需检查
+PR 检查模板已安装
+Hook 已安装；已有 Hook 会先执行并保留退出码
+Hook 已安装；已有 Hook 会先执行并保留退出码
+Hook 已移除，原 Hook 已恢复（如有）
+需要 Codex 审查并填写报告
+{"fingerprint": "5d04ccb6fdf8a43cd6891289e847a46a1bad0cbb1ac533f3767fe61e8e246148", "report": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git wwm1r88b/logs/reviews/5d04ccb6fdf8a43cd6891289e847a46a1bad0cbb1ac533f3767fe61e8e246148.json", "patch": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git wwm1r88b/logs/reviews/5d04ccb6fdf8a43cd6891289e847a46a1bad0cbb1ac533f3767fe61e8e246148.patch", "unstaged_changes": false, "untracked_count": 2}
+需要 Codex 审查并填写报告
+{"fingerprint": "3bf6c38fff337fddb7ce9d3cfe271d1d068777502d61ee65685d75d964c17438", "report": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git wwm1r88b/logs/reviews/3bf6c38fff337fddb7ce9d3cfe271d1d068777502d61ee65685d75d964c17438.json", "patch": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git wwm1r88b/logs/reviews/3bf6c38fff337fddb7ce9d3cfe271d1d068777502d61ee65685d75d964c17438.patch", "unstaged_changes": false, "untracked_count": 2}
+范围审查通过：已复用每个实施提交的审查报告；base=69d35d3e016cadecb5090b66311974730c4bebcc head=0ed471c89dc757fcdaca58ccd163f7c51605518b
+范围审查通过：已复用每个实施提交的审查报告；base=69d35d3e016cadecb5090b66311974730c4bebcc head=d1b72dbb407480fa6ed21a557a8913950f06c441ok
+test_merge_requires_range_review (test_git_checks.GitChecksTests.test_merge_requires_range_review) ... ok
+test_pending_report_rejected_and_bad_ref_rejected (test_git_checks.GitChecksTests.test_pending_report_rejected_and_bad_ref_rejected) ... ok
+test_range_receipt_commit_and_new_code_invalidates (test_git_checks.GitChecksTests.test_range_receipt_commit_and_new_code_invalidates) ... ok
+test_real_commit_hook_blocks_then_passes (test_git_checks.GitChecksTests.test_real_commit_hook_blocks_then_passes) ... ok
+test_target_base_change_invalidates_range_report (test_git_checks.GitChecksTests.test_target_base_change_invalidates_range_report) ... ok
+test_trusted_checker_ignores_head_python (test_git_checks.GitChecksTests.test_trusted_checker_ignores_head_python) ... ok
+test_conflict_is_preflighted_before_any_copy (test_logging_install.LoggingInstallTests.test_conflict_is_preflighted_before_any_copy) ... ok
+test_language_selection_and_idempotence_from_zip (test_logging_install.LoggingInstallTests.test_language_selection_and_idempotence_from_zip) ... ok
+test_paths_and_external_tool_rejected (test_logging_install.LoggingInstallTests.test_paths_and_external_tool_rejected) ... ok
+test_cli_original_output_failure_and_complete_logs (test_project_checks.ProjectChecksTests.test_cli_original_output_failure_and_complete_logs) ... ok
+test_default_deletion_then_staging_preserves_verified_snapshot (test_project_checks.ProjectChecksTests.test_default_deletion_then_staging_preserves_verified_snapshot) ... ok
+test_empty_unknown_and_escape_rejected_before_execution (test_project_checks.ProjectChecksTests.test_empty_unknown_and_escape_rejected_before_execution) ... ok
+test_failure_returns_false (test_project_checks.ProjectChecksTests.test_failure_returns_false) ... ok
+test_git_default_tracks_new_files_but_ignores_generated_evidence (test_project_checks.ProjectChecksTests.test_git_default_tracks_new_files_but_ignores_generated_evidence) ... ok
+test_input_change_during_successful_command_is_not_pass (test_project_checks.ProjectChecksTests.test_input_change_during_successful_command_is_not_pass) ... ok
+test_invalid_input_rejected_and_tracked_deletion_allowed (test_project_checks.ProjectChecksTests.test_invalid_input_rejected_and_tracked_deletion_allowed) ... ok
+test_requirement_updates_skip_default_but_invalidate_document_profile (test_project_checks.ProjectChecksTests.test_requirement_updates_skip_default_but_invalidate_document_profile) ... ok
+test_source_edit_add_delete_and_config_change_invalidate (test_project_checks.ProjectChecksTests.test_source_edit_add_delete_and_config_change_invalidate) ... ok
+test_staged_verification_rejects_old_missing_deleted_and_mode_inputs (test_project_checks.ProjectChecksTests.test_staged_verification_rejects_old_missing_deleted_and_mode_inputs) ... ok
+test_success_and_literal_arguments (test_project_checks.ProjectChecksTests.test_success_and_literal_arguments) ... ok
+test_symlink_log_directory_rejected (test_project_checks.ProjectChecksTests.test_symlink_log_directory_rejected) ... ok
+test_unselected_command_not_executed_and_profiles_required (test_project_checks.ProjectChecksTests.test_unselected_command_not_executed_and_profiles_required) ... ok
+test_existing_project_preserves_config_and_failing_baseline (test_scenarios.ConsumerScenarios.test_existing_project_preserves_config_and_failing_baseline) ... ok
+test_new_project_setup_does_not_create_unconfirmed_app (test_scenarios.ConsumerScenarios.test_new_project_setup_does_not_create_unconfirmed_app) ... ok
+test_subscription_missing_evidence_blocks_and_content_change_invalidates (test_scenarios.ConsumerScenarios.test_subscription_missing_evidence_blocks_and_content_change_invalidates) ... ok
+test_failure_restores_existing_and_removes_new_file (test_setup_recovery.RecoveryTests.test_failure_restores_existing_and_removes_new_file) ... ok
+test_interrupted_install_requires_recovery (test_setup_recovery.RecoveryTests.test_interrupted_install_requires_recovery) ... ok
+test_manual_recovery_preflights_changes_and_is_repeatable (test_setup_recovery.RecoveryTests.test_manual_recovery_preflights_changes_and_is_repeatable) ... ok
+test_both_sides_edit_conflict_writes_nothing (test_skill_upgrade.SkillUpgradeTests.test_both_sides_edit_conflict_writes_nothing) ... ok
+test_explicit_merged_file_resolves_both_sides_without_losing_rule (test_skill_upgrade.SkillUpgradeTests.test_explicit_merged_file_resolves_both_sides_without_losing_rule) ... 
+需要 Codex 审查并填写报告
+{"fingerprint": "1dae6dd6a1b85102b058f29bf9c835668fc62e5fc04d75949b0e47fb6bc3692e", "report": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git 6d_r97i4/logs/reviews/1dae6dd6a1b85102b058f29bf9c835668fc62e5fc04d75949b0e47fb6bc3692e.json", "patch": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git 6d_r97i4/logs/reviews/1dae6dd6a1b85102b058f29bf9c835668fc62e5fc04d75949b0e47fb6bc3692e.patch", "unstaged_changes": false, "untracked_count": 2}
+需要 Codex 审查并填写报告
+{"fingerprint": "739d6a31e259c2070e7afb39ed66a0d22ebd8283241577ee595b3427a77bb98c", "report": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git 6d_r97i4/logs/reviews/739d6a31e259c2070e7afb39ed66a0d22ebd8283241577ee595b3427a77bb98c.json", "patch": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git 6d_r97i4/logs/reviews/739d6a31e259c2070e7afb39ed66a0d22ebd8283241577ee595b3427a77bb98c.patch", "unstaged_changes": false, "untracked_count": 2}
+范围报告：/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git 6d_r97i4/logs/reviews/2868fa8b6bf536e88297a2d66d37012fe85ef4ead05adc3f754a6b3fef6300fc.json；审查完成后提交回执，再以新 head 执行 check
+范围审查通过，复用报告：2868fa8b6bf536e88297a2d66d37012fe85ef4ead05adc3f754a6b3fef6300fc
+需要 Codex 审查并填写报告
+{"fingerprint": "af7f9d23514f2d52772869d9568fd4c758be4756695947d419ae50975ae0b0da", "report": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git tjutnzrb/logs/reviews/af7f9d23514f2d52772869d9568fd4c758be4756695947d419ae50975ae0b0da.json", "patch": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git tjutnzrb/logs/reviews/af7f9d23514f2d52772869d9568fd4c758be4756695947d419ae50975ae0b0da.patch", "unstaged_changes": false, "untracked_count": 2}
+范围报告：/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git whlpbq8t/logs/reviews/eaaa2582dc133ea0c65085a6dcb00c85800504f2a533138f8a16c5d11a242c96.json；审查完成后提交回执，再以新 head 执行 check
+范围审查通过，复用报告：eaaa2582dc133ea0c65085a6dcb00c85800504f2a533138f8a16c5d11a242c96
+Hook 已安装；已有 Hook 会先执行并保留退出码
+Hook 已安装
+需要 Codex 审查并填写报告
+{"fingerprint": "c7a11cfdf84d626f45d971460c948b1e396c95049f0e374ca563cf632cd67deb", "report": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git iq859v3a/logs/reviews/c7a11cfdf84d626f45d971460c948b1e396c95049f0e374ca563cf632cd67deb.json", "patch": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git iq859v3a/logs/reviews/c7a11cfdf84d626f45d971460c948b1e396c95049f0e374ca563cf632cd67deb.patch", "unstaged_changes": false, "untracked_count": 3}
+Hook 已移除，原 Hook 已恢复（如有）
+范围报告：/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git 9yir4aum/logs/reviews/0db63176e4f148dc58b0f087a65c8506637e39327ec90410359848fef988cf12.json；审查完成后提交回执，再以新 head 执行 check
+范围审查通过，复用报告：0db63176e4f148dc58b0f087a65c8506637e39327ec90410359848fef988cf12
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp1v6k78a1/logs/project-checks/20260915T025201Z-2e62324d/result.json
+验证结果与当前源码/配置及暂存区一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp1v6k78a1/logs/project-checks/20260915T025201Z-2e62324d/result.json
+fail：失败
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpbkmhz1i5/logs/project-checks/20260915T025201Z-69022915/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpwhu60t43/logs/project-checks/20260915T025201Z-e15bbdc5/result.json
+验证结果与当前源码/配置一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpwhu60t43/logs/project-checks/20260915T025201Z-e15bbdc5/result.json
+验证结果与当前源码/配置一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpwhu60t43/logs/project-checks/20260915T025201Z-e15bbdc5/result.json
+mutate：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpeq3m2g6o/logs/project-checks/20260915T025201Z-f713168d/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmptah4eipk/logs/project-checks/20260915T025201Z-d3021c7a/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmptah4eipk/logs/project-checks/20260915T025201Z-4f9c31d9/result.json
+验证结果与当前源码/配置一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmptah4eipk/logs/project-checks/20260915T025201Z-d3021c7a/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpbm05lazz/logs/project-checks/20260915T025202Z-eaf4ef53/result.json
+验证结果与当前源码/配置一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpbm05lazz/logs/project-checks/20260915T025202Z-eaf4ef53/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpdgv9m_mo/logs/project-checks/20260915T025202Z-78279f68/result.json
+验证结果与当前源码/配置一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpdgv9m_mo/logs/project-checks/20260915T025202Z-78279f68/result.json
+验证结果与当前源码/配置及暂存区一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpdgv9m_mo/logs/project-checks/20260915T025202Z-78279f68/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpdgv9m_mo/logs/project-checks/20260915T025202Z-abfc9ed4/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpdgv9m_mo/logs/project-checks/20260915T025202Z-53ae9a8d/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpdgv9m_mo/logs/project-checks/20260915T025202Z-6d1b69a3/result.json
+验证结果与当前源码/配置及暂存区一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpdgv9m_mo/logs/project-checks/20260915T025202Z-6d1b69a3/result.json
+build：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpwsovt69n/logs/project-checks/20260915T025202Z-c5289ad4/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp5fxzxfiy/logs/project-checks/20260915T025203Z-14a73b4f/result.json
+已恢复接入前托管文件：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmppfrrp9cw/.agents/teamflow-backups/upgrade-lipwitt5/transaction.json
+已恢复接入前托管文件：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpsm4qpv03/.agents/teamflow-backups/upgrade-o3esvxlg/transaction.json
+项目已接入 ios-team-flow 2.2.0：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpsm4qpv03
+升级前文件备份：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpsm4qpv03/.agents/teamflow-backups/upgrade-gizm2r69
+已恢复接入前托管文件：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpkyyznju6/.agents/teamflow-backups/upgrade-sj28yu6l/transaction.json
+已恢复接入前托管文件：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpkyyznju6/.agents/teamflow-backups/upgrade-sj28yu6l/transaction.json
+项目已接入 ios-team-flow 2.2.0：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp9bt0xtwt/project
+升级前文件备份：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp9bt0xtwt/project/.agents/teamflow-backups/upgrade-kaj3x25h
+{
+  "from": "2.2.0",
+  "to": "2.3.0",
+  "changes": [
+    {
+      "path": "references/VERSION",
+      "action": "更新"
+    },
+    {
+      "path": "references/new.md",
+      "action": "新增"
+    }
+  ],
+  "conflicts": [
+    "references/README.md"
+  ],
+  "resolved": []
+}
+项目已接入 ios-team-flow 2.2.0：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp4cha9ea_/project
+升级前文件备份：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp4cha9ea_/project/.agents/teamflow-backups/upgrade-vxiiywiyok
+test_missing_baseline_and_traversal_rejected (test_skill_upgrade.SkillUpgradeTests.test_missing_baseline_and_traversal_rejected) ... ok
+test_preview_preserves_customization_apply_and_restore_all (test_skill_upgrade.SkillUpgradeTests.test_preview_preserves_customization_apply_and_restore_all) ... ok
+test_removed_upstream_file_restored_after_successful_upgrade (test_skill_upgrade.SkillUpgradeTests.test_removed_upstream_file_restored_after_successful_upgrade) ... ok
+test_restore_preserves_changes_made_after_upgrade (test_skill_upgrade.SkillUpgradeTests.test_restore_preserves_changes_made_after_upgrade) ... ok
+test_upstream_removal_and_write_failure_restore_whole_skill (test_skill_upgrade.SkillUpgradeTests.test_upstream_removal_and_write_failure_restore_whole_skill) ... ok
+test_archive_prepare_inherits_only_unchanged_dimensions (test_workflow.WorkflowTests.test_archive_prepare_inherits_only_unchanged_dimensions) ... ok
+test_delete_rename_binary_and_mode_change_invalidate (test_workflow.WorkflowTests.test_delete_rename_binary_and_mode_change_invalidate) ... ok
+test_direct_skill_edits_used_by_package_without_sync (test_workflow.WorkflowTests.test_direct_skill_edits_used_by_package_without_sync) ... ok
+test_external_skill_cannot_bind_project (test_workflow.WorkflowTests.test_external_skill_cannot_bind_project) ... ok
+test_future_upgrade_with_baseline (test_workflow.WorkflowTests.test_future_upgrade_with_baseline) ... ok
+test_gate_rechecks_linked_test_report_against_index (test_workflow.WorkflowTests.test_gate_rechecks_linked_test_report_against_index) ... ok
+test_head_only_change_invalidates_identical_patch (test_workflow.WorkflowTests.test_head_only_change_invalidates_identical_patch) ... ok
+test_initial_commit_pending_then_reuse (test_workflow.WorkflowTests.test_initial_commit_pending_then_reuse) ... ok
+test_package_is_repeatable_and_excludes_project_data (test_workflow.WorkflowTests.test_package_is_repeatable_and_excludes_project_data) ... ok
+test_package_rejects_symlink (test_workflow.WorkflowTests.test_package_rejects_symlink) ... ok
+test_partial_staging_uses_index (test_workflow.WorkflowTests.test_partial_staging_uses_index) ... ok
+test_pending_and_open_findings_rejected (test_workflow.WorkflowTests.test_pending_and_open_findings_rejected) ... ok
+test_project_copy_keeps_local_workflow (test_workflow.WorkflowTests.test_project_copy_keeps_local_workflow) ... ok
+test_project_gate_uses_current_skill_implementation (test_workflow.WorkflowTests.test_project_gate_uses_current_skill_implementation) ... ok
+test_receipts_do_not_retrigger_but_executables_rejected (test_workflow.WorkflowTests.test_receipts_do_not_retrigger_but_executables_rejected) ... ok
+test_repository_documents (test_workflow.WorkflowTests.test_repository_documents) ... ok
+test_requirement_template_links_at_destination (test_workflow.WorkflowTests.test_requirement_template_links_at_destination) ... ok
+test_setup_conflict_does_not_modify_project (test_workflow.WorkflowTests.test_setup_conflict_does_not_modify_project) ... ok
+test_setup_uses_overriding_instructions_and_upgrades (test_workflow.WorkflowTests.test_setup_uses_overriding_instructions_and_upgrades) ... 
+{
+  "from": "2.2.0",
+  "to": "2.3.0",
+  "changes": [
+    {
+      "path": "references/README.md",
+      "action": "更新"
+    },
+    {
+      "path": "references/VERSION",
+      "action": "更新"
+    },
+    {
+      "path": "references/new.md",
+      "action": "新增"
+    }
+  ],
+  "conflicts": [],
+  "resolved": [
+    "references/README.md"
+  ]
+}
+入口计划：.agents/teamflow.json, AGENTS.md, scripts/review_gate.py
+完整备份及恢复记录：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp4cha9ea_/project/.agents/teamflow-backups/upgrade-1e5dpfd7/transaction.json
+项目已接入 ios-team-flow 2.2.0：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpp3br9k8q/project
+升级前文件备份：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpp3br9k8q/project/.agents/teamflow-backups/upgrade-92v9ub80
+项目已接入 ios-team-flow 2.2.0：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpp23g301w/project
+升级前文件备份：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpp23g301w/project/.agents/teamflow-backups/upgrade-xqrver1p
+{
+  "from": "2.2.0",
+  "to": "2.3.0",
+  "changes": [
+    {
+      "path": "references/VERSION",
+      "action": "更新"
+    },
+    {
+      "path": "references/new.md",
+      "action": "新增"
+    }
+  ],
+  "conflicts": [],
+  "resolved": []
+}
+入口计划：.agents/teamflow.json, AGENTS.md, scripts/review_gate.py
+仅预览；核对差异后加 --apply 执行。
+{
+  "from": "2.2.0",
+  "to": "2.3.0",
+  "changes": [
+    {
+      "path": "references/VERSION",
+      "action": "更新"
+    },
+    {
+      "path": "references/new.md",
+      "action": "新增"
+    }
+  ],
+  "conflicts": [],
+  "resolved": []
+}
+入口计划：.agents/teamflow.json, AGENTS.md, scripts/review_gate.py
+完整备份及恢复记录：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpp23g301w/project/.agents/teamflow-backups/upgrade-7yjqw4sk/transaction.json
+{
+  "from": "2.3.0",
+  "to": "2.3.0",
+  "changes": [],
+  "conflicts": [],
+  "resolved": []
+}
+入口计划：.agents/teamflow.json, AGENTS.md, scripts/review_gate.py
+当前内容与升级结果一致，无需写入。
+已恢复接入前托管文件：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpp23g301w/project/.agents/teamflow-backups/upgrade-7yjqw4sk/transaction.json
+项目已接入 ios-team-flow 2.2.0：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpw_9jqamd/project
+升级前文件备份：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpw_9jqamd/project/.agents/teamflow-backups/upgrade-b1l7e5qj
+{
+  "from": "2.2.0",
+  "to": "2.3.0",
+  "changes": [
+    {
+      "path": "references/README.md",
+      "action": "删除"
+    },
+    {
+      "path": "references/VERSION",
+      "action": "更新"
+    },
+    {
+      "path": "references/new.md",
+      "action": "新增"
+    }
+  ],
+  "conflicts": [],
+  "resolved": []
+}
+入口计划：.agents/teamflow.json, AGENTS.md, scripts/review_gate.py
+完整备份及恢复记录：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpw_9jqamd/project/.agents/teamflow-backups/upgrade-kk0iz44b/transaction.json
+已恢复接入前托管文件：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpw_9jqamd/project/.agents/teamflow-backups/upgrade-kk0iz44b/transaction.json
+项目已接入 ios-team-flow 2.2.0：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpy5frx_as/project
+升级前文件备份：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpy5frx_as/project/.agents/teamflow-backups/upgrade-mxelvfsx
+{
+  "from": "2.2.0",
+  "to": "2.3.0",
+  "changes": [
+    {
+      "path": "references/VERSION",
+      "action": "更新"
+    },
+    {
+      "path": "references/new.md",
+      "action": "新增"
+    }
+  ],
+  "conflicts": [],
+  "resolved": []
+}
+入口计划：.agents/teamflow.json, AGENTS.md, scripts/review_gate.py
+完整备份及恢复记录：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpy5frx_as/project/.agents/teamflow-backups/upgrade-i99xooyl/transaction.json
+项目已接入 ios-team-flow 2.2.0：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpyn0qnkm8/project
+升级前文件备份：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpyn0qnkm8/project/.agents/teamflow-backups/upgrade-daq6up88
+{
+  "from": "2.2.0",
+  "to": "2.3.0",
+  "changes": [
+    {
+      "path": "references/README.md",
+      "action": "删除"
+    },
+    {
+      "path": "references/VERSION",
+      "action": "更新"
+    },
+    {
+      "path": "references/new.md",
+      "action": "新增"
+    }
+  ],
+  "conflicts": [],
+  "resolved": []
+}
+入口计划：.agents/teamflow.json, AGENTS.md, scripts/review_gate.py
+已恢复接入前托管文件：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpyn0qnkm8/project/.agents/teamflow-backups/upgrade-1gsfyrpx/transaction.json
+需要 Codex 审查并填写报告
+{"fingerprint": "54872ffb5d94893f1a3dfecb8f692a6f385ccb865abc55964e7fba8d0d20c46b", "report": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpb19qrh2h/logs/reviews/54872ffb5d94893f1a3dfecb8f692a6f385ccb865abc55964e7fba8d0d20c46b.json", "patch": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpb19qrh2h/logs/reviews/54872ffb5d94893f1a3dfecb8f692a6f385ccb865abc55964e7fba8d0d20c46b.patch", "unstaged_changes": false, "untracked_count": 2}
+工作流入口、版本、文件清单和内部链接检查通过
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp0msx34n4/dist/iOS-TeamFlow-v2.2.0.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp0msx34n4/dist/ios-team-flow-skill-v2.2.0.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpe54le33q/source/dist/ios-team-flow-skill-v2.2.0.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpe54le33q/source/dist/ios-team-flow-skill-v2.2.0.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpuysvnxtt/source/dist/ios-team-flow-skill-v2.2.0.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpuysvnxtt/source/dist/ios-team-flow-skill-v2.2.0.zip
+验证结果与当前源码/配置及暂存区一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpi56u7t85/logs/project-checks/20260915T025206Z-7041cfbf/result.json
+审查门禁通过，复用指纹：e49ed1893209cfa00afd749b67a75c8afd17b7a1fdcb1dc11812787f915a8916
+审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
+复用已完成审查
+{"fingerprint": "df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf", "report": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpsg1zwjn5/logs/reviews/df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf.json", "patch": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpsg1zwjn5/logs/reviews/df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf.patch", "unstaged_changes": false, "untracked_count": 1}
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpajp9h_7n/dist/iOS-TeamFlow-v2.2.0.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpajp9h_7n/dist/iOS-TeamFlow-v2.2.0.zip
+审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmps48yuaff/source/dist/ios-team-flow-skill-v2.2.0.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmps48yuaff/source/dist/ios-team-flow-skill-v2.2.0.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp4u0_qk42/source/dist/ios-team-flow-skill-v2.2.0.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp4u0_qk42/source/dist/ios-team-flow-skill-v2.2.0.zip
+审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
+工作流入口、版本、文件清单和内部链接检查通过
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpk0fsgx10/source/dist/ios-team-flow-skill-v2.2.0.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpk0fsgx10/source/dist/ios-team-flow-skill-v2.2.0.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpapwjk9wb/source/dist/ios-team-flow-skill-v2.2.0.zipok
+test_setup_version_conflict_and_symlink (test_workflow.WorkflowTests.test_setup_version_conflict_and_symlink) ... ok
+test_staged_change_and_head_invalidate (test_workflow.WorkflowTests.test_staged_change_and_head_invalidate) ... ok
+test_standalone_skill_two_projects_and_idempotence (test_workflow.WorkflowTests.test_standalone_skill_two_projects_and_idempotence) ... ok
+test_switch_from_agents_to_override_keeps_old_rules (test_workflow.WorkflowTests.test_switch_from_agents_to_override_keeps_old_rules) ... ok
+test_unstaged_report_cannot_replace_pending_index_report (test_workflow.WorkflowTests.test_unstaged_report_cannot_replace_pending_index_report) ... ok
+test_upgrade_121_without_baseline (test_workflow.WorkflowTests.test_upgrade_121_without_baseline) ... ok
+test_upgrade_customization_conflicts_write_nothing (test_workflow.WorkflowTests.test_upgrade_customization_conflicts_write_nothing) ... ok
+test_upgrade_rejects_downgrade_bad_manifest_and_markers (test_workflow.WorkflowTests.test_upgrade_rejects_downgrade_bad_manifest_and_markers) ... ok
+test_version_only_upgrade_preserves_team_customization (test_workflow.WorkflowTests.test_version_only_upgrade_preserves_team_customization) ... ok
+test_workflow_policy_change_requires_review (test_workflow.WorkflowTests.test_workflow_policy_change_requires_review) ... ok
+
+----------------------------------------------------------------------
+Ran 115 tests in 36.576s
+
+OK
+
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpapwjk9wb/source/dist/ios-team-flow-skill-v2.2.0.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp9azb5crx/source/dist/ios-team-flow-skill-v2.2.0.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp9azb5crx/source/dist/ios-team-flow-skill-v2.2.0.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmparmj48m1/source/dist/ios-team-flow-skill-v2.2.0.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmparmj48m1/source/dist/ios-team-flow-skill-v2.2.0.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpq6ly6zqd/source/dist/ios-team-flow-skill-v2.2.0.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpq6ly6zqd/source/dist/ios-team-flow-skill-v2.2.0.zip
+需要 Codex 审查并填写报告
+{"fingerprint": "df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf", "report": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpo8lrf0ua/logs/reviews/df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf.json", "patch": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpo8lrf0ua/logs/reviews/df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf.patch", "unstaged_changes": false, "untracked_count": 2}
+审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
+审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpg005q1f4/source/dist/ios-team-flow-skill-v2.2.0.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpg005q1f4/source/dist/ios-team-flow-skill-v2.2.0.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpbemm5vkv/source/dist/ios-team-flow-skill-v2.2.0.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpbemm5vkv/source/dist/ios-team-flow-skill-v2.2.0.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp7rs145ll/source/dist/ios-team-flow-skill-v2.2.0.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp7rs145ll/source/dist/ios-team-flow-skill-v2.2.0.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpkhlx1zsu/source/dist/ios-team-flow-skill-v2.2.0.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpkhlx1zsu/source/dist/ios-team-flow-skill-v2.2.0.zip

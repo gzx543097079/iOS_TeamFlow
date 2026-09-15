@@ -30,6 +30,18 @@
         "checked_at": "2026-09-15T02:32:57.929288+00:00"
       },
       "removed": []
+    },
+    {
+      "at": "2026-09-15T02:38:52.274686+00:00",
+      "action": "finish",
+      "changes": {
+        "commits": [
+          "592e35ede9642062aa368af1f1359e62c5dc206f"
+        ],
+        "committed": true,
+        "checked_at": "2026-09-15T02:38:52.274274+00:00"
+      },
+      "removed": []
     }
   ],
   "acceptance_baseline": {
@@ -46,11 +58,17 @@
       "scripts/package_release.py"
     ],
     "results": [],
-    "accepted_at": "2026-09-15T02:32:57.928873+00:00"
+    "accepted_at": "2026-09-15T02:32:57.928873+00:00",
+    "sealed_commits": [
+      "592e35ede9642062aa368af1f1359e62c5dc206f"
+    ],
+    "accepted_commit": "592e35ede9642062aa368af1f1359e62c5dc206f"
   },
   "snapshot": {
-    "commits": [],
-    "committed": false,
+    "commits": [
+      "592e35ede9642062aa368af1f1359e62c5dc206f"
+    ],
+    "committed": true,
     "merged": "未核实",
     "releases": [],
     "release_status": "未核实",
@@ -68,6 +86,6 @@
       "acceptance_fingerprint": "220068667fd18410d7a304a724873b3a2af1300b544fca09b4b702137bfc7bc2",
       "implementation_fingerprint": "03d607c6d16401699f62bf6612f0d8ec7e913b3d19f62a9952a711fc874481b2"
     },
-    "checked_at": "2026-09-15T02:32:57.929288+00:00"
+    "checked_at": "2026-09-15T02:38:52.274274+00:00"
   }
 }

@@ -1,5 +1,11 @@
 # 版本记录
 
+## 2.2.0
+
+- 新项目按框架生成 Scene 生命周期：OC/Swift UIKit 使用场景代理及 UIWindowScene 窗口，SwiftUI 使用 App/Scene；生成后验证 Debug/Release 配置、真实启动、前后台切换与日志。
+- 修复源码 Demo 的旧生命周期警告，将窗口与主题绑定迁入 SceneDelegate；Demo 不进入分发 ZIP。
+- 正式分发此前源码版本加入的中文注释规则、自动接入的 OC/Swift 分级日志组件及 Bug Fix 模板和处理历史规程。
+
 ## 2.1.3（源码版本，未发布 Release）
 
 - 增加 Bug Fix 模板及 `create --template bug-fix` 入口，覆盖复现、根因、修复、回归和追加处理历史。
