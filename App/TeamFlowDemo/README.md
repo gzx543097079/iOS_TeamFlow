@@ -44,3 +44,5 @@ xcodegen generate --spec App/TeamFlowDemo/project.yml
 外观默认跟随系统，设置中也可选择浅色或暗黑模式；窗口立即切换，重启保留选择。
 
 商城首页包含四个本地示例商品、全部/音频/日常分类、详情及演示购物袋。购物袋使用整数金额汇总，左滑移除，仅在本次运行保存；没有真实库存、订单、支付或网络请求。商品插图使用系统符号，无远程图片依赖。主路径 UI 测试保留浅色商城、暗黑商城、设置、关于及详情截图。
+
+启动采用 UIKit Scene 生命周期：project.yml 生成 Info.plist 中的单窗口 Scene 配置；SceneDelegate 使用 UIWindow(windowScene:) 组装导航与主题，AppDelegate 只处理进程启动。修改配置后重新运行 XcodeGen，并同时提交生成的 plist 与工程。

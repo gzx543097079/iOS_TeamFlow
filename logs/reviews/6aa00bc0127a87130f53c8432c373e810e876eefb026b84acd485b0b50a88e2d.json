@@ -1,0 +1,48 @@
+{
+  "fingerprint": "6aa00bc0127a87130f53c8432c373e810e876eefb026b84acd485b0b50a88e2d",
+  "base": "df849ddcda4222d2d6923197fce56236eaba4158",
+  "scope": "staged",
+  "created_at": "2026-09-15T02:25:55.904185+00:00",
+  "reviewer": "Codex",
+  "completed_at": "2026-09-15T02:26:33.479545+00:00",
+  "summary": "Demo 迁移为单窗口 Scene 生命周期；两配置真实场景启动与原有主路径通过，旧生命周期警告消失。",
+  "previous_review": null,
+  "checks": {
+    "correctness": {
+      "status": "通过",
+      "evidence": "project.yml 与生成 Info.plist/pbxproj 一致，SceneDelegate 属于 App target；实际 Debug/Release 场景代理与窗口归属测试通过。Debug 8 单元/3 UI、Release 8 单元通过；startup-verification.json 核对成品配置及警告消失。"
+    },
+    "standards": {
+      "status": "通过",
+      "evidence": "保留 UIKit/iOS14 与单窗口；UIWindow(windowScene:) 避免全局屏幕创建，中文注释明确进程/场景职责及首帧主题应用。无页面文案或设计变化。"
+    },
+    "subscription": {
+      "status": "不适用",
+      "evidence": "无交易、商品或支付变更。"
+    },
+    "memory": {
+      "status": "通过",
+      "evidence": "窗口与外观绑定由场景代理持有，绑定闭包仍弱持有窗口且析构移除通知；相关释放测试通过，前后台切换不主动销毁或重建页面。"
+    },
+    "analytics": {
+      "status": "通过",
+      "evidence": "保留进程启动日志，仅增加不含数据的 Debug 场景连接日志，不改业务事件。"
+    },
+    "test_artifacts": {
+      "status": "通过",
+      "evidence": "成品 plist 场景类名正确，无测试入口混入；Release 消息不求值测试通过且日志无 TFLog。测试窗口也绑定实际 Scene。"
+    },
+    "security": {
+      "status": "通过",
+      "evidence": "不新增权限、联网、凭据或持久化数据；日志仅生命周期事件，历史记录引用脱敏测试证据。"
+    }
+  },
+  "findings": [],
+  "blockers": [],
+  "requirements": [
+    "REQ-20260915-022234308Z-308dc111"
+  ],
+  "validation_results": [
+    "logs/project-checks/20260915T022354Z-251063a1/result.json"
+  ]
+}

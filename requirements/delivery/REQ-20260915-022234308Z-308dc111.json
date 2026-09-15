@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "requirement": "REQ-20260915-022234308Z-308dc111",
+  "linked_commits": [],
+  "prs": [],
+  "events": [
+    {
+      "at": "2026-09-15T02:25:55.773656+00:00",
+      "action": "finish",
+      "changes": {
+        "commits": [],
+        "committed": false,
+        "merged": "未核实",
+        "releases": [],
+        "release_status": "未核实",
+        "prs": [],
+        "warnings": [
+          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+        ],
+        "development": "✅ 执行完成",
+        "card": {
+          "state": "✅ 执行完成",
+          "passed": 2,
+          "applicable": 2,
+          "next": "无",
+          "blocker": "无",
+          "acceptance_fingerprint": "1567f15a102bfac55ae337c890c5de22f1d05f29acaf4434d98cedf572bdc6d4",
+          "implementation_fingerprint": "643058584a9d9dec11001785b6f7d7b4d7c7f21527351e881bc6dd9ef5ad52e8"
+        },
+        "checked_at": "2026-09-15T02:25:55.773173+00:00"
+      },
+      "removed": []
+    }
+  ],
+  "acceptance_baseline": {
+    "implementation_fingerprint": "643058584a9d9dec11001785b6f7d7b4d7c7f21527351e881bc6dd9ef5ad52e8",
+    "acceptance_fingerprint": "1567f15a102bfac55ae337c890c5de22f1d05f29acaf4434d98cedf572bdc6d4",
+    "inputs": [
+      ".agents/project-checks.json",
+      "App/TeamFlowDemo",
+      "scripts/test_demo.py"
+    ],
+    "results": [
+      {
+        "path": "logs/project-checks/20260915T022354Z-251063a1/result.json",
+        "sha256": "de82749964005b328d97eff3aa9831072e050c407832b63fef018b83173e1241"
+      }
+    ],
+    "accepted_at": "2026-09-15T02:25:55.772788+00:00"
+  },
+  "snapshot": {
+    "commits": [],
+    "committed": false,
+    "merged": "未核实",
+    "releases": [],
+    "release_status": "未核实",
+    "prs": [],
+    "warnings": [
+      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+    ],
+    "development": "✅ 执行完成",
+    "card": {
+      "state": "✅ 执行完成",
+      "passed": 2,
+      "applicable": 2,
+      "next": "无",
+      "blocker": "无",
+      "acceptance_fingerprint": "1567f15a102bfac55ae337c890c5de22f1d05f29acaf4434d98cedf572bdc6d4",
+      "implementation_fingerprint": "643058584a9d9dec11001785b6f7d7b4d7c7f21527351e881bc6dd9ef5ad52e8"
+    },
+    "checked_at": "2026-09-15T02:25:55.773173+00:00"
+  }
+}

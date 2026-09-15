@@ -1,21 +1,13 @@
 import UIKit
 
-/// 组装 Demo 窗口与导航入口。
+/// 处理进程级启动；界面与窗口由 SceneDelegate 随场景连接创建。
 @main
 final class AppDelegate: UIResponder, UIApplicationDelegate {
-    var window: UIWindow?
-    private var appearanceBinding: DemoAppearanceBinding?
-
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-        let window = UIWindow(frame: UIScreen.main.bounds)
-        window.rootViewController = UINavigationController(rootViewController: DemoViewController())
-        appearanceBinding = DemoAppearanceBinding(window: window, preferences: .shared)
-        window.makeKeyAndVisible()
         TFLog.info("Demo 已启动")
-        self.window = window
         return true
     }
 }

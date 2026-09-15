@@ -12,6 +12,8 @@
 
 ## 新增记录
 
+- [Demo 未采用 UIScene 生命周期的启动警告](REQ-20260915-022234308Z-308dc111.md)
+
 后续新 Bug 创建卡片后在这里追加标题与卡片链接；同一卡片只保留一个入口，重开和失败尝试记录在卡片内部。上表为旧结构记录的引用，不表示已补充新的历史或重新验收。
 
 模板：[bug-fix.md](../.agents/skills/ios-team-flow/references/templates/bug-fix.md)；规程：[BUGFIX.md](../.agents/skills/ios-team-flow/references/BUGFIX.md)。

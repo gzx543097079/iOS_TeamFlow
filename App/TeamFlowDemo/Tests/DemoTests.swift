@@ -17,12 +17,23 @@ final class DemoTests: XCTestCase {
         #endif
     }
 
-    @MainActor func testAppearanceAppliesPersistsAndReturnsToSystem() {
+    @MainActor func testSceneOwnsLiveWindowAndRootNavigation() throws {
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let delegate = try XCTUnwrap(scene.delegate as? SceneDelegate)
+        let window = try XCTUnwrap(delegate.window)
+        XCTAssertTrue(window.windowScene === scene)
+        let navigation = try XCTUnwrap(window.rootViewController as? UINavigationController)
+        XCTAssertTrue(navigation.viewControllers.first is DemoViewController)
+        XCTAssertFalse(window.isHidden)
+    }
+
+    @MainActor func testAppearanceAppliesPersistsAndReturnsToSystem() throws {
         let suite = "DemoTests." + UUID().uuidString
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
         let preferences = DemoPreferences(defaults: defaults)
-        let window = UIWindow()
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let window = UIWindow(windowScene: scene)
         var binding: DemoAppearanceBinding? = DemoAppearanceBinding(window: window, preferences: preferences)
         XCTAssertEqual(window.overrideUserInterfaceStyle, .unspecified)
         preferences.appearance = .dark

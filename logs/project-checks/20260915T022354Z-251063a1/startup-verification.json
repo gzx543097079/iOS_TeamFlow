@@ -1,0 +1,21 @@
+{
+  "checked_at": "2026-09-15T02:25:28.288423+00:00",
+  "checks": [
+    {
+      "configuration": "Debug",
+      "delegate_class": "TeamFlowDemo.SceneDelegate",
+      "multiple_scenes": false,
+      "scene_window_test": "passed",
+      "legacy_lifecycle_warning": false,
+      "log": "ios-demo.log"
+    },
+    {
+      "configuration": "Release",
+      "delegate_class": "TeamFlowDemo.SceneDelegate",
+      "multiple_scenes": false,
+      "scene_window_test": "passed",
+      "legacy_lifecycle_warning": false,
+      "log": "ios-demo-release.log"
+    }
+  ]
+}

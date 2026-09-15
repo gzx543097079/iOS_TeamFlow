@@ -17,14 +17,23 @@ targets:
     type: application
     platform: iOS
     sources: [Sources, Resources]
+    info:
+      path: Info.plist
+      properties:
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations:
+            UIWindowSceneSessionRoleApplication:
+              - UISceneConfigurationName: Default Configuration
+                UISceneDelegateClassName: $(PRODUCT_MODULE_NAME).SceneDelegate
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: org.example.teamflow.demo
-        GENERATE_INFOPLIST_FILE: YES
         MARKETING_VERSION: 1.0
         CURRENT_PROJECT_VERSION: 1
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: NO
   TeamFlowDemoTests:
     type: bundle.unit-test
     platform: iOS

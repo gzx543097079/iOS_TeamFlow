@@ -8,3 +8,5 @@
 - 默认语言、主题、商城增量按当前需求实施；当前 AC 与阶段结果只在各需求卡维护。
 
 - Demo 入口为本地商城：Sources/DemoCatalog.swift 提供示例商品与内存购物袋，DemoPreferences.swift 管理语言与外观，Resources 提供英文/简体中文。无网络、库存、订单或支付服务。
+
+- UIKit 启动：AppDelegate 处理进程启动；SceneDelegate 持有场景窗口与外观绑定。project.yml 生成显式 Info.plist，使用单窗口 Scene 配置。
