@@ -1,5 +1,11 @@
 # 版本记录
 
+## 2.2.1（源码版本，未发布 Release）
+
+- Demo 通过 CocoaPods 固定接入 Masonry 1.1.0，使用 workspace 构建与测试。
+- 商城、商品详情及关于页自定义约束迁移至 Masonry，保留安全区域和滚动布局指南；增加多尺寸滚动布局验证。
+- 本次仅推送源码，不创建 Release；Demo 不进入工作流分发包。
+
 ## 2.2.0
 
 - 新项目按框架生成 Scene 生命周期：OC/Swift UIKit 使用场景代理及 UIWindowScene 窗口，SwiftUI 使用 App/Scene；生成后验证 Debug/Release 配置、真实启动、前后台切换与日志。
