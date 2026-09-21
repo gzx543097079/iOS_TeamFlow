@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "requirement": "REQ-20260921-155432221Z-3d0bdaeb",
+  "linked_commits": [],
+  "prs": [],
+  "events": [
+    {
+      "at": "2026-09-21T16:02:15.653513+00:00",
+      "action": "finish",
+      "changes": {
+        "commits": [],
+        "committed": false,
+        "merged": "未核实",
+        "releases": [],
+        "release_status": "未核实",
+        "prs": [],
+        "warnings": [
+          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+        ],
+        "development": "✅ 执行完成",
+        "card": {
+          "state": "✅ 执行完成",
+          "passed": 3,
+          "applicable": 3,
+          "next": "无",
+          "blocker": "无",
+          "acceptance_fingerprint": "b6879ed0ed0547ecc9b03a372390b27932498752c5f277691573ad92c6d23abd",
+          "implementation_fingerprint": "91c46ca196f18d321d697a13f21b9d7b4697bc32adc304458b7d0d5b3a232734"
+        },
+        "checked_at": "2026-09-21T16:02:15.653253+00:00"
+      },
+      "removed": []
+    },
+    {
+      "at": "2026-09-21T16:13:54.796089+00:00",
+      "action": "finish",
+      "changes": {
+        "card": {
+          "state": "✅ 执行完成",
+          "passed": 3,
+          "applicable": 3,
+          "next": "无",
+          "blocker": "无",
+          "acceptance_fingerprint": "493a881d51e4adffc5f2b2cf56d5d876751275bb06eaeb2c97c9dde1ed64b9b6",
+          "implementation_fingerprint": "f29c82ad7b5e920d24f6054aa5ce963ffa87155928815ed99624c68704a761f2"
+        },
+        "checked_at": "2026-09-21T16:13:54.795652+00:00"
+      },
+      "removed": []
+    },
+    {
+      "at": "2026-09-21T16:18:53.184508+00:00",
+      "action": "finish",
+      "changes": {
+        "development": "🧪 待验证",
+        "card": {
+          "state": "🧪 待验证",
+          "passed": 3,
+          "applicable": 4,
+          "next": "完成 2.3.4 全量验证、审查和授权交付",
+          "blocker": "无",
+          "acceptance_fingerprint": "45a59e0071efe9d0b281cbe23053aa401b4c9d9cddb38af3d41bbfc50ca1b7b4"
+        },
+        "checked_at": "2026-09-21T16:18:53.183889+00:00"
+      },
+      "removed": []
+    }
+  ],
+  "acceptance_baseline": {
+    "implementation_fingerprint": "f29c82ad7b5e920d24f6054aa5ce963ffa87155928815ed99624c68704a761f2",
+    "acceptance_fingerprint": "493a881d51e4adffc5f2b2cf56d5d876751275bb06eaeb2c97c9dde1ed64b9b6",
+    "inputs": [
+      "AGENTS.md",
+      "README.md",
+      ".agents/skills/ios-team-flow/SKILL.md",
+      ".agents/skills/ios-team-flow/scripts/setup_project.py",
+      ".agents/skills/ios-team-flow/references/WORKFLOW.md",
+      ".agents/skills/ios-team-flow/references/INSTALL.md",
+      ".agents/skills/ios-team-flow/references/SCENARIOS.md",
+      ".agents/skills/ios-team-flow/references/CHANGELOG.md"
+    ],
+    "results": [],
+    "accepted_at": "2026-09-21T16:13:54.795498+00:00"
+  },
+  "snapshot": {
+    "commits": [],
+    "committed": false,
+    "merged": "未核实",
+    "releases": [],
+    "release_status": "未核实",
+    "prs": [],
+    "warnings": [
+      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+    ],
+    "development": "🧪 待验证",
+    "card": {
+      "state": "🧪 待验证",
+      "passed": 3,
+      "applicable": 4,
+      "next": "完成 2.3.4 全量验证、审查和授权交付",
+      "blocker": "无",
+      "acceptance_fingerprint": "45a59e0071efe9d0b281cbe23053aa401b4c9d9cddb38af3d41bbfc50ca1b7b4"
+    },
+    "checked_at": "2026-09-21T16:18:53.183889+00:00"
+  }
+}

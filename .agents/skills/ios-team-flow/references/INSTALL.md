@@ -12,6 +12,8 @@
 python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
 ```
 
+`--project` 指定的目标根及其子目录是接入后的项目空间；已有 Git 仓库必须指向它的 Git 根。它不是 Xcode `.xcworkspace` 文件，也不会因 Codex 同时能访问其他路径而扩大。后续任务如需将该目录树外的文件、目录或项目作为工作对象，须先说明具体范围和操作并获得用户本次明确允许。
+
 也可以在放好文件后请 Codex “接入当前项目的 iOS 工作流”。不需要每次提需求都重复这句话。
 
 脚本会在实际生效的指令文件中追加带标记区块（非空 AGENTS.override.md 优先，否则 AGENTS.md），明确引用项目内 Skill，生成 .agents/teamflow.json 与 scripts/review_gate.py，创建 requirements/、logs/reviews/。保留原 AGENTS.md 正文；相同版本重复运行不重复追加。脚本拒绝从其他项目或用户级安装目录直接接入本项目。接入后自动显示只读诊断：Python、Git 根目录、版本与入口、项目验证配置、忽略规则及可选本地 Hook；“接入成功”不等于业务验证已就绪。

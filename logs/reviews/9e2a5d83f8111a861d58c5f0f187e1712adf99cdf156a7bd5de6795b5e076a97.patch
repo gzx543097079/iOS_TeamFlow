@@ -1,0 +1,463 @@
+diff --git a/.agents/skills/ios-team-flow/SKILL.md b/.agents/skills/ios-team-flow/SKILL.md
+index 947b67eb1522030383ce716e9e91abe9e0a408bc..798f382b6e43c06486153e785b2e731a1a13e1ed 100644
+--- a/.agents/skills/ios-team-flow/SKILL.md
++++ b/.agents/skills/ios-team-flow/SKILL.md
+@@ -5,7 +5,11 @@ description: 中文 iOS 团队需求实施与提交审查。用于已安装本 S
+ 
+ # 项目级 iOS 团队协作入口
+ 
+-SKILL_ROOT 是本文件所在目录；PROJECT_ROOT 是当前 Git 根（新目录为用户选定根）。只使用当前项目 .agents/skills/ios-team-flow，不引用个人或其他项目版本。产物写项目根，规则维护在 Skill。
++SKILL_ROOT 是本文件所在目录；PROJECT_ROOT 是接入时确定的当前 Git 根（新目录为用户选定根），它及子目录是本工作流默认允许的项目空间。只使用当前项目 .agents/skills/ios-team-flow，不引用个人或其他项目版本。产物写项目根，规则维护在 Skill。
++
++将 PROJECT_ROOT 外的文件、目录或其他项目作为本次工作的读取、搜索、写入、删除或执行对象前，先说明准确对象、原因和拟执行操作，取得用户本次明确允许；不把 Codex 可访问范围、符号链接、工具可用性、沉默或无关的历史授权当作允许。项目内命令正常使用系统工具链、SDK 和缓存不算扩大工作对象；提交、推送、发布及其他外部写操作仍遵守各自授权规则。
++
++完成已授权项目任务确实需要安装尚缺失的开发工具时，使用官方安装方式或项目既有包管理器的标准默认位置；该安装不因目录位于 PROJECT_ROOT 外而另行请求项目空间授权，不自行改到项目内、临时目录或自定义前缀。因管理员权限、密码或登录交互、系统策略、网络、包管理器缺失或平台兼容性而无法直接安装到默认位置时，停止安装，说明工具用途、默认位置、原因和解决方案，并给出按当前环境可直接执行的安装命令与验证命令；不擅自执行 `sudo`、代替用户输入凭据或改用非默认位置。
+ 
+ 读取 [WORKFLOW](references/WORKFLOW.md) 执行日常顺序、分工及记录归属；已读且未变化不重读。只加载本次需要的专题：
+ 
+diff --git a/.agents/skills/ios-team-flow/references/CHANGELOG.md b/.agents/skills/ios-team-flow/references/CHANGELOG.md
+index e6955c0c7a9d32bb543c21ee52441e0a91fb8664..77c75e7648e1772037a59284fff55f21941771b6 100644
+--- a/.agents/skills/ios-team-flow/references/CHANGELOG.md
++++ b/.agents/skills/ios-team-flow/references/CHANGELOG.md
+@@ -1,5 +1,11 @@
+ # 版本记录
+ 
++## 2.3.4
++
++- 明确接入时的目标项目根及其目录树是项目空间；将空间外文件、目录或其他项目作为工作对象前，必须先说明范围和操作并获得用户本次明确允许。
++- 将任务必需开发工具的标准默认安装位置列为项目空间例外；无法直接默认安装时停止并给出原因、解决方案、完整安装命令及验证命令，不静默改用自定义位置。
++- 同步 Skill 入口、托管 AGENTS 区块、日常流程、接入说明、用户文档与代表性场景，并以完整检查和分发包发布。
++
+ ## 2.3.3（源码版本，未发布 Release）
+ 
+ - 在 TeamFlowDemo 建立 Application、Store、Product、Bag、Settings 五个真实模块的 `.agents/project-modules.json`，验证新增需求可按模块增量路由。
+diff --git a/.agents/skills/ios-team-flow/references/INSTALL.md b/.agents/skills/ios-team-flow/references/INSTALL.md
+index aeb63bf6b69a92845c8dc1001687e19d1addb308..49f7568dc59c75b8972161a4c2741c8ec538b628 100644
+--- a/.agents/skills/ios-team-flow/references/INSTALL.md
++++ b/.agents/skills/ios-team-flow/references/INSTALL.md
+@@ -12,6 +12,8 @@
+ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
+ ```
+ 
++`--project` 指定的目标根及其子目录是接入后的项目空间；已有 Git 仓库必须指向它的 Git 根。它不是 Xcode `.xcworkspace` 文件，也不会因 Codex 同时能访问其他路径而扩大。后续任务如需将该目录树外的文件、目录或项目作为工作对象，须先说明具体范围和操作并获得用户本次明确允许。
++
+ 也可以在放好文件后请 Codex “接入当前项目的 iOS 工作流”。不需要每次提需求都重复这句话。
+ 
+ 脚本会在实际生效的指令文件中追加带标记区块（非空 AGENTS.override.md 优先，否则 AGENTS.md），明确引用项目内 Skill，生成 .agents/teamflow.json 与 scripts/review_gate.py，创建 requirements/、logs/reviews/。保留原 AGENTS.md 正文；相同版本重复运行不重复追加。脚本拒绝从其他项目或用户级安装目录直接接入本项目。接入后自动显示只读诊断：Python、Git 根目录、版本与入口、项目验证配置、忽略规则及可选本地 Hook；“接入成功”不等于业务验证已就绪。
+diff --git a/.agents/skills/ios-team-flow/references/SCENARIOS.md b/.agents/skills/ios-team-flow/references/SCENARIOS.md
+index f79d8a217cfbb05bb3ad405e8466d506aec944e1..b5861534b2b28b5f88873addf1bd0015d8584fa0 100644
+--- a/.agents/skills/ios-team-flow/references/SCENARIOS.md
++++ b/.agents/skills/ios-team-flow/references/SCENARIOS.md
+@@ -7,6 +7,8 @@
+ | 新建 App | 在空目录接入，提出产品需求；检查 PRD 默认 Swift/UIKit/iOS14、导航无 Tab、深色与跟随系统；先确认具体 PRD，再生成工程并实际构建运行 | 确认前无业务工程；确认后配置与 PRD 匹配，权限按实际首版范围配置 |
+ | 已有 App 增量 | 选择实际有不同框架/系统目标/导航配置的工程，要求修改单一页面；记录 PROJECT-CONTEXT 与构建基线，再执行修改和相关回归 | 保留既有配置；不强制新 PRD、不迁移目录；区分既有失败与新增失败 |
+ | 大型已有项目再次新增需求 | `.agents/project-modules.json` 已有模块关注路径、入口、影响面及完整提交基准；需求只命中一个普通功能模块 | `module_context.py inspect` 返回命中模块及提交/暂存/未暂存/未跟踪差异；未变化时只读待改符号和必要调用者，变化时返回建议文件；横切路径、未命中或索引失效明确扩大范围 |
++| 超出项目空间 | 在项目 A 接入工作流，需求同时读取或修改父目录、兄弟项目 B 或项目内符号链接指向的外部文件 | 先说明外部对象、原因和操作；只有用户本次明确允许后才执行，未回复、可访问或无关历史授权都不算允许 |
++| 安装缺失开发工具 | 项目验证依赖尚未安装的 CLI；官方或既有包管理器默认安装位置在 PROJECT_ROOT 外，或安装需要管理员权限/密码/登录/系统 UI | 可直接默认安装时不重复请求项目空间允许；无法直接安装时停止，说明用途、默认位置、原因和解决方案，给出完整安装命令及验证命令，不改用非默认位置 |
+ | 订阅改动 | 临时分支故意构造月套餐/年文案不匹配，Codex 自审定位问题，修复后复核；同内容重复检查，再变更商品或文案 | 未验证/缺少证据时门禁失败；相同有效指纹复用；新改动需更新审查；真机/平台购买恢复与权益另验 |
+ | 验收重开 | 指定成员拒绝一个验收项，修复并交其复核 | 保留原失败和确认原文；不以提交代替验收 |
+ | 升级与发布 | 在真实项目副本演练旧版升级、失败恢复；按 App 发布记录走测试渠道 | 定制保留、恢复可用；只有真实平台证据才推进发布状态 |
+diff --git a/.agents/skills/ios-team-flow/references/VERSION b/.agents/skills/ios-team-flow/references/VERSION
+index 0bee604df761bde7de6502876b5cb0504dfa8701..3f684d2d9054bb637e241b07a9b7ab154d892640 100644
+--- a/.agents/skills/ios-team-flow/references/VERSION
++++ b/.agents/skills/ios-team-flow/references/VERSION
+@@ -1 +1 @@
+-2.3.3
++2.3.4
+diff --git a/.agents/skills/ios-team-flow/references/WORKFLOW.md b/.agents/skills/ios-team-flow/references/WORKFLOW.md
+index 849c8988668647255f91188e5a33407aa948c9af..cdce8d65b8f7dd6bb0bf602c94924d3b107ebb46 100644
+--- a/.agents/skills/ios-team-flow/references/WORKFLOW.md
++++ b/.agents/skills/ios-team-flow/references/WORKFLOW.md
+@@ -73,6 +73,10 @@ AC 仅使用通过、失败、未验证、不适用；判定需有证据或理
+ 
+ ## 阅读与目录边界
+ 
++项目空间是接入时确定的 PROJECT_ROOT 及其目录树：已有项目为 Git 根，新目录为用户选定根，不是 Xcode `.xcworkspace` 文件或 Codex 能访问的所有目录。本次工作需要把项目空间外的文件、目录或其他项目作为读取、搜索、写入、删除或执行对象时，先说明对象、原因和操作，取得用户本次明确允许后再执行。项目内符号链接指向外部时按空间外处理；不以文件系统可访问、未回复或无关历史授权代替允许。只作为项目内命令运行依赖的系统工具链、SDK 和缓存不视为新的工作对象。
++
++项目任务确实需要安装开发工具时，工具的官方或既有包管理器默认安装位置是上述项目空间规则的例外；可按标准方式安装，不为路径在 PROJECT_ROOT 外重复请求允许。先核对工具确实缺失、与任务直接相关，并由安装器根据当前系统和架构决定默认位置，不硬编码路径。如果不能直接完成默认安装，不尝试改前缀、改到项目内或使用不明来源二进制；先停止并向用户给出：工具用途、预期默认位置、无法直接安装的具体原因、推荐解决方案、适配当前环境的完整安装命令和安装后验证命令。需要 `sudo`、输入密码、登录账号或系统 UI 确认的命令只交给用户执行，等待完成后再继续依赖步骤。
++
+ 同会话已读且未变化的规则不重读；专题只在对应阶段读取，不拼接整套规范。读取先用路径、符号或差异定位，再展开必要上下文；不默认遍历全仓源码、requirements/ 或 logs/。跨会话从当前需求卡和工程现状续接，只在追溯问题时加载历史，不另建一套状态摘要。
+ 
+ 大型已有项目先用 PROJECT-CONTEXT 定位工程事实，再按 [模块增量工具](MODULE-CONTEXT.md) 查询 `.agents/project-modules.json`，把需求路由到关注路径、入口符号和影响关系，并由工具比较已核对 Git 基准、HEAD、暂存、未暂存及未跟踪变化。未变化时复用稳定事实，只读取待修改符号及必要调用者；有变化时从工具返回的文件刷新受影响模块。公共基础层、工程配置、依赖边界、目标归属发生变化，或索引缺失、冲突、无法覆盖需求时，扩大读取范围。具体建档与失效规则见 [已有项目流程](EXISTING-PROJECT.md)。
+diff --git a/.agents/skills/ios-team-flow/scripts/setup_project.py b/.agents/skills/ios-team-flow/scripts/setup_project.py
+index 2f5268059bbeb47aca8ad664613bf8bd62e6f68b..469aa959ba3c4e1589a0b854877092fca5d480b8 100644
+--- a/.agents/skills/ios-team-flow/scripts/setup_project.py
++++ b/.agents/skills/ios-team-flow/scripts/setup_project.py
+@@ -19,6 +19,8 @@ BLOCK = '''<!-- ios-team-flow:start -->
+ ## iOS 团队工作流
+ 
+ 本项目采用仓库内的 `.agents/skills/ios-team-flow/SKILL.md`。实施 iOS 需求和提交前必须读取该文件，无需用户再次点名 Skill；按 OC / Swift / SwiftUI / UI 类型加载规范，维护 requirements/ 需求过程与 logs/ 审查记录。
++项目空间是接入时确定的项目根及其目录树；把空间外文件、目录或其他项目作为工作对象前，必须先说明具体范围和操作并获得用户本次明确允许。
++任务所需开发工具按官方或既有包管理器默认位置安装，不受项目空间限制；无法直接默认安装时必须停止，说明原因和解决方案，并给出安装及验证命令，不擅自改用其他位置。
+ 新产品先整理 PRD 交团队确认。提交前只 review 本次改动，相同有效指纹复用；运行 `python3 scripts/review_gate.py check`。未经授权不提交或发布。
+ 版本见 .agents/teamflow.json，Skill 与项目一起提交和克隆，不依赖用户级安装。找不到本地 Skill 时明确报告缺失，不自动改用其他项目或用户级同名版本。遵守项目现有具体约定，有冲突先说明。
+ <!-- ios-team-flow:end -->
+diff --git a/.agents/teamflow.json b/.agents/teamflow.json
+index 55391bcc1dd5185ead0b8219832b8c0c179abc85..08df4fb4c225aee59d88bc43e7a28199e385e417 100644
+--- a/.agents/teamflow.json
++++ b/.agents/teamflow.json
+@@ -1,6 +1,6 @@
+ {
+   "skill": "ios-team-flow",
+-  "version": "2.3.3",
++  "version": "2.3.4",
+   "schema_version": 1,
+   "instruction_file": "AGENTS.md",
+   "managed": {
+diff --git a/AGENTS.md b/AGENTS.md
+index 45407302d0ec12dd74d6f1cdd2e29ca9b6201958..5c7ae2fe23eec89c9ddb9aec9832dfbf6a9223c5 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -6,6 +6,8 @@
+ ## iOS 团队工作流
+ 
+ 本项目采用仓库内的 `.agents/skills/ios-team-flow/SKILL.md`。实施 iOS 需求和提交前必须读取该文件，无需用户再次点名 Skill；按 OC / Swift / SwiftUI / UI 类型加载规范，维护 requirements/ 需求过程与 logs/ 审查记录。
++项目空间是接入时确定的项目根及其目录树；把空间外文件、目录或其他项目作为工作对象前，必须先说明具体范围和操作并获得用户本次明确允许。
++任务所需开发工具按官方或既有包管理器默认位置安装，不受项目空间限制；无法直接默认安装时必须停止，说明原因和解决方案，并给出安装及验证命令，不擅自改用其他位置。
+ 新产品先整理 PRD 交团队确认。提交前只 review 本次改动，相同有效指纹复用；运行 `python3 scripts/review_gate.py check`。未经授权不提交或发布。
+ 版本见 .agents/teamflow.json，Skill 与项目一起提交和克隆，不依赖用户级安装。找不到本地 Skill 时明确报告缺失，不自动改用其他项目或用户级同名版本。遵守项目现有具体约定，有冲突先说明。
+ <!-- ios-team-flow:end -->
+diff --git a/README.md b/README.md
+index dc4abbbcb1a0b28ac77a98f611458a806a81004e..4a4182bce49fb64e04dbae239ee30f226877485e 100644
+--- a/README.md
++++ b/README.md
+@@ -1,6 +1,6 @@
+ # iOS TeamFlow
+ 
+-项目级中文 iOS 团队工作流，支持 Objective-C、Swift、SwiftUI、UI 规范、需求追踪、验证、提交审查和交付记录。当前版本为 **2.3.3**（源码版本，未发布 Release）。完整规则只维护在项目 `.agents/skills/ios-team-flow/`，团队克隆后共用。
++项目级中文 iOS 团队工作流，支持 Objective-C、Swift、SwiftUI、UI 规范、需求追踪、验证、提交审查和交付记录。当前版本为 **2.3.4**。完整规则只维护在项目 `.agents/skills/ios-team-flow/`，团队克隆后共用。
+ 
+ ## 先看你属于哪种情况
+ 
+@@ -37,9 +37,9 @@ git init
+ 
+ ### 2. 放入完整 Skill
+ 
+-当前源码版本为 2.3.3：大型已有项目通过 `.agents/project-modules.json` 和 `module_context.py` 执行模块路由、Git 增量检查和受控基准刷新；TeamFlowDemo 已建立五个真实模块的索引并完成增量场景验证。商城 Demo 仅保留在源码仓库，不进入分发包。
++当前版本为 2.3.4：明确接入项目空间的操作边界，并规定任务必需开发工具的默认安装与失败提示。大型已有项目可通过 `.agents/project-modules.json` 和 `module_context.py` 执行模块路由、Git 增量检查和受控基准刷新。商城 Demo 仅保留在源码仓库，不进入分发包。
+ 
+-2.3.3 本次只推送源码、未发布 Release；需要正式附件时仍从 [2.3.0 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v2.3.0) 下载 `ios-team-flow-skill-v2.3.0.zip`，解压后把完整的 `ios-team-flow` 文件夹放到 `.agents/skills/`。
++从 [2.3.4 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v2.3.4) 下载 `ios-team-flow-skill-v2.3.4.zip`，解压后把完整的 `ios-team-flow` 文件夹放到 `.agents/skills/`。
+ 
+ 最终必须是 `.agents/skills/ios-team-flow/SKILL.md`，不要只复制 SKILL.md，也不要多套一层同名文件夹。Finder 按 `Command + Shift + .` 显示隐藏文件夹。
+ 
+@@ -93,6 +93,10 @@ Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/refer
+ 
+ 成员负责提出需求、确认必要业务决定、实际验收和授权提交/推送/发布。Codex 负责建卡、实施、选择和运行验证、更新记录、提交前审查与交付同步。正常使用不要求成员背诵需求编号、finish 或门禁参数。
+ 
++接入时确定的目标项目根及其目录树是该工作流的项目空间。如果任务需要读取、搜索、修改、删除或执行空间外的文件、目录或其他项目，Codex 必须先说明具体范围、原因和操作，获得用户本次明确允许后再执行。
++
++任务必需的开发工具应按官方或项目既有包管理器的默认位置安装，该位置不受项目空间限制。如果因权限、交互、系统策略或环境问题无法直接默认安装，Codex 会停止安装，说明原因和解决方案，并提供适配当前环境的完整安装命令及验证命令；不会静默改到项目内或其他自定义位置。
++
+ 需求编号采用 `REQ-YYYYMMDD-HHMMSSmmmZ-随机码`，文件名按 UTC 创建时间排序。用 `delivery.py list` 查看序号、时间、标题和状态，`list --reverse` 查看最新需求；序号仅用于浏览，引用始终使用固定编号。
+ 
+ 提出需求 → 一次确定范围与 AC（验收条件）→ 实施和验证 → 更新验收记录并绑定证据 → 最终提交门禁 → 授权交付后同步事实。
+@@ -143,7 +147,7 @@ Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/refer
+ 
+ ## 源仓库维护与版本
+ 
+-2.3.3 在 TeamFlowDemo 建立五个真实模块索引并验证模块内、跨模块、未知需求及脏路径保护；2.3.2 将大型项目模块路由工具化，返回 Git 变化、建议读取文件与失效/横切扩大信号。两版均只推送源码，不创建 Release。2.3.1 移除 PR/分支保护门禁依赖并修复 Release 先公开后验证问题。源码 Demo 不进入分发包。保留 Scene 生命周期、Bug Fix、中文注释、自动日志、自我进化与异常需求卡容错。需求编号按 UTC 创建时间排序，支持列表、倒序和 JSON 查询；日常 CI 按改动选择测试，正式发布、公共或未知变化仍执行全量。工具输出沿用 1.10.1，新项目默认英语和简体中文。版本变化见 [CHANGELOG](.agents/skills/ios-team-flow/references/CHANGELOG.md)。
++2.3.4 增加项目空间边界和工具默认安装例外；2.3.3 在 TeamFlowDemo 建立五个真实模块索引并验证模块内、跨模块、未知需求及脏路径保护；2.3.2 将大型项目模块路由工具化，返回 Git 变化、建议读取文件与失效/横切扩大信号。2.3.1 移除 PR/分支保护门禁依赖并修复 Release 先公开后验证问题。源码 Demo 不进入分发包。保留 Scene 生命周期、Bug Fix、中文注释、自动日志、自我进化与异常需求卡容错。需求编号按 UTC 创建时间排序，支持列表、倒序和 JSON 查询；日常 CI 按改动选择测试，正式发布、公共或未知变化仍执行全量。工具输出沿用 1.10.1，新项目默认英语和简体中文。版本变化见 [CHANGELOG](.agents/skills/ios-team-flow/references/CHANGELOG.md)。
+ 
+ 以下命令用于工作流分发仓库维护，不要求业务项目为了接入而运行：
+ 
+diff --git a/requirements/DELIVERY.md b/requirements/DELIVERY.md
+index fa33da5327a15d2c90a98ce34936a0685a35bf68..76be0de7ceb18e3427d39a370c8295cd76c68bbb 100644
+--- a/requirements/DELIVERY.md
++++ b/requirements/DELIVERY.md
+@@ -30,3 +30,5 @@
+ | 24 | 2026-09-21T15:09:16.469+00:00 | [REQ-20260921-150916469Z-eceb663b](REQ-20260921-150916469Z-eceb663b.md) | Release 发布前完成验证与打包 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-21T15:15:17.705598+00:00 |
+ | 25 | 2026-09-21T15:22:29.355+00:00 | [REQ-20260921-152229355Z-9ce494ed](REQ-20260921-152229355Z-9ce494ed.md) | 大型项目模块增量读取工具化并推送 2.3.2 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-21T15:33:42.201047+00:00 |
+ | 26 | 2026-09-21T15:37:29.813+00:00 | [REQ-20260921-153729813Z-f7534db3](REQ-20260921-153729813Z-f7534db3.md) | 在 TeamFlowDemo 验证大型项目模块增量工具并推送 2.3.3 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-21T15:47:58.128137+00:00 |
++| 27 | 2026-09-21T15:54:32.221+00:00 | [REQ-20260921-155432221Z-3d0bdaeb](REQ-20260921-155432221Z-3d0bdaeb.md) | 限制超出接入项目空间的操作 | 🧪 待验证 | ⬜ 未关联 | 未核实 | 未核实 | 2026-09-21T16:18:53.183889+00:00 |
++| 28 | 2026-09-21T16:08:32.836+00:00 | [REQ-20260921-160832836Z-56bf7ea8](REQ-20260921-160832836Z-56bf7ea8.md) | 规范工具默认目录安装与失败提示 | 🧪 待验证 | ⬜ 未关联 | 未核实 | 未核实 | 2026-09-21T16:18:53.289069+00:00 |
+diff --git a/requirements/REQ-20260921-155432221Z-3d0bdaeb.md b/requirements/REQ-20260921-155432221Z-3d0bdaeb.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..c9be1f584f574f5ea6f769a70dc425de1877aef4
+--- /dev/null
++++ b/requirements/REQ-20260921-155432221Z-3d0bdaeb.md
+@@ -0,0 +1,36 @@
++# REQ-20260921-155432221Z-3d0bdaeb：限制超出接入项目空间的操作
++<!-- teamflow:requirement:v3 -->
++
++- 状态：🧪 待验证
++- 来源与范围：用户明确要求限制超出接入项目空间的工作。当前规则只定义 PROJECT_ROOT，未规定越界前的允许门槛 → 明确项目空间为接入时目标根及其目录树，读取或操作空间外对象前必须获得用户本次明确允许。用户后续授权完成后提交、推送并将最小版本号加一发布 2.3.4 标签；不纳入用户已有 Demo 工程改动。
++- 拆分：否；单一可验收结果（复杂需求列纵向步骤与 AC 编号，不复制状态）
++- 验收方式：自审
++- 验收依据：低风险且验收条件明确；涉及商业规则、重要交互或已约定团队验收时改为团队
++- 下一步：完成 2.3.4 全量验证、审查和授权交付
++- 阻塞项：无
++
++## 验收（唯一结果记录）
++
++| 编号 | 条件 | 结果 | 证据或不适用原因 |
++| --- | --- | --- | --- |
++| AC-01 | 接入时将目标 PROJECT_ROOT 及其目录树定义为项目空间，不扩大为 Xcode workspace 或 Codex 可访问的所有路径 | 通过 | `SKILL.md`、`WORKFLOW.md` 与 `INSTALL.md` 的边界定义已自审一致；后续工具默认安装例外未扩大为通用越界授权 |
++| AC-02 | 把项目空间外的文件、目录或其他项目作为读取或操作对象前，必须说明对象、原因和操作并获得用户本次明确允许 | 通过 | Skill 入口、托管 `AGENTS.md` 区块及代表性场景均已覆盖；工具安装仅在任务必需且使用标准默认位置时例外；模型后续执行仍需真实任务观察 |
++| AC-03 | 自动接入入口、Skill 分发包及内部文档链路验证通过，不引入项目外操作 | 通过 | `python3 scripts/validate_workflow.py`；`python3 -m unittest tests.test_workflow tests.test_setup_recovery tests.test_skill_upgrade tests.test_consumer_release tests.test_scenarios -v`（52 项通过） |
++| AC-04 | 版本一致更新为 2.3.4，全量检查、可重复打包和提交门禁通过；本次文件提交并推送 `main`，再创建并推送 `teamflow-v2.3.4` | 未验证 | — |
++
++## 过程与决策
++
++- 2026-09-21T15:54:32+00:00：接收需求；记录范围判断。只追加重要决定、失败及复核，不复制当前状态和完整测试输出。
++- 2026-09-21T23:54:00+08:00：用户明确纠正“项目空间”不是工作流源仓库，而是接入时确定的业务项目 PROJECT_ROOT 及其目录树。根因是入口只定义路径，未将它设为越界操作的授权边界；最小改动为同步 Skill 入口、日常流程、接入说明和托管 AGENTS 区块，通过文档、接入与分发回归验证；如引起项目内正常工具链误拦截，仅回退本次边界措辞并重新核对。
++- 2026-09-22T00:01:24+08:00：文档、自动接入、升级恢复、消费包与场景回归通过；规则已进入分发清单。自动检查只证明本次规则与分发链路，不声称能自动证明后续模型始终遵守。
++- 2026-09-22T00:11:55+08:00：新增任务必需开发工具的默认安装例外后复核本需求；例外只覆盖标准工具安装位置，未授权读取或操作其他项目外对象，项目空间边界仍成立。
++- 2026-09-22T00:15:00+08:00：用户授权完成后提交、推送并将最小版本号加一；核对当前源码版本 2.3.3 和远端标签后，目标为 2.3.4 与 `teamflow-v2.3.4`。
++
++<!-- 按需链接工程现状、验证范围及风险；证据引用文件，不复制日志。
++团队验收添加一处“- 团队确认：…”并填写确认人、时间、对象版本及原文/链接。
++暂停/取消添加“- 暂停或取消原因：…”；暂停的下一步为恢复条件。
++当前状态只维护顶部，步骤引用 AC；不写当前审查指纹、提交 SHA 或交付状态副本。
++仅触发流程改进时，在过程与决策按需记录改进依据：触发与来源、根因证据、最小改动、验证方法及撤销方式；预期和条件写正文与 AC，当前结果仍只写 AC 表。普通需求不添加此记录。
++验收绑定与收尾命令见下方交付规程。 -->
++
++交付索引由首次 finish 创建在 `requirements/DELIVERY.md`。操作规程：[交付追踪](../.agents/skills/ios-team-flow/references/DELIVERY.md)、[团队验收](../.agents/skills/ios-team-flow/references/ACCEPTANCE.md)。
+diff --git a/requirements/REQ-20260921-160832836Z-56bf7ea8.md b/requirements/REQ-20260921-160832836Z-56bf7ea8.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..913b976ce0481942d62060d4f05349f7c03c255e
+--- /dev/null
++++ b/requirements/REQ-20260921-160832836Z-56bf7ea8.md
+@@ -0,0 +1,36 @@
++# REQ-20260921-160832836Z-56bf7ea8：规范工具默认目录安装与失败提示
++<!-- teamflow:requirement:v3 -->
++
++- 状态：🧪 待验证
++- 来源与范围：用户明确要求将任务必需工具的默认安装位置排除在项目空间限制之外。可直接安装时使用官方或既有包管理器的默认位置；不能直接安装时停止，向用户说明原因和解决方案，并提供安装命令与验证命令。用户后续授权完成后提交、推送并发布 2.3.4 标签；不纳入用户已有 Demo 工程改动。
++- 拆分：否；单一可验收结果（复杂需求列纵向步骤与 AC 编号，不复制状态）
++- 验收方式：自审
++- 验收依据：低风险且验收条件明确；涉及商业规则、重要交互或已约定团队验收时改为团队
++- 下一步：完成 2.3.4 全量验证、审查和授权交付
++- 阻塞项：无
++
++## 验收（唯一结果记录）
++
++| 编号 | 条件 | 结果 | 证据或不适用原因 |
++| --- | --- | --- | --- |
++| AC-01 | 任务必需工具按官方或既有包管理器的默认位置安装，不因位于 PROJECT_ROOT 外重复请求项目空间允许 | 通过 | `SKILL.md` 和 `WORKFLOW.md` 已定义默认安装例外 |
++| AC-02 | 无法直接默认安装时停止，说明用途、默认位置、原因和解决方案，并给出适配当前环境的完整安装命令及验证命令 | 通过 | Skill 入口、托管 `AGENTS.md` 区块及代表性场景已统一要求安装与验证命令 |
++| AC-03 | 不静默改到项目内、临时目录或自定义前缀，需要管理员权限、凭据或系统交互的命令只提供给用户执行 | 通过 | `SKILL.md` 与 `WORKFLOW.md` 已明确禁止静默改位置和擅自执行特权/交互命令 |
++| AC-04 | 自动接入入口、Skill 分发包和内部文档验证通过 | 通过 | `python3 scripts/validate_workflow.py`；`python3 -m unittest tests.test_workflow tests.test_setup_recovery tests.test_skill_upgrade tests.test_consumer_release tests.test_scenarios -v`（52 项通过） |
++| AC-05 | 版本一致更新为 2.3.4，全量检查、可重复打包和提交门禁通过；本次文件提交并推送 `main`，再创建并推送 `teamflow-v2.3.4` | 未验证 | — |
++
++## 过程与决策
++
++- 2026-09-21T16:08:32+00:00：接收需求；记录范围判断。只追加重要决定、失败及复核，不复制当前状态和完整测试输出。
++- 2026-09-22T00:08:32+08:00：用户纠正了项目空间规则与工具安装的关系：默认安装位置应作为明确例外，而不是强制改为项目内安装。最小改动是同步 Skill 入口、日常流程、托管 AGENTS 区块和代表性场景；用文档、接入、升级和分发回归验证，如与空间授权边界冲突则只回退本次工具安装措辞并重新核对。
++- 2026-09-22T00:11:55+08:00：文档、自动接入、升级恢复、消费包与场景回归均通过；本次验证证明规则进入分发链路，不代替未来真实工具安装场景的执行观察。
++- 2026-09-22T00:15:00+08:00：用户授权完成后提交、推送并将最小版本号加一；核对当前源码版本 2.3.3 和远端标签后，目标为 2.3.4 与 `teamflow-v2.3.4`。
++
++<!-- 按需链接工程现状、验证范围及风险；证据引用文件，不复制日志。
++团队验收添加一处“- 团队确认：…”并填写确认人、时间、对象版本及原文/链接。
++暂停/取消添加“- 暂停或取消原因：…”；暂停的下一步为恢复条件。
++当前状态只维护顶部，步骤引用 AC；不写当前审查指纹、提交 SHA 或交付状态副本。
++仅触发流程改进时，在过程与决策按需记录改进依据：触发与来源、根因证据、最小改动、验证方法及撤销方式；预期和条件写正文与 AC，当前结果仍只写 AC 表。普通需求不添加此记录。
++验收绑定与收尾命令见下方交付规程。 -->
++
++交付索引由首次 finish 创建在 `requirements/DELIVERY.md`。操作规程：[交付追踪](../.agents/skills/ios-team-flow/references/DELIVERY.md)、[团队验收](../.agents/skills/ios-team-flow/references/ACCEPTANCE.md)。
+diff --git a/requirements/delivery/REQ-20260921-155432221Z-3d0bdaeb.json b/requirements/delivery/REQ-20260921-155432221Z-3d0bdaeb.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..dd8087c8d082e9bc2b1cff69ebe5670657516306
+--- /dev/null
++++ b/requirements/delivery/REQ-20260921-155432221Z-3d0bdaeb.json
+@@ -0,0 +1,106 @@
++{
++  "schema_version": 1,
++  "requirement": "REQ-20260921-155432221Z-3d0bdaeb",
++  "linked_commits": [],
++  "prs": [],
++  "events": [
++    {
++      "at": "2026-09-21T16:02:15.653513+00:00",
++      "action": "finish",
++      "changes": {
++        "commits": [],
++        "committed": false,
++        "merged": "未核实",
++        "releases": [],
++        "release_status": "未核实",
++        "prs": [],
++        "warnings": [
++          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++        ],
++        "development": "✅ 执行完成",
++        "card": {
++          "state": "✅ 执行完成",
++          "passed": 3,
++          "applicable": 3,
++          "next": "无",
++          "blocker": "无",
++          "acceptance_fingerprint": "b6879ed0ed0547ecc9b03a372390b27932498752c5f277691573ad92c6d23abd",
++          "implementation_fingerprint": "91c46ca196f18d321d697a13f21b9d7b4697bc32adc304458b7d0d5b3a232734"
++        },
++        "checked_at": "2026-09-21T16:02:15.653253+00:00"
++      },
++      "removed": []
++    },
++    {
++      "at": "2026-09-21T16:13:54.796089+00:00",
++      "action": "finish",
++      "changes": {
++        "card": {
++          "state": "✅ 执行完成",
++          "passed": 3,
++          "applicable": 3,
++          "next": "无",
++          "blocker": "无",
++          "acceptance_fingerprint": "493a881d51e4adffc5f2b2cf56d5d876751275bb06eaeb2c97c9dde1ed64b9b6",
++          "implementation_fingerprint": "f29c82ad7b5e920d24f6054aa5ce963ffa87155928815ed99624c68704a761f2"
++        },
++        "checked_at": "2026-09-21T16:13:54.795652+00:00"
++      },
++      "removed": []
++    },
++    {
++      "at": "2026-09-21T16:18:53.184508+00:00",
++      "action": "finish",
++      "changes": {
++        "development": "🧪 待验证",
++        "card": {
++          "state": "🧪 待验证",
++          "passed": 3,
++          "applicable": 4,
++          "next": "完成 2.3.4 全量验证、审查和授权交付",
++          "blocker": "无",
++          "acceptance_fingerprint": "45a59e0071efe9d0b281cbe23053aa401b4c9d9cddb38af3d41bbfc50ca1b7b4"
++        },
++        "checked_at": "2026-09-21T16:18:53.183889+00:00"
++      },
++      "removed": []
++    }
++  ],
++  "acceptance_baseline": {
++    "implementation_fingerprint": "f29c82ad7b5e920d24f6054aa5ce963ffa87155928815ed99624c68704a761f2",
++    "acceptance_fingerprint": "493a881d51e4adffc5f2b2cf56d5d876751275bb06eaeb2c97c9dde1ed64b9b6",
++    "inputs": [
++      "AGENTS.md",
++      "README.md",
++      ".agents/skills/ios-team-flow/SKILL.md",
++      ".agents/skills/ios-team-flow/scripts/setup_project.py",
++      ".agents/skills/ios-team-flow/references/WORKFLOW.md",
++      ".agents/skills/ios-team-flow/references/INSTALL.md",
++      ".agents/skills/ios-team-flow/references/SCENARIOS.md",
++      ".agents/skills/ios-team-flow/references/CHANGELOG.md"
++    ],
++    "results": [],
++    "accepted_at": "2026-09-21T16:13:54.795498+00:00"
++  },
++  "snapshot": {
++    "commits": [],
++    "committed": false,
++    "merged": "未核实",
++    "releases": [],
++    "release_status": "未核实",
++    "prs": [],
++    "warnings": [
++      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++    ],
++    "development": "🧪 待验证",
++    "card": {
++      "state": "🧪 待验证",
++      "passed": 3,
++      "applicable": 4,
++      "next": "完成 2.3.4 全量验证、审查和授权交付",
++      "blocker": "无",
++      "acceptance_fingerprint": "45a59e0071efe9d0b281cbe23053aa401b4c9d9cddb38af3d41bbfc50ca1b7b4"
++    },
++    "checked_at": "2026-09-21T16:18:53.183889+00:00"
++  }
++}
+diff --git a/requirements/delivery/REQ-20260921-160832836Z-56bf7ea8.json b/requirements/delivery/REQ-20260921-160832836Z-56bf7ea8.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..cdd8016d88e43bbd8fa17d1f666fc29aed574beb
+--- /dev/null
++++ b/requirements/delivery/REQ-20260921-160832836Z-56bf7ea8.json
+@@ -0,0 +1,88 @@
++{
++  "schema_version": 1,
++  "requirement": "REQ-20260921-160832836Z-56bf7ea8",
++  "linked_commits": [],
++  "prs": [],
++  "events": [
++    {
++      "at": "2026-09-21T16:12:50.792649+00:00",
++      "action": "finish",
++      "changes": {
++        "commits": [],
++        "committed": false,
++        "merged": "未核实",
++        "releases": [],
++        "release_status": "未核实",
++        "prs": [],
++        "warnings": [
++          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++        ],
++        "development": "✅ 执行完成",
++        "card": {
++          "state": "✅ 执行完成",
++          "passed": 4,
++          "applicable": 4,
++          "next": "无",
++          "blocker": "无",
++          "acceptance_fingerprint": "b372554140450855b9363a2936ddad357a588ffd4118c5547820290983f76e32",
++          "implementation_fingerprint": "1c85cfc148812eda0e6864a73081bbefac510c0ed5bd7f559edffe90028961d7"
++        },
++        "checked_at": "2026-09-21T16:12:50.792403+00:00"
++      },
++      "removed": []
++    },
++    {
++      "at": "2026-09-21T16:18:53.289334+00:00",
++      "action": "finish",
++      "changes": {
++        "development": "🧪 待验证",
++        "card": {
++          "state": "🧪 待验证",
++          "passed": 4,
++          "applicable": 5,
++          "next": "完成 2.3.4 全量验证、审查和授权交付",
++          "blocker": "无",
++          "acceptance_fingerprint": "01e1646f99a6db1eee940097c00b2438f8f4873715d5bd908e3cf15498727a2b"
++        },
++        "checked_at": "2026-09-21T16:18:53.289069+00:00"
++      },
++      "removed": []
++    }
++  ],
++  "acceptance_baseline": {
++    "implementation_fingerprint": "1c85cfc148812eda0e6864a73081bbefac510c0ed5bd7f559edffe90028961d7",
++    "acceptance_fingerprint": "b372554140450855b9363a2936ddad357a588ffd4118c5547820290983f76e32",
++    "inputs": [
++      "AGENTS.md",
++      "README.md",
++      ".agents/skills/ios-team-flow/SKILL.md",
++      ".agents/skills/ios-team-flow/scripts/setup_project.py",
++      ".agents/skills/ios-team-flow/references/WORKFLOW.md",
++      ".agents/skills/ios-team-flow/references/SCENARIOS.md",
++      ".agents/skills/ios-team-flow/references/CHANGELOG.md"
++    ],
++    "results": [],
++    "accepted_at": "2026-09-21T16:12:50.792269+00:00"
++  },
++  "snapshot": {
++    "commits": [],
++    "committed": false,
++    "merged": "未核实",
++    "releases": [],
++    "release_status": "未核实",
++    "prs": [],
++    "warnings": [
++      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++    ],
++    "development": "🧪 待验证",
++    "card": {
++      "state": "🧪 待验证",
++      "passed": 4,
++      "applicable": 5,
++      "next": "完成 2.3.4 全量验证、审查和授权交付",
++      "blocker": "无",
++      "acceptance_fingerprint": "01e1646f99a6db1eee940097c00b2438f8f4873715d5bd908e3cf15498727a2b"
++    },
++    "checked_at": "2026-09-21T16:18:53.289069+00:00"
++  }
++}

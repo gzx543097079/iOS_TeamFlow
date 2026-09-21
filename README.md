@@ -1,6 +1,6 @@
 # iOS TeamFlow
 
-项目级中文 iOS 团队工作流，支持 Objective-C、Swift、SwiftUI、UI 规范、需求追踪、验证、提交审查和交付记录。当前版本为 **2.3.3**（源码版本，未发布 Release）。完整规则只维护在项目 `.agents/skills/ios-team-flow/`，团队克隆后共用。
+项目级中文 iOS 团队工作流，支持 Objective-C、Swift、SwiftUI、UI 规范、需求追踪、验证、提交审查和交付记录。当前版本为 **2.3.4**。完整规则只维护在项目 `.agents/skills/ios-team-flow/`，团队克隆后共用。
 
 ## 先看你属于哪种情况
 
@@ -37,9 +37,9 @@ git init
 
 ### 2. 放入完整 Skill
 
-当前源码版本为 2.3.3：大型已有项目通过 `.agents/project-modules.json` 和 `module_context.py` 执行模块路由、Git 增量检查和受控基准刷新；TeamFlowDemo 已建立五个真实模块的索引并完成增量场景验证。商城 Demo 仅保留在源码仓库，不进入分发包。
+当前版本为 2.3.4：明确接入项目空间的操作边界，并规定任务必需开发工具的默认安装与失败提示。大型已有项目可通过 `.agents/project-modules.json` 和 `module_context.py` 执行模块路由、Git 增量检查和受控基准刷新。商城 Demo 仅保留在源码仓库，不进入分发包。
 
-2.3.3 本次只推送源码、未发布 Release；需要正式附件时仍从 [2.3.0 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v2.3.0) 下载 `ios-team-flow-skill-v2.3.0.zip`，解压后把完整的 `ios-team-flow` 文件夹放到 `.agents/skills/`。
+从 [2.3.4 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v2.3.4) 下载 `ios-team-flow-skill-v2.3.4.zip`，解压后把完整的 `ios-team-flow` 文件夹放到 `.agents/skills/`。
 
 最终必须是 `.agents/skills/ios-team-flow/SKILL.md`，不要只复制 SKILL.md，也不要多套一层同名文件夹。Finder 按 `Command + Shift + .` 显示隐藏文件夹。
 
@@ -93,6 +93,10 @@ Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/refer
 
 成员负责提出需求、确认必要业务决定、实际验收和授权提交/推送/发布。Codex 负责建卡、实施、选择和运行验证、更新记录、提交前审查与交付同步。正常使用不要求成员背诵需求编号、finish 或门禁参数。
 
+接入时确定的目标项目根及其目录树是该工作流的项目空间。如果任务需要读取、搜索、修改、删除或执行空间外的文件、目录或其他项目，Codex 必须先说明具体范围、原因和操作，获得用户本次明确允许后再执行。
+
+任务必需的开发工具应按官方或项目既有包管理器的默认位置安装，该位置不受项目空间限制。如果因权限、交互、系统策略或环境问题无法直接默认安装，Codex 会停止安装，说明原因和解决方案，并提供适配当前环境的完整安装命令及验证命令；不会静默改到项目内或其他自定义位置。
+
 需求编号采用 `REQ-YYYYMMDD-HHMMSSmmmZ-随机码`，文件名按 UTC 创建时间排序。用 `delivery.py list` 查看序号、时间、标题和状态，`list --reverse` 查看最新需求；序号仅用于浏览，引用始终使用固定编号。
 
 提出需求 → 一次确定范围与 AC（验收条件）→ 实施和验证 → 更新验收记录并绑定证据 → 最终提交门禁 → 授权交付后同步事实。
@@ -143,7 +147,7 @@ Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/refer
 
 ## 源仓库维护与版本
 
-2.3.3 在 TeamFlowDemo 建立五个真实模块索引并验证模块内、跨模块、未知需求及脏路径保护；2.3.2 将大型项目模块路由工具化，返回 Git 变化、建议读取文件与失效/横切扩大信号。两版均只推送源码，不创建 Release。2.3.1 移除 PR/分支保护门禁依赖并修复 Release 先公开后验证问题。源码 Demo 不进入分发包。保留 Scene 生命周期、Bug Fix、中文注释、自动日志、自我进化与异常需求卡容错。需求编号按 UTC 创建时间排序，支持列表、倒序和 JSON 查询；日常 CI 按改动选择测试，正式发布、公共或未知变化仍执行全量。工具输出沿用 1.10.1，新项目默认英语和简体中文。版本变化见 [CHANGELOG](.agents/skills/ios-team-flow/references/CHANGELOG.md)。
+2.3.4 增加项目空间边界和工具默认安装例外；2.3.3 在 TeamFlowDemo 建立五个真实模块索引并验证模块内、跨模块、未知需求及脏路径保护；2.3.2 将大型项目模块路由工具化，返回 Git 变化、建议读取文件与失效/横切扩大信号。2.3.1 移除 PR/分支保护门禁依赖并修复 Release 先公开后验证问题。源码 Demo 不进入分发包。保留 Scene 生命周期、Bug Fix、中文注释、自动日志、自我进化与异常需求卡容错。需求编号按 UTC 创建时间排序，支持列表、倒序和 JSON 查询；日常 CI 按改动选择测试，正式发布、公共或未知变化仍执行全量。工具输出沿用 1.10.1，新项目默认英语和简体中文。版本变化见 [CHANGELOG](.agents/skills/ios-team-flow/references/CHANGELOG.md)。
 
 以下命令用于工作流分发仓库维护，不要求业务项目为了接入而运行：
 
