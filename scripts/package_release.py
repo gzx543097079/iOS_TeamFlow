@@ -10,7 +10,7 @@ REFERENCES = (
     'RELEASE.md', 'SOURCES.md', 'INSTALL.md', 'standards/ui.md',
     'standards/comments.md', 'standards/objective-c.md', 'standards/swift.md', 'standards/swiftui.md',
     'templates/new-project.md', 'templates/requirement.md', 'BUGFIX.md', 'templates/bug-fix.md',
-    'GIT-CHECKS.md', 'DELIVERY.md', 'PROJECT-CHECKS.md', 'EXISTING-PROJECT.md', 'templates/project-context.md',
+    'GIT-CHECKS.md', 'DELIVERY.md', 'PROJECT-CHECKS.md', 'EXISTING-PROJECT.md', 'MODULE-CONTEXT.md', 'templates/project-context.md',
 )
 # 仅打包明确登记的通用文件，不打包项目接入记录、需求或日志。
 FILES = (
@@ -18,10 +18,10 @@ FILES = (
     '.github/workflows/teamflow-check.yml', '.github/workflows/teamflow-release.yml',
     'scripts/check_logging.py', '.github/workflows/teamflow-logging.yml', 'tests/test_logging_install.py',
     'scripts/review_gate.py', 'scripts/package_release.py', 'scripts/validate_workflow.py', 'scripts/run_workflow_checks.py',
-    'tests/test_check_selection.py', 'tests/test_consumer_release.py', 'tests/test_skill_upgrade.py', 'tests/test_scenarios.py', 'tests/test_setup_recovery.py', 'tests/test_workflow.py', 'tests/test_project_checks.py', 'tests/test_delivery.py', 'tests/test_git_checks.py', SKILL + '/SKILL.md',
+    'tests/test_check_selection.py', 'tests/test_consumer_release.py', 'tests/test_skill_upgrade.py', 'tests/test_scenarios.py', 'tests/test_setup_recovery.py', 'tests/test_workflow.py', 'tests/test_project_checks.py', 'tests/test_delivery.py', 'tests/test_git_checks.py', 'tests/test_module_context.py', SKILL + '/SKILL.md',
     SKILL + '/assets/logging/TFLogger.swift', SKILL + '/assets/logging/TFLogger.h', SKILL + '/assets/logging/TFLogger.m',
     SKILL + '/scripts/install_logging.py',
-    SKILL + '/scripts/upgrade_skill.py', SKILL + '/scripts/install_git_checks.py', SKILL + '/scripts/delivery.py', SKILL + '/scripts/project_checks.py', SKILL + '/scripts/setup_project.py', SKILL + '/scripts/review_gate.py',
+    SKILL + '/scripts/upgrade_skill.py', SKILL + '/scripts/install_git_checks.py', SKILL + '/scripts/module_context.py', SKILL + '/scripts/delivery.py', SKILL + '/scripts/project_checks.py', SKILL + '/scripts/setup_project.py', SKILL + '/scripts/review_gate.py',
 ) + tuple(SKILL + '/references/' + name for name in REFERENCES)
 
 

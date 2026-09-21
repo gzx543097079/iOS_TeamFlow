@@ -32,7 +32,7 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project . --doct
 
 ## 后续使用
 
-从项目根目录打开新的 Codex 会话。AGENTS.md 已要求在 iOS 实施与提交审查时读取本地 Skill，直接说“做一个订阅页”即可。规则属于指令约束，构建、lint 和提交拦截仍需对应工具或 hook。
+从项目根目录打开新的 Codex 会话。AGENTS.md 已要求在 iOS 实施与提交审查时读取本地 Skill，直接说“做一个订阅页”即可。构建、lint 和提交拦截仍需对应工具或 Hook；大型项目的模块路由与 Git 增量由 `module_context.py` 和 `.agents/project-modules.json` 提供可执行能力。
 
 ```text
 项目根目录/
@@ -42,6 +42,7 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project . --doct
 │   ├── references/       # UI、语言规范、流程与模板
 │   └── scripts/          # Skill 自带工具
 ├── .agents/teamflow.json
+├── .agents/project-modules.json # 大型项目按需由工具建立
 ├── App/                  # 新工程，既有工程保留原名
 ├── requirements/
 ├── logs/reviews/
@@ -58,7 +59,7 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project . --doct
 
 ## 已有业务项目接入后
 
-接入成功只代表入口配置完成。首次提出业务需求时，Codex 按 [已有项目流程](EXISTING-PROJECT.md) 识别本次目标并整理 requirements/PROJECT-CONTEXT.md；后续复用现状记录、核对相关变化，沿用项目实际技术栈和产品配置，不套用新项目默认值。
+接入成功只代表入口配置完成。首次提出业务需求时，Codex 按 [已有项目流程](EXISTING-PROJECT.md) 识别本次目标并整理 requirements/PROJECT-CONTEXT.md；大型项目在实际触达模块时用 [模块增量工具](MODULE-CONTEXT.md) 建立 `.agents/project-modules.json`。后续先由工具核对命中模块变化，再读取必要代码；沿用项目实际技术栈和产品配置，不套用新项目默认值。
 
 ## 可选提交检查
 

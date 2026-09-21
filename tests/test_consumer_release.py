@@ -86,6 +86,23 @@ class ConsumerReleaseTests(unittest.TestCase):
         self.assertEqual(before, {p: p.read_bytes() for p in self.root.rglob('*') if p.is_file()})
         self.assertEqual('deploymentTarget: 17.0\nframework: SwiftUI\n', (self.root / 'project.yml').read_text())
 
+    def test_packaged_module_context_routes_without_reading_source_contents(self):
+        self.initialize()
+        account = self.root / 'App/Account/Login.swift'
+        account.parent.mkdir(parents=True)
+        account.write_text('private fixture source\n')
+        (self.root / 'Project.swift').write_text('project fixture\n')
+        self.git('add', 'App', 'Project.swift')
+        self.git('commit', '-qm', 'fixture')
+        self.cli('module_context.py', '--project', '.', 'record', '--name', 'account',
+                 '--trigger', '登录', '--path', 'App/Account', '--entry', 'Login',
+                 '--cross-cutting', 'Project.swift')
+        result = json.loads(self.cli('module_context.py', '--project', '.', 'inspect',
+                                     '--query', '修改登录提示').stdout)
+        self.assertEqual(['account'], result['selected_modules'])
+        self.assertEqual('unchanged', result['modules'][0]['status'])
+        self.assertNotIn('private fixture source', json.dumps(result))
+
     def test_first_gate_without_gitignore_and_importing_test_passes(self):
         self.cli('setup_project.py', '--project', '.')
         self.initialize()

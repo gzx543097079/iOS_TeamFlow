@@ -21,7 +21,7 @@
 | 需求与交付状态 | [交付追踪](DELIVERY.md) |
 | 可选本地提交 Hook | [Git 检查](GIT-CHECKS.md) |
 | 提交审查及去重 | [Review](REVIEW.md) |
-| 已有项目增量开发 | [处理流程](EXISTING-PROJECT.md) · [项目现状模板](templates/project-context.md) |
+| 已有项目增量开发 | [处理流程](EXISTING-PROJECT.md) · [模块增量工具](MODULE-CONTEXT.md) · [项目现状模板](templates/project-context.md) |
 | 新项目 PRD 与需求卡 | [PRD 模板](templates/new-project.md) · [需求模板](templates/requirement.md) |
 | GitHub 对比与官方来源 | [调研记录](SOURCES.md) |
 | 团队验收与问题复核 | [验收规程](ACCEPTANCE.md) · [记录模板](templates/acceptance.md) |

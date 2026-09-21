@@ -1,6 +1,6 @@
 # iOS TeamFlow
 
-项目级中文 iOS 团队工作流，支持 Objective-C、Swift、SwiftUI、UI 规范、需求追踪、验证、提交审查和交付记录。当前版本为 **2.3.1**（源码版本，未发布 Release）。完整规则只维护在项目 `.agents/skills/ios-team-flow/`，团队克隆后共用。
+项目级中文 iOS 团队工作流，支持 Objective-C、Swift、SwiftUI、UI 规范、需求追踪、验证、提交审查和交付记录。当前版本为 **2.3.2**（源码版本，未发布 Release）。完整规则只维护在项目 `.agents/skills/ios-team-flow/`，团队克隆后共用。
 
 ## 先看你属于哪种情况
 
@@ -37,9 +37,9 @@ git init
 
 ### 2. 放入完整 Skill
 
-当前源码版本为 2.3.1：移除 PR 审查门禁与分支保护依赖，仅保留可选本地提交 Hook；大型已有项目仍可用模块路由与 Git 核对基准避免新增需求时重复摸底。商城 Demo 仅保留在源码仓库，不进入分发包。
+当前源码版本为 2.3.2：大型已有项目通过 `.agents/project-modules.json` 和 `module_context.py` 执行模块路由、Git 增量检查和受控基准刷新，不再只依赖文字约束。商城 Demo 仅保留在源码仓库，不进入分发包。
 
-2.3.1 本次只推送源码、未发布 Release；需要正式附件时仍从 [2.3.0 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v2.3.0) 下载 `ios-team-flow-skill-v2.3.0.zip`，解压后把完整的 `ios-team-flow` 文件夹放到 `.agents/skills/`。
+2.3.2 本次只推送源码、未发布 Release；需要正式附件时仍从 [2.3.0 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v2.3.0) 下载 `ios-team-flow-skill-v2.3.0.zip`，解压后把完整的 `ios-team-flow` 文件夹放到 `.agents/skills/`。
 
 最终必须是 `.agents/skills/ios-team-flow/SKILL.md`，不要只复制 SKILL.md，也不要多套一层同名文件夹。Finder 按 `Command + Shift + .` 显示隐藏文件夹。
 
@@ -81,7 +81,7 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project . --doct
 
 Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/references/templates/new-project.md) 整理具体 PRD 和需求卡。模板保留工程目录、权限、多语言、订阅等详细条目；新项目默认语言为英语和简体中文，其他语言按需启用；按启动、功能、发布阶段填写；先确认启动范围，再创建最小可运行工程。未确认的默认建议不会自动成为产品配置。
 
-已有项目可以直接说“修复登录页的问题”或“增加订阅管理页”，按 [已有项目流程](.agents/skills/ios-team-flow/references/EXISTING-PROJECT.md) 核对相关现状，保留实际框架、语言、部署目标和目录。大型项目按需在 PROJECT-CONTEXT 建立模块路由与 Git 核对基准，后续只刷新命中且发生变化的模块，无需每次点名 Skill、重复接入或通读全仓。
+已有项目可以直接说“修复登录页的问题”或“增加订阅管理页”，按 [已有项目流程](.agents/skills/ios-team-flow/references/EXISTING-PROJECT.md) 核对相关现状，保留实际框架、语言、部署目标和目录。大型项目按需使用 [模块增量工具](.agents/skills/ios-team-flow/references/MODULE-CONTEXT.md) 建立可执行索引；后续工具先返回命中模块、Git 变化、建议文件和扩大范围信号，无需每次点名 Skill、重复接入或通读全仓。
 
 ### 5. 团队共享
 
@@ -130,6 +130,7 @@ Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/refer
 ├── AGENTS.md                     # 有 override 时以有效指令入口为准
 ├── .agents/skills/ios-team-flow/  # 项目固定版本的完整 Skill
 ├── .agents/teamflow.json         # 接入记录
+├── .agents/project-modules.json  # 大型项目按需建立的可执行模块索引
 ├── .agents/project-checks.json   # 工程就绪后配置实际验证
 ├── App/                          # 新工程默认；已有工程保留目录
 ├── requirements/                 # PRD、需求卡、验收证据及生成交付索引
@@ -142,7 +143,7 @@ Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/refer
 
 ## 源仓库维护与版本
 
-2.3.1 移除 PR 审查门禁、范围检查和分支保护依赖，仅保留可选本地 Hook；Release 改为标签触发并在原生检查、完整回归和打包成功后才公开。本次只提交并推送源码，不创建 Release。2.3.0 增加大型项目模块路由、关注路径与 Git 核对基准，新增需求按命中模块和实际差异增量读取；索引失效、公共层及工程配置变化仍扩大检查。源码 Demo 不进入分发包。保留 Scene 生命周期、Bug Fix、中文注释、自动日志、自我进化与异常需求卡容错。需求编号按 UTC 创建时间排序，支持列表、倒序和 JSON 查询；日常 CI 按改动选择测试，正式发布、公共或未知变化仍执行全量。工具输出沿用 1.10.1，新项目默认英语和简体中文。版本变化见 [CHANGELOG](.agents/skills/ios-team-flow/references/CHANGELOG.md)。
+2.3.2 将大型项目模块路由工具化：配置记录完整基准和稳定影响关系，命令返回四类 Git 变化、建议读取文件与失效/横切扩大信号，并受控刷新基准。本次只提交并推送源码，不创建 Release。2.3.1 移除 PR/分支保护门禁依赖并修复 Release 先公开后验证问题。源码 Demo 不进入分发包。保留 Scene 生命周期、Bug Fix、中文注释、自动日志、自我进化与异常需求卡容错。需求编号按 UTC 创建时间排序，支持列表、倒序和 JSON 查询；日常 CI 按改动选择测试，正式发布、公共或未知变化仍执行全量。工具输出沿用 1.10.1，新项目默认英语和简体中文。版本变化见 [CHANGELOG](.agents/skills/ios-team-flow/references/CHANGELOG.md)。
 
 以下命令用于工作流分发仓库维护，不要求业务项目为了接入而运行：
 
