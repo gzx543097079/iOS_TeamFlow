@@ -1,6 +1,6 @@
 # iOS TeamFlow
 
-项目级中文 iOS 团队工作流，支持 Objective-C、Swift、SwiftUI、UI 规范、需求追踪、验证、提交审查和交付记录。当前版本为 **2.2.2**。完整规则只维护在项目 `.agents/skills/ios-team-flow/`，团队克隆后共用。
+项目级中文 iOS 团队工作流，支持 Objective-C、Swift、SwiftUI、UI 规范、需求追踪、验证、提交审查和交付记录。当前版本为 **2.3.0**。完整规则只维护在项目 `.agents/skills/ios-team-flow/`，团队克隆后共用。
 
 ## 先看你属于哪种情况
 
@@ -37,9 +37,9 @@ git init
 
 ### 2. 放入完整 Skill
 
-当前源码版本为 2.2.2，新增需求架构一致性规则，Demo 已按功能模块重构为 MVVM，并保留 CocoaPods/Masonry；本次不创建 Release。最近正式版本为 2.2.0，包含 Scene 生命周期生成与验收规范、Bug Fix 模板、中文注释规则及自动接入的 OC/Swift 日志组件。商城 Demo 仅保留在源码仓库，不进入分发包。
+当前正式版本为 2.3.0：大型已有项目可用模块路由与 Git 核对基准避免新增需求时重复摸底，并包含需求架构一致性、模块复用、Scene 生命周期、Bug Fix、中文注释及自动接入的 OC/Swift 日志组件。商城 Demo 仅保留在源码仓库，不进入分发包。
 
-从 [2.2.0 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v2.2.0) 下载 `ios-team-flow-skill-v2.2.0.zip`，解压后把完整的 `ios-team-flow` 文件夹放到 `.agents/skills/`。
+从 [2.3.0 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v2.3.0) 下载 `ios-team-flow-skill-v2.3.0.zip`，解压后把完整的 `ios-team-flow` 文件夹放到 `.agents/skills/`。
 
 最终必须是 `.agents/skills/ios-team-flow/SKILL.md`，不要只复制 SKILL.md，也不要多套一层同名文件夹。Finder 按 `Command + Shift + .` 显示隐藏文件夹。
 
@@ -53,7 +53,7 @@ MyApp/
             └── scripts/
 ```
 
-已有同名 Skill 时先比较版本和定制，按升级流程处理。业务项目使用上述独立 Skill 包；`iOS-TeamFlow-v2.2.0.zip` 是带源仓库测试和发布流水线的完整分发包。
+已有同名 Skill 时先比较版本和定制，按升级流程处理。业务项目使用上述独立 Skill 包；`iOS-TeamFlow-v2.3.0.zip` 是带源仓库测试和发布流水线的完整分发包。
 
 ### 3. 接入项目并查看诊断
 
@@ -81,7 +81,7 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project . --doct
 
 Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/references/templates/new-project.md) 整理具体 PRD 和需求卡。模板保留工程目录、权限、多语言、订阅等详细条目；新项目默认语言为英语和简体中文，其他语言按需启用；按启动、功能、发布阶段填写；先确认启动范围，再创建最小可运行工程。未确认的默认建议不会自动成为产品配置。
 
-已有项目可以直接说“修复登录页的问题”或“增加订阅管理页”，按 [已有项目流程](.agents/skills/ios-team-flow/references/EXISTING-PROJECT.md) 核对相关现状，保留实际框架、语言、部署目标和目录。后续无需每次点名 Skill 或重复接入。
+已有项目可以直接说“修复登录页的问题”或“增加订阅管理页”，按 [已有项目流程](.agents/skills/ios-team-flow/references/EXISTING-PROJECT.md) 核对相关现状，保留实际框架、语言、部署目标和目录。大型项目按需在 PROJECT-CONTEXT 建立模块路由与 Git 核对基准，后续只刷新命中且发生变化的模块，无需每次点名 Skill、重复接入或通读全仓。
 
 ### 5. 团队共享
 
@@ -142,7 +142,7 @@ Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/refer
 
 ## 源仓库维护与版本
 
-2.2.2 源码增加按需求架构生成及模块复用审查，Demo 重构为 MVVM。此前 2.2.1 将 Demo 自定义布局迁移到 CocoaPods 管理的 Masonry，构建及测试使用 workspace；未创建对应 Release。2.2.0 新增 Scene 生命周期生成与验收规范，并修复源码 Demo 的旧生命周期警告；正式分发 Bug Fix 模板、处理规程、中文注释规范和自动接入的 OC/Swift 分级日志。源码保留商城 Demo、语言与外观设置。保留 2.1.0 的自我进化与异常需求卡容错。需求编号继续按 UTC 创建时间排序，支持列表、倒序和 JSON 查询。旧编号不再支持，历史原件保留但不迁移、不进入新列表。日常 CI 按 Git 改动选择测试；正式发布、公共或未知变化仍执行全量。文档和模板改动无需每次运行全部工具测试，工具输出沿用 1.10.1。新项目默认英语和简体中文。版本变化见 [CHANGELOG](.agents/skills/ios-team-flow/references/CHANGELOG.md)。
+2.3.0 增加大型项目模块路由、关注路径与 Git 核对基准，新增需求按命中模块和实际差异增量读取；索引失效、公共层及工程配置变化仍扩大检查。正式版同时包含 2.2.2 的需求架构/模块复用规则和 2.2.1 的 Masonry Demo 改造；源码 Demo 不进入分发包。保留 Scene 生命周期、Bug Fix、中文注释、自动日志、自我进化与异常需求卡容错。需求编号按 UTC 创建时间排序，支持列表、倒序和 JSON 查询；日常 CI 按改动选择测试，正式发布、公共或未知变化仍执行全量。工具输出沿用 1.10.1，新项目默认英语和简体中文。版本变化见 [CHANGELOG](.agents/skills/ios-team-flow/references/CHANGELOG.md)。
 
 以下命令用于工作流分发仓库维护，不要求业务项目为了接入而运行：
 
