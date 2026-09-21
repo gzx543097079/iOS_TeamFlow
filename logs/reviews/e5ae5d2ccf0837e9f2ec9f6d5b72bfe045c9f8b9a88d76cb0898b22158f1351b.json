@@ -1,0 +1,46 @@
+{
+  "fingerprint": "e5ae5d2ccf0837e9f2ec9f6d5b72bfe045c9f8b9a88d76cb0898b22158f1351b",
+  "base": "1f5a6d3abd3ad2424e43b0b0d18e367d44a0573e",
+  "scope": "staged",
+  "created_at": "2026-09-21T15:46:03.289214+00:00",
+  "reviewer": "Codex",
+  "completed_at": "2026-09-21T15:46:32Z",
+  "summary": "通过：2.3.3 暂存范围建立 Demo 五模块索引并保留可复核证据，版本链路一致；完整 114 项回归与确定性打包通过。Demo 构建失败明确来自既有部署目标与 Xcode 27 不兼容，未把失败冒充通过，也未混入用户的 project.pbxproj 改动。",
+  "previous_review": null,
+  "checks": {
+    "correctness": {
+      "status": "通过",
+      "evidence": "逐项核对 .agents/project-modules.json、需求卡与验证记录；单/多/未知路由、模块内/横切探针、脏路径原子拒绝及最终 validate 均有证据。tests.test_module_context 与消费场景共 7 项通过，scripts/run_workflow_checks.py --full 共 114 项通过。Demo project-check result 如实为失败且 source_unchanged=true，失败发生在测试前的部署目标检查，不影响本次索引行为结论。"
+    },
+    "standards": {
+      "status": "通过",
+      "evidence": "索引使用 module_context.py 既有 schema，职责、入口、依赖、调用方和验证入口与 requirements/PROJECT-CONTEXT.md 的现有 MVVM 映射一致；VERSION、teamflow.json、CHANGELOG 与 README 均为 2.3.3，并明确仅源码推送、不创建 Release。"
+    },
+    "subscription": {
+      "status": "不适用",
+      "evidence": "本次仅新增项目模块索引、验证/交付记录和源码版本说明，不涉及订阅产品、价格、权益、购买或恢复流程。"
+    },
+    "memory": {
+      "status": "不适用",
+      "evidence": "本次未修改 App 运行时代码、对象生命周期、闭包、通知、任务或资源所有权。"
+    },
+    "analytics": {
+      "status": "不适用",
+      "evidence": "本次未修改业务埋点、事件名称、参数或触发时机。"
+    },
+    "test_artifacts": {
+      "status": "通过",
+      "evidence": "两个 .teamflow 探针均已删除；rg 确认无探针残留。dist 产物保持忽略，暂存区仅包含索引、文档和脱敏验证/交付记录；未修改生产 Target 或加入 mock、测试帐号、调试开关。"
+    },
+    "security": {
+      "status": "通过",
+      "evidence": "索引仅记录仓库相对路径和公开符号；暂存日志与记录按凭据/API key/token/private key 等模式扫描无命中。未新增权限、网络、凭据或用户数据；用户已有 project.pbxproj 修改保持未暂存。"
+    }
+  },
+  "findings": [],
+  "blockers": [],
+  "requirements": [
+    "REQ-20260921-153729813Z-f7534db3"
+  ],
+  "validation_results": []
+}

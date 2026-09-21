@@ -1,6 +1,6 @@
 # iOS TeamFlow
 
-项目级中文 iOS 团队工作流，支持 Objective-C、Swift、SwiftUI、UI 规范、需求追踪、验证、提交审查和交付记录。当前版本为 **2.3.2**（源码版本，未发布 Release）。完整规则只维护在项目 `.agents/skills/ios-team-flow/`，团队克隆后共用。
+项目级中文 iOS 团队工作流，支持 Objective-C、Swift、SwiftUI、UI 规范、需求追踪、验证、提交审查和交付记录。当前版本为 **2.3.3**（源码版本，未发布 Release）。完整规则只维护在项目 `.agents/skills/ios-team-flow/`，团队克隆后共用。
 
 ## 先看你属于哪种情况
 
@@ -37,9 +37,9 @@ git init
 
 ### 2. 放入完整 Skill
 
-当前源码版本为 2.3.2：大型已有项目通过 `.agents/project-modules.json` 和 `module_context.py` 执行模块路由、Git 增量检查和受控基准刷新，不再只依赖文字约束。商城 Demo 仅保留在源码仓库，不进入分发包。
+当前源码版本为 2.3.3：大型已有项目通过 `.agents/project-modules.json` 和 `module_context.py` 执行模块路由、Git 增量检查和受控基准刷新；TeamFlowDemo 已建立五个真实模块的索引并完成增量场景验证。商城 Demo 仅保留在源码仓库，不进入分发包。
 
-2.3.2 本次只推送源码、未发布 Release；需要正式附件时仍从 [2.3.0 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v2.3.0) 下载 `ios-team-flow-skill-v2.3.0.zip`，解压后把完整的 `ios-team-flow` 文件夹放到 `.agents/skills/`。
+2.3.3 本次只推送源码、未发布 Release；需要正式附件时仍从 [2.3.0 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v2.3.0) 下载 `ios-team-flow-skill-v2.3.0.zip`，解压后把完整的 `ios-team-flow` 文件夹放到 `.agents/skills/`。
 
 最终必须是 `.agents/skills/ios-team-flow/SKILL.md`，不要只复制 SKILL.md，也不要多套一层同名文件夹。Finder 按 `Command + Shift + .` 显示隐藏文件夹。
 
@@ -143,7 +143,7 @@ Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/refer
 
 ## 源仓库维护与版本
 
-2.3.2 将大型项目模块路由工具化：配置记录完整基准和稳定影响关系，命令返回四类 Git 变化、建议读取文件与失效/横切扩大信号，并受控刷新基准。本次只提交并推送源码，不创建 Release。2.3.1 移除 PR/分支保护门禁依赖并修复 Release 先公开后验证问题。源码 Demo 不进入分发包。保留 Scene 生命周期、Bug Fix、中文注释、自动日志、自我进化与异常需求卡容错。需求编号按 UTC 创建时间排序，支持列表、倒序和 JSON 查询；日常 CI 按改动选择测试，正式发布、公共或未知变化仍执行全量。工具输出沿用 1.10.1，新项目默认英语和简体中文。版本变化见 [CHANGELOG](.agents/skills/ios-team-flow/references/CHANGELOG.md)。
+2.3.3 在 TeamFlowDemo 建立五个真实模块索引并验证模块内、跨模块、未知需求及脏路径保护；2.3.2 将大型项目模块路由工具化，返回 Git 变化、建议读取文件与失效/横切扩大信号。两版均只推送源码，不创建 Release。2.3.1 移除 PR/分支保护门禁依赖并修复 Release 先公开后验证问题。源码 Demo 不进入分发包。保留 Scene 生命周期、Bug Fix、中文注释、自动日志、自我进化与异常需求卡容错。需求编号按 UTC 创建时间排序，支持列表、倒序和 JSON 查询；日常 CI 按改动选择测试，正式发布、公共或未知变化仍执行全量。工具输出沿用 1.10.1，新项目默认英语和简体中文。版本变化见 [CHANGELOG](.agents/skills/ios-team-flow/references/CHANGELOG.md)。
 
 以下命令用于工作流分发仓库维护，不要求业务项目为了接入而运行：
 

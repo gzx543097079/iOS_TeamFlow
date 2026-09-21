@@ -1,5 +1,12 @@
 # 版本记录
 
+## 2.3.3（源码版本，未发布 Release）
+
+- 在 TeamFlowDemo 建立 Application、Store、Product、Bag、Settings 五个真实模块的 `.agents/project-modules.json`，验证新增需求可按模块增量路由。
+- 验证单模块、多模块、未知需求、模块内变化、跨模块变化与脏路径原子拒绝场景；保留可复核记录和项目上下文。
+- 当前 Xcode 27 无法构建仍使用 iOS 14 / Pods iOS 6 部署目标的 Demo，已如实记录为既有工具链兼容问题；本次未修改用户工程配置。
+- 本次仅提交并推送源码，不创建标签或 Release。
+
 ## 2.3.2（源码版本，未发布 Release）
 
 - 新增 `.agents/project-modules.json` 与 `module_context.py`，将大型项目模块路由和增量读取从文字规则升级为可执行工具能力。
