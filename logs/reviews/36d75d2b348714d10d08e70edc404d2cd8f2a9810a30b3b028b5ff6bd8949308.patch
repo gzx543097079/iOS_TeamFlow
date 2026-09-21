@@ -1,0 +1,271 @@
+diff --git a/requirements/DELIVERY.md b/requirements/DELIVERY.md
+index accc2cace82f1e4777344da01149ede092b14284..1cf7b38a1d85bcbe00b0208c4edc133e012c0aa3 100644
+--- a/requirements/DELIVERY.md
++++ b/requirements/DELIVERY.md
+@@ -26,4 +26,5 @@
+ | 20 | 2026-09-15T07:51:23.794+00:00 | [REQ-20260915-075123794Z-73d854b0](REQ-20260915-075123794Z-73d854b0.md) | 生成代码遵循需求架构与模块复用边界 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-15T07:59:04.535702+00:00 |
+ | 21 | 2026-09-15T08:37:24.172+00:00 | [REQ-20260915-083724172Z-6efa3c57](REQ-20260915-083724172Z-6efa3c57.md) | 推送源码版本 2.2.2 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-15T08:39:16.749714+00:00 |
+ | 22 | 2026-09-21T13:06:47.139+00:00 | [REQ-20260921-130647139Z-b54c35a0](REQ-20260921-130647139Z-b54c35a0.md) | 大型项目按模块增量读取并发布 2.3.0 | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-21T13:20:01.237409+00:00 |
+-| 23 | 2026-09-21T14:55:52.053+00:00 | [REQ-20260921-145552053Z-ccb1de82](REQ-20260921-145552053Z-ccb1de82.md) | 移除 PR 审查门禁与分支保护依赖 | ✅ 执行完成 | ⬜ 未关联 | 未核实 | 未核实 | 2026-09-21T15:05:54.952402+00:00 |
++| 23 | 2026-09-21T14:55:52.053+00:00 | [REQ-20260921-145552053Z-ccb1de82](REQ-20260921-145552053Z-ccb1de82.md) | 移除 PR 审查门禁与分支保护依赖 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-21T15:15:17.470810+00:00 |
++| 24 | 2026-09-21T15:09:16.469+00:00 | [REQ-20260921-150916469Z-eceb663b](REQ-20260921-150916469Z-eceb663b.md) | Release 发布前完成验证与打包 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-21T15:15:17.705598+00:00 |
+diff --git a/requirements/REQ-20260921-145552053Z-ccb1de82.md b/requirements/REQ-20260921-145552053Z-ccb1de82.md
+index c3317cdec9f64f684f1566149791431ecda727fb..122f3a33aeecbdba250d2cc605bfca5a7af9e737 100644
+--- a/requirements/REQ-20260921-145552053Z-ccb1de82.md
++++ b/requirements/REQ-20260921-145552053Z-ccb1de82.md
+@@ -1,12 +1,12 @@
+ # REQ-20260921-145552053Z-ccb1de82：移除 PR 审查门禁与分支保护依赖
+ <!-- teamflow:requirement:v3 -->
+ 
+-- 状态：🔄 执行中
++- 状态：✅ 执行完成
+ - 来源与范围：用户要求解决完整度检查中的第一个问题，方案为删除 PR 模块及分支保护相关内容，并将版本更新为 2.3.1 后提交、推送。本次移除 PR 审查 workflow、安装模板、range_review 工具、PR 触发、PR 模板、诊断项及相关测试/文档，只保留可选本地提交 Hook；delivery 的 link-pr 与历史 PR/合并事实字段作为通用交付记录兼容能力保留，不再承担门禁职责。不修改业务 Demo，不创建 GitHub Release。
+ - 拆分：否；单一可验收结果（复杂需求列纵向步骤与 AC 编号，不复制状态）
+ - 验收方式：自审
+ - 验收依据：工作流模块删除和分发边界明确，可通过全仓引用检查、工具测试、消费包检查和提交门禁自审。
+-- 下一步：完成 2.3.1 验证、审查、提交和推送
++- 下一步：无
+ - 阻塞项：无
+ 
+ ## 验收（唯一结果记录）
+@@ -17,7 +17,7 @@
+ | AC-02 | install_git_checks 与接入诊断只保留本地 Hook，不再提供 ci-install、PR 检查或分支保护提示 | 通过 | `install_git_checks.py --help` 仅有 Hook 操作，doctor 无 PR/分支保护诊断；见验证记录。 |
+ | AC-03 | push/日志 CI 不再监听 pull_request；文档不再把 PR 检查、必需检查或分支保护作为工作流能力 | 通过 | 两个保留 workflow 均为 push 触发，禁用词引用检查无结果；见验证记录。 |
+ | AC-04 | 本地 Hook 的安装、阻止未审提交、既有 Hook 恢复和冲突保护仍通过；完整回归和分发包验证通过 | 通过 | 专项 20 项、加入发布顺序回归后的完整回归 107 项通过，两种 2.3.1 分发包核对通过；见验证记录。 |
+-| AC-05 | VERSION、接入记录、CHANGELOG 与 README 一致为源码版本 2.3.1；本次改动经审查后提交并推送，且不创建 Release | 未验证 | — |
++| AC-05 | VERSION、接入记录、CHANGELOG 与 README 一致为源码版本 2.3.1；本次改动经审查后提交并推送，且不创建 Release | 通过 | 版本一致性及审查通过；实施提交 `cd43f67` 已推送至 `origin/main`，未创建标签或 Release。 |
+ 
+ ## 过程与决策
+ 
+@@ -25,6 +25,7 @@
+ - 2026-09-21T22:56:30+08:00：改进触发来自完整度审计发现当前仓库无法启用分支保护，存在“提供 PR 门禁但无法强制”的能力错配。最小改动是移除该模块及消费入口，保留本地 Hook 与暂存对象审查；通过删除引用检查、Hook 专项测试、完整回归和两种分发包核对。需要恢复时从 Git 历史恢复整套模块，不保留半启用入口。
+ - 2026-09-21T23:12:00+08:00：用户授权将源码版本更新为 2.3.1，并提交、推送；本次未要求创建 GitHub Release，README 保留 2.3.0 正式附件下载入口并明确 2.3.1 为未发布源码版本。
+ - 2026-09-21T23:17:00+08:00：2.3.1 同批包含独立流程改进 [REQ-20260921-150916469Z-eceb663b](REQ-20260921-150916469Z-eceb663b.md)，修复 Release 先公开后验证问题；两个需求分别维护 AC，共用本轮版本验证和交付提交。
++- 2026-09-21T23:20:00+08:00：实施提交 `cd43f67` 已推送 `origin/main`；未创建或推送 `teamflow-v2.3.1` 标签，未创建 GitHub Release。
+ 
+ <!-- 按需链接工程现状、验证范围及风险；证据引用文件，不复制日志。
+ 团队验收添加一处“- 团队确认：…”并填写确认人、时间、对象版本及原文/链接。
+diff --git a/requirements/REQ-20260921-150916469Z-eceb663b.md b/requirements/REQ-20260921-150916469Z-eceb663b.md
+index f28d9ae876c7e918e3206bf6890579983a400f51..ea879cbd7c0011ab3593d2658c9593a19d0481bf 100644
+--- a/requirements/REQ-20260921-150916469Z-eceb663b.md
++++ b/requirements/REQ-20260921-150916469Z-eceb663b.md
+@@ -1,12 +1,12 @@
+ # REQ-20260921-150916469Z-eceb663b：Release 发布前完成验证与打包
+ <!-- teamflow:requirement:v3 -->
+ 
+-- 状态：🔄 执行中
++- 状态：✅ 执行完成
+ - 来源与范围：用户指出 P1：工作流由 `release.published` 触发，导致公开 Release 已创建后才执行验证。本次改为仅由 `teamflow-v*` 标签推送触发，先完成原生检查、版本核对、完整回归和打包，再由独立最小写权限任务创建带附件的公开 Release；不发布 2.3.1，不修改 App 发布流程。
+ - 拆分：否；单一可验收结果（复杂需求列纵向步骤与 AC 编号，不复制状态）
+ - 验收方式：自审
+ - 验收依据：workflow 触发、任务依赖和权限边界可由静态回归、完整测试及分发包核对自审。
+-- 下一步：实施并验证 AC-01 至 AC-04
++- 下一步：无
+ - 阻塞项：无
+ 
+ ## 验收（唯一结果记录）
+@@ -16,12 +16,13 @@
+ | AC-01 | 发布 workflow 不再由已公开 Release 触发，只响应 `teamflow-v*` 标签推送 | 通过 | workflow 触发器静态回归通过；见 `logs/version-2.3.1/verification.md`。 |
+ | AC-02 | 原生检查、版本核对、完整回归与打包全部成功后，才允许执行公开 Release 创建 | 通过 | `publish` 依赖 `package`，包由验证任务上传 artifact；顺序回归与完整 107 项通过，见验证记录。 |
+ | AC-03 | 验证和打包任务只读；只有不执行仓库脚本的最终发布任务拥有 `contents: write`，并校验远端标签存在 | 通过 | workflow 权限及命令核对通过，最终任务使用 `gh release create --verify-tag`；见验证记录。 |
+-| AC-04 | 文档、回归测试和分发包同步覆盖新顺序；2.3.1 本轮只提交推送，不触发 Release | 未验证 | — |
++| AC-04 | 文档、回归测试和分发包同步覆盖新顺序；2.3.1 本轮只提交推送，不触发 Release | 通过 | 107 项完整回归、两种可重复分发包通过；实施提交 `cd43f67` 已推送，未推送 `teamflow-v2.3.1` 标签，未触发或创建 Release。 |
+ 
+ ## 过程与决策
+ 
+ - 2026-09-21T15:09:16+00:00：接收需求；记录范围判断。只追加重要决定、失败及复核，不复制当前状态和完整测试输出。
+ - 2026-09-21T23:17:00+08:00：改进触发为用户明确指出发布顺序缺陷。根因是 `release.published` 事件发生时 Release 已公开；最小修复为标签触发、只读验证/打包、artifact 隔离传递、最终写权限发布。以静态顺序回归、全量测试和包内容验证；退化时恢复旧 workflow，但旧流程会重新暴露先公开后验证风险。
++- 2026-09-21T23:20:00+08:00：实施提交 `cd43f67` 已推送 `origin/main`；没有创建版本标签，新的发布 workflow 本轮不会创建 Release。
+ 
+ <!-- 按需链接工程现状、验证范围及风险；证据引用文件，不复制日志。
+ 团队验收添加一处“- 团队确认：…”并填写确认人、时间、对象版本及原文/链接。
+diff --git a/requirements/delivery/REQ-20260921-145552053Z-ccb1de82.json b/requirements/delivery/REQ-20260921-145552053Z-ccb1de82.json
+index 89ba3c8fc92600058f711163d8634394a5d685b7..e786bee1aa2aff4c1151de4b311abcbe906e671e 100644
+--- a/requirements/delivery/REQ-20260921-145552053Z-ccb1de82.json
++++ b/requirements/delivery/REQ-20260921-145552053Z-ccb1de82.json
+@@ -30,40 +30,73 @@
+         "checked_at": "2026-09-21T15:05:54.952402+00:00"
+       },
+       "removed": []
++    },
++    {
++      "at": "2026-09-21T15:15:17.471113+00:00",
++      "action": "finish",
++      "changes": {
++        "commits": [
++          "cd43f67711a8375daa1c4a1892a20b4ddfa72c16"
++        ],
++        "committed": true,
++        "card": {
++          "state": "✅ 执行完成",
++          "passed": 5,
++          "applicable": 5,
++          "next": "无",
++          "blocker": "无",
++          "acceptance_fingerprint": "9065ee7220d0b9ce94f16424c74893b30eb5a5d68444998d1c6c9e46ae97e3dd",
++          "implementation_fingerprint": "4f81a5aff3cb5ce0391137479a77aa68afab6692864917a6bbefb07c7906c6ce"
++        },
++        "checked_at": "2026-09-21T15:15:17.470810+00:00"
++      },
++      "removed": []
+     }
+   ],
+   "acceptance_baseline": {
+-    "implementation_fingerprint": "4329c18ada31b4da5e6c5d2ac292bcbc6ce2170d023b36bfe76cedf50bd3fd0c",
+-    "acceptance_fingerprint": "8a01ed0480c78425465bae9559c595a42e92184f17f30fbc46f5b0d1e278c820",
++    "implementation_fingerprint": "4f81a5aff3cb5ce0391137479a77aa68afab6692864917a6bbefb07c7906c6ce",
++    "acceptance_fingerprint": "9065ee7220d0b9ce94f16424c74893b30eb5a5d68444998d1c6c9e46ae97e3dd",
+     "inputs": [
+       ".agents/skills/ios-team-flow/SKILL.md",
+       ".agents/skills/ios-team-flow/assets/pr-review.yml",
++      ".agents/skills/ios-team-flow/references/CHANGELOG.md",
+       ".agents/skills/ios-team-flow/references/GIT-CHECKS.md",
+       ".agents/skills/ios-team-flow/references/INSTALL.md",
+       ".agents/skills/ios-team-flow/references/PROJECT-CHECKS.md",
+       ".agents/skills/ios-team-flow/references/README.md",
+       ".agents/skills/ios-team-flow/references/RELEASE.md",
+       ".agents/skills/ios-team-flow/references/REVIEW.md",
++      ".agents/skills/ios-team-flow/references/VERSION",
+       ".agents/skills/ios-team-flow/references/WORKFLOW.md",
+       ".agents/skills/ios-team-flow/scripts/install_git_checks.py",
+       ".agents/skills/ios-team-flow/scripts/range_review.py",
+       ".agents/skills/ios-team-flow/scripts/setup_project.py",
++      ".agents/teamflow.json",
+       ".github/pull_request_template.md",
+       ".github/workflows/teamflow-check.yml",
+       ".github/workflows/teamflow-logging.yml",
+       ".github/workflows/teamflow-pr-review.yml",
++      ".github/workflows/teamflow-release.yml",
+       "README.md",
+       "scripts/package_release.py",
+       "scripts/run_workflow_checks.py",
+       "tests/test_git_checks.py",
+-      "logs/remove-pr-gate/verification.md"
++      "tests/test_workflow.py",
++      "logs/remove-pr-gate/verification.md",
++      "logs/version-2.3.1/verification.md"
+     ],
+     "results": [],
+-    "accepted_at": "2026-09-21T15:05:54.952233+00:00"
++    "accepted_at": "2026-09-21T15:15:17.470457+00:00",
++    "sealed_commits": [
++      "cd43f67711a8375daa1c4a1892a20b4ddfa72c16"
++    ],
++    "accepted_commit": "cd43f67711a8375daa1c4a1892a20b4ddfa72c16"
+   },
+   "snapshot": {
+-    "commits": [],
+-    "committed": false,
++    "commits": [
++      "cd43f67711a8375daa1c4a1892a20b4ddfa72c16"
++    ],
++    "committed": true,
+     "merged": "未核实",
+     "releases": [],
+     "release_status": "未核实",
+@@ -74,13 +107,13 @@
+     "development": "✅ 执行完成",
+     "card": {
+       "state": "✅ 执行完成",
+-      "passed": 4,
+-      "applicable": 4,
++      "passed": 5,
++      "applicable": 5,
+       "next": "无",
+       "blocker": "无",
+-      "acceptance_fingerprint": "8a01ed0480c78425465bae9559c595a42e92184f17f30fbc46f5b0d1e278c820",
+-      "implementation_fingerprint": "4329c18ada31b4da5e6c5d2ac292bcbc6ce2170d023b36bfe76cedf50bd3fd0c"
++      "acceptance_fingerprint": "9065ee7220d0b9ce94f16424c74893b30eb5a5d68444998d1c6c9e46ae97e3dd",
++      "implementation_fingerprint": "4f81a5aff3cb5ce0391137479a77aa68afab6692864917a6bbefb07c7906c6ce"
+     },
+-    "checked_at": "2026-09-21T15:05:54.952402+00:00"
++    "checked_at": "2026-09-21T15:15:17.470810+00:00"
+   }
+ }
+diff --git a/requirements/delivery/REQ-20260921-150916469Z-eceb663b.json b/requirements/delivery/REQ-20260921-150916469Z-eceb663b.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..214a7884ffc692a52ae5096ae96154ca0a8c7f96
+--- /dev/null
++++ b/requirements/delivery/REQ-20260921-150916469Z-eceb663b.json
+@@ -0,0 +1,81 @@
++{
++  "schema_version": 1,
++  "requirement": "REQ-20260921-150916469Z-eceb663b",
++  "linked_commits": [],
++  "prs": [],
++  "events": [
++    {
++      "at": "2026-09-21T15:15:17.705898+00:00",
++      "action": "finish",
++      "changes": {
++        "commits": [
++          "cd43f67711a8375daa1c4a1892a20b4ddfa72c16"
++        ],
++        "committed": true,
++        "merged": "未核实",
++        "releases": [],
++        "release_status": "未核实",
++        "prs": [],
++        "warnings": [
++          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++        ],
++        "development": "✅ 执行完成",
++        "card": {
++          "state": "✅ 执行完成",
++          "passed": 4,
++          "applicable": 4,
++          "next": "无",
++          "blocker": "无",
++          "acceptance_fingerprint": "ac98c50d7a2739836d8aeceb3a611fb881ed0a35adb2737e2a5c0a15e006f28f",
++          "implementation_fingerprint": "aca7b5288c2c5d93ad804d699611f241cee718da598adce4b207e6aa5a4ade86"
++        },
++        "checked_at": "2026-09-21T15:15:17.705598+00:00"
++      },
++      "removed": []
++    }
++  ],
++  "acceptance_baseline": {
++    "implementation_fingerprint": "aca7b5288c2c5d93ad804d699611f241cee718da598adce4b207e6aa5a4ade86",
++    "acceptance_fingerprint": "ac98c50d7a2739836d8aeceb3a611fb881ed0a35adb2737e2a5c0a15e006f28f",
++    "inputs": [
++      ".github/workflows/teamflow-release.yml",
++      ".agents/skills/ios-team-flow/references/RELEASE.md",
++      ".agents/skills/ios-team-flow/references/CHANGELOG.md",
++      ".agents/skills/ios-team-flow/references/VERSION",
++      ".agents/teamflow.json",
++      "README.md",
++      "tests/test_workflow.py",
++      "logs/version-2.3.1/verification.md"
++    ],
++    "results": [],
++    "accepted_at": "2026-09-21T15:15:17.705486+00:00",
++    "sealed_commits": [
++      "cd43f67711a8375daa1c4a1892a20b4ddfa72c16"
++    ],
++    "accepted_commit": "cd43f67711a8375daa1c4a1892a20b4ddfa72c16"
++  },
++  "snapshot": {
++    "commits": [
++      "cd43f67711a8375daa1c4a1892a20b4ddfa72c16"
++    ],
++    "committed": true,
++    "merged": "未核实",
++    "releases": [],
++    "release_status": "未核实",
++    "prs": [],
++    "warnings": [
++      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++    ],
++    "development": "✅ 执行完成",
++    "card": {
++      "state": "✅ 执行完成",
++      "passed": 4,
++      "applicable": 4,
++      "next": "无",
++      "blocker": "无",
++      "acceptance_fingerprint": "ac98c50d7a2739836d8aeceb3a611fb881ed0a35adb2737e2a5c0a15e006f28f",
++      "implementation_fingerprint": "aca7b5288c2c5d93ad804d699611f241cee718da598adce4b207e6aa5a4ade86"
++    },
++    "checked_at": "2026-09-21T15:15:17.705598+00:00"
++  }
++}

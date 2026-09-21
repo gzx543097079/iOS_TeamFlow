@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "requirement": "REQ-20260921-150916469Z-eceb663b",
+  "linked_commits": [],
+  "prs": [],
+  "events": [
+    {
+      "at": "2026-09-21T15:15:17.705898+00:00",
+      "action": "finish",
+      "changes": {
+        "commits": [
+          "cd43f67711a8375daa1c4a1892a20b4ddfa72c16"
+        ],
+        "committed": true,
+        "merged": "未核实",
+        "releases": [],
+        "release_status": "未核实",
+        "prs": [],
+        "warnings": [
+          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+        ],
+        "development": "✅ 执行完成",
+        "card": {
+          "state": "✅ 执行完成",
+          "passed": 4,
+          "applicable": 4,
+          "next": "无",
+          "blocker": "无",
+          "acceptance_fingerprint": "ac98c50d7a2739836d8aeceb3a611fb881ed0a35adb2737e2a5c0a15e006f28f",
+          "implementation_fingerprint": "aca7b5288c2c5d93ad804d699611f241cee718da598adce4b207e6aa5a4ade86"
+        },
+        "checked_at": "2026-09-21T15:15:17.705598+00:00"
+      },
+      "removed": []
+    }
+  ],
+  "acceptance_baseline": {
+    "implementation_fingerprint": "aca7b5288c2c5d93ad804d699611f241cee718da598adce4b207e6aa5a4ade86",
+    "acceptance_fingerprint": "ac98c50d7a2739836d8aeceb3a611fb881ed0a35adb2737e2a5c0a15e006f28f",
+    "inputs": [
+      ".github/workflows/teamflow-release.yml",
+      ".agents/skills/ios-team-flow/references/RELEASE.md",
+      ".agents/skills/ios-team-flow/references/CHANGELOG.md",
+      ".agents/skills/ios-team-flow/references/VERSION",
+      ".agents/teamflow.json",
+      "README.md",
+      "tests/test_workflow.py",
+      "logs/version-2.3.1/verification.md"
+    ],
+    "results": [],
+    "accepted_at": "2026-09-21T15:15:17.705486+00:00",
+    "sealed_commits": [
+      "cd43f67711a8375daa1c4a1892a20b4ddfa72c16"
+    ],
+    "accepted_commit": "cd43f67711a8375daa1c4a1892a20b4ddfa72c16"
+  },
+  "snapshot": {
+    "commits": [
+      "cd43f67711a8375daa1c4a1892a20b4ddfa72c16"
+    ],
+    "committed": true,
+    "merged": "未核实",
+    "releases": [],
+    "release_status": "未核实",
+    "prs": [],
+    "warnings": [
+      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+    ],
+    "development": "✅ 执行完成",
+    "card": {
+      "state": "✅ 执行完成",
+      "passed": 4,
+      "applicable": 4,
+      "next": "无",
+      "blocker": "无",
+      "acceptance_fingerprint": "ac98c50d7a2739836d8aeceb3a611fb881ed0a35adb2737e2a5c0a15e006f28f",
+      "implementation_fingerprint": "aca7b5288c2c5d93ad804d699611f241cee718da598adce4b207e6aa5a4ade86"
+    },
+    "checked_at": "2026-09-21T15:15:17.705598+00:00"
+  }
+}
