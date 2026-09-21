@@ -64,11 +64,53 @@
         "checked_at": "2026-09-21T16:18:53.183889+00:00"
       },
       "removed": []
+    },
+    {
+      "at": "2026-09-21T16:21:29.793471+00:00",
+      "action": "finish",
+      "changes": {
+        "commits": [
+          "7220c5fcffbb41b1a5f123a67fbb55c26426aacc"
+        ],
+        "committed": true,
+        "development": "✅ 执行完成",
+        "card": {
+          "state": "✅ 执行完成",
+          "passed": 4,
+          "applicable": 4,
+          "next": "无",
+          "blocker": "无",
+          "acceptance_fingerprint": "27ba07c2361c4168c61df3b0bf141bed1d1d62365170e29fcf7d57e6c86b23df",
+          "implementation_fingerprint": "b4c669ad0054f604a4b29ad3c99e568a2b422f4e46ad864e60f7ae0db882a0ba"
+        },
+        "checked_at": "2026-09-21T16:21:29.793162+00:00"
+      },
+      "removed": []
+    },
+    {
+      "at": "2026-09-21T16:21:47.780695+00:00",
+      "action": "finish",
+      "changes": {
+        "merged": "未确认全部合并",
+        "releases": [
+          {
+            "tag": "teamflow-v2.3.4",
+            "commit": "7220c5fcffbb41b1a5f123a67fbb55c26426aacc",
+            "url": "https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v2.3.4",
+            "published_at": "2026-09-21T16:21:30Z"
+          }
+        ],
+        "release_status": "✅ 已发布",
+        "warnings": [],
+        "github_checked_at": "2026-09-21T16:21:41.913021+00:00",
+        "checked_at": "2026-09-21T16:21:47.779058+00:00"
+      },
+      "removed": []
     }
   ],
   "acceptance_baseline": {
-    "implementation_fingerprint": "f29c82ad7b5e920d24f6054aa5ce963ffa87155928815ed99624c68704a761f2",
-    "acceptance_fingerprint": "493a881d51e4adffc5f2b2cf56d5d876751275bb06eaeb2c97c9dde1ed64b9b6",
+    "implementation_fingerprint": "b4c669ad0054f604a4b29ad3c99e568a2b422f4e46ad864e60f7ae0db882a0ba",
+    "acceptance_fingerprint": "27ba07c2361c4168c61df3b0bf141bed1d1d62365170e29fcf7d57e6c86b23df",
     "inputs": [
       "AGENTS.md",
       "README.md",
@@ -77,30 +119,45 @@
       ".agents/skills/ios-team-flow/references/WORKFLOW.md",
       ".agents/skills/ios-team-flow/references/INSTALL.md",
       ".agents/skills/ios-team-flow/references/SCENARIOS.md",
-      ".agents/skills/ios-team-flow/references/CHANGELOG.md"
+      ".agents/skills/ios-team-flow/references/CHANGELOG.md",
+      ".agents/skills/ios-team-flow/references/VERSION",
+      ".agents/teamflow.json"
     ],
     "results": [],
-    "accepted_at": "2026-09-21T16:13:54.795498+00:00"
+    "accepted_at": "2026-09-21T16:21:29.792999+00:00",
+    "sealed_commits": [
+      "7220c5fcffbb41b1a5f123a67fbb55c26426aacc"
+    ],
+    "accepted_commit": "7220c5fcffbb41b1a5f123a67fbb55c26426aacc"
   },
   "snapshot": {
-    "commits": [],
-    "committed": false,
-    "merged": "未核实",
-    "releases": [],
-    "release_status": "未核实",
-    "prs": [],
-    "warnings": [
-      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+    "commits": [
+      "7220c5fcffbb41b1a5f123a67fbb55c26426aacc"
     ],
-    "development": "🧪 待验证",
+    "committed": true,
+    "merged": "未确认全部合并",
+    "releases": [
+      {
+        "tag": "teamflow-v2.3.4",
+        "commit": "7220c5fcffbb41b1a5f123a67fbb55c26426aacc",
+        "url": "https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v2.3.4",
+        "published_at": "2026-09-21T16:21:30Z"
+      }
+    ],
+    "release_status": "✅ 已发布",
+    "prs": [],
+    "warnings": [],
+    "development": "✅ 执行完成",
     "card": {
-      "state": "🧪 待验证",
-      "passed": 3,
+      "state": "✅ 执行完成",
+      "passed": 4,
       "applicable": 4,
-      "next": "完成 2.3.4 全量验证、审查和授权交付",
+      "next": "无",
       "blocker": "无",
-      "acceptance_fingerprint": "45a59e0071efe9d0b281cbe23053aa401b4c9d9cddb38af3d41bbfc50ca1b7b4"
+      "acceptance_fingerprint": "27ba07c2361c4168c61df3b0bf141bed1d1d62365170e29fcf7d57e6c86b23df",
+      "implementation_fingerprint": "b4c669ad0054f604a4b29ad3c99e568a2b422f4e46ad864e60f7ae0db882a0ba"
     },
-    "checked_at": "2026-09-21T16:18:53.183889+00:00"
+    "github_checked_at": "2026-09-21T16:21:41.913021+00:00",
+    "checked_at": "2026-09-21T16:21:47.779058+00:00"
   }
 }
