@@ -41,6 +41,36 @@
         "checked_at": "2026-09-21T13:15:15.270777+00:00"
       },
       "removed": []
+    },
+    {
+      "at": "2026-09-21T13:20:01.238663+00:00",
+      "action": "finish",
+      "changes": {
+        "merged": "未确认全部合并",
+        "releases": [
+          {
+            "tag": "teamflow-v2.3.0",
+            "commit": "d34096ef7632e1764c7d42a7da226cfb3225207f",
+            "url": "https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v2.3.0",
+            "published_at": "2026-09-21T13:17:09Z"
+          }
+        ],
+        "release_status": "✅ 已发布",
+        "warnings": [],
+        "development": "✅ 执行完成",
+        "card": {
+          "state": "✅ 执行完成",
+          "passed": 5,
+          "applicable": 5,
+          "next": "无",
+          "blocker": "无",
+          "acceptance_fingerprint": "52c4acdf0729f5cf040401bf2b6b22ddba12958cbc954868b8f032860f71ca0a",
+          "implementation_fingerprint": "678a5066b3ae557b1c12e76f4f087730b746587eabec8c75d7f7c1e8769c5d71"
+        },
+        "github_checked_at": "2026-09-21T13:19:55.049642+00:00",
+        "checked_at": "2026-09-21T13:20:01.237409+00:00"
+      },
+      "removed": []
     }
   ],
   "snapshot": {
@@ -48,22 +78,49 @@
       "06c0391dfed3783022147133e5f357aacbf8b0a7"
     ],
     "committed": true,
-    "merged": "未核实",
-    "releases": [],
-    "release_status": "未核实",
-    "prs": [],
-    "warnings": [
-      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+    "merged": "未确认全部合并",
+    "releases": [
+      {
+        "tag": "teamflow-v2.3.0",
+        "commit": "d34096ef7632e1764c7d42a7da226cfb3225207f",
+        "url": "https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v2.3.0",
+        "published_at": "2026-09-21T13:17:09Z"
+      }
     ],
-    "development": "🧪 待验证",
+    "release_status": "✅ 已发布",
+    "prs": [],
+    "warnings": [],
+    "development": "✅ 执行完成",
     "card": {
-      "state": "🧪 待验证",
-      "passed": 4,
+      "state": "✅ 执行完成",
+      "passed": 5,
       "applicable": 5,
-      "next": "完成提交前审查、推送和 2.3.0 远端发布核验",
+      "next": "无",
       "blocker": "无",
-      "acceptance_fingerprint": "e4e33b10dd90e4f29448bb2c28d074b4b24051f19c81b21da0b2482d3a98a5dc"
+      "acceptance_fingerprint": "52c4acdf0729f5cf040401bf2b6b22ddba12958cbc954868b8f032860f71ca0a",
+      "implementation_fingerprint": "678a5066b3ae557b1c12e76f4f087730b746587eabec8c75d7f7c1e8769c5d71"
     },
-    "checked_at": "2026-09-21T13:15:15.270777+00:00"
+    "github_checked_at": "2026-09-21T13:19:55.049642+00:00",
+    "checked_at": "2026-09-21T13:20:01.237409+00:00"
+  },
+  "acceptance_baseline": {
+    "implementation_fingerprint": "678a5066b3ae557b1c12e76f4f087730b746587eabec8c75d7f7c1e8769c5d71",
+    "acceptance_fingerprint": "52c4acdf0729f5cf040401bf2b6b22ddba12958cbc954868b8f032860f71ca0a",
+    "inputs": [
+      ".agents/skills/ios-team-flow/references/WORKFLOW.md",
+      ".agents/skills/ios-team-flow/references/EXISTING-PROJECT.md",
+      ".agents/skills/ios-team-flow/references/SCENARIOS.md",
+      ".agents/skills/ios-team-flow/references/templates/project-context.md",
+      ".agents/skills/ios-team-flow/references/VERSION",
+      ".agents/skills/ios-team-flow/references/CHANGELOG.md",
+      ".agents/teamflow.json",
+      "README.md"
+    ],
+    "results": [],
+    "accepted_at": "2026-09-21T13:19:55.049522+00:00",
+    "sealed_commits": [
+      "06c0391dfed3783022147133e5f357aacbf8b0a7"
+    ],
+    "accepted_commit": "06c0391dfed3783022147133e5f357aacbf8b0a7"
   }
 }

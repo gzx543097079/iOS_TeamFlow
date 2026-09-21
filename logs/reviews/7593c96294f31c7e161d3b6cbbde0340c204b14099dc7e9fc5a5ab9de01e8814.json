@@ -1,0 +1,46 @@
+{
+  "fingerprint": "7593c96294f31c7e161d3b6cbbde0340c204b14099dc7e9fc5a5ab9de01e8814",
+  "base": "d34096ef7632e1764c7d42a7da226cfb3225207f",
+  "scope": "staged",
+  "created_at": "2026-09-21T13:20:23.746775+00:00",
+  "reviewer": "Codex",
+  "completed_at": "2026-09-21T21:20:45+08:00",
+  "summary": "2.3.0 最终验收与远端发布事实归档通过；记录与 GitHub Release、Actions、标签和附件核验一致。",
+  "previous_review": null,
+  "checks": {
+    "correctness": {
+      "status": "通过",
+      "evidence": "需求卡 5/5 AC 完成；delivery 记录的 Release 标签、目标提交 d34096e、发布时间和已发布状态与 gh release/远端标签一致，验收基线封存实施提交 06c0391。无 PR，因此“未确认全部合并”未被伪写为已合并。"
+    },
+    "standards": {
+      "status": "通过",
+      "evidence": "最终状态、AC、下一步只在需求卡维护，DELIVERY/JSON 由 delivery 工具生成；实现语义审查见 097e1c…b21e，首次归档审查见 23f2c8…e443。"
+    },
+    "subscription": {
+      "status": "不适用",
+      "evidence": "仅归档工作流 Release 与验收事实，不涉及 StoreKit、套餐或权益。"
+    },
+    "memory": {
+      "status": "不适用",
+      "evidence": "仅 Markdown/JSON 记录变化，无运行时代码或所有权变化。"
+    },
+    "analytics": {
+      "status": "不适用",
+      "evidence": "仅归档工作流发布事实，不涉及产品埋点。"
+    },
+    "test_artifacts": {
+      "status": "通过",
+      "evidence": "记录引用的 Actions 35604628797 已成功完成原生检查、全量验证、打包和四个附件上传；未新增生产代码、mock 或调试开关。"
+    },
+    "security": {
+      "status": "通过",
+      "evidence": "差异仅含公开提交 SHA、Release URL、Actions 编号、摘要前缀、时间和验收范围；无令牌、凭据、用户数据或可执行内容。"
+    }
+  },
+  "findings": [],
+  "blockers": [],
+  "requirements": [
+    "REQ-20260921-130647139Z-b54c35a0"
+  ],
+  "validation_results": []
+}
