@@ -1,6 +1,6 @@
 # iOS TeamFlow
 
-项目级中文 iOS 团队工作流，支持 Objective-C、Swift、SwiftUI、UI 规范、需求追踪、验证、提交审查和交付记录。当前版本为 **2.3.0**。完整规则只维护在项目 `.agents/skills/ios-team-flow/`，团队克隆后共用。
+项目级中文 iOS 团队工作流，支持 Objective-C、Swift、SwiftUI、UI 规范、需求追踪、验证、提交审查和交付记录。当前版本为 **2.3.1**（源码版本，未发布 Release）。完整规则只维护在项目 `.agents/skills/ios-team-flow/`，团队克隆后共用。
 
 ## 先看你属于哪种情况
 
@@ -37,9 +37,9 @@ git init
 
 ### 2. 放入完整 Skill
 
-当前正式版本为 2.3.0：大型已有项目可用模块路由与 Git 核对基准避免新增需求时重复摸底，并包含需求架构一致性、模块复用、Scene 生命周期、Bug Fix、中文注释及自动接入的 OC/Swift 日志组件。商城 Demo 仅保留在源码仓库，不进入分发包。
+当前源码版本为 2.3.1：移除 PR 审查门禁与分支保护依赖，仅保留可选本地提交 Hook；大型已有项目仍可用模块路由与 Git 核对基准避免新增需求时重复摸底。商城 Demo 仅保留在源码仓库，不进入分发包。
 
-从 [2.3.0 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v2.3.0) 下载 `ios-team-flow-skill-v2.3.0.zip`，解压后把完整的 `ios-team-flow` 文件夹放到 `.agents/skills/`。
+2.3.1 本次只推送源码、未发布 Release；需要正式附件时仍从 [2.3.0 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v2.3.0) 下载 `ios-team-flow-skill-v2.3.0.zip`，解压后把完整的 `ios-team-flow` 文件夹放到 `.agents/skills/`。
 
 最终必须是 `.agents/skills/ios-team-flow/SKILL.md`，不要只复制 SKILL.md，也不要多套一层同名文件夹。Finder 按 `Command + Shift + .` 显示隐藏文件夹。
 
@@ -65,7 +65,7 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
 
 也可以在放好 Skill 后让 Codex“接入当前项目的 iOS 工作流”。脚本保留既有规则，生成/合并有效指令入口、`.agents/teamflow.json`、`scripts/review_gate.py`，创建 `requirements/` 和 `logs/reviews/`。它不会创建 App、安装 Hook、提交代码或上传远端。
 
-接入结束会自动诊断。Git 根、Skill 和入口问题先解决；新工程创建后补齐实际验证配置，已有工程从既有 CI/脚本提取命令；未安装可选 Hook/CI 不阻塞接入。重复查看诊断时执行：
+接入结束会自动诊断。Git 根、Skill 和入口问题先解决；新工程创建后补齐实际验证配置，已有工程从既有 CI/脚本提取命令；未安装可选本地 Hook 不阻塞接入。重复查看诊断时执行：
 
 ```sh
 python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project . --doctor
@@ -120,7 +120,7 @@ Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/refer
 | 团队验收、失败和多轮复核证据 | [ACCEPTANCE](.agents/skills/ios-team-flow/references/ACCEPTANCE.md) · [详细证据模板](.agents/skills/ios-team-flow/references/templates/acceptance.md) |
 | 手动操作或排错：验收绑定、只读 status、按需历史、PR/Release 关联 | [DELIVERY](.agents/skills/ios-team-flow/references/DELIVERY.md) |
 | 提交审查、归档继承 | [REVIEW](.agents/skills/ios-team-flow/references/REVIEW.md) |
-| 可选本地 Hook、PR 检查与团队合并门禁 | [GIT-CHECKS](.agents/skills/ios-team-flow/references/GIT-CHECKS.md)；Hook 每个克隆单独接入，必需检查需仓库管理员配置 |
+| 可选本地提交 Hook | [GIT-CHECKS](.agents/skills/ios-team-flow/references/GIT-CHECKS.md)；每个克隆单独接入，可被 `--no-verify` 跳过，不宣称远端强制门禁 |
 | App 归档、TestFlight、审核和商店上线 | [APP-RELEASE](.agents/skills/ios-team-flow/references/APP-RELEASE.md) · [发布记录模板](.agents/skills/ios-team-flow/references/templates/app-release.md)；GitHub Release 不代表 App Store 上线 |
 | 场景试运行与验证边界 | [SCENARIOS](.agents/skills/ios-team-flow/references/SCENARIOS.md) |
 | 安装冲突、完整包升级、预览与恢复 | [INSTALL](.agents/skills/ios-team-flow/references/INSTALL.md) |
@@ -135,14 +135,14 @@ Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/refer
 ├── requirements/                 # PRD、需求卡、验收证据及生成交付索引
 ├── logs/                         # 测试和审查证据
 ├── scripts/                      # 根门禁入口及项目辅助脚本
-└── .github/workflows/            # 可选业务 CI / PR 检查
+└── .github/workflows/            # 可选 push 校验与发布流程
 ```
 
 按当前阶段阅读所需专题，不要求成员通读全部规范；完整导航见 [Skill 内容导航](.agents/skills/ios-team-flow/references/README.md)。
 
 ## 源仓库维护与版本
 
-2.3.0 增加大型项目模块路由、关注路径与 Git 核对基准，新增需求按命中模块和实际差异增量读取；索引失效、公共层及工程配置变化仍扩大检查。正式版同时包含 2.2.2 的需求架构/模块复用规则和 2.2.1 的 Masonry Demo 改造；源码 Demo 不进入分发包。保留 Scene 生命周期、Bug Fix、中文注释、自动日志、自我进化与异常需求卡容错。需求编号按 UTC 创建时间排序，支持列表、倒序和 JSON 查询；日常 CI 按改动选择测试，正式发布、公共或未知变化仍执行全量。工具输出沿用 1.10.1，新项目默认英语和简体中文。版本变化见 [CHANGELOG](.agents/skills/ios-team-flow/references/CHANGELOG.md)。
+2.3.1 移除 PR 审查门禁、范围检查和分支保护依赖，仅保留可选本地 Hook；Release 改为标签触发并在原生检查、完整回归和打包成功后才公开。本次只提交并推送源码，不创建 Release。2.3.0 增加大型项目模块路由、关注路径与 Git 核对基准，新增需求按命中模块和实际差异增量读取；索引失效、公共层及工程配置变化仍扩大检查。源码 Demo 不进入分发包。保留 Scene 生命周期、Bug Fix、中文注释、自动日志、自我进化与异常需求卡容错。需求编号按 UTC 创建时间排序，支持列表、倒序和 JSON 查询；日常 CI 按改动选择测试，正式发布、公共或未知变化仍执行全量。工具输出沿用 1.10.1，新项目默认英语和简体中文。版本变化见 [CHANGELOG](.agents/skills/ios-team-flow/references/CHANGELOG.md)。
 
 以下命令用于工作流分发仓库维护，不要求业务项目为了接入而运行：
 

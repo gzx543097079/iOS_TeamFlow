@@ -1,0 +1,46 @@
+{
+  "fingerprint": "eca289ce2a0080e6ba6ec2c19975387919ce529b189b7cfa74403e71ef232141",
+  "base": "0b8578f0e32961dc7d62fc3cae5f105dcc5ec7d1",
+  "scope": "staged",
+  "created_at": "2026-09-21T15:06:09.925422+00:00",
+  "reviewer": "Codex",
+  "completed_at": "2026-09-21T23:08:00+08:00",
+  "summary": "PR 审查门禁、范围检查、PR 模板及分支保护依赖已完整移除；本地 Hook 保留且专项 20 项、完整回归 106 项与两种分发包验证通过。",
+  "previous_review": null,
+  "checks": {
+    "correctness": {
+      "status": "通过",
+      "evidence": "删除 PR workflow、安装资产、range_review、PR 模板和所有 pull_request 触发；安装器与 doctor 只保留本地 Hook。专项 20 项、完整回归 106 项通过，validate_workflow 与 git diff --check 通过；详见 logs/remove-pr-gate/verification.md。"
+    },
+    "standards": {
+      "status": "通过",
+      "evidence": "按最小边界同步修改 Skill 路由、安装/审查/发布文档、源仓库 CI、打包清单和测试；保留 delivery 的可选 PR 历史事实兼容，不再把它描述为门禁能力。"
+    },
+    "subscription": {
+      "status": "不适用",
+      "evidence": "工作流工具模块删除，不涉及购买、价格、订阅状态或权益。"
+    },
+    "memory": {
+      "status": "不适用",
+      "evidence": "没有 App 运行时代码、对象生命周期、并发或资源持有变化。"
+    },
+    "analytics": {
+      "status": "不适用",
+      "evidence": "没有业务埋点、数据采集或事件语义变化。"
+    },
+    "test_artifacts": {
+      "status": "通过",
+      "evidence": "重写 tests/test_git_checks.py 为 Hook-only 覆盖，验证未审提交拦截、通过后提交、既有 Hook 恢复、custom hooksPath 与冲突保护；分发包检查确认删除模块未被打包。"
+    },
+    "security": {
+      "status": "通过",
+      "evidence": "移除会执行 PR 分支范围检查的远端入口及相关写入安装路径，降低配置与执行面；保留 workflow 仅在 push/手动场景运行，不新增权限、凭据或外部输入执行。"
+    }
+  },
+  "findings": [],
+  "blockers": [],
+  "requirements": [
+    "REQ-20260921-145552053Z-ccb1de82"
+  ],
+  "validation_results": []
+}

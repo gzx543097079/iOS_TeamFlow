@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-"""显式安装/移除本仓库 Hook 或 PR 检查模板，不修改全局 Git 配置。"""
+"""显式安装或移除本仓库提交 Hook，不修改全局 Git 配置。"""
 import argparse
-import json
 import os
 import stat
 import subprocess
@@ -87,33 +86,16 @@ def uninstall_hook(root):
     print('Hook 已移除，原 Hook 已恢复（如有）')
 
 
-def install_ci(root):
-    target = root / '.github/workflows/teamflow-pr-review.yml'
-    for node in (target, target.parent, target.parent.parent):
-        if node.is_symlink():
-            raise ValueError('CI 目标不能包含符号链接')
-    source = Path(__file__).resolve().parents[1] / 'assets/pr-review.yml'
-    if target.exists():
-        if target.read_bytes() == source.read_bytes():
-            print('PR 检查模板已安装')
-            return
-        raise ValueError('同名 CI 已存在且内容不同，请合并后再使用')
-    target.parent.mkdir(parents=True, exist_ok=True)
-    with target.open('xb') as stream:
-        stream.write(source.read_bytes())
-    print('已生成 PR 检查；提交到目标分支后生效，并在仓库规则中按需设为必需检查')
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('hook-install', 'hook-uninstall', 'ci-install'))
+    parser.add_argument('command', choices=('hook-install', 'hook-uninstall'))
     parser.add_argument('--project', type=Path, default=Path('.'))
     args = parser.parse_args()
     try:
         root = args.project.resolve()
         if Path(git(root, 'rev-parse', '--show-toplevel')).resolve() != root:
             raise ValueError('请指定 Git 根目录')
-        {'hook-install': install_hook, 'hook-uninstall': uninstall_hook, 'ci-install': install_ci}[args.command](root)
+        {'hook-install': install_hook, 'hook-uninstall': uninstall_hook}[args.command](root)
     except (ValueError, OSError, subprocess.CalledProcessError) as error:
         parser.exit(1, str(error) + '\n')
 

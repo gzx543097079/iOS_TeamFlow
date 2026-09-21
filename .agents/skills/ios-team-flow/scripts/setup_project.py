@@ -306,8 +306,6 @@ def diagnose(project):
             if git_path.returncode == 0:
                 hook = project / git_path.stdout.strip()
     item('本地 Hook（可选）', '存在' if hook.is_file() else '未安装', '存在不等于已接入 TeamFlow；按 GIT-CHECKS 保留既有 Hook')
-    ci = project / '.github/workflows/teamflow-pr-review.yml'
-    item('PR 检查（可选）', '存在' if ci.is_file() else '未安装', '分支必需检查需要管理员另行配置')
     item('Xcode', '可找到工具' if shutil.which('xcodebuild') else '未找到工具', '仅检测工具入口，不代表 App 已构建或 Scheme 可用')
     report = {'project': str(project), 'checks': items, 'needs_action': any(i['status'] in ('需处理', '待配置') for i in items)}
     print(json.dumps(report, ensure_ascii=False, indent=2))

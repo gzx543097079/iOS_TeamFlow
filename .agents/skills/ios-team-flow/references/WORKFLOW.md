@@ -65,7 +65,7 @@ AC 仅使用通过、失败、未验证、不适用；判定需有证据或理�
 
 实施提交使用 Requirement 尾注；交付事实变化后同步记录。生成记录可以随下一次正常提交归档；需要本轮立即归档时仅审记录差异，不重审业务代码、不重新填写业务检查理由。归档不加实施尾注，避免循环登记自身 SHA。交付说明报告实际验收、验证限制、Git 状态和未归档记录。
 
-Hook/PR 检查按需读 [GIT-CHECKS](GIT-CHECKS.md)；App 发布读 [APP-RELEASE](APP-RELEASE.md)，工作流 ZIP 发布读 [RELEASE](RELEASE.md)。GitHub Release 不代表 App Store 上线。重大流程变更按 [SCENARIOS](SCENARIOS.md) 验证消费链路。
+本地提交 Hook 按需读 [GIT-CHECKS](GIT-CHECKS.md)；App 发布读 [APP-RELEASE](APP-RELEASE.md)，工作流 ZIP 发布读 [RELEASE](RELEASE.md)。GitHub Release 不代表 App Store 上线。重大流程变更按 [SCENARIOS](SCENARIOS.md) 验证消费链路。
 
 ## 5. 按需改进
 

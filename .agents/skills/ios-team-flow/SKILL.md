@@ -24,7 +24,7 @@ SKILL_ROOT 是本文件所在目录；PROJECT_ROOT 是当前 Git 根（新目录
 | 验收绑定、状态/交付事实变化 | [DELIVERY](references/DELIVERY.md) |
 | 提交前审查 | [REVIEW](references/REVIEW.md) |
 | 团队验收、多轮问题复核 | [ACCEPTANCE](references/ACCEPTANCE.md) |
-| Hook / PR 范围检查 | [GIT-CHECKS](references/GIT-CHECKS.md) |
+| 可选本地提交 Hook | [GIT-CHECKS](references/GIT-CHECKS.md) |
 | 业务 App 发布 | [APP-RELEASE](references/APP-RELEASE.md) |
 | 工作流分发仓库发布 ZIP | [RELEASE](references/RELEASE.md) |
 

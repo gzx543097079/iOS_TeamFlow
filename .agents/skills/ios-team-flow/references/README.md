@@ -19,7 +19,7 @@
 | Objective-C / Swift / SwiftUI | [OC](standards/objective-c.md) · [Swift](standards/swift.md) · [SwiftUI](standards/swiftui.md) |
 | 业务构建与测试入口 | [配置与执行](PROJECT-CHECKS.md) |
 | 需求与交付状态 | [交付追踪](DELIVERY.md) |
-| 可选 Hook 与 PR 范围检查 | [Git 检查](GIT-CHECKS.md) |
+| 可选本地提交 Hook | [Git 检查](GIT-CHECKS.md) |
 | 提交审查及去重 | [Review](REVIEW.md) |
 | 已有项目增量开发 | [处理流程](EXISTING-PROJECT.md) · [项目现状模板](templates/project-context.md) |
 | 新项目 PRD 与需求卡 | [PRD 模板](templates/new-project.md) · [需求模板](templates/requirement.md) |
@@ -34,4 +34,4 @@
 
 Codex 负责语义审查，脚本核验记录与指纹；Hook 不调用 AI，也不自动发现价格错误。项目构建需实际配置，团队确认需真实回复，GitHub Release 与商店上线分别核验。提交、推送和发布按用户已授权范围执行。
 
-目录中 references 是通用规则，业务工程、requirements、logs 和项目 scripts 写在项目根目录。独立 Skill 包不携带源仓库测试/工作流发布流水线；业务项目的可选 PR 检查需显式安装。未明确要求不验证超大字号。
+目录中 references 是通用规则，业务工程、requirements、logs 和项目 scripts 写在项目根目录。独立 Skill 包不携带源仓库测试或工作流发布流水线；本地 Hook 需在每个克隆中显式安装。未明确要求不验证超大字号。

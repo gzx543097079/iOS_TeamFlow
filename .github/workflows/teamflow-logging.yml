@@ -6,12 +6,6 @@ on:
       - '.agents/skills/ios-team-flow/scripts/install_logging.py'
       - 'scripts/check_logging.py'
       - '.github/workflows/teamflow-logging.yml'
-  pull_request:
-    paths:
-      - '.agents/skills/ios-team-flow/assets/logging/**'
-      - '.agents/skills/ios-team-flow/scripts/install_logging.py'
-      - 'scripts/check_logging.py'
-      - '.github/workflows/teamflow-logging.yml'
   workflow_dispatch:
 permissions:
   contents: read

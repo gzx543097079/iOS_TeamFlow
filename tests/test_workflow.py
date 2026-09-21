@@ -194,6 +194,26 @@ class WorkflowTests(unittest.TestCase):
     def test_repository_documents(self):
         validator.validate(ROOT)
 
+    def test_release_is_published_only_after_validation_and_packaging(self):
+        workflow = (ROOT / '.github/workflows/teamflow-release.yml').read_text()
+        self.assertIn("tags:\n      - 'teamflow-v*'", workflow)
+        self.assertNotIn('types: [published]', workflow)
+        package = workflow.index('  package:')
+        publish = workflow.index('  publish:')
+        validation = workflow.index('python3 scripts/run_workflow_checks.py --full')
+        artifact = workflow.index('actions/upload-artifact@v4')
+        release = workflow.index('gh release create')
+        self.assertLess(package, validation)
+        self.assertLess(validation, artifact)
+        self.assertLess(artifact, publish)
+        self.assertLess(publish, release)
+        publish_block = workflow[publish:]
+        self.assertIn('needs: package', publish_block)
+        self.assertIn('contents: write', publish_block)
+        self.assertIn('--verify-tag', publish_block)
+        self.assertIn('dist/*.zip dist/*.sha256', publish_block)
+        self.assertNotIn('python3 scripts/', publish_block)
+
     def extract_skill(self):
         import zipfile
         for name in release.FILES:

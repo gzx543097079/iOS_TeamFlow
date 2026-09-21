@@ -16,7 +16,6 @@ TOOLS = {
     'project_checks.py': ['test_project_checks', 'test_delivery', 'test_workflow', 'test_consumer_release', 'test_scenarios'],
     'delivery.py': ['test_delivery', 'test_workflow', 'test_consumer_release'],
     'review_gate.py': ['test_workflow', 'test_git_checks', 'test_consumer_release', 'test_scenarios'],
-    'range_review.py': ['test_git_checks', 'test_workflow', 'test_consumer_release', 'test_scenarios'],
     'install_git_checks.py': ['test_git_checks', 'test_workflow', 'test_consumer_release'],
     'setup_project.py': ['test_workflow', 'test_setup_recovery', 'test_skill_upgrade', 'test_consumer_release', 'test_scenarios'],
     'upgrade_skill.py': ['test_workflow', 'test_setup_recovery', 'test_skill_upgrade', 'test_consumer_release'],

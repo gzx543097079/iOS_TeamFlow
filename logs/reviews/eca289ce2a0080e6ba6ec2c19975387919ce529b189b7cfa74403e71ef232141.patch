@@ -1,0 +1,938 @@
+diff --git a/.agents/skills/ios-team-flow/SKILL.md b/.agents/skills/ios-team-flow/SKILL.md
+index 906052ee1738514fcc96d2dfccace8263bc3ddfb..1fa93352cdfabaae4eb93f27d10d2035b660235b 100644
+--- a/.agents/skills/ios-team-flow/SKILL.md
++++ b/.agents/skills/ios-team-flow/SKILL.md
+@@ -24,7 +24,7 @@ SKILL_ROOT 是本文件所在目录；PROJECT_ROOT 是当前 Git 根（新目录
+ | 验收绑定、状态/交付事实变化 | [DELIVERY](references/DELIVERY.md) |
+ | 提交前审查 | [REVIEW](references/REVIEW.md) |
+ | 团队验收、多轮问题复核 | [ACCEPTANCE](references/ACCEPTANCE.md) |
+-| Hook / PR 范围检查 | [GIT-CHECKS](references/GIT-CHECKS.md) |
++| 可选本地提交 Hook | [GIT-CHECKS](references/GIT-CHECKS.md) |
+ | 业务 App 发布 | [APP-RELEASE](references/APP-RELEASE.md) |
+ | 工作流分发仓库发布 ZIP | [RELEASE](references/RELEASE.md) |
+ 
+diff --git a/.agents/skills/ios-team-flow/assets/pr-review.yml b/.agents/skills/ios-team-flow/assets/pr-review.yml
+deleted file mode 100644
+index 7ad62c374a741d00bf8127f3f2f041d8d302e1b1..0000000000000000000000000000000000000000
+--- a/.agents/skills/ios-team-flow/assets/pr-review.yml
++++ /dev/null
+@@ -1,33 +0,0 @@
+-name: TeamFlow PR 审查门禁
+-on:
+-  pull_request:
+-    types: [opened, synchronize, reopened, ready_for_review]
+-permissions:
+-  contents: read
+-jobs:
+-  review-evidence:
+-    runs-on: ubuntu-latest
+-    steps:
+-      - uses: actions/checkout@v4
+-        with:
+-          ref: ${{ github.event.pull_request.head.sha }}
+-          fetch-depth: 0
+-          persist-credentials: false
+-      - uses: actions/setup-python@v5
+-        with:
+-          python-version: '3.12'
+-      - name: 使用目标分支的检查器核验 PR 范围
+-        env:
+-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+-        run: |
+-          set -eu
+-          trusted_dir="$RUNNER_TEMP/teamflow-trusted"
+-          mkdir -p "$trusted_dir"
+-          for script in review_gate.py range_review.py; do
+-            if ! git show "$BASE_SHA:.agents/skills/ios-team-flow/scripts/$script" > "$trusted_dir/$script"; then
+-              echo "目标分支缺少 TeamFlow 检查器，请先将初次安装合入目标分支。"
+-              exit 1
+-            fi
+-          done
+-          python3 -I "$trusted_dir/range_review.py" check --base "$BASE_SHA" --head "$HEAD_SHA"
+diff --git a/.agents/skills/ios-team-flow/references/GIT-CHECKS.md b/.agents/skills/ios-team-flow/references/GIT-CHECKS.md
+index 58c9c246ccfc16cbb5f1905444ebc7acb86737cd..b2030116fd39ffac927cc47822abb50e47633279 100644
+--- a/.agents/skills/ios-team-flow/references/GIT-CHECKS.md
++++ b/.agents/skills/ios-team-flow/references/GIT-CHECKS.md
+@@ -1,6 +1,6 @@
+-# 可选 Hook 与明确范围的 PR 检查
++# 可选本地提交 Hook
+ 
+-本地 Hook 提供提交前提醒与拦截；CI 检查已提交的证据。二者不自动生成语义审查，也不是不可伪造的证明。审查仍由 Codex/团队完成，必要的项目构建与测试独立执行。
++本地 Hook 提供提交前提醒与拦截。它不自动生成语义审查，也不是不可绕过的证明；审查仍由 Codex/团队完成，必要的项目构建与测试独立执行。
+ 
+ ## 可选本地 Hook
+ 
+@@ -13,36 +13,4 @@ python3 .agents/skills/ios-team-flow/scripts/install_git_checks.py hook-uninstal
+ 
+ 每个克隆目录单独安装。工具遵守本仓库现有 core.hooksPath，不更改用户全局设置；路径在项目之外时停止，避免修改多个仓库共用 Hook。已有可执行 pre-commit 备份为同目录 teamflow-pre-commit.previous，先执行旧 Hook，再执行项目内 review_gate.py check，任一失败阻止提交。重复安装不重复串联；卸载恢复原 Hook。Hook 被团队修改后停止覆盖，由团队合并。
+ 
+-已有 Hook 如果会自动格式化并修改暂存内容，新的指纹可能要求重新 review，这是必要的内容复核。`git commit --no-verify` 能跳过本地 Hook，所以团队若要求合并前必须检查，应另配置 PR 必需检查；本工具不修改分支保护规则。
+-
+-## 明确范围审查
+-
+-CI 不调用只针对暂存区的 check。以下入口从 Git 对象读取已提交内容，即使暂存区为空也会检查：
+-
+-```sh
+-python3 .agents/skills/ios-team-flow/scripts/range_review.py check --base 目标分支SHA --head 本次提交SHA
+-```
+-
+-必须显式提供两个可解析的提交。差异从 base 与 head 的 merge-base 到 head，包含二进制、删除、模式变更；报告指纹绑定确切目标分支 base 及差异。head 树内的回执目录只允许普通 JSON/Markdown/patch。
+-
+-线性提交优先复用每个实施提交对应的暂存审查报告，报告必须已提交并能在 head 读取。缺报告、待验证或新增未审代码会失败。已审代码不因 CI 再运行而重新生成审查意见。
+-
+-合并提交、squash/rebase 改变审查基准或缺少原回执时，可生成范围报告：
+-
+-```sh
+-python3 .agents/skills/ios-team-flow/scripts/range_review.py prepare --base 目标分支SHA --head HEAD
+-```
+-
+-Codex 读取生成的 patch，按 REVIEW.md 填写报告；已有审查结论只对基准/差异变化及合并影响复核，并注明复用依据。提交报告后，以新的 head 再执行 check。只增加回执的提交不改变业务差异，可复用该范围报告；新增业务代码或目标 base 改变会重新校验。合并冲突解决后的最终内容必须有对应证据，不能只引用合并前报告。
+-
+-## 可选 GitHub PR 检查
+-
+-```sh
+-python3 .agents/skills/ios-team-flow/scripts/install_git_checks.py ci-install
+-```
+-
+-生成 `.github/workflows/teamflow-pr-review.yml`，已有同名不同内容不覆盖。提交安装文件及完整 Skill 到目标分支后生效；仓库管理员按需要将 `review-evidence` 设为必需检查，并保护检查器/工作流路径的修改权限。首次安装需先合入目标分支，缺少可信检查器时 CI 明确失败，不能改用 PR 自带的检查器来绕过。
+-
+-模板用 pull_request 事件提供的 base/head SHA、完整 Git 历史，从目标分支提取 range_review.py 和 review_gate.py，在隔离 Python 模式执行。它不运行 PR 分支的检查器、配置脚本或业务代码，不传入写权限或发布凭据。报告 JSON 仍由 PR 提供，只做内容范围与结构校验，不是对审查真实性的加密证明；受控分支与团队审批补足这一边界。
+-
+-本地 Hook、PR 检查、业务测试是不同状态。范围门禁通过不代表 App 构建成功；没有 gh/GitHub 或未安装 CI 时，仍可本地执行明确范围检查并记录限制。
++已有 Hook 如果会自动格式化并修改暂存内容，新的指纹可能要求重新 review，这是必要的内容复核。`git commit --no-verify` 能跳过本地 Hook，因此它只作为本机辅助，不宣称为远端强制门禁。业务测试与提交审查仍是不同状态；Hook 通过不代表 App 构建或验收通过。
+diff --git a/.agents/skills/ios-team-flow/references/INSTALL.md b/.agents/skills/ios-team-flow/references/INSTALL.md
+index 2e5db51af8f424a6a54fe5dd0d41477f94c07572..9dcad0f925082fba7ee2bb75bc47792daad9fa6d 100644
+--- a/.agents/skills/ios-team-flow/references/INSTALL.md
++++ b/.agents/skills/ios-team-flow/references/INSTALL.md
+@@ -14,7 +14,7 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
+ 
+ 也可以在放好文件后请 Codex “接入当前项目的 iOS 工作流”。不需要每次提需求都重复这句话。
+ 
+-脚本会在实际生效的指令文件中追加带标记区块（非空 AGENTS.override.md 优先，否则 AGENTS.md），明确引用项目内 Skill，生成 .agents/teamflow.json 与 scripts/review_gate.py，创建 requirements/、logs/reviews/。保留原 AGENTS.md 正文；相同版本重复运行不重复追加。脚本拒绝从其他项目或用户级安装目录直接接入本项目。接入后自动显示只读诊断：Python、Git 根目录、版本与入口、项目验证配置、忽略规则及可选 Hook/CI；“接入成功”不等于业务验证已就绪。
++脚本会在实际生效的指令文件中追加带标记区块（非空 AGENTS.override.md 优先，否则 AGENTS.md），明确引用项目内 Skill，生成 .agents/teamflow.json 与 scripts/review_gate.py，创建 requirements/、logs/reviews/。保留原 AGENTS.md 正文；相同版本重复运行不重复追加。脚本拒绝从其他项目或用户级安装目录直接接入本项目。接入后自动显示只读诊断：Python、Git 根目录、版本与入口、项目验证配置、忽略规则及可选本地 Hook；“接入成功”不等于业务验证已就绪。
+ 
+ 脚本支持版本升级：未修改的托管内容自动更新，新版未修改的内容保留团队定制；双方都修改同一托管部分且内容不同才报告冲突。来源未知的同名脚本、损坏的标记/接入记录、降级或符号链接会在写入前退出。非空 AGENTS.override.md 存在时自动接入该文件，版本记录保存 instruction_file。后续入口切换时重新运行接入，保留旧文件正文，不主动删除旧规则；有效入口的托管标记损坏仍需修复。项目需要使用 Git 审查时应已是 Git 仓库，脚本不自动 git init。
+ 
+@@ -26,9 +26,9 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
+ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project . --doctor
+ ```
+ 
+-不写文件、不执行配置里的命令、不联网、不安装依赖或 Hook。缺 Git 时先确认项目根再初始化；新项目待工程生成后补实际 profile，已有项目从既有 CI/构建说明提取配置。未安装 Hook/CI 是可选状态，不冒充强制门禁已启用。工具内部不依赖 Python 忽略规则，仍建议合并 `__pycache__/`、`*.pyc`、`.agents/teamflow-backups/` 和实际构建输出到项目 .gitignore，保留团队既有内容。
++不写文件、不执行配置里的命令、不联网、不安装依赖或 Hook。缺 Git 时先确认项目根再初始化；新项目待工程生成后补实际 profile，已有项目从既有 CI/构建说明提取配置。未安装 Hook 是可选状态，不冒充强制门禁已启用。工具内部不依赖 Python 忽略规则，仍建议合并 `__pycache__/`、`*.pyc`、`.agents/teamflow-backups/` 和实际构建输出到项目 .gitignore，保留团队既有内容。
+ 
+-当前阻塞项：Git 根或入口错误先解决；已有业务工程实施前配置实际验证，新工程建成后配置。未安装可选 Hook/CI 不阻塞接入；升级与恢复仅在对应事件发生时阅读后文。
++当前阻塞项：Git 根或入口错误先解决；已有业务工程实施前配置实际验证，新工程建成后配置。未安装可选 Hook 不阻塞接入；升级与恢复仅在对应事件发生时阅读后文。
+ 
+ ## 后续使用
+ 
+@@ -62,7 +62,7 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project . --doct
+ 
+ ## 可选提交检查
+ 
+-业务项目验证命令配置见 [项目验证](PROJECT-CHECKS.md)，需求与提交/PR/发布关联见 [交付追踪](DELIVERY.md)。本地 Hook 与 GitHub PR 范围检查需团队显式安装，见 [Git 检查](GIT-CHECKS.md)；升级脚本不自动更改现有 Hook 或工作流。
++业务项目验证命令配置见 [项目验证](PROJECT-CHECKS.md)，需求与提交、可选 PR 事实及发布关联见 [交付追踪](DELIVERY.md)。本地 Hook 需团队在每个克隆中显式安装，见 [Git 检查](GIT-CHECKS.md)；升级脚本不自动更改现有 Hook。
+ 
+ ## 接入中断与恢复
+ 
+@@ -90,4 +90,4 @@ python3 /临时目录/ios-team-flow/scripts/upgrade_skill.py --project /项目
+ 
+ `--apply` 在同一事务中备份完整 Skill、两种指令入口、根门禁入口和版本/基线，再应用更新。写入失败自动恢复；恢复入口仍为 setup_project.py --project ... --recover <transaction.json>，此时恢复范围包含完整 Skill。恢复也会检查升级后是否有人工修改，不强制覆盖。
+ 
+-始终保留新版临时工具直到升级验收完成。恢复到旧版本后如需再次执行恢复，使用临时新版 scripts/setup_project.py；旧版本可能不支持完整事务格式。强制中断时，先确认无升级进程，使用新版恢复工具处理 prepared 事务，再移除 `.agents/teamflow-upgrade.lock` 空锁目录。备份留在项目 .agents/teamflow-backups，不进入通用包；升级不会安装或覆盖 Git Hook/CI。
++始终保留新版临时工具直到升级验收完成。恢复到旧版本后如需再次执行恢复，使用临时新版 scripts/setup_project.py；旧版本可能不支持完整事务格式。强制中断时，先确认无升级进程，使用新版恢复工具处理 prepared 事务，再移除 `.agents/teamflow-upgrade.lock` 空锁目录。备份留在项目 .agents/teamflow-backups，不进入通用包；升级不会安装或覆盖 Git Hook。
+diff --git a/.agents/skills/ios-team-flow/references/PROJECT-CHECKS.md b/.agents/skills/ios-team-flow/references/PROJECT-CHECKS.md
+index 268f265faa36226aefdf6d4d6ebb15a9717300d7..c943a7728b81a6b01e41be63a27f2fb0a4d539e8 100644
+--- a/.agents/skills/ios-team-flow/references/PROJECT-CHECKS.md
++++ b/.agents/skills/ios-team-flow/references/PROJECT-CHECKS.md
+@@ -42,7 +42,7 @@ Codex 在需求卡明确本次选用的 profile 和原因；profile 内每项均
+ 
+ 结果保存至 `logs/project-checks/<运行编号>/result.json`，每项记录命令、工作目录、退出码、时长及原始日志。失败、工具缺失、超时都返回非零退出码，不算通过。报告同时保存运行前后源码/配置指纹；运行中输入变化会返回非零，不标通过。采用工作区实际文件，不以 HEAD 代替未提交源码。
+ 
+-原始日志可能含本地路径或敏感输出，提交前脱敏；可在项目 .gitignore 中排除原始 `.log`，保留脱敏摘要/受控 CI artifact 链接。CI 可使用同一命令并归档日志，但不要在有生产凭据的环境执行不可信 PR 的配置。对相关基线失败与新引入失败分别记录；工具只报告执行结果，不自行认定历史失败可忽略。
++原始日志可能含本地路径或敏感输出，提交前脱敏；可在项目 .gitignore 中排除原始 `.log`，保留脱敏摘要/受控 CI artifact 链接。CI 可使用同一命令并归档日志，但不要在有生产凭据的环境执行不可信外部改动提供的配置。对相关基线失败与新引入失败分别记录；工具只报告执行结果，不自行认定历史失败可忽略。
+ 
+ ## 验证结果是否仍适用
+ 
+diff --git a/.agents/skills/ios-team-flow/references/README.md b/.agents/skills/ios-team-flow/references/README.md
+index 41b7a7f3f248d9ecba91050cee80d6b2b4d3ffaf..00f8df4b6a9934317d733b1cb15ce1ec3b86340b 100644
+--- a/.agents/skills/ios-team-flow/references/README.md
++++ b/.agents/skills/ios-team-flow/references/README.md
+@@ -19,7 +19,7 @@
+ | Objective-C / Swift / SwiftUI | [OC](standards/objective-c.md) · [Swift](standards/swift.md) · [SwiftUI](standards/swiftui.md) |
+ | 业务构建与测试入口 | [配置与执行](PROJECT-CHECKS.md) |
+ | 需求与交付状态 | [交付追踪](DELIVERY.md) |
+-| 可选 Hook 与 PR 范围检查 | [Git 检查](GIT-CHECKS.md) |
++| 可选本地提交 Hook | [Git 检查](GIT-CHECKS.md) |
+ | 提交审查及去重 | [Review](REVIEW.md) |
+ | 已有项目增量开发 | [处理流程](EXISTING-PROJECT.md) · [项目现状模板](templates/project-context.md) |
+ | 新项目 PRD 与需求卡 | [PRD 模板](templates/new-project.md) · [需求模板](templates/requirement.md) |
+@@ -34,4 +34,4 @@
+ 
+ Codex 负责语义审查，脚本核验记录与指纹；Hook 不调用 AI，也不自动发现价格错误。项目构建需实际配置，团队确认需真实回复，GitHub Release 与商店上线分别核验。提交、推送和发布按用户已授权范围执行。
+ 
+-目录中 references 是通用规则，业务工程、requirements、logs 和项目 scripts 写在项目根目录。独立 Skill 包不携带源仓库测试/工作流发布流水线；业务项目的可选 PR 检查需显式安装。未明确要求不验证超大字号。
++目录中 references 是通用规则，业务工程、requirements、logs 和项目 scripts 写在项目根目录。独立 Skill 包不携带源仓库测试或工作流发布流水线；本地 Hook 需在每个克隆中显式安装。未明确要求不验证超大字号。
+diff --git a/.agents/skills/ios-team-flow/references/RELEASE.md b/.agents/skills/ios-team-flow/references/RELEASE.md
+index 3bf812d0786e26ed923d2158ba89c5b42dd7f2cd..78c9a9c09b0e149780420d7763cfe9d94b64527a 100644
+--- a/.agents/skills/ios-team-flow/references/RELEASE.md
++++ b/.agents/skills/ios-team-flow/references/RELEASE.md
+@@ -36,9 +36,9 @@ python3 scripts/package_release.py
+ 
+ ## 按改动执行源仓库检查
+ 
+-日常 CI 使用 `python3 scripts/run_workflow_checks.py --base 完整基准SHA` 比较基准与 HEAD（已提交内容，不含工作区修改）。普通说明执行文档校验，模板增加生成/消费场景，工具脚本执行对应模块及关联门禁、验收与消费测试。文档校验由测试套件统一执行一次，不在 CI 重复调用。
++日常 push CI 使用 `python3 scripts/run_workflow_checks.py --base 完整基准SHA` 比较推送前提交与 HEAD（已提交内容，不含工作区修改）。普通说明执行文档校验，模板增加生成/消费场景，工具脚本执行对应模块及关联门禁、验收与消费测试。文档校验由测试套件统一执行一次，不在 CI 重复调用。
+ 
+-CI 获取完整 Git 历史：push 使用 before，PR 使用事件 base 与检出的合并结果；新分支、基准缺失/不可读、公共脚本、测试、版本、CI 或未知路径变化回退全量。随提交归档的 REQ 卡、交付索引和审查回执不扩大工具测试范围；其他未知文件仍回退全量。多类变化取并集并去重；删除/重命名包含原路径。`--list` 只显示计划，不表示验证通过。手动 workflow_dispatch 和正式 Release 始终全量。
++CI 获取完整 Git 历史：push 使用 before；新分支、基准缺失/不可读、公共脚本、测试、版本、CI 或未知路径变化回退全量。随提交归档的 REQ 卡、交付索引和审查回执不扩大工具测试范围；其他未知文件仍回退全量。多类变化取并集并去重；删除/重命名包含原路径。`--list` 只显示计划，不表示验证通过。手动 workflow_dispatch 和正式 Release 始终全量。
+ 
+ 打包校验继续在 CI 执行；首次执行、公共依赖变化或无法确定影响时用 --full。不要把此脚本作为业务 App 测试入口，也不要只为减少测试数量删除独立覆盖。
+ 
+diff --git a/.agents/skills/ios-team-flow/references/REVIEW.md b/.agents/skills/ios-team-flow/references/REVIEW.md
+index 9f9f54ef987b5a3538eb43ea6b27cd493ebbf508..327f41632d1354f7afb290f8e3a132b933b5fdc1 100644
+--- a/.agents/skills/ios-team-flow/references/REVIEW.md
++++ b/.agents/skills/ios-team-flow/references/REVIEW.md
+@@ -7,7 +7,7 @@
+ 1. 核对工作区和暂存区，确认本次范围；默认 `git diff --cached`，包含新增、删除、重命名、资源、配置、锁文件和构建设置。只审本次改动，必要时读取调用者/产品配置作为上下文；发现历史问题单独标注，不擅自扩大整改。
+ 2. 先完成需求卡和测试证据、执行本需求 finish 收尾。将本次文件暂存（保留用户已有暂存内容，不能用 git add . 混入无关工作）。引用实际测试 result 到报告；最终 check 统一核对测试与暂存对象，独立 verify 仅用于排错。然后运行 `python3 scripts/review_gate.py prepare`。脚本输出指纹、快照及 JSON 报告路径；已完成且完全匹配则输出“复用”，直接 check。
+ 3. 新报告读取 `logs/reviews/<指纹>.patch` 与暂存对象，不能只读工作区文件（部分暂存时两者不同）。完成下表所有维度，填写每项 status（通过/失败/未验证/不适用）与 evidence；填 summary、reviewer、completed_at、findings 和 blockers，并在 requirements 数组填关联需求编号；测试证据路径填写到 validation_results 数组，check 会再次核对测试报告及暂存对象。没有自动测试时注明实际验证方法或不适用原因。风险被明确接受时记录理由/负责人，不能伪填通过。
+-4. 完成报告后先 `git add logs/reviews/<指纹>.json logs/reviews/<指纹>.patch`，再运行 `python3 scripts/review_gate.py check`。check 只读取暂存区的报告，与即将提交及 PR 实际读取的内容一致；只在工作区填写报告不会通过，暂存报告仍未完成时必须重新暂存。有失败、未验证或 blocker 时门禁不通过；“不适用”只用于确实无关维度，不用于缺工具或缺线上配置。已验证的问题修复后重新暂存，prepare 新快照，在报告 previous_review 指向旧指纹，只复查两个快照间变化与受影响问题，其余证据注明复用来源。
++4. 完成报告后先 `git add logs/reviews/<指纹>.json logs/reviews/<指纹>.patch`，再运行 `python3 scripts/review_gate.py check`。check 只读取暂存区的报告，与即将提交的内容一致；只在工作区填写报告不会通过，暂存报告仍未完成时必须重新暂存。有失败、未验证或 blocker 时门禁不通过；“不适用”只用于确实无关维度，不用于缺工具或缺线上配置。已验证的问题修复后重新暂存，prepare 新快照，在报告 previous_review 指向旧指纹，只复查两个快照间变化与受影响问题，其余证据注明复用来源。
+ 5. 有提交授权才 commit。上一步 check 通过且内容未变时不再调用；启用 Hook 时可由提交时 Hook 承担最终门禁，失败处理后重试。commit 后 finish 从尾注关联 SHA 到交付索引，新卡不回写 SHA；报告元数据后续单独归档不触发同一代码重复审查。若新 HEAD 或规范/其他暂存内容变化，旧审查不能直接通过。
+ 
+ ## 必查维度
+@@ -34,13 +34,13 @@ findings 使用 `{id, severity, file, line, trigger, impact, recommendation, sta
+ 
+ 指纹由 HEAD、暂存 diff（二进制、文件模式和路径）组成。没有 HEAD 的初始仓库使用空树。默认审查所有暂存路径，唯一排除 `logs/reviews/` 审查回执目录以避免自引用；该目录只准报告 JSON、快照 patch 和说明文档，禁止存放可执行代码或业务资源。其变更仍应检查隐私与记录真实性；门禁会拒绝该目录内非回执后缀文件。
+ 
+-未跟踪/未暂存文件不会进入本次提交审查，prepare 会提示数量；提交前核实有无漏暂存的新文件。不支持用此指纹替代显式要求的全仓审计或 PR 多提交审查；这类范围另记基准 SHA 和范围。
++未跟踪/未暂存文件不会进入本次提交审查，prepare 会提示数量；提交前核实有无漏暂存的新文件。不支持用此指纹替代显式要求的全仓或提交范围审计；这类范围另记基准 SHA 和范围。
+ 
+ 普通 Git 客户端可把 `python3 scripts/review_gate.py check` 接入既有 pre-commit hook（先合并已有 hook，不覆盖）。本包不修改团队全局 Git 配置。无 Codex 的 Git 客户端不会自动生成语义报告，会由门禁提示先完成审查。
+ 
+-## Hook 与 PR 提交范围
++## 可选本地 Hook
+ 
+-按 [Git 检查说明](GIT-CHECKS.md) 可选安装本地 Hook 和 PR 检查。CI 必须调用 range_review.py 并明确 base/head，不可用空暂存区的 check 代替已提交内容审查。线性提交优先复用已提交的逐次报告，合并或基准变化按说明处理。
++按 [Git 检查说明](GIT-CHECKS.md) 可选安装本地 Hook，在 `git commit` 前核对暂存内容已有匹配审查。Hook 可以用 `--no-verify` 跳过，不作为远端强制门禁；已提交范围的审计另行记录明确基准和对象。
+ 
+ ## 仅归档生成记录
+ 
+diff --git a/.agents/skills/ios-team-flow/references/WORKFLOW.md b/.agents/skills/ios-team-flow/references/WORKFLOW.md
+index 5ad65b9fa6937b816ba412e5c08f1d72b7b96ee0..b9a3cd51aeef341484df2e5c03ef4f566fc03c3f 100644
+--- a/.agents/skills/ios-team-flow/references/WORKFLOW.md
++++ b/.agents/skills/ios-team-flow/references/WORKFLOW.md
+@@ -65,7 +65,7 @@ AC 仅使用通过、失败、未验证、不适用；判定需有证据或理
+ 
+ 实施提交使用 Requirement 尾注；交付事实变化后同步记录。生成记录可以随下一次正常提交归档；需要本轮立即归档时仅审记录差异，不重审业务代码、不重新填写业务检查理由。归档不加实施尾注，避免循环登记自身 SHA。交付说明报告实际验收、验证限制、Git 状态和未归档记录。
+ 
+-Hook/PR 检查按需读 [GIT-CHECKS](GIT-CHECKS.md)；App 发布读 [APP-RELEASE](APP-RELEASE.md)，工作流 ZIP 发布读 [RELEASE](RELEASE.md)。GitHub Release 不代表 App Store 上线。重大流程变更按 [SCENARIOS](SCENARIOS.md) 验证消费链路。
++本地提交 Hook 按需读 [GIT-CHECKS](GIT-CHECKS.md)；App 发布读 [APP-RELEASE](APP-RELEASE.md)，工作流 ZIP 发布读 [RELEASE](RELEASE.md)。GitHub Release 不代表 App Store 上线。重大流程变更按 [SCENARIOS](SCENARIOS.md) 验证消费链路。
+ 
+ ## 5. 按需改进
+ 
+diff --git a/.agents/skills/ios-team-flow/scripts/install_git_checks.py b/.agents/skills/ios-team-flow/scripts/install_git_checks.py
+index 3a86881f79794a4a4a773f8737a71eb3a5ab207a..a7ef2c014a5d7643584d3508b54e533c52e43b5d 100644
+--- a/.agents/skills/ios-team-flow/scripts/install_git_checks.py
++++ b/.agents/skills/ios-team-flow/scripts/install_git_checks.py
+@@ -1,7 +1,6 @@
+ #!/usr/bin/env python3
+-"""显式安装/移除本仓库 Hook 或 PR 检查模板，不修改全局 Git 配置。"""
++"""显式安装或移除本仓库提交 Hook，不修改全局 Git 配置。"""
+ import argparse
+-import json
+ import os
+ import stat
+ import subprocess
+@@ -87,33 +86,16 @@ def uninstall_hook(root):
+     print('Hook 已移除，原 Hook 已恢复（如有）')
+ 
+ 
+-def install_ci(root):
+-    target = root / '.github/workflows/teamflow-pr-review.yml'
+-    for node in (target, target.parent, target.parent.parent):
+-        if node.is_symlink():
+-            raise ValueError('CI 目标不能包含符号链接')
+-    source = Path(__file__).resolve().parents[1] / 'assets/pr-review.yml'
+-    if target.exists():
+-        if target.read_bytes() == source.read_bytes():
+-            print('PR 检查模板已安装')
+-            return
+-        raise ValueError('同名 CI 已存在且内容不同，请合并后再使用')
+-    target.parent.mkdir(parents=True, exist_ok=True)
+-    with target.open('xb') as stream:
+-        stream.write(source.read_bytes())
+-    print('已生成 PR 检查；提交到目标分支后生效，并在仓库规则中按需设为必需检查')
+-
+-
+ def main():
+     parser = argparse.ArgumentParser(description=__doc__)
+-    parser.add_argument('command', choices=('hook-install', 'hook-uninstall', 'ci-install'))
++    parser.add_argument('command', choices=('hook-install', 'hook-uninstall'))
+     parser.add_argument('--project', type=Path, default=Path('.'))
+     args = parser.parse_args()
+     try:
+         root = args.project.resolve()
+         if Path(git(root, 'rev-parse', '--show-toplevel')).resolve() != root:
+             raise ValueError('请指定 Git 根目录')
+-        {'hook-install': install_hook, 'hook-uninstall': uninstall_hook, 'ci-install': install_ci}[args.command](root)
++        {'hook-install': install_hook, 'hook-uninstall': uninstall_hook}[args.command](root)
+     except (ValueError, OSError, subprocess.CalledProcessError) as error:
+         parser.exit(1, str(error) + '\n')
+ 
+diff --git a/.agents/skills/ios-team-flow/scripts/range_review.py b/.agents/skills/ios-team-flow/scripts/range_review.py
+deleted file mode 100644
+index 727b245475c3b214c8173344a1c3d9a0e6bcc84d..0000000000000000000000000000000000000000
+--- a/.agents/skills/ios-team-flow/scripts/range_review.py
++++ /dev/null
+@@ -1,142 +0,0 @@
+-#!/usr/bin/env python3
+-"""校验明确 Git 提交范围的审查证据，不读取本地暂存区。"""
+-import argparse
+-import hashlib
+-import json
+-import subprocess
+-from datetime import datetime, timezone
+-from pathlib import Path
+-import importlib.util
+-
+-_spec = importlib.util.spec_from_file_location('teamflow_trusted_gate', Path(__file__).with_name('review_gate.py'))
+-gate = importlib.util.module_from_spec(_spec)
+-_spec.loader.exec_module(gate)
+-
+-
+-def resolve(root, ref):
+-    return gate.git(root, 'rev-parse', '--verify', '--end-of-options', ref + '^{commit}').decode().strip()
+-
+-
+-def diff(root, base, head):
+-    return gate.git(root, 'diff', '--binary', '--full-index', '--no-ext-diff', '--no-textconv',
+-                    '--no-renames', base, head, '--', '.', ':(exclude)logs/reviews/**')
+-
+-
+-def scope(root, base_ref, head_ref):
+-    base, head = resolve(root, base_ref), resolve(root, head_ref)
+-    common = gate.git(root, 'merge-base', base, head).decode().strip()
+-    patch = diff(root, common, head)
+-    fingerprint = hashlib.sha256(b'range-v1\0' + base.encode() + b'\0' + common.encode() + b'\0' + patch).hexdigest()
+-    return base, head, common, patch, fingerprint
+-
+-
+-def validate_receipts(root, head):
+-    entries = gate.git(root, 'ls-tree', '-r', '-z', head, '--', gate.RECEIPTS).split(b'\0')
+-    for entry in filter(None, entries):
+-        metadata, raw_name = entry.split(b'\t', 1)
+-        mode, kind, _ = metadata.split()
+-        if mode != b'100644' or kind != b'blob' or Path(raw_name.decode()).suffix not in ('.json', '.md', '.patch'):
+-            raise ValueError('提交范围的回执目录包含非回执文件：' + raw_name.decode())
+-
+-
+-def read_report(root, head, fingerprint):
+-    try:
+-        raw = gate.git(root, 'show', head + ':' + gate.RECEIPTS + fingerprint + '.json')
+-    except subprocess.CalledProcessError:
+-        return None
+-    value = json.loads(raw)
+-    if not isinstance(value, dict):
+-        raise ValueError('审查报告必须为 JSON 对象')
+-    return value
+-
+-
+-def check(root, base_ref, head_ref):
+-    base, head, common, patch, fingerprint = scope(root, base_ref, head_ref)
+-    validate_receipts(root, head)
+-    if not patch:
+-        print('明确提交范围没有净业务/规则改动；回执边界已检查')
+-        return
+-    aggregate = read_report(root, head, fingerprint)
+-    if aggregate is not None:
+-        errors = gate.report_errors(aggregate, base, fingerprint)
+-        if aggregate.get('scope') != 'range' or aggregate.get('diff_base') != common:
+-            errors.append('范围报告的 scope/diff_base 不匹配')
+-        reviewed = aggregate.get('reviewed_head')
+-        try:
+-            reviewed = resolve(root, reviewed) if isinstance(reviewed, str) else ''
+-            if not reviewed or subprocess.run(['git', '-C', str(root), 'merge-base', '--is-ancestor', reviewed, head],
+-                                               capture_output=True).returncode != 0:
+-                errors.append('已审 head 不是当前 head 的祖先')
+-            elif diff(root, common, reviewed) != patch:
+-                errors.append('报告生成后业务内容发生变化')
+-        except subprocess.CalledProcessError:
+-            errors.append('已审 head 不可解析')
+-        if errors:
+-            raise ValueError('；'.join(errors))
+-        print('范围审查通过，复用报告：' + fingerprint)
+-        return
+-    # 线性提交可复用已提交的逐次暂存审查，不要求重复审查同一改动。
+-    for commit in gate.git(root, 'rev-list', '--reverse', '--topo-order', common + '..' + head).decode().splitlines():
+-        ancestry = gate.git(root, 'rev-list', '--parents', '-n', '1', commit).decode().split()
+-        if len(ancestry) < 2:
+-            raise ValueError('范围包含无父提交，需生成明确范围审查')
+-        parent = ancestry[1]
+-        delta = diff(root, parent, commit)
+-        if not delta:
+-            continue
+-        if len(ancestry) != 2:
+-            raise ValueError('范围包含合并提交，请 prepare 生成范围审查并记录合并影响：' + commit)
+-        commit_fingerprint = hashlib.sha256(parent.encode() + b'\0' + delta).hexdigest()
+-        report = read_report(root, head, commit_fingerprint)
+-        if report is None:
+-            raise ValueError('缺少提交审查：' + commit + '；请提交原回执或生成范围审查')
+-        errors = gate.report_errors(report, parent, commit_fingerprint)
+-        if report.get('scope') != 'staged':
+-            errors.append('逐提交报告 scope 必须为 staged')
+-        if errors:
+-            raise ValueError(commit + '：' + '；'.join(errors))
+-    print('范围审查通过：已复用每个实施提交的审查报告；base=' + base + ' head=' + head)
+-
+-
+-def prepare(root, base_ref, head_ref):
+-    base, head, common, patch, fingerprint = scope(root, base_ref, head_ref)
+-    validate_receipts(root, head)
+-    directory = root / gate.RECEIPTS
+-    for node in (directory, directory.parent):
+-        if node.is_symlink():
+-            raise ValueError('回执目录不能为符号链接')
+-    directory.mkdir(parents=True, exist_ok=True)
+-    target = directory / (fingerprint + '.json')
+-    snapshot = directory / (fingerprint + '.patch')
+-    if target.is_symlink() or snapshot.is_symlink():
+-        raise ValueError('回执文件不能为符号链接')
+-    if not target.exists():
+-        report = {'fingerprint': fingerprint, 'base': base, 'scope': 'range', 'diff_base': common,
+-                  'reviewed_head': head, 'created_at': datetime.now(timezone.utc).isoformat(),
+-                  'reviewer': '', 'completed_at': '', 'summary': '', 'previous_review': None,
+-                  'checks': {name: {'status': '未验证', 'evidence': ''} for name in gate.CATEGORIES},
+-                  'findings': [], 'blockers': []}
+-        with target.open('x') as stream:
+-            json.dump(report, stream, ensure_ascii=False, indent=2)
+-            stream.write('\n')
+-    snapshot.write_bytes(patch)
+-    print('范围报告：' + str(target) + '；审查完成后提交回执，再以新 head 执行 check')
+-    return target
+-
+-
+-def main():
+-    parser = argparse.ArgumentParser(description=__doc__)
+-    parser.add_argument('command', choices=('prepare', 'check'))
+-    parser.add_argument('--base', required=True)
+-    parser.add_argument('--head', required=True)
+-    parser.add_argument('--project', type=Path, default=Path('.'))
+-    args = parser.parse_args()
+-    try:
+-        root = args.project.resolve()
+-        (prepare if args.command == 'prepare' else check)(root, args.base, args.head)
+-    except (ValueError, OSError, subprocess.CalledProcessError) as error:
+-        parser.exit(1, '范围审查失败：' + str(error) + '\n')
+-
+-
+-if __name__ == '__main__':
+-    main()
+diff --git a/.agents/skills/ios-team-flow/scripts/setup_project.py b/.agents/skills/ios-team-flow/scripts/setup_project.py
+index 2ef5a88b6b569226db67808cb0ff3510d161aa1e..2f5268059bbeb47aca8ad664613bf8bd62e6f68b 100644
+--- a/.agents/skills/ios-team-flow/scripts/setup_project.py
++++ b/.agents/skills/ios-team-flow/scripts/setup_project.py
+@@ -306,8 +306,6 @@ def diagnose(project):
+             if git_path.returncode == 0:
+                 hook = project / git_path.stdout.strip()
+     item('本地 Hook（可选）', '存在' if hook.is_file() else '未安装', '存在不等于已接入 TeamFlow；按 GIT-CHECKS 保留既有 Hook')
+-    ci = project / '.github/workflows/teamflow-pr-review.yml'
+-    item('PR 检查（可选）', '存在' if ci.is_file() else '未安装', '分支必需检查需要管理员另行配置')
+     item('Xcode', '可找到工具' if shutil.which('xcodebuild') else '未找到工具', '仅检测工具入口，不代表 App 已构建或 Scheme 可用')
+     report = {'project': str(project), 'checks': items, 'needs_action': any(i['status'] in ('需处理', '待配置') for i in items)}
+     print(json.dumps(report, ensure_ascii=False, indent=2))
+diff --git a/.github/pull_request_template.md b/.github/pull_request_template.md
+deleted file mode 100644
+index 6a079f4f6fd0ba91306efa9858b4968db014d660..0000000000000000000000000000000000000000
+--- a/.github/pull_request_template.md
++++ /dev/null
+@@ -1,16 +0,0 @@
+-## 改动与需求
+-
+-需求卡：
+-触发场景及变更后行为：
+-
+-## 验证
+-
+-业务验证 profile / result.json 或不适用理由：
+-执行的检查与结果：
+-未验证项及原因：
+-
+-## 本次改动审查
+-
+-审查 base / head：
+-报告路径及指纹（逐提交复用或范围报告）：
+-订阅 / 内存 / 打点 / 测试残留结论见报告（不适用需说明）。
+diff --git a/.github/workflows/teamflow-check.yml b/.github/workflows/teamflow-check.yml
+index da8ece22a5b89627f1b0359b73713ebf65800ac6..44b86bb106d42e40e85f0a6ecaa8048e467b6a70 100644
+--- a/.github/workflows/teamflow-check.yml
++++ b/.github/workflows/teamflow-check.yml
+@@ -1,14 +1,5 @@
+ name: 工作流工具校验
+ on:
+-  pull_request:
+-    paths:
+-      - 'AGENTS.md'
+-      - '.agents/**'
+-      - '.gitignore'
+-      - 'README.md'
+-      - 'scripts/**'
+-      - 'tests/**'
+-      - '.github/**'
+   push:
+     paths:
+       - 'AGENTS.md'
+@@ -33,7 +24,7 @@ jobs:
+           python-version: '3.12'
+       - name: 按改动检查规范与工具行为
+         env:
+-          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
++          BASE_SHA: ${{ github.event.before }}
+         run: python3 scripts/run_workflow_checks.py --base "$BASE_SHA"
+       - name: 验证可分发压缩包
+         run: python3 scripts/package_release.py
+diff --git a/.github/workflows/teamflow-logging.yml b/.github/workflows/teamflow-logging.yml
+index e740acdd1134493ecd9ae56a1d57009413280416..8c5490bc4e6a389f754925c35d116184337aaf11 100644
+--- a/.github/workflows/teamflow-logging.yml
++++ b/.github/workflows/teamflow-logging.yml
+@@ -6,12 +6,6 @@ on:
+       - '.agents/skills/ios-team-flow/scripts/install_logging.py'
+       - 'scripts/check_logging.py'
+       - '.github/workflows/teamflow-logging.yml'
+-  pull_request:
+-    paths:
+-      - '.agents/skills/ios-team-flow/assets/logging/**'
+-      - '.agents/skills/ios-team-flow/scripts/install_logging.py'
+-      - 'scripts/check_logging.py'
+-      - '.github/workflows/teamflow-logging.yml'
+   workflow_dispatch:
+ permissions:
+   contents: read
+diff --git a/.github/workflows/teamflow-pr-review.yml b/.github/workflows/teamflow-pr-review.yml
+deleted file mode 100644
+index 7ad62c374a741d00bf8127f3f2f041d8d302e1b1..0000000000000000000000000000000000000000
+--- a/.github/workflows/teamflow-pr-review.yml
++++ /dev/null
+@@ -1,33 +0,0 @@
+-name: TeamFlow PR 审查门禁
+-on:
+-  pull_request:
+-    types: [opened, synchronize, reopened, ready_for_review]
+-permissions:
+-  contents: read
+-jobs:
+-  review-evidence:
+-    runs-on: ubuntu-latest
+-    steps:
+-      - uses: actions/checkout@v4
+-        with:
+-          ref: ${{ github.event.pull_request.head.sha }}
+-          fetch-depth: 0
+-          persist-credentials: false
+-      - uses: actions/setup-python@v5
+-        with:
+-          python-version: '3.12'
+-      - name: 使用目标分支的检查器核验 PR 范围
+-        env:
+-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+-        run: |
+-          set -eu
+-          trusted_dir="$RUNNER_TEMP/teamflow-trusted"
+-          mkdir -p "$trusted_dir"
+-          for script in review_gate.py range_review.py; do
+-            if ! git show "$BASE_SHA:.agents/skills/ios-team-flow/scripts/$script" > "$trusted_dir/$script"; then
+-              echo "目标分支缺少 TeamFlow 检查器，请先将初次安装合入目标分支。"
+-              exit 1
+-            fi
+-          done
+-          python3 -I "$trusted_dir/range_review.py" check --base "$BASE_SHA" --head "$HEAD_SHA"
+diff --git a/README.md b/README.md
+index 083c5993e1e22fac6e398633a567c95ac74ecc4f..53bb37a7ac9dc03dbd6022797d10dbe0640c2277 100644
+--- a/README.md
++++ b/README.md
+@@ -65,7 +65,7 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
+ 
+ 也可以在放好 Skill 后让 Codex“接入当前项目的 iOS 工作流”。脚本保留既有规则，生成/合并有效指令入口、`.agents/teamflow.json`、`scripts/review_gate.py`，创建 `requirements/` 和 `logs/reviews/`。它不会创建 App、安装 Hook、提交代码或上传远端。
+ 
+-接入结束会自动诊断。Git 根、Skill 和入口问题先解决；新工程创建后补齐实际验证配置，已有工程从既有 CI/脚本提取命令；未安装可选 Hook/CI 不阻塞接入。重复查看诊断时执行：
++接入结束会自动诊断。Git 根、Skill 和入口问题先解决；新工程创建后补齐实际验证配置，已有工程从既有 CI/脚本提取命令；未安装可选本地 Hook 不阻塞接入。重复查看诊断时执行：
+ 
+ ```sh
+ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project . --doctor
+@@ -120,7 +120,7 @@ Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/refer
+ | 团队验收、失败和多轮复核证据 | [ACCEPTANCE](.agents/skills/ios-team-flow/references/ACCEPTANCE.md) · [详细证据模板](.agents/skills/ios-team-flow/references/templates/acceptance.md) |
+ | 手动操作或排错：验收绑定、只读 status、按需历史、PR/Release 关联 | [DELIVERY](.agents/skills/ios-team-flow/references/DELIVERY.md) |
+ | 提交审查、归档继承 | [REVIEW](.agents/skills/ios-team-flow/references/REVIEW.md) |
+-| 可选本地 Hook、PR 检查与团队合并门禁 | [GIT-CHECKS](.agents/skills/ios-team-flow/references/GIT-CHECKS.md)；Hook 每个克隆单独接入，必需检查需仓库管理员配置 |
++| 可选本地提交 Hook | [GIT-CHECKS](.agents/skills/ios-team-flow/references/GIT-CHECKS.md)；每个克隆单独接入，可被 `--no-verify` 跳过，不宣称远端强制门禁 |
+ | App 归档、TestFlight、审核和商店上线 | [APP-RELEASE](.agents/skills/ios-team-flow/references/APP-RELEASE.md) · [发布记录模板](.agents/skills/ios-team-flow/references/templates/app-release.md)；GitHub Release 不代表 App Store 上线 |
+ | 场景试运行与验证边界 | [SCENARIOS](.agents/skills/ios-team-flow/references/SCENARIOS.md) |
+ | 安装冲突、完整包升级、预览与恢复 | [INSTALL](.agents/skills/ios-team-flow/references/INSTALL.md) |
+@@ -135,7 +135,7 @@ Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/refer
+ ├── requirements/                 # PRD、需求卡、验收证据及生成交付索引
+ ├── logs/                         # 测试和审查证据
+ ├── scripts/                      # 根门禁入口及项目辅助脚本
+-└── .github/workflows/            # 可选业务 CI / PR 检查
++└── .github/workflows/            # 可选 push 校验与发布流程
+ ```
+ 
+ 按当前阶段阅读所需专题，不要求成员通读全部规范；完整导航见 [Skill 内容导航](.agents/skills/ios-team-flow/references/README.md)。
+diff --git a/logs/remove-pr-gate/verification.md b/logs/remove-pr-gate/verification.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..65f4a966e8fa574ecc78d3333783bd890fba5c14
+--- /dev/null
++++ b/logs/remove-pr-gate/verification.md
+@@ -0,0 +1,10 @@
++# 移除 PR 门禁模块验证记录
++
++- 验证范围：删除 PR 审查 workflow、PR 模板、range review 工具、PR 安装资产、PR 触发和分支保护/必需检查说明；保留可选本地提交 Hook。
++- 专项测试：`python3 -m unittest -v test_git_checks test_check_selection test_workflow.WorkflowTests.test_repository_documents test_consumer_release test_setup_recovery`，20 项通过。
++- 完整回归：`python3 scripts/run_workflow_checks.py --full`，106 项通过。
++- 分发包：运行 `python3 scripts/package_release.py`，检查两种 2.3.0 分发包，均不包含 `pull_request_template`、`teamflow-pr-review`、`range_review` 或 `pr-review`。
++- 命令入口：`install_git_checks.py --help` 只保留 `hook-install`、`hook-uninstall`。
++- 接入诊断：`setup_project.py --doctor` 不再报告 PR 检查或分支保护项；其 Python 3.9.6 低于文档建议 3.10 的提示为既有环境问题，与本次变更无关。
++- 引用检查：在工作流源文件、测试、README 与 GitHub 配置中检索 `branch protection`、`分支保护`、`必需检查`、`required check`、`range_review`、`ci-install`、`teamflow-pr-review`、`pull_request_template`、`pull_request:`，无残留结果。
++- 兼容边界：delivery 的 `link-pr` 和 PR/合并事实字段继续作为历史交付事实记录，不承担审查门禁或远端强制职责。
+diff --git a/requirements/DELIVERY.md b/requirements/DELIVERY.md
+index 7f95e59dcbb0f2b0e8792cc2faf01dd9ac14591d..accc2cace82f1e4777344da01149ede092b14284 100644
+--- a/requirements/DELIVERY.md
++++ b/requirements/DELIVERY.md
+@@ -26,3 +26,4 @@
+ | 20 | 2026-09-15T07:51:23.794+00:00 | [REQ-20260915-075123794Z-73d854b0](REQ-20260915-075123794Z-73d854b0.md) | 生成代码遵循需求架构与模块复用边界 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-15T07:59:04.535702+00:00 |
+ | 21 | 2026-09-15T08:37:24.172+00:00 | [REQ-20260915-083724172Z-6efa3c57](REQ-20260915-083724172Z-6efa3c57.md) | 推送源码版本 2.2.2 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-15T08:39:16.749714+00:00 |
+ | 22 | 2026-09-21T13:06:47.139+00:00 | [REQ-20260921-130647139Z-b54c35a0](REQ-20260921-130647139Z-b54c35a0.md) | 大型项目按模块增量读取并发布 2.3.0 | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-21T13:20:01.237409+00:00 |
++| 23 | 2026-09-21T14:55:52.053+00:00 | [REQ-20260921-145552053Z-ccb1de82](REQ-20260921-145552053Z-ccb1de82.md) | 移除 PR 审查门禁与分支保护依赖 | ✅ 执行完成 | ⬜ 未关联 | 未核实 | 未核实 | 2026-09-21T15:05:54.952402+00:00 |
+diff --git a/requirements/REQ-20260921-145552053Z-ccb1de82.md b/requirements/REQ-20260921-145552053Z-ccb1de82.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..d9af422572098b614fe4c5116274c37871db0966
+--- /dev/null
++++ b/requirements/REQ-20260921-145552053Z-ccb1de82.md
+@@ -0,0 +1,33 @@
++# REQ-20260921-145552053Z-ccb1de82：移除 PR 审查门禁与分支保护依赖
++<!-- teamflow:requirement:v3 -->
++
++- 状态：✅ 执行完成
++- 来源与范围：用户要求解决完整度检查中的第一个问题，方案为删除 PR 模块及分支保护相关内容。本次移除 PR 审查 workflow、安装模板、range_review 工具、PR 触发、PR 模板、诊断项及相关测试/文档，只保留可选本地提交 Hook；delivery 的 link-pr 与历史 PR/合并事实字段作为通用交付记录兼容能力保留，不再承担门禁职责。不修改业务 Demo。
++- 拆分：否；单一可验收结果（复杂需求列纵向步骤与 AC 编号，不复制状态）
++- 验收方式：自审
++- 验收依据：工作流模块删除和分发边界明确，可通过全仓引用检查、工具测试、消费包检查和提交门禁自审。
++- 下一步：无
++- 阻塞项：无
++
++## 验收（唯一结果记录）
++
++| 编号 | 条件 | 结果 | 证据或不适用原因 |
++| --- | --- | --- | --- |
++| AC-01 | 源仓库和分发清单不再包含 PR 审查 workflow、PR 模板、range_review 或 PR 安装资产 | 通过 | 对应文件已删除，`scripts/package_release.py` 已移除分发项；见 `logs/remove-pr-gate/verification.md`。 |
++| AC-02 | install_git_checks 与接入诊断只保留本地 Hook，不再提供 ci-install、PR 检查或分支保护提示 | 通过 | `install_git_checks.py --help` 仅有 Hook 操作，doctor 无 PR/分支保护诊断；见验证记录。 |
++| AC-03 | push/日志 CI 不再监听 pull_request；文档不再把 PR 检查、必需检查或分支保护作为工作流能力 | 通过 | 两个保留 workflow 均为 push 触发，禁用词引用检查无结果；见验证记录。 |
++| AC-04 | 本地 Hook 的安装、阻止未审提交、既有 Hook 恢复和冲突保护仍通过；完整回归和分发包验证通过 | 通过 | 专项 20 项、完整回归 106 项通过，两种分发包核对通过；见验证记录。 |
++
++## 过程与决策
++
++- 2026-09-21T14:55:52+00:00：接收需求；按用户指定方案删除 PR 审查门禁与分支保护依赖。保留 delivery 中可选 PR 事实记录以兼容历史交付数据，它不参与本地审查门禁或 CI 强制。
++- 2026-09-21T22:56:30+08:00：改进触发来自完整度审计发现当前仓库无法启用分支保护，存在“提供 PR 门禁但无法强制”的能力错配。最小改动是移除该模块及消费入口，保留本地 Hook 与暂存对象审查；通过删除引用检查、Hook 专项测试、完整回归和两种分发包核对。需要恢复时从 Git 历史恢复整套模块，不保留半启用入口。
++
++<!-- 按需链接工程现状、验证范围及风险；证据引用文件，不复制日志。
++团队验收添加一处“- 团队确认：…”并填写确认人、时间、对象版本及原文/链接。
++暂停/取消添加“- 暂停或取消原因：…”；暂停的下一步为恢复条件。
++当前状态只维护顶部，步骤引用 AC；不写当前审查指纹、提交 SHA 或交付状态副本。
++仅触发流程改进时，在过程与决策按需记录改进依据：触发与来源、根因证据、最小改动、验证方法及撤销方式；预期和条件写正文与 AC，当前结果仍只写 AC 表。普通需求不添加此记录。
++验收绑定与收尾命令见下方交付规程。 -->
++
++交付索引由首次 finish 创建在 `requirements/DELIVERY.md`。操作规程：[交付追踪](../.agents/skills/ios-team-flow/references/DELIVERY.md)、[团队验收](../.agents/skills/ios-team-flow/references/ACCEPTANCE.md)。
+diff --git a/requirements/delivery/REQ-20260921-145552053Z-ccb1de82.json b/requirements/delivery/REQ-20260921-145552053Z-ccb1de82.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..89ba3c8fc92600058f711163d8634394a5d685b7
+--- /dev/null
++++ b/requirements/delivery/REQ-20260921-145552053Z-ccb1de82.json
+@@ -0,0 +1,86 @@
++{
++  "schema_version": 1,
++  "requirement": "REQ-20260921-145552053Z-ccb1de82",
++  "linked_commits": [],
++  "prs": [],
++  "events": [
++    {
++      "at": "2026-09-21T15:05:54.952698+00:00",
++      "action": "finish",
++      "changes": {
++        "commits": [],
++        "committed": false,
++        "merged": "未核实",
++        "releases": [],
++        "release_status": "未核实",
++        "prs": [],
++        "warnings": [
++          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++        ],
++        "development": "✅ 执行完成",
++        "card": {
++          "state": "✅ 执行完成",
++          "passed": 4,
++          "applicable": 4,
++          "next": "无",
++          "blocker": "无",
++          "acceptance_fingerprint": "8a01ed0480c78425465bae9559c595a42e92184f17f30fbc46f5b0d1e278c820",
++          "implementation_fingerprint": "4329c18ada31b4da5e6c5d2ac292bcbc6ce2170d023b36bfe76cedf50bd3fd0c"
++        },
++        "checked_at": "2026-09-21T15:05:54.952402+00:00"
++      },
++      "removed": []
++    }
++  ],
++  "acceptance_baseline": {
++    "implementation_fingerprint": "4329c18ada31b4da5e6c5d2ac292bcbc6ce2170d023b36bfe76cedf50bd3fd0c",
++    "acceptance_fingerprint": "8a01ed0480c78425465bae9559c595a42e92184f17f30fbc46f5b0d1e278c820",
++    "inputs": [
++      ".agents/skills/ios-team-flow/SKILL.md",
++      ".agents/skills/ios-team-flow/assets/pr-review.yml",
++      ".agents/skills/ios-team-flow/references/GIT-CHECKS.md",
++      ".agents/skills/ios-team-flow/references/INSTALL.md",
++      ".agents/skills/ios-team-flow/references/PROJECT-CHECKS.md",
++      ".agents/skills/ios-team-flow/references/README.md",
++      ".agents/skills/ios-team-flow/references/RELEASE.md",
++      ".agents/skills/ios-team-flow/references/REVIEW.md",
++      ".agents/skills/ios-team-flow/references/WORKFLOW.md",
++      ".agents/skills/ios-team-flow/scripts/install_git_checks.py",
++      ".agents/skills/ios-team-flow/scripts/range_review.py",
++      ".agents/skills/ios-team-flow/scripts/setup_project.py",
++      ".github/pull_request_template.md",
++      ".github/workflows/teamflow-check.yml",
++      ".github/workflows/teamflow-logging.yml",
++      ".github/workflows/teamflow-pr-review.yml",
++      "README.md",
++      "scripts/package_release.py",
++      "scripts/run_workflow_checks.py",
++      "tests/test_git_checks.py",
++      "logs/remove-pr-gate/verification.md"
++    ],
++    "results": [],
++    "accepted_at": "2026-09-21T15:05:54.952233+00:00"
++  },
++  "snapshot": {
++    "commits": [],
++    "committed": false,
++    "merged": "未核实",
++    "releases": [],
++    "release_status": "未核实",
++    "prs": [],
++    "warnings": [
++      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++    ],
++    "development": "✅ 执行完成",
++    "card": {
++      "state": "✅ 执行完成",
++      "passed": 4,
++      "applicable": 4,
++      "next": "无",
++      "blocker": "无",
++      "acceptance_fingerprint": "8a01ed0480c78425465bae9559c595a42e92184f17f30fbc46f5b0d1e278c820",
++      "implementation_fingerprint": "4329c18ada31b4da5e6c5d2ac292bcbc6ce2170d023b36bfe76cedf50bd3fd0c"
++    },
++    "checked_at": "2026-09-21T15:05:54.952402+00:00"
++  }
++}
+diff --git a/scripts/package_release.py b/scripts/package_release.py
+index 2e0eee6aab2f13cd8548453697c00a831960620e..99d879f99174df1b3b6844fa141d18ba16d46555 100644
+--- a/scripts/package_release.py
++++ b/scripts/package_release.py
+@@ -15,14 +15,12 @@ REFERENCES = (
+ # 仅打包明确登记的通用文件，不打包项目接入记录、需求或日志。
+ FILES = (
+     'AGENTS.md', 'README.md', '.gitignore',
+-    '.github/pull_request_template.md',
+     '.github/workflows/teamflow-check.yml', '.github/workflows/teamflow-release.yml',
+-    '.github/workflows/teamflow-pr-review.yml',
+     'scripts/check_logging.py', '.github/workflows/teamflow-logging.yml', 'tests/test_logging_install.py',
+     'scripts/review_gate.py', 'scripts/package_release.py', 'scripts/validate_workflow.py', 'scripts/run_workflow_checks.py',
+     'tests/test_check_selection.py', 'tests/test_consumer_release.py', 'tests/test_skill_upgrade.py', 'tests/test_scenarios.py', 'tests/test_setup_recovery.py', 'tests/test_workflow.py', 'tests/test_project_checks.py', 'tests/test_delivery.py', 'tests/test_git_checks.py', SKILL + '/SKILL.md',
+     SKILL + '/assets/logging/TFLogger.swift', SKILL + '/assets/logging/TFLogger.h', SKILL + '/assets/logging/TFLogger.m',
+-    SKILL + '/scripts/install_logging.py', SKILL + '/assets/pr-review.yml', SKILL + '/scripts/range_review.py',
++    SKILL + '/scripts/install_logging.py',
+     SKILL + '/scripts/upgrade_skill.py', SKILL + '/scripts/install_git_checks.py', SKILL + '/scripts/delivery.py', SKILL + '/scripts/project_checks.py', SKILL + '/scripts/setup_project.py', SKILL + '/scripts/review_gate.py',
+ ) + tuple(SKILL + '/references/' + name for name in REFERENCES)
+ 
+diff --git a/scripts/run_workflow_checks.py b/scripts/run_workflow_checks.py
+index 25c6136c96c2dacb4db0f706f77ac36271fc57de..0ec9b26a26a1d9c4c4acaa8122fb3ee192ed9718 100644
+--- a/scripts/run_workflow_checks.py
++++ b/scripts/run_workflow_checks.py
+@@ -16,7 +16,6 @@ TOOLS = {
+     'project_checks.py': ['test_project_checks', 'test_delivery', 'test_workflow', 'test_consumer_release', 'test_scenarios'],
+     'delivery.py': ['test_delivery', 'test_workflow', 'test_consumer_release'],
+     'review_gate.py': ['test_workflow', 'test_git_checks', 'test_consumer_release', 'test_scenarios'],
+-    'range_review.py': ['test_git_checks', 'test_workflow', 'test_consumer_release', 'test_scenarios'],
+     'install_git_checks.py': ['test_git_checks', 'test_workflow', 'test_consumer_release'],
+     'setup_project.py': ['test_workflow', 'test_setup_recovery', 'test_skill_upgrade', 'test_consumer_release', 'test_scenarios'],
+     'upgrade_skill.py': ['test_workflow', 'test_setup_recovery', 'test_skill_upgrade', 'test_consumer_release'],
+diff --git a/tests/test_git_checks.py b/tests/test_git_checks.py
+index e6be98b25793f21dcd83b1adedbdc0c707cf582a..917e8f6fda8d070a85917e9f2e11fdd98ba682cf 100644
+--- a/tests/test_git_checks.py
++++ b/tests/test_git_checks.py
+@@ -3,7 +3,6 @@ import json
+ import os
+ import shutil
+ import subprocess
+-import sys
+ import tempfile
+ import unittest
+ from pathlib import Path
+@@ -19,9 +18,8 @@ def module(name):
+     return value
+ 
+ 
+-ranges = module('range_review')
+ hooks = module('install_git_checks')
+-gate = ranges.gate
++gate = module('review_gate')
+ 
+ 
+ class GitChecksTests(unittest.TestCase):
+@@ -35,7 +33,6 @@ class GitChecksTests(unittest.TestCase):
+         self.git('config', 'commit.gpgsign', 'false')
+         self.stage('base.txt', 'base')
+         self.git('commit', '-qm', 'base')
+-        self.base = self.git('rev-parse', 'HEAD').strip()
+ 
+     def git(self, *args):
+         return subprocess.check_output(['git', '-C', str(self.root), *args], text=True, stderr=subprocess.PIPE)
+@@ -49,117 +46,14 @@ class GitChecksTests(unittest.TestCase):
+     def complete(self, target):
+         report = json.loads(target.read_text())
+         report.update(reviewer='测试夹具', completed_at='2026-09-11T00:00:00Z', summary='仅用于行为测试')
+-        for v in report['checks'].values():
+-            v.update(status='不适用', evidence='临时测试，不是实际代码审查')
++        for value in report['checks'].values():
++            value.update(status='不适用', evidence='临时测试，不是实际代码审查')
+         target.write_text(json.dumps(report))
+ 
+-    def reviewed_commit(self, name='code.txt', content='change'):
+-        self.stage(name, content)
+-        self.complete(gate.prepare(self.root))
+-        self.git('add', 'logs/reviews')
+-        self.git('commit', '-qm', 'reviewed')
+-        return self.git('rev-parse', 'HEAD').strip()
+-
+-    def test_empty_index_does_not_pass_unreviewed_range(self):
+-        self.stage('code.txt', 'unreviewed')
+-        self.git('commit', '-qm', 'not reviewed')
+-        self.assertFalse(self.git('diff', '--cached'))
+-        with self.assertRaises(ValueError):
+-            ranges.check(self.root, self.base, 'HEAD')
+-
+-    def test_linear_reports_reused_independent_of_worktree(self):
+-        head = self.reviewed_commit()
+-        self.reviewed_commit('other.txt', 'more')
+-        self.stage('unrelated.txt', 'not part of head')
+-        ranges.check(self.root, self.base, 'HEAD')
+-        ranges.check(self.root, self.base, head)
+-
+-    def test_range_receipt_commit_and_new_code_invalidates(self):
+-        self.stage('code.txt', 'range')
+-        self.git('commit', '-qm', 'unreviewed')
+-        target = ranges.prepare(self.root, self.base, 'HEAD')
+-        self.complete(target)
+-        self.git('add', 'logs/reviews')
+-        self.git('commit', '-qm', 'receipt only')
+-        ranges.check(self.root, self.base, 'HEAD')
+-        self.stage('code.txt', 'new content')
+-        self.git('commit', '-qm', 'new unreviewed')
+-        with self.assertRaises(ValueError):
+-            ranges.check(self.root, self.base, 'HEAD')
+-
+-    def test_target_base_change_invalidates_range_report(self):
+-        self.stage('feature.txt', 'feature')
+-        self.git('commit', '-qm', 'feature')
+-        self.complete(ranges.prepare(self.root, self.base, 'HEAD'))
+-        self.git('add', 'logs/reviews')
+-        self.git('commit', '-qm', 'receipt')
+-        head = self.git('rev-parse', 'HEAD').strip()
+-        ranges.check(self.root, self.base, head)
+-        self.git('checkout', '-qb', 'new-target', self.base)
+-        self.stage('target.txt', 'base advanced')
+-        self.git('commit', '-qm', 'target changed')
+-        new_base = self.git('rev-parse', 'HEAD').strip()
+-        with self.assertRaises(ValueError):
+-            ranges.check(self.root, new_base, head)
+-
+-    def test_pending_report_rejected_and_bad_ref_rejected(self):
+-        self.stage('code.txt', 'pending')
+-        gate.prepare(self.root)
+-        self.git('add', 'logs/reviews')
+-        self.git('commit', '-qm', 'pending')
+-        with self.assertRaises(ValueError):
+-            ranges.check(self.root, self.base, 'HEAD')
+-        with self.assertRaises(subprocess.CalledProcessError):
+-            ranges.check(self.root, 'nonexistent', 'HEAD')
+-
+-    def test_binary_mode_and_receipt_boundary(self):
+-        self.reviewed_commit()
+-        binary = self.root / 'binary.bin'
+-        binary.write_bytes(b'\0\xff')
+-        self.git('add', 'binary.bin')
+-        self.complete(gate.prepare(self.root))
+-        self.git('add', 'logs/reviews')
+-        self.git('commit', '-qm', 'binary reviewed')
+-        ranges.check(self.root, self.base, 'HEAD')
+-        self.git('update-index', '--chmod=+x', 'code.txt')
+-        self.git('commit', '-qm', 'mode changed')
+-        with self.assertRaises(ValueError):
+-            ranges.check(self.root, self.base, 'HEAD')
+-        self.stage('logs/reviews/hidden.py', 'print(1)')
+-        self.git('commit', '-qm', 'hidden')
+-        with self.assertRaisesRegex(ValueError, '非回执'):
+-            ranges.check(self.root, self.base, 'HEAD')
+-
+-    def test_merge_requires_range_review(self):
+-        branch = self.git('branch', '--show-current').strip()
+-        self.git('checkout', '-qb', 'feature')
+-        self.reviewed_commit('feature.txt', 'feature')
+-        self.git('checkout', branch)
+-        self.reviewed_commit('main.txt', 'main')
+-        self.git('merge', '--no-ff', '-m', 'merge', 'feature')
+-        with self.assertRaisesRegex(ValueError, '合并提交'):
+-            ranges.check(self.root, self.base, 'HEAD')
+-        self.complete(ranges.prepare(self.root, self.base, 'HEAD'))
+-        self.git('add', 'logs/reviews')
+-        self.git('commit', '-qm', 'range receipt')
+-        ranges.check(self.root, self.base, 'HEAD')
+-
+-    def test_trusted_checker_ignores_head_python(self):
+-        self.stage('review_gate.py', "print('FORGED PASS')\n")
+-        self.git('commit', '-qm', 'unreviewed malicious module')
+-        trusted = self.root / 'trusted'
+-        trusted.mkdir()
+-        for name in ('review_gate.py', 'range_review.py'):
+-            shutil.copyfile(SCRIPTS / name, trusted / name)
+-        result = subprocess.run([sys.executable, '-I', str(trusted / 'range_review.py'), 'check',
+-                                 '--base', self.base, '--head', 'HEAD'], cwd=self.root, capture_output=True, text=True)
+-        self.assertNotEqual(0, result.returncode)
+-        self.assertNotIn('FORGED PASS', result.stdout)
+-
+     def install_skill_gate(self):
+-        dest = self.root / '.agents/skills/ios-team-flow/scripts'
+-        dest.mkdir(parents=True)
+-        shutil.copyfile(SCRIPTS / 'review_gate.py', dest / 'review_gate.py')
++        destination = self.root / '.agents/skills/ios-team-flow/scripts'
++        destination.mkdir(parents=True)
++        shutil.copyfile(SCRIPTS / 'review_gate.py', destination / 'review_gate.py')
+ 
+     def test_real_commit_hook_blocks_then_passes(self):
+         self.install_skill_gate()
+@@ -202,14 +96,3 @@ class GitChecksTests(unittest.TestCase):
+         self.git('config', 'core.hooksPath', str(self.root.parent / 'shared-hooks'))
+         with self.assertRaises(ValueError):
+             hooks.install_hook(self.root)
+-
+-    def test_ci_install_idempotent_and_no_overwrite(self):
+-        hooks.install_ci(self.root)
+-        target = self.root / '.github/workflows/teamflow-pr-review.yml'
+-        original = target.read_bytes()
+-        hooks.install_ci(self.root)
+-        self.assertEqual(original, target.read_bytes())
+-        target.write_text('team config')
+-        with self.assertRaises(ValueError):
+-            hooks.install_ci(self.root)
+-        self.assertEqual('team config', target.read_text())

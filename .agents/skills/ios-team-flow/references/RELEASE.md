@@ -20,13 +20,13 @@ python3 scripts/package_release.py
 
 修改要分发的文件时同步维护 `scripts/package_release.py` 的清单。打包拒绝符号链接/漏文件，路径从脚本定位，不依赖当前目录。版本不可重复覆盖线上发布；本地重复打包相同输入应得到相同校验和。
 
-## GitHub 自动发布附件
+## GitHub 验证后自动发布
 
-本仓库 `.github/workflows/teamflow-release.yml` 监听 Release published：团队在已审核提交上发布 `teamflow-vX.Y.Z` 标签的 Release 后，校验版本、运行工具测试、生成 zip/校验和并上传到该 Release。其他名称的 App Release 跳过，不与业务版本冲突。
+本仓库 `.github/workflows/teamflow-release.yml` 监听 `teamflow-vX.Y.Z` 标签推送。团队在已审核提交上创建并推送标签后，先以只读权限运行 macOS 原生检查、版本核对、完整工具测试和打包；验证产物通过 Actions artifact 传给独立发布任务。发布任务才获得 `contents: write`，使用已存在的标签创建草稿、上传 ZIP/校验和，并在附件上传成功后公开 Release。不要先在网页创建公开 Release；其他名称的 App 标签不会触发本流程。
 
-先将工作流文件提交并推送到仓库，GitHub 才能执行。需要仓库启用 Actions，job 使用 contents:write 上传附件；没有 app 签名或 App Store 权限。本地成功不能代表 GitHub 运行成功。若使用 GITHUB_TOKEN 从另一条 Action 创建 Release，事件可能不触发本 Action，需改为显式调用打包上传流程或使用适当凭据；不要重复发布碰运气。
+先将工作流文件提交并推送到仓库，GitHub 才能执行。需要仓库启用 Actions；验证与打包任务保持 `contents: read`，只有最终发布任务使用 `contents: write`。工作流没有 App 签名或 App Store 权限。本地成功不能代表 GitHub 运行成功。标签、版本或任一检查不通过时不会创建公开 Release；上传失败时 `gh release create` 保持草稿而不公开。修复后先处理同标签的失败草稿，再重跑，不删除或覆盖已经公开的历史 Release。
 
-分发到业务项目时可保留校验工作流；工作流 Release 名称与 App 发布分离。若团队只消费版本，可不复制 teamflow-release.yml，由工作流源仓库负责发布。
+分发到业务项目时可保留校验工作流；工作流 Release 标签与 App 发布分离。若团队只消费版本，可不复制 teamflow-release.yml，由工作流源仓库负责发布。
 
 ## 项目级独立 Skill 分发
 
@@ -36,9 +36,9 @@ python3 scripts/package_release.py
 
 ## 按改动执行源仓库检查
 
-日常 CI 使用 `python3 scripts/run_workflow_checks.py --base 完整基准SHA` 比较基准与 HEAD（已提交内容，不含工作区修改）。普通说明执行文档校验，模板增加生成/消费场景，工具脚本执行对应模块及关联门禁、验收与消费测试。文档校验由测试套件统一执行一次，不在 CI 重复调用。
+日常 push CI 使用 `python3 scripts/run_workflow_checks.py --base 完整基准SHA` 比较推送前提交与 HEAD（已提交内容，不含工作区修改）。普通说明执行文档校验，模板增加生成/消费场景，工具脚本执行对应模块及关联门禁、验收与消费测试。文档校验由测试套件统一执行一次，不在 CI 重复调用。
 
-CI 获取完整 Git 历史：push 使用 before，PR 使用事件 base 与检出的合并结果；新分支、基准缺失/不可读、公共脚本、测试、版本、CI 或未知路径变化回退全量。随提交归档的 REQ 卡、交付索引和审查回执不扩大工具测试范围；其他未知文件仍回退全量。多类变化取并集并去重；删除/重命名包含原路径。`--list` 只显示计划，不表示验证通过。手动 workflow_dispatch 和正式 Release 始终全量。
+CI 获取完整 Git 历史：push 使用 before；新分支、基准缺失/不可读、公共脚本、测试、版本、CI 或未知路径变化回退全量。随提交归档的 REQ 卡、交付索引和审查回执不扩大工具测试范围；其他未知文件仍回退全量。多类变化取并集并去重；删除/重命名包含原路径。`--list` 只显示计划，不表示验证通过。手动 workflow_dispatch 和正式 Release 始终全量。
 
 打包校验继续在 CI 执行；首次执行、公共依赖变化或无法确定影响时用 --full。不要把此脚本作为业务 App 测试入口，也不要只为减少测试数量删除独立覆盖。
 
