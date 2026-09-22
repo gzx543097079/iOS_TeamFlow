@@ -13,6 +13,7 @@ import validate_workflow
 
 class WorkflowTests(unittest.TestCase):
     VALIDATION_SEQUENCE = '完成全部改动 → 环境预检 → 针对性测试 → 文件冻结 → 一次完整验证 → 目标交付'
+    COLORED_PROGRESS = '需求卡和需求列表'
 
     def test_repository_documents_and_distribution_manifest(self):
         validate_workflow.validate(ROOT)
@@ -53,6 +54,19 @@ class WorkflowTests(unittest.TestCase):
         )
         for path in paths:
             self.assertIn(self.VALIDATION_SEQUENCE, path.read_text(), path)
+
+    def test_colored_requirement_progress_is_distributed(self):
+        paths = (
+            ROOT / package_release.SKILL / 'SKILL.md',
+            ROOT / package_release.SKILL / 'references/WORKFLOW.md',
+            ROOT / package_release.SKILL / 'scripts/setup_project.py',
+            ROOT / 'README.md',
+        )
+        for path in paths:
+            self.assertIn(self.COLORED_PROGRESS, path.read_text(), path)
+        template = (ROOT / package_release.SKILL / 'references/templates/requirement.md').read_text()
+        self.assertIn('- 状态：🔵 进行中', template)
+        self.assertIn('- [ ] ⚪ AC-01', template)
 
     def test_setup_fresh_project_and_rejects_old_schema(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -97,6 +97,25 @@ class ProjectChecksTests(unittest.TestCase):
         self.assertEqual(0, json.loads(path.read_text())['results'][0]['exit_code'])
         self.assertFalse(json.loads(path.read_text())['source_unchanged'])
 
+    def test_requirement_snapshot_ignores_colored_status_and_ac_progress(self):
+        pending = '''# REQ-0001
+<!-- teamflow:requirement:vnext -->
+
+- 状态：🔵 进行中
+- [ ] ⚪ AC-01：显示结果
+
+## 验证
+
+- 验证状态：⚪ 未验证
+'''.encode()
+        completed = pending.replace('🔵 进行中'.encode(), '✅ 完成'.encode())
+        completed = completed.replace('- [ ] ⚪ AC-01'.encode(), '- [x] ✅ AC-01'.encode())
+        self.assertEqual(checks.content_for_snapshot('requirements/REQ-0001.md', pending),
+                         checks.content_for_snapshot('requirements/REQ-0001.md', completed))
+        changed = completed.replace('显示结果'.encode(), '显示新结果'.encode())
+        self.assertNotEqual(checks.content_for_snapshot('requirements/REQ-0001.md', pending),
+                            checks.content_for_snapshot('requirements/REQ-0001.md', changed))
+
     def test_git_default_tracks_new_files_but_ignores_generated_evidence(self):
         import subprocess
         def git(*args):

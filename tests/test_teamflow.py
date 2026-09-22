@@ -45,8 +45,8 @@ class TeamFlowTests(unittest.TestCase):
         path = self.root / 'requirements' / (requirement + '.md')
         text = path.read_text().replace('待填写本次要达到的结果', '实现登录错误提示')
         text = text.replace('待填写本次明确不处理的内容；没有时写“无额外排除”', '无额外排除')
-        text = text.replace('- [ ] AC-01：填写可观察的输入、操作和预期结果',
-                            '- [x] AC-01：错误时显示提示')
+        text = text.replace('- [ ] ⚪ AC-01：填写可观察的输入、操作和预期结果',
+                            '- [x] ✅ AC-01：错误时显示提示')
         path.write_text(text)
         return path
 
@@ -57,6 +57,8 @@ class TeamFlowTests(unittest.TestCase):
         second = self.create('B', queued=True)
         self.assertEqual(('REQ-0001', 'REQ-0002'), (first, second))
         self.assertEqual('待处理', flow.parse_card(directory / 'REQ-0002.md')['state'])
+        self.assertIn('- 状态：⚪ 待处理', (directory / 'REQ-0002.md').read_text())
+        self.assertEqual('⚪ 0/1', flow.parse_card(directory / 'REQ-0002.md')['progress']['display'])
         self.assertEqual([first, second], [item['requirement'] for item in flow.cards(self.root)])
 
     def test_new_format_only_and_sparse_state_reason(self):
@@ -71,7 +73,7 @@ class TeamFlowTests(unittest.TestCase):
         with contextlib.redirect_stdout(io.StringIO()):
             flow.set_state(self.root, req, '阻塞', '等待接口定义')
         text = card.read_text()
-        self.assertIn('- 状态：阻塞', text)
+        self.assertIn('- 状态：🔴 阻塞', text)
         self.assertIn('等待接口定义', text)
         self.assertNotIn('下一步：无', text)
         self.assertNotIn('阻塞项：无', text)
@@ -84,6 +86,8 @@ class TeamFlowTests(unittest.TestCase):
         with contextlib.redirect_stdout(io.StringIO()):
             flow.complete(self.root, req, result=relative)
         self.assertEqual('完成', flow.parse_card(card)['state'])
+        self.assertIn('- 状态：✅ 完成', card.read_text())
+        self.assertIn('- 验证状态：✅ 通过', card.read_text())
         self.assertIn(relative, card.read_text())
         self.assertFalse((self.root / 'requirements/delivery').exists())
         self.assertFalse((self.root / 'logs/reviews').exists())
@@ -100,6 +104,41 @@ class TeamFlowTests(unittest.TestCase):
         (self.root / 'source.txt').write_text('changed')
         with self.assertRaisesRegex(ValueError, '源码或配置已变化'):
             flow.complete(self.root, req, result=str(result.relative_to(self.root)))
+
+    def test_colored_state_and_progress_are_required_and_listed(self):
+        req = self.create('图标需求')
+        card = self.root / 'requirements' / (req + '.md')
+        self.assertEqual({'待处理': '⚪', '待确认': '🟡', '进行中': '🔵',
+                          '待用户验证': '🟣', '完成': '✅', '阻塞': '🔴',
+                          '暂停': '🟠', '取消': '⚫'}, flow.STATE_ICONS)
+        self.assertEqual('🔵 1/2', flow.progress_display(1, 2))
+        listing = io.StringIO()
+        with contextlib.redirect_stdout(listing):
+            flow.list_output(self.root)
+        self.assertIn('| 🔵 进行中 | ⚪ 0/1 |', listing.getvalue())
+        listing_json = io.StringIO()
+        with contextlib.redirect_stdout(listing_json):
+            flow.list_output(self.root, as_json=True)
+        self.assertEqual('🔵 进行中', json.loads(listing_json.getvalue())[0]['state'])
+        card.write_text(card.read_text().replace('- 状态：🔵 进行中', '- 状态：进行中'))
+        with self.assertRaisesRegex(ValueError, '需求状态无效'):
+            flow.parse_card(card)
+
+    def test_ac_checkbox_and_progress_icon_must_agree(self):
+        req = self.create()
+        card = self.root / 'requirements' / (req + '.md')
+        card.write_text(card.read_text().replace('- [ ] ⚪ AC-01', '- [x] ⚪ AC-01'))
+        with self.assertRaisesRegex(ValueError, '复选框与进度图标不一致'):
+            flow.parse_card(card)
+
+    def test_wait_user_completion_uses_colored_state(self):
+        req = self.create(); card = self.fill(req)
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            flow.complete(self.root, req, evidence='人工验证入口已准备', wait_user=True)
+        self.assertEqual('🟣 待用户验证', json.loads(output.getvalue())['state'])
+        self.assertIn('- 状态：🟣 待用户验证', card.read_text())
+        self.assertIn('- 验证状态：🟣 待用户验证', card.read_text())
 
     def test_git_check_is_explicit_and_uses_staged_object(self):
         req = self.create(); self.fill(req)

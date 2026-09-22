@@ -13,7 +13,17 @@ from pathlib import Path
 
 MARKER = '<!-- teamflow:requirement:vnext -->'
 ID = re.compile(r'REQ-(\d{4})')
-STATES = ('待处理', '待确认', '进行中', '待用户验证', '完成', '阻塞', '暂停', '取消')
+STATE_ICONS = {
+    '待处理': '⚪',
+    '待确认': '🟡',
+    '进行中': '🔵',
+    '待用户验证': '🟣',
+    '完成': '✅',
+    '阻塞': '🔴',
+    '暂停': '🟠',
+    '取消': '⚫',
+}
+STATES = tuple(STATE_ICONS)
 OPERATIONS = (
     'archive', 'upload-testflight', 'distribute-testflight', 'submit-beta-review',
     'submit-app-review', 'publish', 'phased-release', 'pause-phased-release', 'remove-sale',
@@ -59,6 +69,22 @@ def field(text, name):
     return values[0].strip()
 
 
+def state_display(state):
+    return STATE_ICONS[state] + ' ' + state
+
+
+def parse_state(value):
+    for state in STATES:
+        if value == state_display(state):
+            return state
+    raise ValueError('需求状态无效：' + value)
+
+
+def progress_display(done, total):
+    icon = '✅' if done == total else ('🔵' if done else '⚪')
+    return f'{icon} {done}/{total}'
+
+
 def parse_card(path):
     text = path.read_text()
     if MARKER not in text:
@@ -66,23 +92,27 @@ def parse_card(path):
     requirement = path.stem
     if not ID.fullmatch(requirement):
         raise ValueError('需求文件名格式无效：' + path.name)
-    state = field(text, '状态')
-    if state not in STATES:
-        raise ValueError('需求状态无效：' + state)
+    state = parse_state(field(text, '状态'))
     scope = field(text, '范围')
     excluded = field(text, '不包含')
     if scope in ('待填写', '—') or excluded in ('待填写', '—'):
         raise ValueError('范围和不包含必须填写实际内容')
     ac = []
     for line in text.splitlines():
-        match = re.match(r'^- \[([ xX])\] (AC-\d+)：(.+)$', line)
+        match = re.match(r'^- \[([ xX])\] (⚪|✅) (AC-\d+)：(.+)$', line)
         if match:
-            ac.append({'id': match.group(2), 'done': match.group(1).lower() == 'x',
-                       'condition': match.group(3).strip()})
+            done = match.group(1).lower() == 'x'
+            if (match.group(2) == '✅') != done:
+                raise ValueError('AC 复选框与进度图标不一致：' + match.group(3))
+            ac.append({'id': match.group(3), 'done': done,
+                       'condition': match.group(4).strip()})
     if not ac or len({item['id'] for item in ac}) != len(ac):
         raise ValueError('需求卡必须包含不重复的 AC 项')
-    return {'requirement': requirement, 'state': state, 'scope': scope,
-            'excluded': excluded, 'ac': ac, 'text': text}
+    done = sum(item['done'] for item in ac)
+    return {'requirement': requirement, 'state': state, 'state_display': state_display(state),
+            'progress': {'done': done, 'total': len(ac),
+                         'display': progress_display(done, len(ac))},
+            'scope': scope, 'excluded': excluded, 'ac': ac, 'text': text}
 
 
 def cards(root):
@@ -100,7 +130,9 @@ def cards(root):
             continue
         title = next((line[2:].removeprefix(path.stem + '：') for line in card['text'].splitlines()
                       if line.startswith('# ')), path.stem)
-        rows.append({'requirement': path.stem, 'title': title, 'state': card['state']})
+        rows.append({'requirement': path.stem, 'title': title,
+                     'state': card['state_display'], 'state_key': card['state'],
+                     'progress': card['progress']})
     return sorted(rows, key=lambda item: int(ID.fullmatch(item['requirement']).group(1)))
 
 
@@ -118,7 +150,8 @@ def create(root, title, queued=False, bug=False):
         template = Path(__file__).resolve().parents[1] / 'references/templates' / template_name
         content = template.read_text().replace('REQ-0000', requirement).replace('〈需求标题〉', title.strip())
         if queued:
-            content = content.replace('- 状态：进行中', '- 状态：待处理', 1)
+            content = content.replace('- 状态：' + state_display('进行中'),
+                                      '- 状态：' + state_display('待处理'), 1)
         try:
             with target.open('x') as stream:
                 stream.write(content)
@@ -144,16 +177,17 @@ def set_state(root, requirement, state, reason=None):
         raise ValueError(state + ' 必须填写原因或恢复条件')
     path = requirement_path(root, requirement)
     card = parse_card(path)
-    text = replace_field(card['text'], '状态', state)
+    text = replace_field(card['text'], '状态', state_display(state))
     if reason and reason.strip():
         heading = '## 决策与异常'
-        entry = f'- {datetime.now(timezone.utc).isoformat()}：{state} — {reason.strip()}'
+        entry = f'- {datetime.now(timezone.utc).isoformat()}：{state_display(state)} — {reason.strip()}'
         if heading not in text:
             text = text.rstrip() + '\n\n' + heading + '\n\n' + entry + '\n'
         else:
             text = text.rstrip() + '\n' + entry + '\n'
     path.write_text(text)
-    print(json.dumps({'requirement': requirement, 'state': state}, ensure_ascii=False))
+    print(json.dumps({'requirement': requirement, 'state': state_display(state),
+                      'state_key': state}, ensure_ascii=False))
 
 
 def checks_module():
@@ -180,12 +214,13 @@ def complete(root, requirement, result=None, evidence=None, wait_user=False):
         proof = evidence.strip()
         if not proof:
             raise ValueError('验证证据不能为空')
-    text = replace_field(card['text'], '状态', '待用户验证' if wait_user else '完成')
-    text = replace_field(text, '验证状态', '待用户验证' if wait_user else '通过')
+    target_state = '待用户验证' if wait_user else '完成'
+    text = replace_field(card['text'], '状态', state_display(target_state))
+    text = replace_field(text, '验证状态', '🟣 待用户验证' if wait_user else '✅ 通过')
     text = replace_field(text, '验证证据', proof)
     path.write_text(text)
-    print(json.dumps({'requirement': requirement,
-                      'state': '待用户验证' if wait_user else '完成', 'evidence': proof}, ensure_ascii=False))
+    print(json.dumps({'requirement': requirement, 'state': state_display(target_state),
+                      'state_key': target_state, 'evidence': proof}, ensure_ascii=False))
 
 
 def git_root(root):
@@ -266,8 +301,8 @@ def list_output(root, as_json=False):
     if as_json:
         print(json.dumps(rows, ensure_ascii=False, indent=2))
         return
-    lines = ['| 需求 | 标题 | 状态 |', '| --- | --- | --- |']
-    lines.extend(f"| [{row['requirement']}](requirements/{row['requirement']}.md) | {row['title']} | {row['state']} |"
+    lines = ['| 需求 | 标题 | 状态 | 进度 |', '| --- | --- | --- | --- |']
+    lines.extend(f"| [{row['requirement']}](requirements/{row['requirement']}.md) | {row['title']} | {row['state']} | {row['progress']['display']} |"
                  for row in rows)
     print('\n'.join(lines))
 
@@ -335,7 +370,10 @@ def main():
                 list_output(root, args.json)
             elif args.command == 'status':
                 card = parse_card(requirement_path(root, args.requirement))
-                print(json.dumps({k: v for k, v in card.items() if k != 'text'}, ensure_ascii=False, indent=2))
+                payload = {k: v for k, v in card.items() if k not in ('text', 'state_display')}
+                payload['state_key'] = payload['state']
+                payload['state'] = card['state_display']
+                print(json.dumps(payload, ensure_ascii=False, indent=2))
             elif args.command == 'state':
                 set_state(root, args.requirement, args.state, args.reason)
             else:

@@ -41,7 +41,10 @@ class ConsumerReleaseTests(unittest.TestCase):
     def test_packaged_requirement_and_explicit_release_boundaries(self):
         created = json.loads(self.cli('req', 'create', '--title', '新需求').stdout)
         self.assertEqual('REQ-0001', created['requirement'])
-        self.assertIn('REQ-0001', self.cli('req', 'list').stdout)
+        listing = self.cli('req', 'list').stdout
+        self.assertIn('REQ-0001', listing)
+        self.assertIn('🔵 进行中', listing)
+        self.assertIn('⚪ 0/1', listing)
         prepared = json.loads(self.cli('release', 'prepare', 'submit-app-review',
                                        '--version', '1.0.0', '--build', '1').stdout)
         self.assertFalse(prepared['external_write'])
