@@ -7,8 +7,8 @@ struct DemoProduct: Equatable {
     let category: Category
     let symbol: String
     let priceCents: Int
-    var nameKey: String { "product.\(id).name" }
-    var descriptionKey: String { "product.\(id).description" }
+    var nameKey: String { "store.product.\(id).name" }
+    var descriptionKey: String { "store.product.\(id).description" }
 
     static let catalog = [
         DemoProduct(id: "headphones", category: .audio, symbol: "headphones", priceCents: 29900),

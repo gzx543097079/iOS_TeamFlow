@@ -8,7 +8,7 @@
 - 大项目增量读取入口：`.agents/project-modules.json` 是可执行模块索引，当前以 `1f5a6d3abd3ad2424e43b0b0d18e367d44a0573e` 为基线登记 Application、Store、Product、Bag、Settings 五个模块。Shared、Infrastructure、Resources、project.yml、Podfile 与 Podfile.lock 作为跨模块路径，发生变化时工具要求扩大读取范围。`TeamFlowDemo.xcodeproj/project.pbxproj` 因当前存在用户未提交修改，尚未纳入索引；该文件变化仍需人工关注，待工作区干净后再补录基线。
 - 默认语言、主题、商城增量按当前需求实施；当前 AC 与阶段结果只在各需求卡维护。
 
-- Demo 入口为本地商城：Sources/Shared/Models/DemoCatalog.swift 提供示例商品与内存购物袋，Sources/Infrastructure/DemoPreferences.swift 管理语言与外观，Resources 提供英文/简体中文。无网络、库存、订单或支付服务。
+- Demo 入口为本地商城：Sources/Shared/Models/DemoCatalog.swift 提供示例商品与内存购物袋，Sources/Infrastructure/DemoPreferences.swift 管理语言与外观，Resources 提供英文/简体中文；用户可见及无障碍文本使用按语义层级伸缩的点分本地化键，两种语言的键集合与格式占位符由单元测试核对。无网络、库存、订单或支付服务。
 
 - UIKit 启动：AppDelegate 处理进程启动；SceneDelegate 持有场景窗口与外观绑定。project.yml 生成显式 Info.plist，使用单窗口 Scene 配置。
 

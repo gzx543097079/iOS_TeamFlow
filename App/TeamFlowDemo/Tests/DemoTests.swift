@@ -81,7 +81,21 @@ final class DemoTests: XCTestCase {
         XCTAssertEqual(reopened.language, .chinese)
         reopened.language = .english
         XCTAssertEqual(reopened.text("settings.title"), "Settings")
-        XCTAssertEqual(reopened.text("settings.about"), "About Us")
+        XCTAssertEqual(reopened.text("settings.about.title"), "About Us")
+    }
+
+    func testLocalizationResourcesUseConsistentSemanticKeysAndPlaceholders() throws {
+        let english = try localization(language: "en")
+        let chinese = try localization(language: "zh-Hans")
+        XCTAssertEqual(Set(english.keys), Set(chinese.keys))
+        let keyPattern = try NSRegularExpression(pattern: "^[a-z][A-Za-z0-9]*(\\.[a-z][A-Za-z0-9]*)+$")
+        for key in english.keys {
+            let range = NSRange(key.startIndex..., in: key)
+            XCTAssertNotNil(keyPattern.firstMatch(in: key, range: range), key)
+            XCTAssertFalse(english[key, default: ""].isEmpty, key)
+            XCTAssertFalse(chinese[key, default: ""].isEmpty, key)
+            XCTAssertEqual(placeholders(in: english[key, default: ""]), placeholders(in: chinese[key, default: ""]), key)
+        }
     }
 
     @MainActor func testSettingsScreensReleaseWithNavigation() {
@@ -163,5 +177,20 @@ final class DemoTests: XCTestCase {
         XCTAssertNil(reference)
         XCTAssertNil(detail)
         XCTAssertNil(cart)
+    }
+}
+
+private func localization(language: String) throws -> [String: String] {
+    let directory = try XCTUnwrap(Bundle.main.url(forResource: language, withExtension: "lproj"))
+    let data = try Data(contentsOf: directory.appendingPathComponent("Localizable.strings"))
+    return try XCTUnwrap(PropertyListSerialization.propertyList(from: data, format: nil) as? [String: String])
+}
+
+private func placeholders(in value: String) -> [String] {
+    let expression = try! NSRegularExpression(pattern: "%(?:[0-9]+\\$)?[d@]")
+    let range = NSRange(value.startIndex..., in: value)
+    return expression.matches(in: value, range: range).compactMap {
+        guard let match = Range($0.range, in: value) else { return nil }
+        return String(value[match])
     }
 }

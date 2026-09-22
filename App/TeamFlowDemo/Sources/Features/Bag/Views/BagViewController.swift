@@ -36,7 +36,7 @@ final class BagViewController: UITableViewController {
     }
     override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let product = viewModel.items[indexPath.row]
-        let remove = UIContextualAction(style: .destructive, title: viewModel.text("bag.removeOne")) { [weak self] _, _, completion in
+        let remove = UIContextualAction(style: .destructive, title: viewModel.text("bag.swipeAction.removeOne")) { [weak self] _, _, completion in
             self?.viewModel.removeOne(id: product.id)
             self?.tableView.reloadData()
             completion(true)

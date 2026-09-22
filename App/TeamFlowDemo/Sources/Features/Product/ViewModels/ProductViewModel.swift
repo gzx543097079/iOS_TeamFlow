@@ -13,6 +13,6 @@ final class ProductViewModel: DemoViewModel {
     var item: ProductItem { ProductItem(product: product, preferences: preferences) }
     func addToBag() {
         bag.add(product)
-        feedback = text("bag.added")
+        feedback = text("store.productDetail.addedMessage")
     }
 }

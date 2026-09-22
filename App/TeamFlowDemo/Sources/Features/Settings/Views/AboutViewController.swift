@@ -7,7 +7,7 @@ final class AboutViewController: UIViewController {
     required init?(coder: NSCoder) { nil }
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = viewModel.text("settings.about")
+        title = viewModel.text("settings.about.title")
         view.backgroundColor = .systemGroupedBackground
         let icon = UIImageView(image: UIImage(systemName: "bag.circle.fill"))
         icon.contentMode = .scaleAspectFit
@@ -41,4 +41,3 @@ final class AboutViewController: UIViewController {
         }
     }
 }
-

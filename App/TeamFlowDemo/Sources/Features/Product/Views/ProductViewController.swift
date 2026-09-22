@@ -29,7 +29,7 @@ final class ProductViewController: UIViewController {
         content.addArrangedSubview(price)
         content.addArrangedSubview(StoreStyle.label(viewModel.item.description, style: .body, color: .secondaryLabel))
         let add = UIButton(type: .system)
-        add.setTitle(viewModel.text("bag.add"), for: .normal)
+        add.setTitle(viewModel.text("store.productDetail.addToBagButton"), for: .normal)
         add.backgroundColor = StoreStyle.accent
         add.setTitleColor(StoreStyle.background, for: .normal)
         add.titleLabel?.font = .preferredFont(forTextStyle: .headline)
@@ -44,7 +44,7 @@ final class ProductViewController: UIViewController {
         feedback.accessibilityIdentifier = "bagFeedback"
         feedback.isHidden = true
         content.addArrangedSubview(feedback)
-        content.addArrangedSubview(StoreStyle.label(viewModel.text("store.notice"), style: .footnote, color: .secondaryLabel))
+        content.addArrangedSubview(StoreStyle.label(viewModel.text("store.demoNotice"), style: .footnote, color: .secondaryLabel))
     }
     @objc private func addToBag() {
         viewModel.addToBag()
@@ -53,4 +53,3 @@ final class ProductViewController: UIViewController {
         UIAccessibility.post(notification: .announcement, argument: feedback.text)
     }
 }
-

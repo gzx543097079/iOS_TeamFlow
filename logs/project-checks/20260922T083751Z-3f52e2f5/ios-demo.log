@@ -1,0 +1,467 @@
+Xcode 27.0
+Build version 27A266a
+测试模拟器：iPhone 18 Pro 67978920-2A65-4EA9-9827-833CBF950EFC
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test -workspace /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/App/TeamFlowDemo/TeamFlowDemo.xcworkspace -scheme TeamFlowDemo -configuration Debug -destination "platform=iOS Simulator,id=67978920-2A65-4EA9-9827-833CBF950EFC" -derivedDataPath /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO IPHONEOS_DEPLOYMENT_TARGET=15.0
+
+Build settings from command line:
+    CODE_SIGNING_ALLOWED = NO
+    IPHONEOS_DEPLOYMENT_TARGET = 15.0
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (6 targets)
+    Target 'TeamFlowDemoUITests' in project 'TeamFlowDemo'
+        ➜ Explicit dependency on target 'TeamFlowDemo' in project 'TeamFlowDemo'
+    Target 'TeamFlowDemoTests' in project 'TeamFlowDemo'
+        ➜ Explicit dependency on target 'TeamFlowDemo' in project 'TeamFlowDemo'
+        ➜ Implicit dependency on target 'Pods-TeamFlowDemoTests' in project 'Pods' via file 'libPods-TeamFlowDemoTests.a' in build phase 'Link Binary'
+    Target 'Pods-TeamFlowDemoTests' in project 'Pods'
+        ➜ Explicit dependency on target 'Pods-TeamFlowDemo' in project 'Pods'
+    Target 'TeamFlowDemo' in project 'TeamFlowDemo'
+        ➜ Implicit dependency on target 'Pods-TeamFlowDemo' in project 'Pods' via file 'libPods-TeamFlowDemo.a' in build phase 'Link Binary'
+        ➜ Implicit dependency on target 'Masonry' in project 'Pods' via options '-lMasonry' in build setting 'OTHER_LDFLAGS'
+    Target 'Pods-TeamFlowDemo' in project 'Pods'
+        ➜ Explicit dependency on target 'Masonry' in project 'Pods'
+    Target 'Masonry' in project 'Pods' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -x objective-c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/libtool -V
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: f4f12feb7b67cec2301a47ed7a858668
+Build description path: /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Intermediates.noindex/XCBuildData/f4f12feb7b67cec2301a47ed7a858668.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+    cd /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/App/TeamFlowDemo
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -o /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+
+PhaseScriptExecution [CP]\ Check\ Pods\ Manifest.lock /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Intermediates.noindex/TeamFlowDemo.build/Debug-iphonesimulator/TeamFlowDemo.build/Script-69D1BBAB4B38A47A984F35AB.sh (in target 'TeamFlowDemo' from project 'TeamFlowDemo')
+    cd /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/App/TeamFlowDemo
+    /bin/sh -c /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Intermediates.noindex/TeamFlowDemo.build/Debug-iphonesimulator/TeamFlowDemo.build/Script-69D1BBAB4B38A47A984F35AB.sh
+
+ProcessInfoPlistFile /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemo.app/Info.plist /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/App/TeamFlowDemo/Info.plist (in target 'TeamFlowDemo' from project 'TeamFlowDemo')
+    cd /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/App/TeamFlowDemo
+    builtin-infoPlistUtility /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/App/TeamFlowDemo/Info.plist -producttype com.apple.product-type.application -genpkginfo /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemo.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -o /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemo.app/Info.plist
+
+CopySwiftLibs /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemo.app (in target 'TeamFlowDemo' from project 'TeamFlowDemo')
+    cd /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/App/TeamFlowDemo
+    builtin-swiftStdLibTool --copy --verbose --scan-executable /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemo.app/TeamFlowDemo.debug.dylib --scan-folder /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemo.app/Frameworks --scan-folder /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemo.app/PlugIns --scan-folder /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemo.app/SystemExtensions --scan-folder /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemo.app/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemo.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Intermediates.noindex/TeamFlowDemo.build/Debug-iphonesimulator/TeamFlowDemo.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+Ignoring --strip-bitcode because --sign was not passed
+
+ProcessInfoPlistFile /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemo.app/PlugIns/TeamFlowDemoTests.xctest/Info.plist /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Intermediates.noindex/TeamFlowDemo.build/Debug-iphonesimulator/TeamFlowDemoTests.build/empty-TeamFlowDemoTests.plist (in target 'TeamFlowDemoTests' from project 'TeamFlowDemo')
+    cd /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/App/TeamFlowDemo
+    builtin-infoPlistUtility /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Intermediates.noindex/TeamFlowDemo.build/Debug-iphonesimulator/TeamFlowDemoTests.build/empty-TeamFlowDemoTests.plist -producttype com.apple.product-type.bundle.unit-test -expandbuildsettings -format binary -platform iphonesimulator -o /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemo.app/PlugIns/TeamFlowDemoTests.xctest/Info.plist
+
+CopySwiftLibs /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemo.app/PlugIns/TeamFlowDemoTests.xctest (in target 'TeamFlowDemoTests' from project 'TeamFlowDemo')
+    cd /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/App/TeamFlowDemo
+    builtin-swiftStdLibTool --copy --verbose --scan-executable /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemo.app/PlugIns/TeamFlowDemoTests.xctest/TeamFlowDemoTests --scan-folder /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemo.app/PlugIns/TeamFlowDemoTests.xctest/Frameworks --scan-folder /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemo.app/PlugIns/TeamFlowDemoTests.xctest/PlugIns --scan-folder /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemo.app/PlugIns/TeamFlowDemoTests.xctest/SystemExtensions --scan-folder /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemo.app/PlugIns/TeamFlowDemoTests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemo.app/PlugIns/TeamFlowDemoTests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Intermediates.noindex/TeamFlowDemo.build/Debug-iphonesimulator/TeamFlowDemoTests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+Ignoring --strip-bitcode because --sign was not passed
+
+ProcessInfoPlistFile /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemoUITests-Runner.app/PlugIns/TeamFlowDemoUITests.xctest/Info.plist /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Intermediates.noindex/TeamFlowDemo.build/Debug-iphonesimulator/TeamFlowDemoUITests.build/empty-TeamFlowDemoUITests.plist (in target 'TeamFlowDemoUITests' from project 'TeamFlowDemo')
+    cd /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/App/TeamFlowDemo
+    builtin-infoPlistUtility /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Intermediates.noindex/TeamFlowDemo.build/Debug-iphonesimulator/TeamFlowDemoUITests.build/empty-TeamFlowDemoUITests.plist -producttype com.apple.product-type.bundle.ui-testing -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Intermediates.noindex/TeamFlowDemo.build/Debug-iphonesimulator/TeamFlowDemoUITests.build/ProductTypeInfoPlistAdditions.plist -o /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemoUITests-Runner.app/PlugIns/TeamFlowDemoUITests.xctest/Info.plist
+
+CopySwiftLibs /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemoUITests-Runner.app/PlugIns/TeamFlowDemoUITests.xctest (in target 'TeamFlowDemoUITests' from project 'TeamFlowDemo')
+    cd /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/App/TeamFlowDemo
+    builtin-swiftStdLibTool --copy --verbose --scan-executable /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemoUITests-Runner.app/PlugIns/TeamFlowDemoUITests.xctest/TeamFlowDemoUITests --scan-folder /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemoUITests-Runner.app/PlugIns/TeamFlowDemoUITests.xctest/Frameworks --scan-folder /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemoUITests-Runner.app/PlugIns/TeamFlowDemoUITests.xctest/PlugIns --scan-folder /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemoUITests-Runner.app/PlugIns/TeamFlowDemoUITests.xctest/SystemExtensions --scan-folder /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemoUITests-Runner.app/PlugIns/TeamFlowDemoUITests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Products/Debug-iphonesimulator/TeamFlowDemoUITests-Runner.app/PlugIns/TeamFlowDemoUITests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Intermediates.noindex/TeamFlowDemo.build/Debug-iphonesimulator/TeamFlowDemoUITests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+Ignoring --strip-bitcode because --sign was not passed
+
+PruneExplicitPrecompiledModules /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/SDKExplicitPrecompiledModules
+
+2026-09-22 16:37:59.531865+0800 TeamFlowDemo[8686:6984305] [TFLog][INFO] [TeamFlowDemo/AppDelegate.swift:10 application(_:didFinishLaunchingWithOptions:)] Demo 已启动
+2026-09-22 16:38:00.485757+0800 TeamFlowDemo[8686:6984305] [TFLog][DEBUG] [TeamFlowDemo/SceneDelegate.swift:24 scene(_:willConnectTo:options:)] Demo 窗口场景已连接
+2026-09-22 16:38:01.020876+0800 TeamFlowDemo[8686:6984305] [XPCErrors] non-launching port is incompatible with service identifier "com.apple.PointerUI.pointeruid.default-service"
+Test Suite 'All tests' started at 2026-09-22 16:38:01.758.
+Test Suite 'TeamFlowDemoTests.xctest' started at 2026-09-22 16:38:01.763.
+Test Suite 'DemoTests' started at 2026-09-22 16:38:01.763.
+Test Case '-[TeamFlowDemoTests.DemoTests testAppearanceAppliesPersistsAndReturnsToSystem]' started.
+Test Case '-[TeamFlowDemoTests.DemoTests testAppearanceAppliesPersistsAndReturnsToSystem]' passed (0.014 seconds).
+Test Case '-[TeamFlowDemoTests.DemoTests testCatalogFiltersAndBagTotalsUseActualProducts]' started.
+2026-09-22 16:38:01.778755+0800 TeamFlowDemo[8686:6984305] [TFLog][DEBUG] [TeamFlowDemo/DemoCatalog.swift:35 add(_:)] Demo 购物袋已添加商品
+2026-09-22 16:38:01.778835+0800 TeamFlowDemo[8686:6984305] [TFLog][DEBUG] [TeamFlowDemo/DemoCatalog.swift:35 add(_:)] Demo 购物袋已添加商品
+2026-09-22 16:38:01.778860+0800 TeamFlowDemo[8686:6984305] [TFLog][DEBUG] [TeamFlowDemo/DemoCatalog.swift:35 add(_:)] Demo 购物袋已添加商品
+Test Case '-[TeamFlowDemoTests.DemoTests testCatalogFiltersAndBagTotalsUseActualProducts]' passed (0.001 seconds).
+Test Case '-[TeamFlowDemoTests.DemoTests testLanguagePersistsAndResolvesBothTranslations]' started.
+Test Case '-[TeamFlowDemoTests.DemoTests testLanguagePersistsAndResolvesBothTranslations]' passed (0.025 seconds).
+Test Case '-[TeamFlowDemoTests.DemoTests testLocalizationResourcesUseConsistentSemanticKeysAndPlaceholders]' started.
+Test Case '-[TeamFlowDemoTests.DemoTests testLocalizationResourcesUseConsistentSemanticKeysAndPlaceholders]' passed (0.006 seconds).
+Test Case '-[TeamFlowDemoTests.DemoTests testLogMessageEvaluationMatchesBuildConfiguration]' started.
+2026-09-22 16:38:01.811124+0800 TeamFlowDemo[8686:6984305] [TFLog][DEBUG] [TeamFlowDemoTests/DemoTests.swift:27 testLogMessageEvaluationMatchesBuildConfiguration()] 本地测试消息
+2026-09-22 16:38:01.811189+0800 TeamFlowDemo[8686:6984305] [TFLog][INFO] [TeamFlowDemoTests/DemoTests.swift:28 testLogMessageEvaluationMatchesBuildConfiguration()] 本地测试消息
+2026-09-22 16:38:01.811231+0800 TeamFlowDemo[8686:6984305] [TFLog][WARNING] [TeamFlowDemoTests/DemoTests.swift:29 testLogMessageEvaluationMatchesBuildConfiguration()] 本地测试消息
+2026-09-22 16:38:01.811257+0800 TeamFlowDemo[8686:6984305] [TFLog][ERROR] [TeamFlowDemoTests/DemoTests.swift:30 testLogMessageEvaluationMatchesBuildConfiguration()] 本地测试消息
+2026-09-22 16:38:01.811294+0800 TeamFlowDemo[8686:6984305] [TFLog][FAULT] [TeamFlowDemoTests/DemoTests.swift:31 testLogMessageEvaluationMatchesBuildConfiguration()] 本地测试消息
+Test Case '-[TeamFlowDemoTests.DemoTests testLogMessageEvaluationMatchesBuildConfiguration]' passed (0.001 seconds).
+Test Case '-[TeamFlowDemoTests.DemoTests testNavigationRecordsOneEventAndUsesSelectedProduct]' started.
+2026-09-22 16:38:01.813584+0800 TeamFlowDemo[8686:6984305] [TFLog][DEBUG] [TeamFlowDemo/DemoEvents.swift:8 record(_:)] Demo 事件：demo_product_open
+Test Case '-[TeamFlowDemoTests.DemoTests testNavigationRecordsOneEventAndUsesSelectedProduct]' passed (0.004 seconds).
+Test Case '-[TeamFlowDemoTests.DemoTests testSceneOwnsLiveWindowAndRootNavigation]' started.
+Test Case '-[TeamFlowDemoTests.DemoTests testSceneOwnsLiveWindowAndRootNavigation]' passed (0.000 seconds).
+Test Case '-[TeamFlowDemoTests.DemoTests testScrollableContentFitsResizedViewport]' started.
+Test Case '-[TeamFlowDemoTests.DemoTests testScrollableContentFitsResizedViewport]' passed (0.040 seconds).
+Test Case '-[TeamFlowDemoTests.DemoTests testSettingsScreensReleaseWithNavigation]' started.
+Test Case '-[TeamFlowDemoTests.DemoTests testSettingsScreensReleaseWithNavigation]' passed (0.035 seconds).
+Test Case '-[TeamFlowDemoTests.DemoTests testStoreScreensReleaseWithNavigation]' started.
+Test Case '-[TeamFlowDemoTests.DemoTests testStoreScreensReleaseWithNavigation]' passed (0.009 seconds).
+Test Suite 'DemoTests' passed at 2026-09-22 16:38:01.901.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.134 (0.138) seconds
+Test Suite 'ViewModelTests' started at 2026-09-22 16:38:01.903.
+Test Case '-[TeamFlowDemoTests.ViewModelTests testAboutUsesInjectedVersion]' started.
+Test Case '-[TeamFlowDemoTests.ViewModelTests testAboutUsesInjectedVersion]' passed (0.000 seconds).
+Test Case '-[TeamFlowDemoTests.ViewModelTests testCoordinatorAndPageCallbacksReleaseTogether]' started.
+Test Case '-[TeamFlowDemoTests.ViewModelTests testCoordinatorAndPageCallbacksReleaseTogether]' passed (0.002 seconds).
+Test Case '-[TeamFlowDemoTests.ViewModelTests testDetailAndBagShareStateAndRemoveByStableID]' started.
+2026-09-22 16:38:01.906022+0800 TeamFlowDemo[8686:6984305] [TFLog][DEBUG] [TeamFlowDemo/DemoCatalog.swift:35 add(_:)] Demo 购物袋已添加商品
+2026-09-22 16:38:01.906089+0800 TeamFlowDemo[8686:6984305] [TFLog][DEBUG] [TeamFlowDemo/DemoCatalog.swift:35 add(_:)] Demo 购物袋已添加商品
+Test Case '-[TeamFlowDemoTests.ViewModelTests testDetailAndBagShareStateAndRemoveByStableID]' passed (0.007 seconds).
+Test Case '-[TeamFlowDemoTests.ViewModelTests testLanguageAndAppearanceRefreshSharedSettings]' started.
+2026-09-22 16:38:01.913868+0800 TeamFlowDemo[8686:6984305] [TFLog][INFO] [TeamFlowDemo/LanguageViewModel.swift:14 select(at:)] Demo 语言设置已更新
+2026-09-22 16:38:01.913975+0800 TeamFlowDemo[8686:6984305] [TFLog][INFO] [TeamFlowDemo/AppearanceViewModel.swift:13 select(at:)] Demo 外观设置已更新
+2026-09-22 16:38:01.914025+0800 TeamFlowDemo[8686:6984305] [TFLog][INFO] [TeamFlowDemo/AppearanceViewModel.swift:13 select(at:)] Demo 外观设置已更新
+Test Case '-[TeamFlowDemoTests.ViewModelTests testLanguageAndAppearanceRefreshSharedSettings]' passed (0.001 seconds).
+Test Case '-[TeamFlowDemoTests.ViewModelTests testStoreFilterPreservesSelectionAndRejectsInvalidIndex]' started.
+Test Case '-[TeamFlowDemoTests.ViewModelTests testStoreFilterPreservesSelectionAndRejectsInvalidIndex]' passed (0.001 seconds).
+Test Suite 'ViewModelTests' passed at 2026-09-22 16:38:01.915.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.011 (0.012) seconds
+Test Suite 'TeamFlowDemoTests.xctest' passed at 2026-09-22 16:38:01.915.
+	 Executed 15 tests, with 0 failures (0 unexpected) in 0.145 (0.153) seconds
+Test Suite 'All tests' passed at 2026-09-22 16:38:01.916.
+	 Executed 15 tests, with 0 failures (0 unexpected) in 0.145 (0.158) seconds
+2026-09-22 16:38:03.631476+0800 TeamFlowDemoUITests-Runner[8708:6984695] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'All tests' started at 2026-09-22 16:38:07.338.
+Test Suite 'TeamFlowDemoUITests.xctest' started at 2026-09-22 16:38:07.338.
+Test Suite 'DemoUITests' started at 2026-09-22 16:38:07.339.
+Test Case '-[TeamFlowDemoUITests.DemoUITests testAppearanceSelectionPersistsAndCanFollowSystem]' started.
+    t =     0.02s Start Test at 2026-09-22 16:38:07.356
+    t =     0.08s Set Up
+    t =     0.09s Open org.example.teamflow.demo
+    t =     0.09s     Launch org.example.teamflow.demo
+2026-09-22 16:38:07.624 xcodebuild[8640:6983835] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-09-22 16:38:07.625 xcodebuild[8640:6983835] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     0.50s         Setting up automation session
+objc[8708]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.GBSlAu/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x107fec398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.GBSlAu/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x108524310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     3.45s         Wait for org.example.teamflow.demo to idle
+    t =     5.01s Tap "openSettings" Button
+    t =     5.01s     Wait for org.example.teamflow.demo to idle
+    t =     5.01s     Find the "openSettings" Button
+    t =     5.20s     Check for interrupting elements affecting "openSettings" Button
+    t =     5.25s     Synthesize event
+    t =     5.61s     Wait for org.example.teamflow.demo to idle
+    t =     6.14s Tap "settingsAppearance" Cell
+    t =     6.14s     Wait for org.example.teamflow.demo to idle
+    t =     6.15s     Find the "settingsAppearance" Cell
+    t =     6.20s     Check for interrupting elements affecting "settingsAppearance" Cell
+    t =     6.21s     Synthesize event
+    t =     6.51s     Wait for org.example.teamflow.demo to idle
+    t =     6.86s Find the "appearance-system" Cell
+    t =     6.88s Tap "appearance-dark" Cell
+    t =     6.88s     Wait for org.example.teamflow.demo to idle
+    t =     6.89s     Find the "appearance-dark" Cell
+    t =     6.90s     Check for interrupting elements affecting "appearance-dark" Cell
+    t =     6.92s     Synthesize event
+    t =     7.21s     Wait for org.example.teamflow.demo to idle
+    t =     7.22s Find the "appearance-dark" Cell
+    t =     7.23s Pressing Home button
+    t =     7.70s Open org.example.teamflow.demo
+    t =     7.70s     Activate org.example.teamflow.demo
+    t =     8.78s         Wait for org.example.teamflow.demo to idle
+    t =     8.79s Waiting 5.0s for "appearance-dark" Cell to exist
+    t =     9.83s     Checking `Expect predicate `existsNoRetry == 1` for object "appearance-dark" Cell`
+    t =     9.83s         Checking existence of `"appearance-dark" Cell`
+    t =     9.87s Find the "appearance-dark" Cell
+    t =     9.99s Added attachment named 'appearance-dark'
+    t =     9.99s Tap Button (Element at index 0)
+    t =     9.99s     Wait for org.example.teamflow.demo to idle
+    t =     9.99s     Find the Button (Element at index 0)
+    t =    10.01s     Check for interrupting elements affecting "BackButton" Button
+    t =    10.03s     Synthesize event
+    t =    10.33s     Wait for org.example.teamflow.demo to idle
+    t =    10.67s Tap Button (Element at index 0)
+    t =    10.67s     Wait for org.example.teamflow.demo to idle
+    t =    10.67s     Find the Button (Element at index 0)
+    t =    10.69s     Check for interrupting elements affecting "BackButton" Button
+    t =    10.71s     Synthesize event
+    t =    11.01s     Wait for org.example.teamflow.demo to idle
+    t =    11.46s Added attachment named 'shop-dark'
+    t =    11.46s Terminate org.example.teamflow.demo:8716
+    t =    12.53s Open org.example.teamflow.demo
+    t =    12.54s     Launch org.example.teamflow.demo
+2026-09-22 16:38:19.890 xcodebuild[8640:6983835] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-09-22 16:38:19.890 xcodebuild[8640:6983835] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =    12.76s         Setting up automation session
+    t =    17.12s         Wait for org.example.teamflow.demo to idle
+    t =    18.68s Tap "openSettings" Button
+    t =    18.68s     Wait for org.example.teamflow.demo to idle
+    t =    18.68s     Find the "openSettings" Button
+    t =    18.91s     Check for interrupting elements affecting "openSettings" Button
+    t =    18.93s     Synthesize event
+    t =    19.24s     Wait for org.example.teamflow.demo to idle
+    t =    19.59s Tap "settingsAppearance" Cell
+    t =    19.59s     Wait for org.example.teamflow.demo to idle
+    t =    19.59s     Find the "settingsAppearance" Cell
+    t =    19.63s     Check for interrupting elements affecting "settingsAppearance" Cell
+    t =    19.65s     Synthesize event
+    t =    19.94s     Wait for org.example.teamflow.demo to idle
+    t =    20.26s Find the "appearance-dark" Cell
+    t =    20.30s Tap "appearance-light" Cell
+    t =    20.30s     Wait for org.example.teamflow.demo to idle
+    t =    20.30s     Find the "appearance-light" Cell
+    t =    20.33s     Check for interrupting elements affecting "appearance-light" Cell
+    t =    20.34s     Synthesize event
+    t =    20.64s     Wait for org.example.teamflow.demo to idle
+    t =    20.64s Find the "appearance-light" Cell
+    t =    20.66s Tap "appearance-system" Cell
+    t =    20.67s     Wait for org.example.teamflow.demo to idle
+    t =    20.67s     Find the "appearance-system" Cell
+    t =    20.69s     Check for interrupting elements affecting "appearance-system" Cell
+    t =    20.71s     Synthesize event
+    t =    21.01s     Wait for org.example.teamflow.demo to idle
+    t =    21.01s Find the "appearance-system" Cell
+    t =    21.04s Tear Down
+Test Case '-[TeamFlowDemoUITests.DemoUITests testAppearanceSelectionPersistsAndCanFollowSystem]' passed (21.335 seconds).
+Test Case '-[TeamFlowDemoUITests.DemoUITests testLanguageSwitchAboutAndPersistence]' started.
+    t =     0.01s Start Test at 2026-09-22 16:38:28.698
+    t =     0.07s Set Up
+    t =     0.08s Open org.example.teamflow.demo
+    t =     0.08s     Launch org.example.teamflow.demo
+    t =     0.08s         Terminate org.example.teamflow.demo:8899
+2026-09-22 16:38:29.842 xcodebuild[8640:6983835] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-09-22 16:38:29.842 xcodebuild[8640:6983835] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.36s         Setting up automation session
+    t =     3.92s         Wait for org.example.teamflow.demo to idle
+    t =     5.28s Tap "openSettings" Button
+    t =     5.28s     Wait for org.example.teamflow.demo to idle
+    t =     5.28s     Find the "openSettings" Button
+    t =     5.35s     Check for interrupting elements affecting "openSettings" Button
+    t =     5.37s     Synthesize event
+    t =     5.68s     Wait for org.example.teamflow.demo to idle
+    t =     6.00s Tap "settingsLanguage" Cell
+    t =     6.00s     Wait for org.example.teamflow.demo to idle
+    t =     6.01s     Find the "settingsLanguage" Cell
+    t =     6.03s     Check for interrupting elements affecting "settingsLanguage" Cell
+    t =     6.05s     Synthesize event
+    t =     6.34s     Wait for org.example.teamflow.demo to idle
+    t =     6.67s Tap "language-en" Cell
+    t =     6.68s     Wait for org.example.teamflow.demo to idle
+    t =     6.71s     Find the "language-en" Cell
+    t =     6.74s     Check for interrupting elements affecting "language-en" Cell
+    t =     6.78s     Synthesize event
+    t =     7.11s     Wait for org.example.teamflow.demo to idle
+    t =     7.12s Checking existence of `"Language" NavigationBar`
+    t =     7.13s Tap Button (Element at index 0)
+    t =     7.13s     Wait for org.example.teamflow.demo to idle
+    t =     7.14s     Find the Button (Element at index 0)
+    t =     7.15s     Check for interrupting elements affecting "BackButton" Button
+    t =     7.16s     Synthesize event
+    t =     7.45s     Wait for org.example.teamflow.demo to idle
+    t =     7.76s Checking existence of `"Settings" NavigationBar`
+    t =     7.78s Tap "settingsAbout" Cell
+    t =     7.78s     Wait for org.example.teamflow.demo to idle
+    t =     7.78s     Find the "settingsAbout" Cell
+    t =     7.80s     Check for interrupting elements affecting "settingsAbout" Cell
+    t =     7.82s     Synthesize event
+    t =     8.11s     Wait for org.example.teamflow.demo to idle
+    t =     8.50s Checking existence of `"About Us" NavigationBar`
+    t =     8.53s Find the "aboutDescription" StaticText
+    t =     8.54s Terminate org.example.teamflow.demo:8991
+    t =     9.59s Open org.example.teamflow.demo
+    t =     9.59s     Launch org.example.teamflow.demo
+2026-09-22 16:38:38.283 xcodebuild[8640:6983835] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-09-22 16:38:38.283 xcodebuild[8640:6983835] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     9.80s         Setting up automation session
+    t =    12.42s         Wait for org.example.teamflow.demo to idle
+    t =    13.84s Tap "openSettings" Button
+    t =    13.84s     Wait for org.example.teamflow.demo to idle
+    t =    13.86s     Find the "openSettings" Button
+    t =    13.97s     Check for interrupting elements affecting "openSettings" Button
+    t =    13.98s     Synthesize event
+    t =    14.30s     Wait for org.example.teamflow.demo to idle
+    t =    14.62s Checking existence of `"Settings" NavigationBar`
+    t =    14.66s Tap "settingsLanguage" Cell
+    t =    14.66s     Wait for org.example.teamflow.demo to idle
+    t =    14.67s     Find the "settingsLanguage" Cell
+    t =    14.68s     Check for interrupting elements affecting "settingsLanguage" Cell
+    t =    14.70s     Synthesize event
+    t =    15.00s     Wait for org.example.teamflow.demo to idle
+    t =    15.29s Find the "language-en" Cell
+    t =    15.32s Tap "language-zh-Hans" Cell
+    t =    15.32s     Wait for org.example.teamflow.demo to idle
+    t =    15.33s     Find the "language-zh-Hans" Cell
+    t =    15.34s     Check for interrupting elements affecting "language-zh-Hans" Cell
+    t =    15.36s     Synthesize event
+    t =    15.65s     Wait for org.example.teamflow.demo to idle
+    t =    15.66s Checking existence of `"语言" NavigationBar`
+    t =    15.67s Tap Button (Element at index 0)
+    t =    15.67s     Wait for org.example.teamflow.demo to idle
+    t =    15.68s     Find the Button (Element at index 0)
+    t =    15.69s     Check for interrupting elements affecting "BackButton" Button
+    t =    15.71s     Synthesize event
+    t =    16.00s     Wait for org.example.teamflow.demo to idle
+    t =    16.32s Checking existence of `"设置" NavigationBar`
+    t =    16.33s Find the Button (Element at index 0)
+    t =    16.45s Added attachment named 'settings-chinese'
+    t =    16.46s Tap "settingsAbout" Cell
+    t =    16.46s     Wait for org.example.teamflow.demo to idle
+    t =    16.46s     Find the "settingsAbout" Cell
+    t =    16.47s     Check for interrupting elements affecting "settingsAbout" Cell
+    t =    16.48s     Synthesize event
+    t =    16.77s     Wait for org.example.teamflow.demo to idle
+    t =    17.14s Find the "aboutDescription" StaticText
+    t =    17.26s Added attachment named 'about-chinese'
+    t =    17.26s Tap Button (Element at index 0)
+    t =    17.26s     Wait for org.example.teamflow.demo to idle
+    t =    17.26s     Find the Button (Element at index 0)
+    t =    17.27s     Check for interrupting elements affecting "BackButton" Button
+    t =    17.28s     Synthesize event
+    t =    17.58s     Wait for org.example.teamflow.demo to idle
+    t =    17.90s Tap Button (Element at index 0)
+    t =    17.90s     Wait for org.example.teamflow.demo to idle
+    t =    17.90s     Find the Button (Element at index 0)
+    t =    17.92s     Check for interrupting elements affecting "BackButton" Button
+    t =    17.94s     Synthesize event
+    t =    18.23s     Wait for org.example.teamflow.demo to idle
+    t =    18.54s Checking existence of `"商城" NavigationBar`
+    t =    18.64s Added attachment named 'shop-chinese'
+    t =    18.65s Tear Down
+Test Case '-[TeamFlowDemoUITests.DemoUITests testLanguageSwitchAboutAndPersistence]' passed (18.938 seconds).
+Test Case '-[TeamFlowDemoUITests.DemoUITests testShopBrowseAddAndRemove]' started.
+    t =     0.01s Start Test at 2026-09-22 16:38:47.637
+    t =     0.07s Set Up
+    t =     0.07s Open org.example.teamflow.demo
+    t =     0.07s     Launch org.example.teamflow.demo
+    t =     0.07s         Terminate org.example.teamflow.demo:9138
+2026-09-22 16:38:48.757 xcodebuild[8640:6983835] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-09-22 16:38:48.757 xcodebuild[8640:6983835] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.34s         Setting up automation session
+    t =     3.86s         Wait for org.example.teamflow.demo to idle
+    t =     5.31s Waiting 10.0s for "product-headphones" Button to exist
+    t =     6.35s     Checking `Expect predicate `existsNoRetry == 1` for object "product-headphones" Button`
+    t =     6.35s         Checking existence of `"product-headphones" Button`
+    t =     6.41s Get number of matches for: Descendants matching type TabBar
+    t =     6.50s Added attachment named 'shop-light'
+    t =     6.50s Setting device orientation to Landscape Left
+    t =     6.52s     Device orientation changed to Landscape Left
+    t =     6.57s     Interface orientation changed to Landscape Right
+    t =     6.57s     Wait for org.example.teamflow.demo to idle
+    t =     8.25s Checking `Expect predicate `BLOCKPREDICATE(0x108f3a190)` for object Target Application 'org.example.teamflow.demo'`
+    t =     8.25s     Find the Target Application 'org.example.teamflow.demo'
+    t =     8.28s     Find the Target Application 'org.example.teamflow.demo'
+    t =     8.37s Added attachment named 'shop-landscape'
+    t =     8.37s Setting device orientation to Portrait
+    t =     8.37s     Device orientation changed to Portrait
+    t =     8.41s     Interface orientation changed to Portrait
+    t =     8.41s     Wait for org.example.teamflow.demo to idle
+    t =     9.03s Tap "Audio" Button
+    t =     9.03s     Wait for org.example.teamflow.demo to idle
+    t =     9.04s     Find the "Audio" Button
+    t =     9.06s     Check for interrupting elements affecting "Audio" Button
+    t =     9.09s     Synthesize event
+    t =     9.41s     Wait for org.example.teamflow.demo to idle
+    t =    11.03s Checking existence of `"product-bag" Button`
+    t =    11.06s Tap "product-headphones" Button
+    t =    11.06s     Wait for org.example.teamflow.demo to idle
+    t =    11.06s     Find the "product-headphones" Button
+    t =    11.08s     Check for interrupting elements affecting "product-headphones" Button
+    t =    11.10s     Synthesize event
+    t =    11.39s     Wait for org.example.teamflow.demo to idle
+    t =    11.71s Find the "productPrice" StaticText
+    t =    11.76s Tap "addToBag" Button
+    t =    11.76s     Wait for org.example.teamflow.demo to idle
+    t =    11.77s     Find the "addToBag" Button
+    t =    11.79s     Check for interrupting elements affecting "addToBag" Button
+    t =    11.89s     Synthesize event
+    t =    12.19s     Wait for org.example.teamflow.demo to idle
+    t =    12.19s Checking existence of `"bagFeedback" StaticText`
+    t =    12.21s Tap "addToBag" Button
+    t =    12.21s     Wait for org.example.teamflow.demo to idle
+    t =    12.21s     Find the "addToBag" Button
+    t =    12.23s     Check for interrupting elements affecting "addToBag" Button
+    t =    12.24s     Synthesize event
+    t =    12.53s     Wait for org.example.teamflow.demo to idle
+    t =    12.64s Added attachment named 'product-detail'
+    t =    12.65s Tap Button (Element at index 0)
+    t =    12.65s     Wait for org.example.teamflow.demo to idle
+    t =    12.65s     Find the Button (Element at index 0)
+    t =    12.68s     Check for interrupting elements affecting "BackButton" Button
+    t =    12.70s     Synthesize event
+    t =    13.00s     Wait for org.example.teamflow.demo to idle
+    t =    13.29s Tap "openBag" Button
+    t =    13.29s     Wait for org.example.teamflow.demo to idle
+    t =    13.30s     Find the "openBag" Button
+    t =    13.31s     Check for interrupting elements affecting "openBag" Button
+    t =    13.33s     Synthesize event
+    t =    13.62s     Wait for org.example.teamflow.demo to idle
+    t =    13.96s Checking existence of `"bag-headphones" Cell`
+    t =    13.99s Swipe left "bag-headphones" Cell
+    t =    13.99s     Wait for org.example.teamflow.demo to idle
+    t =    13.99s     Find the "bag-headphones" Cell
+    t =    14.00s     Check for interrupting elements affecting "bag-headphones" Cell
+    t =    14.02s     Synthesize event
+    t =    14.45s     Wait for org.example.teamflow.demo to idle
+    t =    15.07s Tap "Remove One" Button
+    t =    15.07s     Wait for org.example.teamflow.demo to idle
+    t =    15.07s     Find the "Remove One" Button
+    t =    15.10s     Check for interrupting elements affecting "Remove One" Button
+    t =    15.11s     Synthesize event
+    t =    15.40s     Wait for org.example.teamflow.demo to idle
+    t =    15.41s Checking existence of `"bag-headphones" Cell`
+    t =    15.43s Checking existence of `StaticText (Elements matching predicate 'label BEGINSWITH "1 ×"')`
+    t =    15.45s Swipe left "bag-headphones" Cell
+    t =    15.45s     Wait for org.example.teamflow.demo to idle
+    t =    15.45s     Find the "bag-headphones" Cell
+    t =    15.46s     Check for interrupting elements affecting "bag-headphones" Cell
+    t =    15.47s     Synthesize event
+    t =    15.91s     Wait for org.example.teamflow.demo to idle
+    t =    16.49s Tap "Remove One" Button
+    t =    16.49s     Wait for org.example.teamflow.demo to idle
+    t =    16.49s     Find the "Remove One" Button
+    t =    16.52s     Check for interrupting elements affecting "Remove One" Button
+    t =    16.53s     Synthesize event
+    t =    16.83s     Wait for org.example.teamflow.demo to idle
+    t =    16.83s Checking existence of `"bag-headphones" Cell`
+    t =    16.85s Checking existence of `"Your bag is empty" StaticText`
+    t =    16.86s Tear Down
+Test Case '-[TeamFlowDemoUITests.DemoUITests testShopBrowseAddAndRemove]' passed (17.113 seconds).
+Test Suite 'DemoUITests' passed at 2026-09-22 16:39:04.743.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 57.385 (57.405) seconds
+Test Suite 'TeamFlowDemoUITests.xctest' passed at 2026-09-22 16:39:04.749.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 57.385 (57.411) seconds
+Test Suite 'All tests' passed at 2026-09-22 16:39:04.749.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 57.385 (57.412) seconds
+2026-09-22 16:39:05.124 xcodebuild[8640:6983835] [MT] IDETestOperationsObserverDebug: 70.537 elapsed -- Testing started completed.
+2026-09-22 16:39:05.124 xcodebuild[8640:6983835] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-09-22 16:39:05.124 xcodebuild[8640:6983835] [MT] IDETestOperationsObserverDebug: 70.537 sec, +70.537 sec -- end
+
+Test session results, code coverage, and logs:
+	/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/DerivedData/TeamFlowDemo/Logs/Test/Test-TeamFlowDemo-2026.09.22_16-37-53-+0800.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

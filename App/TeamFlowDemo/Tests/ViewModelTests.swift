@@ -94,7 +94,17 @@ private final class MemoryPreferences: PreferencesStore {
     var appearance: DemoAppearance = .system
     var locale: Locale { Locale(identifier: language == .chinese ? "zh-Hans" : "en") }
     func text(_ key: String) -> String {
-        if key == "store.count" || key == "bag.items" { return "%d" }
+        switch key {
+        case "store.selectedSection.itemCount", "bag.itemCount": return "%d"
+        case "store.navigation.bagButton.title": return "Bag · %d"
+        case "bag.item.detail": return "%d × %@"
+        case "bag.summary.total": return "Total %@"
+        case "store.price.fallback": return "CNY %@"
+        case "store.productCard.accessibilityLabel": return "%@, %@"
+        case "settings.about.version": return "Version %@ (%@)"
+        case "settings.about.appName": return "TeamFlow Demo"
+        default: break
+        }
         return "\(language.rawValue):\(key)"
     }
 }

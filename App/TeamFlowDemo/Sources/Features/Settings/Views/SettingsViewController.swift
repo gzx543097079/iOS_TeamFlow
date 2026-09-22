@@ -12,7 +12,7 @@ final class SettingsViewController: UITableViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         title = viewModel.text("settings.title")
-        navigationItem.backButtonTitle = viewModel.text("common.back")
+        navigationItem.backButtonTitle = viewModel.text("common.navigation.backButton")
         tableView.reloadData()
     }
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { viewModel.items.count }

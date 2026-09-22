@@ -17,11 +17,17 @@ final class BagViewModel: DemoViewModel {
     var items: [BagItem] {
         bag.products.map {
             let item = ProductItem(product: $0, preferences: preferences)
-            return BagItem(id: item.id, name: item.name, detail: "\(bag.quantities[item.id] ?? 0) × \(item.price)", symbol: item.symbol)
+            let detail = String(format: text("bag.item.detail"), bag.quantities[item.id] ?? 0, item.price)
+            return BagItem(id: item.id, name: item.name, detail: detail, symbol: item.symbol)
         }
     }
-    var header: String { bag.count == 0 ? text("bag.empty") : String(format: text("bag.items"), bag.count) }
-    var footer: String { "\(text("bag.total")) \(ProductItem.formatPrice(bag.totalCents, locale: preferences.locale))\n\(text("bag.help"))" }
+    var header: String { bag.count == 0 ? text("bag.empty.message") : String(format: text("bag.itemCount"), bag.count) }
+    var footer: String {
+        let price = ProductItem.formatPrice(bag.totalCents, locale: preferences.locale,
+                                            fallbackFormat: text("store.price.fallback"))
+        let total = String(format: text("bag.summary.total"), price)
+        return total + "\n" + text("bag.help.swipeToRemove")
+    }
     func removeOne(id: String) {
         guard let product = bag.products.first(where: { $0.id == id }) else { return }
         bag.removeOne(product)

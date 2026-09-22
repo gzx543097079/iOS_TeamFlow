@@ -32,7 +32,7 @@ final class ProductCard: UIControl {
         isAccessibilityElement = true
         accessibilityTraits = .button
         accessibilityIdentifier = "product-\(item.id)"
-        accessibilityLabel = "\(item.name), \(price.text ?? "")"
+        accessibilityLabel = item.accessibilityLabel
     }
     required init?(coder: NSCoder) { nil }
     override var isHighlighted: Bool { didSet { alpha = isHighlighted ? 0.65 : 1 } }

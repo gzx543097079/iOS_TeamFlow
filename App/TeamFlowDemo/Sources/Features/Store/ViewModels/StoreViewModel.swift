@@ -11,10 +11,10 @@ final class StoreViewModel: DemoViewModel {
         super.init(preferences: preferences)
     }
     var items: [ProductItem] { DemoProduct.filtered(by: category).map { ProductItem(product: $0, preferences: preferences) } }
-    var categoryTitles: [String] { DemoProduct.Category.allCases.map { text("category.\($0.rawValue)") } }
+    var categoryTitles: [String] { DemoProduct.Category.allCases.map { text("store.category.\($0.rawValue)") } }
     var selectedCategoryIndex: Int { DemoProduct.Category.allCases.firstIndex(of: category) ?? 0 }
-    var countText: String { String(format: text("store.count"), items.count) }
-    var bagTitle: String { "\(text("bag.title")) · \(bag.count)" }
+    var countText: String { String(format: text("store.selectedSection.itemCount"), items.count) }
+    var bagTitle: String { String(format: text("store.navigation.bagButton.title"), bag.count) }
     func selectCategory(at index: Int) {
         guard DemoProduct.Category.allCases.indices.contains(index) else { return }
         category = DemoProduct.Category.allCases[index]

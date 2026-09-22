@@ -4,12 +4,12 @@ import Foundation
 final class AboutViewModel: DemoViewModel {
     private let version: String
     private let build: String
-    let name = "TeamFlow Demo"
     init(preferences: PreferencesStore, version: String, build: String) {
         self.version = version
         self.build = build
         super.init(preferences: preferences)
     }
-    var description: String { text("about.description") }
-    var versionText: String { "\(text("about.version")) \(version) (\(build))" }
+    var name: String { text("settings.about.appName") }
+    var description: String { text("settings.about.description") }
+    var versionText: String { String(format: text("settings.about.version"), version, build) }
 }

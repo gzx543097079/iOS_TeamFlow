@@ -34,12 +34,12 @@ final class DemoViewController: UIViewController {
 
     private func refresh() {
         title = viewModel.text("store.title")
-        navigationItem.backButtonTitle = viewModel.text("common.back")
+        navigationItem.backButtonTitle = viewModel.text("common.navigation.backButton")
         navigationItem.largeTitleDisplayMode = .always
         navigationController?.navigationBar.tintColor = StoreStyle.accent
         let settings = UIBarButtonItem(image: UIImage(systemName: "gearshape"), style: .plain, target: self, action: #selector(openSettings))
         settings.accessibilityIdentifier = "openSettings"
-        settings.accessibilityLabel = viewModel.text("settings.title")
+        settings.accessibilityLabel = viewModel.text("store.navigation.settingsButton.accessibilityLabel")
         let cart = UIBarButtonItem(title: viewModel.bagTitle, style: .plain, target: self, action: #selector(openBag))
         cart.accessibilityIdentifier = "openBag"
         navigationItem.rightBarButtonItems = [settings, cart]
@@ -50,14 +50,14 @@ final class DemoViewController: UIViewController {
         categories.selectedSegmentIndex = viewModel.selectedCategoryIndex
         categories.addTarget(self, action: #selector(changeCategory), for: .valueChanged)
         content.addArrangedSubview(categories)
-        let section = UIStackView(arrangedSubviews: [StoreStyle.label(viewModel.text("store.selected"), style: .title2), countLabel])
+        let section = UIStackView(arrangedSubviews: [StoreStyle.label(viewModel.text("store.selectedSection.title"), style: .title2), countLabel])
         section.alignment = .center
         countLabel.font = .preferredFont(forTextStyle: .footnote)
         countLabel.textColor = .secondaryLabel
         countLabel.textAlignment = .right
         content.addArrangedSubview(section)
         content.addArrangedSubview(grid)
-        content.addArrangedSubview(StoreStyle.label(viewModel.text("store.notice"), style: .footnote, color: .secondaryLabel))
+        content.addArrangedSubview(StoreStyle.label(viewModel.text("store.demoNotice"), style: .footnote, color: .secondaryLabel))
         rebuildGrid()
     }
 
@@ -65,10 +65,10 @@ final class DemoViewController: UIViewController {
         let panel = UIView()
         panel.backgroundColor = UIColor(red: 0.07, green: 0.27, blue: 0.24, alpha: 1)
         panel.layer.cornerRadius = 24
-        let eyebrow = StoreStyle.label(viewModel.text("store.collection"), style: .caption1, color: UIColor(white: 0.85, alpha: 1))
-        let heading = StoreStyle.label(viewModel.text("store.headline"), style: .title1, color: .white)
+        let eyebrow = StoreStyle.label(viewModel.text("store.hero.eyebrow"), style: .caption1, color: UIColor(white: 0.85, alpha: 1))
+        let heading = StoreStyle.label(viewModel.text("store.hero.title"), style: .title1, color: .white)
         heading.font = .systemFont(ofSize: 30, weight: .semibold)
-        let description = StoreStyle.label(viewModel.text("store.subtitle"), style: .subheadline, color: UIColor(white: 0.9, alpha: 1))
+        let description = StoreStyle.label(viewModel.text("store.hero.subtitle"), style: .subheadline, color: UIColor(white: 0.9, alpha: 1))
         let stack = UIStackView(arrangedSubviews: [eyebrow, heading, description])
         stack.axis = .vertical
         stack.spacing = 12
@@ -112,4 +112,3 @@ final class DemoViewController: UIViewController {
     @objc private func openBag() { onOpenBag?() }
 
 }
-
