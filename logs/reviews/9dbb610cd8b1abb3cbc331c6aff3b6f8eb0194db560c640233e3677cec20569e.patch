@@ -1,0 +1,190 @@
+diff --git a/.agents/skills/ios-team-flow/references/MODULE-CONTEXT.md b/.agents/skills/ios-team-flow/references/MODULE-CONTEXT.md
+index 7e048b0beffb300e95e54c7af7a893a1cd2af8d0..48c701f7e876109f9408e520d70e51a0a916907e 100644
+--- a/.agents/skills/ios-team-flow/references/MODULE-CONTEXT.md
++++ b/.agents/skills/ios-team-flow/references/MODULE-CONTEXT.md
+@@ -33,7 +33,10 @@ python3 .agents/skills/ios-team-flow/scripts/module_context.py --project . inspe
+ 
+ ## 前移基准
+ 
+-实现提交后，先人工核对模块职责、入口、依赖、调用方和验证入口；稳定事实有变化时先用 `record` 更新字段。只有关注路径及横切路径工作区干净，才执行：
++实现提交后，先核对模块职责、入口、依赖、调用方和验证入口；确认相关变化已复核且关注路径及横切路径工作区干净后，按实际变化选择一次操作：
++
++- 稳定事实或关注路径有变化：用 `record` 更新模块字段，它同时绑定当前 HEAD，完成后不再执行 `refresh`。
++- 稳定事实和关注路径未变，仅前移已复核实现的基准：执行下面的 `refresh`，无需重新填写模块字段。
+ 
+ ```sh
+ python3 .agents/skills/ios-team-flow/scripts/module_context.py --project . refresh \
+diff --git a/logs/workflow-simplification/05-validation.log b/logs/workflow-simplification/05-validation.log
+new file mode 100644
+index 0000000000000000000000000000000000000000..9ab9d40c68a4f7cbd1f53e37a4948fd145eaf6f9
+--- /dev/null
++++ b/logs/workflow-simplification/05-validation.log
+@@ -0,0 +1,6 @@
++.......
++----------------------------------------------------------------------
++Ran 7 tests in 2.508s
++
++OK
++工作流入口、版本、文件清单和内部链接检查通过
+diff --git a/requirements/DELIVERY.md b/requirements/DELIVERY.md
+index e90632b71e6d8551696893204140a80408854495..71e0d6b7c550c37d5a6e8d42aa7bc47e128e171f 100644
+--- a/requirements/DELIVERY.md
++++ b/requirements/DELIVERY.md
+@@ -35,4 +35,5 @@
+ | 29 | 2026-09-22T01:20:42.883+00:00 | [REQ-20260922-012042883Z-1e1775f5](REQ-20260922-012042883Z-1e1775f5.md) | 提交前仅同步尚未同步的需求事实 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-22T01:22:29.176291+00:00 |
+ | 30 | 2026-09-22T01:23:27.237+00:00 | [REQ-20260922-012327237Z-dff8624c](REQ-20260922-012327237Z-dff8624c.md) | 支持修复后的增量续审与证据携带 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-22T01:25:29.190349+00:00 |
+ | 31 | 2026-09-22T01:25:49.592+00:00 | [REQ-20260922-012549592Z-a0ecd8ba](REQ-20260922-012549592Z-a0ecd8ba.md) | 按启动及功能阶段确认系统权限 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-22T01:27:06.816108+00:00 |
+-| 32 | 2026-09-22T01:27:54.556+00:00 | [REQ-20260922-012754556Z-6a48ae72](REQ-20260922-012754556Z-6a48ae72.md) | 按记录目录识别无需全量回归的归档变更 | ✅ 执行完成 | ⬜ 未关联 | 未核实 | 未核实 | 2026-09-22T01:29:07.889868+00:00 |
++| 32 | 2026-09-22T01:27:54.556+00:00 | [REQ-20260922-012754556Z-6a48ae72](REQ-20260922-012754556Z-6a48ae72.md) | 按记录目录识别无需全量回归的归档变更 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-22T01:29:08.779074+00:00 |
++| 33 | 2026-09-22T01:29:27.766+00:00 | [REQ-20260922-012927766Z-a3362584](REQ-20260922-012927766Z-a3362584.md) | 模块事实更新与基准刷新二选一 | ✅ 执行完成 | ⬜ 未关联 | 未核实 | 未核实 | 2026-09-22T01:29:59.736502+00:00 |
+diff --git a/requirements/REQ-20260922-012927766Z-a3362584.md b/requirements/REQ-20260922-012927766Z-a3362584.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..7a98471f2e2af50114d7263f043d5160d5cf636c
+--- /dev/null
++++ b/requirements/REQ-20260922-012927766Z-a3362584.md
+@@ -0,0 +1,21 @@
++# REQ-20260922-012927766Z-a3362584：模块事实更新与基准刷新二选一
++<!-- teamflow:requirement:v3 -->
++
++- 状态：✅ 执行完成
++- 来源与范围：用户要求解决流程检查发现的问题，每项独立提交；本卡仅处理模块索引更新的重复命令。
++- 拆分：否；单一流程改进，其余问题独立交付
++- 验收方式：自审
++- 验收依据：工作流工具或规则调整，可由差异核对及对应检查判断
++- 下一步：无
++- 阻塞项：无
++
++## 验收（唯一结果记录）
++
++| 编号 | 条件 | 结果 | 证据或不适用原因 |
++| --- | --- | --- | --- |
++| AC-01 | 更新模块字段用 record 后不再 refresh | 通过 | logs/workflow-simplification/05-validation.log（7 项模块 CLI 与文档检查通过）；核对 record/refresh 均绑定 HEAD，字段更新由 2 次命令减少为 1 次 |
++| AC-02 | 仅基准前移用 refresh，仍要求复核及干净关注路径 | 通过 | logs/workflow-simplification/05-validation.log（7 项模块 CLI 与文档检查通过）；核对 record/refresh 均绑定 HEAD，字段更新由 2 次命令减少为 1 次 |
++
++## 过程与决策
++
++- 2026-09-22T01:29:59+00:00：根据本次流程检查定位record 已绑定 HEAD 而规程仍要求随后 refresh；采用字段更新与单纯前移基准按变化二选一。按 AC 核对；若发生回归可按本卡实施提交回退该项，不改写历史。
+diff --git a/requirements/delivery/REQ-20260922-012754556Z-6a48ae72.json b/requirements/delivery/REQ-20260922-012754556Z-6a48ae72.json
+index 6fbc04d1ca48eb17a9886187f4790db2ceb318e5..9907e01c3f75d7eeb534e60b404cd3c9e04db68b 100644
+--- a/requirements/delivery/REQ-20260922-012754556Z-6a48ae72.json
++++ b/requirements/delivery/REQ-20260922-012754556Z-6a48ae72.json
+@@ -30,6 +30,18 @@
+         "checked_at": "2026-09-22T01:29:07.889868+00:00"
+       },
+       "removed": []
++    },
++    {
++      "at": "2026-09-22T01:29:08.779484+00:00",
++      "action": "finish",
++      "changes": {
++        "commits": [
++          "aeefb3d0ebe9d3bb35c0d4cd2d8259388af36eb7"
++        ],
++        "committed": true,
++        "checked_at": "2026-09-22T01:29:08.779074+00:00"
++      },
++      "removed": []
+     }
+   ],
+   "acceptance_baseline": {
+@@ -41,11 +53,17 @@
+       ".agents/skills/ios-team-flow/references/RELEASE.md"
+     ],
+     "results": [],
+-    "accepted_at": "2026-09-22T01:29:07.889847+00:00"
++    "accepted_at": "2026-09-22T01:29:07.889847+00:00",
++    "sealed_commits": [
++      "aeefb3d0ebe9d3bb35c0d4cd2d8259388af36eb7"
++    ],
++    "accepted_commit": "aeefb3d0ebe9d3bb35c0d4cd2d8259388af36eb7"
+   },
+   "snapshot": {
+-    "commits": [],
+-    "committed": false,
++    "commits": [
++      "aeefb3d0ebe9d3bb35c0d4cd2d8259388af36eb7"
++    ],
++    "committed": true,
+     "merged": "未核实",
+     "releases": [],
+     "release_status": "未核实",
+@@ -63,6 +81,6 @@
+       "acceptance_fingerprint": "5fa9dfa121dffd3568aa66e4278b9ef4c911233d3b99fef9c5582ccc44a3976b",
+       "implementation_fingerprint": "6faa205e0853e264d8e0494670145be69c2e0553a5522717f13f157d45fb9175"
+     },
+-    "checked_at": "2026-09-22T01:29:07.889868+00:00"
++    "checked_at": "2026-09-22T01:29:08.779074+00:00"
+   }
+ }
+diff --git a/requirements/delivery/REQ-20260922-012927766Z-a3362584.json b/requirements/delivery/REQ-20260922-012927766Z-a3362584.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..fda5845e7c1baa4cdc5cd19589d9b8db99937591
+--- /dev/null
++++ b/requirements/delivery/REQ-20260922-012927766Z-a3362584.json
+@@ -0,0 +1,66 @@
++{
++  "schema_version": 1,
++  "requirement": "REQ-20260922-012927766Z-a3362584",
++  "linked_commits": [],
++  "prs": [],
++  "events": [
++    {
++      "at": "2026-09-22T01:29:59.736698+00:00",
++      "action": "finish",
++      "changes": {
++        "commits": [],
++        "committed": false,
++        "merged": "未核实",
++        "releases": [],
++        "release_status": "未核实",
++        "prs": [],
++        "warnings": [
++          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++        ],
++        "development": "✅ 执行完成",
++        "card": {
++          "state": "✅ 执行完成",
++          "passed": 2,
++          "applicable": 2,
++          "next": "无",
++          "blocker": "无",
++          "acceptance_fingerprint": "313ec4e6db8246f210374fd7660b1189a7d641edfc0bd7fcce1fe0f09f53e278",
++          "implementation_fingerprint": "7bc903c9ce925fd0ea9677daf83bc4f5fbf15ecbdbd6864cc3bd8255ac6206b3"
++        },
++        "checked_at": "2026-09-22T01:29:59.736502+00:00"
++      },
++      "removed": []
++    }
++  ],
++  "acceptance_baseline": {
++    "implementation_fingerprint": "7bc903c9ce925fd0ea9677daf83bc4f5fbf15ecbdbd6864cc3bd8255ac6206b3",
++    "acceptance_fingerprint": "313ec4e6db8246f210374fd7660b1189a7d641edfc0bd7fcce1fe0f09f53e278",
++    "inputs": [
++      ".agents/skills/ios-team-flow/references/MODULE-CONTEXT.md"
++    ],
++    "results": [],
++    "accepted_at": "2026-09-22T01:29:59.736485+00:00"
++  },
++  "snapshot": {
++    "commits": [],
++    "committed": false,
++    "merged": "未核实",
++    "releases": [],
++    "release_status": "未核实",
++    "prs": [],
++    "warnings": [
++      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++    ],
++    "development": "✅ 执行完成",
++    "card": {
++      "state": "✅ 执行完成",
++      "passed": 2,
++      "applicable": 2,
++      "next": "无",
++      "blocker": "无",
++      "acceptance_fingerprint": "313ec4e6db8246f210374fd7660b1189a7d641edfc0bd7fcce1fe0f09f53e278",
++      "implementation_fingerprint": "7bc903c9ce925fd0ea9677daf83bc4f5fbf15ecbdbd6864cc3bd8255ac6206b3"
++    },
++    "checked_at": "2026-09-22T01:29:59.736502+00:00"
++  }
++}

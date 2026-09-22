@@ -33,7 +33,10 @@ python3 .agents/skills/ios-team-flow/scripts/module_context.py --project . inspe
 
 ## 前移基准
 
-实现提交后，先人工核对模块职责、入口、依赖、调用方和验证入口；稳定事实有变化时先用 `record` 更新字段。只有关注路径及横切路径工作区干净，才执行：
+实现提交后，先核对模块职责、入口、依赖、调用方和验证入口；确认相关变化已复核且关注路径及横切路径工作区干净后，按实际变化选择一次操作：
+
+- 稳定事实或关注路径有变化：用 `record` 更新模块字段，它同时绑定当前 HEAD，完成后不再执行 `refresh`。
+- 稳定事实和关注路径未变，仅前移已复核实现的基准：执行下面的 `refresh`，无需重新填写模块字段。
 
 ```sh
 python3 .agents/skills/ios-team-flow/scripts/module_context.py --project . refresh \
