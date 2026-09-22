@@ -69,6 +69,30 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn('- ⚪ AC-01', template)
         self.assertNotIn('- [ ]', template)
 
+    def test_active_workflow_copy_is_identity_neutral(self):
+        paths = (
+            ROOT / package_release.SKILL / 'SKILL.md',
+            ROOT / package_release.SKILL / 'references/WORKFLOW.md',
+            ROOT / package_release.SKILL / 'scripts/setup_project.py',
+            ROOT / package_release.SKILL / 'scripts/teamflow.py',
+            ROOT / 'AGENTS.md',
+            ROOT / 'README.md',
+            ROOT / '.agents/teamflow.json',
+        )
+        for path in paths:
+            text = path.read_text()
+            for wording in ('单人', '用户本人', '成员只有', 'single-user'):
+                self.assertNotIn(wording, text, path)
+
+    def test_readme_explains_workflow_structure(self):
+        readme = (ROOT / 'README.md').read_text()
+        for heading in ('## 工作流结构', '## 分层结构', '## 核心规则', '## 需求流程',
+                        '## 状态与进度', '## 显式交付边界'):
+            self.assertIn(heading, readme)
+        self.assertIn('flowchart TD', readme)
+        self.assertIn(self.VALIDATION_SEQUENCE, readme)
+        self.assertIn('| GitHub Release |', readme)
+
     def test_setup_fresh_project_and_rejects_old_schema(self):
         with tempfile.TemporaryDirectory() as directory:
             project = Path(directory)
@@ -85,6 +109,7 @@ class WorkflowTests(unittest.TestCase):
             self.assertTrue((project / 'requirements').is_dir())
             self.assertFalse((project / 'logs/reviews').exists())
             self.assertIn(self.VALIDATION_SEQUENCE, (project / 'AGENTS.md').read_text())
+            self.assertNotIn('单人', (project / 'AGENTS.md').read_text())
             help_result = subprocess.run([sys.executable, str(project / 'scripts/teamflow.py'), '--help'],
                                          capture_output=True, text=True)
             self.assertEqual(0, help_result.returncode, help_result.stderr)

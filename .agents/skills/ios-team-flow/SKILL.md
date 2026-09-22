@@ -1,9 +1,9 @@
 ---
 name: ios-team-flow
-description: 中文单人 iOS 需求分析、实施、验证与显式交付工作流。用于 Objective-C、Swift、SwiftUI 和 App 发布动作。
+description: 中文 iOS 需求分析、实施、验证与显式交付工作流。用于 Objective-C、Swift、SwiftUI 和 App 发布动作。
 ---
 
-# 单人 iOS 工作流入口
+# iOS 工作流入口
 
 PROJECT_ROOT 是当前 Git 根及其目录树；只使用本项目内的 Skill。处理空间外文件或其他项目之前，说明对象、原因和操作并取得用户本次明确允许。任务所需开发工具使用官方或既有包管理器默认位置；需要管理员权限、密码、登录或系统确认时停止并交给用户处理。
 

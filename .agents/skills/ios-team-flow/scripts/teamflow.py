@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""单人 iOS 工作流：需求、验证、提交前核对与显式 App 外部动作记录。"""
+"""iOS 工作流：需求、验证、提交前核对与显式 App 外部动作记录。"""
 import argparse
 import contextlib
 import importlib.util

@@ -3,7 +3,7 @@
 本仓库使用中文协作，是工作流工具仓库，不属于新建 iOS 产品。开始读取 `.agents/skills/ios-team-flow/references/WORKFLOW.md`；按本次范围加载专题，已读且未变化不重读。
 
 <!-- ios-team-flow:start -->
-## iOS 单人工作流
+## iOS 工作流
 
 本项目采用仓库内的 `.agents/skills/ios-team-flow/SKILL.md`。开发变更维护一张需求卡和一份验证证据；问答、检查和只读分析不建卡。
 项目空间是接入时确定的项目根及其目录树；把空间外文件、目录或其他项目作为工作对象前，必须先说明具体范围和操作并获得用户本次明确允许。

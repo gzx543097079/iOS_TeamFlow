@@ -12,7 +12,7 @@ from pathlib import Path
 START = '<!-- ios-team-flow:start -->'
 END = '<!-- ios-team-flow:end -->'
 BLOCK = '''<!-- ios-team-flow:start -->
-## iOS 单人工作流
+## iOS 工作流
 
 本项目使用 `.agents/skills/ios-team-flow/SKILL.md`。开发变更维护一张需求卡和一份验证证据；问答、检查和只读分析不建卡。
 项目空间是当前 Git 根及其目录树；处理空间外对象前必须说明并取得用户本次明确允许。
