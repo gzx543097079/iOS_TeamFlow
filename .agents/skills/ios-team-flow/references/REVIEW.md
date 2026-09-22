@@ -7,7 +7,7 @@
 1. 核对工作区和暂存区，确认本次范围；默认 `git diff --cached`，包含新增、删除、重命名、资源、配置、锁文件和构建设置。只审本次改动，必要时读取调用者/产品配置作为上下文；发现历史问题单独标注，不擅自扩大整改。
 2. 先完成需求卡和测试证据，确认本需求状态、AC 和交付事实已同步；仅有未同步变化时执行 finish。已经 finish / finish --accept 且事实未变时直接暂存，不因获得提交授权再次收尾。将本次文件暂存（保留用户已有暂存内容，不能用 git add . 混入无关工作）。引用实际测试 result 到报告；最终 check 统一核对测试与暂存对象，独立 verify 仅用于排错。然后运行 `python3 scripts/review_gate.py prepare`。脚本输出指纹、快照及 JSON 报告路径；已完成且完全匹配则输出“复用”，直接 check。
 3. 新报告读取 `logs/reviews/<指纹>.patch` 与暂存对象，不能只读工作区文件（部分暂存时两者不同）。完成下表所有维度，填写每项 status（通过/失败/未验证/不适用）与 evidence；填 summary、reviewer、completed_at、findings 和 blockers，并在 requirements 数组填关联需求编号；测试证据路径填写到 validation_results 数组，check 会再次核对测试报告及暂存对象。没有自动测试时注明实际验证方法或不适用原因。风险被明确接受时记录理由/负责人，不能伪填通过。
-4. 完成报告后先 `git add logs/reviews/<指纹>.json logs/reviews/<指纹>.patch`，再运行 `python3 scripts/review_gate.py check`。check 只读取暂存区的报告，与即将提交的内容一致；只在工作区填写报告不会通过，暂存报告仍未完成时必须重新暂存。有失败、未验证或 blocker 时门禁不通过；“不适用”只用于确实无关维度，不用于缺工具或缺线上配置。已验证的问题修复后重新暂存，prepare 新快照，在报告 previous_review 指向旧指纹，只复查两个快照间变化与受影响问题，其余证据注明复用来源。
+4. 完成报告后先 `git add logs/reviews/<指纹>.json logs/reviews/<指纹>.patch`，再运行 `python3 scripts/review_gate.py check`。check 只读取暂存区的报告，与即将提交的内容一致；只在工作区填写报告不会通过，暂存报告仍未完成时必须重新暂存。有失败、未验证或 blocker 时门禁不通过；“不适用”只用于确实无关维度，不用于缺工具或缺线上配置。问题修复后重新暂存，同一 HEAD 下运行 `python3 scripts/review_gate.py prepare --continue-from 前次完整指纹`，工具携带前次材料并生成 `<新指纹>.delta.patch`。核对差量与受影响问题，再确认各维度；不受影响的证据注明复用来源。续审时一并暂存 delta.patch。
 5. 有提交授权才 commit。上一步 check 通过且内容未变时不再调用；启用 Hook 时可由提交时 Hook 承担最终门禁，失败处理后重试。commit 后 finish 从尾注关联 SHA 到交付索引，新卡不回写 SHA；报告元数据后续单独归档不触发同一代码重复审查。若新 HEAD 或规范/其他暂存内容变化，旧审查不能直接通过。
 
 ## 必查维度
@@ -29,6 +29,8 @@
 findings 使用 `{id, severity, file, line, trigger, impact, recommendation, status}`，严重度 P0/P1/P2/P3，status 为 open/fixed/accepted；接受必须附 reason 和 accepted_by，实际阻塞仍放 blockers。失败/未验证维度不可仅靠接受问题绕过。
 
 当前报告指纹/路径仅保存在回执中，回执单向关联需求编号；需求卡不嵌入覆盖自身的当前指纹，也不在 prepare 后为写“审查通过”修改卡片。需要修复业务或需求时生成新快照，只复查变化。
+
+续审保留前次需求、测试引用、发现、阻塞和各维度证据，`previous_status` 仅供对照；所有当前维度重置为未验证，审查人、完成时间和结论重新填写，不自动关闭问题或批准变化。最终 check 仍核对全部维度及引用测试；测试过期时更新引用。前次报告可以尚有未解决问题，但必须包含完整材料与匹配的 patch、暂存树快照。缺失快照或 HEAD 改变时重新 prepare 完整审查，不猜测旧对象；无需兼容旧报告续审。
 
 ## 指纹和记录边界
 

@@ -30,6 +30,18 @@
         "checked_at": "2026-09-22T01:21:29.096969+00:00"
       },
       "removed": []
+    },
+    {
+      "at": "2026-09-22T01:22:29.176792+00:00",
+      "action": "finish",
+      "changes": {
+        "commits": [
+          "90aaa37922459636bd3383c5f09735c88f087c25"
+        ],
+        "committed": true,
+        "checked_at": "2026-09-22T01:22:29.176291+00:00"
+      },
+      "removed": []
     }
   ],
   "acceptance_baseline": {
@@ -39,11 +51,17 @@
       ".agents/skills/ios-team-flow/references/REVIEW.md"
     ],
     "results": [],
-    "accepted_at": "2026-09-22T01:21:29.096943+00:00"
+    "accepted_at": "2026-09-22T01:21:29.096943+00:00",
+    "sealed_commits": [
+      "90aaa37922459636bd3383c5f09735c88f087c25"
+    ],
+    "accepted_commit": "90aaa37922459636bd3383c5f09735c88f087c25"
   },
   "snapshot": {
-    "commits": [],
-    "committed": false,
+    "commits": [
+      "90aaa37922459636bd3383c5f09735c88f087c25"
+    ],
+    "committed": true,
     "merged": "未核实",
     "releases": [],
     "release_status": "未核实",
@@ -61,6 +79,6 @@
       "acceptance_fingerprint": "bbefa29e1bbee6ad39551bab57941af9191c75e57773a542f3856d46d0f169ba",
       "implementation_fingerprint": "6d46636dc4697f021a5b1b19c3c9d2b3dae97af029c273850bc131d831e8fca7"
     },
-    "checked_at": "2026-09-22T01:21:29.096969+00:00"
+    "checked_at": "2026-09-22T01:22:29.176291+00:00"
   }
 }

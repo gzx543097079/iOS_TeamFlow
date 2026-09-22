@@ -516,6 +516,58 @@ class WorkflowTests(unittest.TestCase):
         for target in re.findall(r'\]\(([^)]+)\)', template):
             self.assertTrue((destination.parent / target).exists(), target)
 
+    def test_continue_review_carries_evidence_without_approving_changes(self):
+        self.stage(body='let value = 1\n')
+        prior = self.complete()
+        old = json.loads(prior.read_text())
+        old['requirements'] = ['REQ-example']
+        old['validation_results'] = ['logs/project-checks/old/result.json']
+        old['findings'] = [{'id': 'F1', 'status': 'open'}]
+        old['blockers'] = ['需要修复 F1']
+        prior.write_text(json.dumps(old))
+        self.stage(body='let value = 2\n')
+        current = gate.prepare(self.root, continue_from=prior.stem)
+        data = json.loads(current.read_text())
+        self.assertEqual(prior.stem, data['previous_review'])
+        for key in ('requirements', 'validation_results', 'findings', 'blockers'):
+            self.assertEqual(old[key], data[key])
+        for key in gate.CATEGORIES:
+            self.assertEqual('未验证', data['checks'][key]['status'])
+            self.assertEqual(old['checks'][key]['evidence'], data['checks'][key]['evidence'])
+            self.assertEqual(old['checks'][key]['status'], data['checks'][key]['previous_status'])
+        delta = (self.root / data['delta_patch']).read_text()
+        self.assertIn('-let value = 1', delta)
+        self.assertIn('+let value = 2', delta)
+        self.assertEqual('', data['completed_at'])
+        self.git('add', 'logs/reviews')
+        with self.assertRaises(ValueError):
+            gate.check(self.root)
+        self.assertEqual(current, gate.prepare(self.root, continue_from=prior.stem))
+
+    def test_continue_review_rejects_mismatched_snapshots_and_base(self):
+        self.stage()
+        prior = self.complete()
+        original = prior.read_bytes()
+        self.stage(body='let value = 2\n')
+        old_patch = prior.with_suffix('.patch')
+        patch = old_patch.read_bytes()
+        old_patch.write_bytes(patch + b'changed')
+        with self.assertRaisesRegex(ValueError, '快照'):
+            gate.prepare(self.root, continue_from=prior.stem)
+        old_patch.write_bytes(patch)
+        old = json.loads(original)
+        old['snapshot_tree'] = self.git('write-tree').decode().strip()
+        prior.write_text(json.dumps(old))
+        with self.assertRaisesRegex(ValueError, '快照'):
+            gate.prepare(self.root, continue_from=prior.stem)
+        prior.write_bytes(original)
+        self.git('commit', '-qm', 'new base')
+        self.stage(body='let value = 3\n')
+        with self.assertRaisesRegex(ValueError, 'HEAD'):
+            gate.prepare(self.root, continue_from=prior.stem)
+        with self.assertRaises(ValueError):
+            gate.prepare(self.root, continue_from='../unsafe')
+
     def test_archive_prepare_inherits_only_unchanged_dimensions(self):
         self.stage()
         prior = self.complete()

@@ -1,0 +1,430 @@
+diff --git a/.agents/skills/ios-team-flow/references/REVIEW.md b/.agents/skills/ios-team-flow/references/REVIEW.md
+index 8efdba36651347e5ea72a95beade402474d7b1bf..21caf6cfc9c605887c66d5449f9a93338e5987d2 100644
+--- a/.agents/skills/ios-team-flow/references/REVIEW.md
++++ b/.agents/skills/ios-team-flow/references/REVIEW.md
+@@ -7,7 +7,7 @@
+ 1. 核对工作区和暂存区，确认本次范围；默认 `git diff --cached`，包含新增、删除、重命名、资源、配置、锁文件和构建设置。只审本次改动，必要时读取调用者/产品配置作为上下文；发现历史问题单独标注，不擅自扩大整改。
+ 2. 先完成需求卡和测试证据，确认本需求状态、AC 和交付事实已同步；仅有未同步变化时执行 finish。已经 finish / finish --accept 且事实未变时直接暂存，不因获得提交授权再次收尾。将本次文件暂存（保留用户已有暂存内容，不能用 git add . 混入无关工作）。引用实际测试 result 到报告；最终 check 统一核对测试与暂存对象，独立 verify 仅用于排错。然后运行 `python3 scripts/review_gate.py prepare`。脚本输出指纹、快照及 JSON 报告路径；已完成且完全匹配则输出“复用”，直接 check。
+ 3. 新报告读取 `logs/reviews/<指纹>.patch` 与暂存对象，不能只读工作区文件（部分暂存时两者不同）。完成下表所有维度，填写每项 status（通过/失败/未验证/不适用）与 evidence；填 summary、reviewer、completed_at、findings 和 blockers，并在 requirements 数组填关联需求编号；测试证据路径填写到 validation_results 数组，check 会再次核对测试报告及暂存对象。没有自动测试时注明实际验证方法或不适用原因。风险被明确接受时记录理由/负责人，不能伪填通过。
+-4. 完成报告后先 `git add logs/reviews/<指纹>.json logs/reviews/<指纹>.patch`，再运行 `python3 scripts/review_gate.py check`。check 只读取暂存区的报告，与即将提交的内容一致；只在工作区填写报告不会通过，暂存报告仍未完成时必须重新暂存。有失败、未验证或 blocker 时门禁不通过；“不适用”只用于确实无关维度，不用于缺工具或缺线上配置。已验证的问题修复后重新暂存，prepare 新快照，在报告 previous_review 指向旧指纹，只复查两个快照间变化与受影响问题，其余证据注明复用来源。
++4. 完成报告后先 `git add logs/reviews/<指纹>.json logs/reviews/<指纹>.patch`，再运行 `python3 scripts/review_gate.py check`。check 只读取暂存区的报告，与即将提交的内容一致；只在工作区填写报告不会通过，暂存报告仍未完成时必须重新暂存。有失败、未验证或 blocker 时门禁不通过；“不适用”只用于确实无关维度，不用于缺工具或缺线上配置。问题修复后重新暂存，同一 HEAD 下运行 `python3 scripts/review_gate.py prepare --continue-from 前次完整指纹`，工具携带前次材料并生成 `<新指纹>.delta.patch`。核对差量与受影响问题，再确认各维度；不受影响的证据注明复用来源。续审时一并暂存 delta.patch。
+ 5. 有提交授权才 commit。上一步 check 通过且内容未变时不再调用；启用 Hook 时可由提交时 Hook 承担最终门禁，失败处理后重试。commit 后 finish 从尾注关联 SHA 到交付索引，新卡不回写 SHA；报告元数据后续单独归档不触发同一代码重复审查。若新 HEAD 或规范/其他暂存内容变化，旧审查不能直接通过。
+ 
+ ## 必查维度
+@@ -30,6 +30,8 @@ findings 使用 `{id, severity, file, line, trigger, impact, recommendation, sta
+ 
+ 当前报告指纹/路径仅保存在回执中，回执单向关联需求编号；需求卡不嵌入覆盖自身的当前指纹，也不在 prepare 后为写“审查通过”修改卡片。需要修复业务或需求时生成新快照，只复查变化。
+ 
++续审保留前次需求、测试引用、发现、阻塞和各维度证据，`previous_status` 仅供对照；所有当前维度重置为未验证，审查人、完成时间和结论重新填写，不自动关闭问题或批准变化。最终 check 仍核对全部维度及引用测试；测试过期时更新引用。前次报告可以尚有未解决问题，但必须包含完整材料与匹配的 patch、暂存树快照。缺失快照或 HEAD 改变时重新 prepare 完整审查，不猜测旧对象；无需兼容旧报告续审。
++
+ ## 指纹和记录边界
+ 
+ 指纹由 HEAD、暂存 diff（二进制、文件模式和路径）组成。没有 HEAD 的初始仓库使用空树。默认审查所有暂存路径，唯一排除 `logs/reviews/` 审查回执目录以避免自引用；该目录只准报告 JSON、快照 patch 和说明文档，禁止存放可执行代码或业务资源。其变更仍应检查隐私与记录真实性；门禁会拒绝该目录内非回执后缀文件。
+diff --git a/.agents/skills/ios-team-flow/scripts/review_gate.py b/.agents/skills/ios-team-flow/scripts/review_gate.py
+index ef0cc3cc27a778def321830f34f526cfa0ea6d54..a0b8ef1ba0ee318e5f12853b798f76b4c7e2cb55 100644
+--- a/.agents/skills/ios-team-flow/scripts/review_gate.py
++++ b/.agents/skills/ios-team-flow/scripts/review_gate.py
+@@ -1,6 +1,7 @@
+ #!/usr/bin/env python3
+ """对暂存提交生成审查快照、复用已完成报告；不执行 AI 语义审查。"""
+ import argparse
++import copy
+ import hashlib
+ import importlib.util
+ import json
+@@ -81,7 +82,43 @@ def report_errors(report, base, fingerprint):
+     return errors
+ 
+ 
+-def prepare(root, previous=None):
++def continue_review(root, report, previous, tree):
++    """携带同一 HEAD 下的前次审查材料；所有维度仍须确认，不能继承批准。"""
++    if len(previous) != 64 or any(c not in '0123456789abcdef' for c in previous):
++        raise ValueError('continue-from 必须是完整审查指纹')
++    source = root / RECEIPTS / (previous + '.json')
++    prior = json.loads(source.read_text())
++    if not isinstance(prior, dict) or prior.get('base') != report['base']:
++        raise ValueError('续审要求相同 HEAD；基准变化后重新审查')
++    patch = source.with_suffix('.patch').read_bytes()
++    if (prior.get('fingerprint') != previous
++            or hashlib.sha256(report['base'].encode() + b'\0' + patch).hexdigest() != previous):
++        raise ValueError('前次报告与快照不匹配')
++    old_tree = prior.get('snapshot_tree', '')
++    if not isinstance(old_tree, str) or len(old_tree) not in (40, 64) or any(c not in '0123456789abcdef' for c in old_tree):
++        raise ValueError('前次报告缺少有效暂存树快照，不能续审')
++    diff_args = ('diff', '--binary', '--full-index', '--no-ext-diff', '--no-textconv', '--no-renames')
++    scope = ('--', '.', ':(exclude)logs/reviews/**')
++    if git(root, *diff_args, report['base'], old_tree, *scope) != patch:
++        raise ValueError('前次暂存树与审查快照不匹配')
++    checks = prior.get('checks')
++    if not isinstance(checks, dict) or any(not isinstance(checks.get(name), dict) for name in CATEGORIES):
++        raise ValueError('前次报告缺少七维审查材料')
++    for key in ('requirements', 'validation_results', 'findings', 'blockers'):
++        if not isinstance(prior.get(key), list):
++            raise ValueError('前次报告缺少列表：' + key)
++        report[key] = copy.deepcopy(prior[key])
++    for name in CATEGORIES:
++        report['checks'][name] = {'status': '未验证', 'evidence': checks[name].get('evidence', ''),
++                                  'previous_status': checks[name].get('status', '未验证')}
++    report['previous_review'] = previous
++    report['delta_patch'] = RECEIPTS + report['fingerprint'] + '.delta.patch'
++    (root / report['delta_patch']).write_bytes(git(root, *diff_args, old_tree, tree, *scope))
++
++
++def prepare(root, previous=None, continue_from=None):
++    if previous and continue_from:
++        raise ValueError('归档继承与修复续审不能同时使用')
+     base, patch, fingerprint = snapshot(root)
+     directory = root / RECEIPTS
+     directory.mkdir(parents=True, exist_ok=True)
+@@ -92,11 +129,14 @@ def prepare(root, previous=None):
+     else:
+         report = {
+             'fingerprint': fingerprint, 'base': base, 'scope': 'staged',
++            'snapshot_tree': git(root, 'write-tree').decode().strip(),
+             'created_at': datetime.now(timezone.utc).isoformat(),
+             'reviewer': '', 'completed_at': '', 'summary': '', 'previous_review': None,
+             'checks': {name: {'status': '未验证', 'evidence': ''} for name in CATEGORIES},
+             'findings': [], 'blockers': [], 'requirements': [], 'validation_results': []
+         }
++        if continue_from:
++            continue_review(root, report, continue_from, report['snapshot_tree'])
+         if previous:
+             if len(previous) != 64 or any(c not in '0123456789abcdef' for c in previous):
+                 raise ValueError('previous 必须是完整审查指纹')
+@@ -167,13 +207,15 @@ def check(root):
+ def main():
+     parser = argparse.ArgumentParser(description=__doc__)
+     parser.add_argument('command', choices=('prepare', 'check'))
+-    parser.add_argument('--previous', help='仅归档记录时复用已提交的完成报告')
++    continuation = parser.add_mutually_exclusive_group()
++    continuation.add_argument('--previous', help='仅归档记录时复用已提交的完成报告')
++    continuation.add_argument('--continue-from', help='修复后携带同一 HEAD 下的前次材料并生成差量；需要重新确认')
+     args = parser.parse_args()
+     try:
+         if args.command == 'prepare':
+-            prepare(repo_root(), args.previous)
+-        elif args.previous:
+-            raise ValueError('--previous 仅用于 prepare')
++            prepare(repo_root(), args.previous, args.continue_from)
++        elif args.previous or args.continue_from:
++            raise ValueError('--previous / --continue-from 仅用于 prepare')
+         else:
+             check(repo_root())
+     except (ValueError, OSError, subprocess.CalledProcessError) as error:
+diff --git a/logs/workflow-simplification/02-after.log b/logs/workflow-simplification/02-after.log
+new file mode 100644
+index 0000000000000000000000000000000000000000..596c0ebe6f59096343bfbe839f6ef1b486230988
+--- /dev/null
++++ b/logs/workflow-simplification/02-after.log
+@@ -0,0 +1,62 @@
++...............................................
++----------------------------------------------------------------------
++Ran 47 tests in 16.951s
++
++OK
++需要 Codex 审查并填写报告
++{"fingerprint": "0cb75b85894ef9e4fa108b34a6e7ef6a162e07224eca3b8bbd3d9451109dd91e", "report": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpegi73wca/logs/reviews/0cb75b85894ef9e4fa108b34a6e7ef6a162e07224eca3b8bbd3d9451109dd91e.json", "patch": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpegi73wca/logs/reviews/0cb75b85894ef9e4fa108b34a6e7ef6a162e07224eca3b8bbd3d9451109dd91e.patch", "unstaged_changes": false, "untracked_count": 2}
++需要 Codex 审查并填写报告
++{"fingerprint": "f3dadbf4b8bc872cee74c5884a1aad3dbab6499ba164ae5a430326400497ded0", "report": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmphfkhmdlc/logs/reviews/f3dadbf4b8bc872cee74c5884a1aad3dbab6499ba164ae5a430326400497ded0.json", "patch": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmphfkhmdlc/logs/reviews/f3dadbf4b8bc872cee74c5884a1aad3dbab6499ba164ae5a430326400497ded0.patch", "unstaged_changes": true, "untracked_count": 4}
++继续未完成审查
++{"fingerprint": "f3dadbf4b8bc872cee74c5884a1aad3dbab6499ba164ae5a430326400497ded0", "report": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmphfkhmdlc/logs/reviews/f3dadbf4b8bc872cee74c5884a1aad3dbab6499ba164ae5a430326400497ded0.json", "patch": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmphfkhmdlc/logs/reviews/f3dadbf4b8bc872cee74c5884a1aad3dbab6499ba164ae5a430326400497ded0.patch", "unstaged_changes": false, "untracked_count": 0}
++工作流入口、版本、文件清单和内部链接检查通过
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp7fygrtgy/dist/iOS-TeamFlow-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp7fygrtgy/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpyps38e40/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpyps38e40/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpzb6k851t/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpzb6k851t/source/dist/ios-team-flow-skill-v2.3.4.zip
++验证结果与当前源码/配置及暂存区一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpk35_v4oy/logs/project-checks/20260922T012424Z-1ea6cd90/result.json
++审查门禁通过，复用指纹：6033390070cfeacfd108c5e6c383b649364d040a6161bd5cad3d577085faf5a2
++审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
++复用已完成审查
++{"fingerprint": "df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf", "report": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp1birq_s4/logs/reviews/df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf.json", "patch": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp1birq_s4/logs/reviews/df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf.patch", "unstaged_changes": false, "untracked_count": 1}
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpxhxsyvfv/dist/iOS-TeamFlow-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpxhxsyvfv/dist/iOS-TeamFlow-v2.3.4.zip
++审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp48r7qykr/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp48r7qykr/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpjeqjepcv/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpjeqjepcv/source/dist/ios-team-flow-skill-v2.3.4.zip
++审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
++工作流入口、版本、文件清单和内部链接检查通过
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp1bhwjyph/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp1bhwjyph/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmplydorjpp/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmplydorjpp/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp_y_tix5f/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp_y_tix5f/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpgxjt7ynu/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpgxjt7ynu/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp92p9hh5d/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp92p9hh5d/source/dist/ios-team-flow-skill-v2.3.4.zip
++需要 Codex 审查并填写报告
++{"fingerprint": "df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf", "report": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp8y6ajz5a/logs/reviews/df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf.json", "patch": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp8y6ajz5a/logs/reviews/df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf.patch", "unstaged_changes": false, "untracked_count": 2}
++审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
++审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpqxnwnp87/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpqxnwnp87/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpvrjisw52/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpvrjisw52/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp3959turb/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp3959turb/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpxwzw2_wg/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpxwzw2_wg/source/dist/ios-team-flow-skill-v2.3.4.zip
++Hook 已安装；已有 Hook 会先执行并保留退出码
++Hook 已安装；已有 Hook 会先执行并保留退出码
++Hook 已移除，原 Hook 已恢复（如有）
++Hook 已安装；已有 Hook 会先执行并保留退出码
++Hook 已安装
++需要 Codex 审查并填写报告
++{"fingerprint": "71e9afde15664bf9113061c8068fabf1b4f34a593cdc00308c477ceb4e9d97f0", "report": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git sdj8r6sx/logs/reviews/71e9afde15664bf9113061c8068fabf1b4f34a593cdc00308c477ceb4e9d97f0.json", "patch": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/teamflow git sdj8r6sx/logs/reviews/71e9afde15664bf9113061c8068fabf1b4f34a593cdc00308c477ceb4e9d97f0.patch", "unstaged_changes": false, "untracked_count": 3}
++Hook 已移除，原 Hook 已恢复（如有）
+diff --git a/logs/workflow-simplification/02-before.log b/logs/workflow-simplification/02-before.log
+new file mode 100644
+index 0000000000000000000000000000000000000000..a4f93339cdca2faa16a32efe55a7053161851b7f
+--- /dev/null
++++ b/logs/workflow-simplification/02-before.log
+@@ -0,0 +1,14 @@
++E
++======================================================================
++ERROR: test_continue_review_carries_evidence_without_approving_changes (test_workflow.WorkflowTests.test_continue_review_carries_evidence_without_approving_changes)
++----------------------------------------------------------------------
++Traceback (most recent call last):
++  File "/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/tests/test_workflow.py", line 529, in test_continue_review_carries_evidence_without_approving_changes
++    current = gate.prepare(self.root, continue_from=prior.stem)
++              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++TypeError: prepare() got an unexpected keyword argument 'continue_from'
++
++----------------------------------------------------------------------
++Ran 1 test in 0.168s
++
++FAILED (errors=1)
+diff --git a/requirements/DELIVERY.md b/requirements/DELIVERY.md
+index ba176d367d4aceaf5ada626c04e902121abe6118..fecf3ba734119df973f3947112ad4a3f4d27b7c7 100644
+--- a/requirements/DELIVERY.md
++++ b/requirements/DELIVERY.md
+@@ -32,4 +32,5 @@
+ | 26 | 2026-09-21T15:37:29.813+00:00 | [REQ-20260921-153729813Z-f7534db3](REQ-20260921-153729813Z-f7534db3.md) | 在 TeamFlowDemo 验证大型项目模块增量工具并推送 2.3.3 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-21T15:47:58.128137+00:00 |
+ | 27 | 2026-09-21T15:54:32.221+00:00 | [REQ-20260921-155432221Z-3d0bdaeb](REQ-20260921-155432221Z-3d0bdaeb.md) | 限制超出接入项目空间的操作 | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-21T16:21:47.779058+00:00 |
+ | 28 | 2026-09-21T16:08:32.836+00:00 | [REQ-20260921-160832836Z-56bf7ea8](REQ-20260921-160832836Z-56bf7ea8.md) | 规范工具默认目录安装与失败提示 | ✅ 执行完成 | ✅ 1 个提交 | 未确认全部合并 | ✅ 已发布 | 2026-09-21T16:21:54.145205+00:00 |
+-| 29 | 2026-09-22T01:20:42.883+00:00 | [REQ-20260922-012042883Z-1e1775f5](REQ-20260922-012042883Z-1e1775f5.md) | 提交前仅同步尚未同步的需求事实 | ✅ 执行完成 | ⬜ 未关联 | 未核实 | 未核实 | 2026-09-22T01:21:29.096969+00:00 |
++| 29 | 2026-09-22T01:20:42.883+00:00 | [REQ-20260922-012042883Z-1e1775f5](REQ-20260922-012042883Z-1e1775f5.md) | 提交前仅同步尚未同步的需求事实 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-22T01:22:29.176291+00:00 |
++| 30 | 2026-09-22T01:23:27.237+00:00 | [REQ-20260922-012327237Z-dff8624c](REQ-20260922-012327237Z-dff8624c.md) | 支持修复后的增量续审与证据携带 | ✅ 执行完成 | ⬜ 未关联 | 未核实 | 未核实 | 2026-09-22T01:25:02.138724+00:00 |
+diff --git a/requirements/REQ-20260922-012327237Z-dff8624c.md b/requirements/REQ-20260922-012327237Z-dff8624c.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..d7df404ea7fc3ce467152575e2bd76e8798819ef
+--- /dev/null
++++ b/requirements/REQ-20260922-012327237Z-dff8624c.md
+@@ -0,0 +1,22 @@
++# REQ-20260922-012327237Z-dff8624c：支持修复后的增量续审与证据携带
++<!-- teamflow:requirement:v3 -->
++
++- 状态：✅ 执行完成
++- 来源与范围：用户要求解决流程检查发现的问题，每项独立提交；本卡仅处理同一 HEAD 下修复后的续审入口。
++- 拆分：否；单一流程改进，其余问题独立交付
++- 验收方式：自审
++- 验收依据：工作流工具或规则调整，可由差异核对及对应检查判断
++- 下一步：无
++- 阻塞项：无
++
++## 验收（唯一结果记录）
++
++| 编号 | 条件 | 结果 | 证据或不适用原因 |
++| --- | --- | --- | --- |
++| AC-01 | 续审携带需求、测试引用、未关闭问题、阻塞和旧证据并生成差量 | 通过 | logs/workflow-simplification/02-before.log（修复前入口不存在）；02-after.log（47 项关联回归通过）；git diff --check 通过 |
++| AC-02 | 当前维度必须重新确认，篡改快照、HEAD 改变及非法指纹被拒绝 | 通过 | logs/workflow-simplification/02-before.log（修复前入口不存在）；02-after.log（47 项关联回归通过）；git diff --check 通过 |
++| AC-03 | 归档继承和消费门禁回归通过 | 通过 | logs/workflow-simplification/02-before.log（修复前入口不存在）；02-after.log（47 项关联回归通过）；git diff --check 通过 |
++
++## 过程与决策
++
++- 2026-09-22T01:25:02+00:00：根据本次流程检查定位新指纹报告清空材料而普通修复无法使用归档继承；采用新增 --continue-from 并绑定暂存树、校验前次快照及保留待确认材料。按 AC 核对；若发生回归可按本卡实施提交回退该项，不改写历史。
+diff --git a/requirements/delivery/REQ-20260922-012042883Z-1e1775f5.json b/requirements/delivery/REQ-20260922-012042883Z-1e1775f5.json
+index 329f34d0425e61772e156810c3ec0acec326d651..dbaff71cdcaf3036d0dbc8596be87636b28e4c5d 100644
+--- a/requirements/delivery/REQ-20260922-012042883Z-1e1775f5.json
++++ b/requirements/delivery/REQ-20260922-012042883Z-1e1775f5.json
+@@ -30,6 +30,18 @@
+         "checked_at": "2026-09-22T01:21:29.096969+00:00"
+       },
+       "removed": []
++    },
++    {
++      "at": "2026-09-22T01:22:29.176792+00:00",
++      "action": "finish",
++      "changes": {
++        "commits": [
++          "90aaa37922459636bd3383c5f09735c88f087c25"
++        ],
++        "committed": true,
++        "checked_at": "2026-09-22T01:22:29.176291+00:00"
++      },
++      "removed": []
+     }
+   ],
+   "acceptance_baseline": {
+@@ -39,11 +51,17 @@
+       ".agents/skills/ios-team-flow/references/REVIEW.md"
+     ],
+     "results": [],
+-    "accepted_at": "2026-09-22T01:21:29.096943+00:00"
++    "accepted_at": "2026-09-22T01:21:29.096943+00:00",
++    "sealed_commits": [
++      "90aaa37922459636bd3383c5f09735c88f087c25"
++    ],
++    "accepted_commit": "90aaa37922459636bd3383c5f09735c88f087c25"
+   },
+   "snapshot": {
+-    "commits": [],
+-    "committed": false,
++    "commits": [
++      "90aaa37922459636bd3383c5f09735c88f087c25"
++    ],
++    "committed": true,
+     "merged": "未核实",
+     "releases": [],
+     "release_status": "未核实",
+@@ -61,6 +79,6 @@
+       "acceptance_fingerprint": "bbefa29e1bbee6ad39551bab57941af9191c75e57773a542f3856d46d0f169ba",
+       "implementation_fingerprint": "6d46636dc4697f021a5b1b19c3c9d2b3dae97af029c273850bc131d831e8fca7"
+     },
+-    "checked_at": "2026-09-22T01:21:29.096969+00:00"
++    "checked_at": "2026-09-22T01:22:29.176291+00:00"
+   }
+ }
+diff --git a/requirements/delivery/REQ-20260922-012327237Z-dff8624c.json b/requirements/delivery/REQ-20260922-012327237Z-dff8624c.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..c9e1bd3189cfcb8315dfb71fbc63498a78acafeb
+--- /dev/null
++++ b/requirements/delivery/REQ-20260922-012327237Z-dff8624c.json
+@@ -0,0 +1,68 @@
++{
++  "schema_version": 1,
++  "requirement": "REQ-20260922-012327237Z-dff8624c",
++  "linked_commits": [],
++  "prs": [],
++  "events": [
++    {
++      "at": "2026-09-22T01:25:02.138912+00:00",
++      "action": "finish",
++      "changes": {
++        "commits": [],
++        "committed": false,
++        "merged": "未核实",
++        "releases": [],
++        "release_status": "未核实",
++        "prs": [],
++        "warnings": [
++          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++        ],
++        "development": "✅ 执行完成",
++        "card": {
++          "state": "✅ 执行完成",
++          "passed": 3,
++          "applicable": 3,
++          "next": "无",
++          "blocker": "无",
++          "acceptance_fingerprint": "bfc1de1419f8c344fb43f63a6bbd75d6b12ce2cffb2b683e46bcf909d3f18a20",
++          "implementation_fingerprint": "a2b05a702e31cb8d4ae2bad93320aa8b62720f6071353c8654e838f06189d79c"
++        },
++        "checked_at": "2026-09-22T01:25:02.138724+00:00"
++      },
++      "removed": []
++    }
++  ],
++  "acceptance_baseline": {
++    "implementation_fingerprint": "a2b05a702e31cb8d4ae2bad93320aa8b62720f6071353c8654e838f06189d79c",
++    "acceptance_fingerprint": "bfc1de1419f8c344fb43f63a6bbd75d6b12ce2cffb2b683e46bcf909d3f18a20",
++    "inputs": [
++      ".agents/skills/ios-team-flow/scripts/review_gate.py",
++      ".agents/skills/ios-team-flow/references/REVIEW.md",
++      "tests/test_workflow.py"
++    ],
++    "results": [],
++    "accepted_at": "2026-09-22T01:25:02.138705+00:00"
++  },
++  "snapshot": {
++    "commits": [],
++    "committed": false,
++    "merged": "未核实",
++    "releases": [],
++    "release_status": "未核实",
++    "prs": [],
++    "warnings": [
++      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++    ],
++    "development": "✅ 执行完成",
++    "card": {
++      "state": "✅ 执行完成",
++      "passed": 3,
++      "applicable": 3,
++      "next": "无",
++      "blocker": "无",
++      "acceptance_fingerprint": "bfc1de1419f8c344fb43f63a6bbd75d6b12ce2cffb2b683e46bcf909d3f18a20",
++      "implementation_fingerprint": "a2b05a702e31cb8d4ae2bad93320aa8b62720f6071353c8654e838f06189d79c"
++    },
++    "checked_at": "2026-09-22T01:25:02.138724+00:00"
++  }
++}
+diff --git a/tests/test_workflow.py b/tests/test_workflow.py
+index 33bfc00c42eff9eed84af471fc71507eee027333..7c30b4a10db6f1e7a92d0feddda2365d9720a8b3 100644
+--- a/tests/test_workflow.py
++++ b/tests/test_workflow.py
+@@ -516,6 +516,58 @@ class WorkflowTests(unittest.TestCase):
+         for target in re.findall(r'\]\(([^)]+)\)', template):
+             self.assertTrue((destination.parent / target).exists(), target)
+ 
++    def test_continue_review_carries_evidence_without_approving_changes(self):
++        self.stage(body='let value = 1\n')
++        prior = self.complete()
++        old = json.loads(prior.read_text())
++        old['requirements'] = ['REQ-example']
++        old['validation_results'] = ['logs/project-checks/old/result.json']
++        old['findings'] = [{'id': 'F1', 'status': 'open'}]
++        old['blockers'] = ['需要修复 F1']
++        prior.write_text(json.dumps(old))
++        self.stage(body='let value = 2\n')
++        current = gate.prepare(self.root, continue_from=prior.stem)
++        data = json.loads(current.read_text())
++        self.assertEqual(prior.stem, data['previous_review'])
++        for key in ('requirements', 'validation_results', 'findings', 'blockers'):
++            self.assertEqual(old[key], data[key])
++        for key in gate.CATEGORIES:
++            self.assertEqual('未验证', data['checks'][key]['status'])
++            self.assertEqual(old['checks'][key]['evidence'], data['checks'][key]['evidence'])
++            self.assertEqual(old['checks'][key]['status'], data['checks'][key]['previous_status'])
++        delta = (self.root / data['delta_patch']).read_text()
++        self.assertIn('-let value = 1', delta)
++        self.assertIn('+let value = 2', delta)
++        self.assertEqual('', data['completed_at'])
++        self.git('add', 'logs/reviews')
++        with self.assertRaises(ValueError):
++            gate.check(self.root)
++        self.assertEqual(current, gate.prepare(self.root, continue_from=prior.stem))
++
++    def test_continue_review_rejects_mismatched_snapshots_and_base(self):
++        self.stage()
++        prior = self.complete()
++        original = prior.read_bytes()
++        self.stage(body='let value = 2\n')
++        old_patch = prior.with_suffix('.patch')
++        patch = old_patch.read_bytes()
++        old_patch.write_bytes(patch + b'changed')
++        with self.assertRaisesRegex(ValueError, '快照'):
++            gate.prepare(self.root, continue_from=prior.stem)
++        old_patch.write_bytes(patch)
++        old = json.loads(original)
++        old['snapshot_tree'] = self.git('write-tree').decode().strip()
++        prior.write_text(json.dumps(old))
++        with self.assertRaisesRegex(ValueError, '快照'):
++            gate.prepare(self.root, continue_from=prior.stem)
++        prior.write_bytes(original)
++        self.git('commit', '-qm', 'new base')
++        self.stage(body='let value = 3\n')
++        with self.assertRaisesRegex(ValueError, 'HEAD'):
++            gate.prepare(self.root, continue_from=prior.stem)
++        with self.assertRaises(ValueError):
++            gate.prepare(self.root, continue_from='../unsafe')
++
+     def test_archive_prepare_inherits_only_unchanged_dimensions(self):
+         self.stage()
+         prior = self.complete()

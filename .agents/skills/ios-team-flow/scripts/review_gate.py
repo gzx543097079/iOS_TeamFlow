@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """对暂存提交生成审查快照、复用已完成报告；不执行 AI 语义审查。"""
 import argparse
+import copy
 import hashlib
 import importlib.util
 import json
@@ -81,7 +82,43 @@ def report_errors(report, base, fingerprint):
     return errors
 
 
-def prepare(root, previous=None):
+def continue_review(root, report, previous, tree):
+    """携带同一 HEAD 下的前次审查材料；所有维度仍须确认，不能继承批准。"""
+    if len(previous) != 64 or any(c not in '0123456789abcdef' for c in previous):
+        raise ValueError('continue-from 必须是完整审查指纹')
+    source = root / RECEIPTS / (previous + '.json')
+    prior = json.loads(source.read_text())
+    if not isinstance(prior, dict) or prior.get('base') != report['base']:
+        raise ValueError('续审要求相同 HEAD；基准变化后重新审查')
+    patch = source.with_suffix('.patch').read_bytes()
+    if (prior.get('fingerprint') != previous
+            or hashlib.sha256(report['base'].encode() + b'\0' + patch).hexdigest() != previous):
+        raise ValueError('前次报告与快照不匹配')
+    old_tree = prior.get('snapshot_tree', '')
+    if not isinstance(old_tree, str) or len(old_tree) not in (40, 64) or any(c not in '0123456789abcdef' for c in old_tree):
+        raise ValueError('前次报告缺少有效暂存树快照，不能续审')
+    diff_args = ('diff', '--binary', '--full-index', '--no-ext-diff', '--no-textconv', '--no-renames')
+    scope = ('--', '.', ':(exclude)logs/reviews/**')
+    if git(root, *diff_args, report['base'], old_tree, *scope) != patch:
+        raise ValueError('前次暂存树与审查快照不匹配')
+    checks = prior.get('checks')
+    if not isinstance(checks, dict) or any(not isinstance(checks.get(name), dict) for name in CATEGORIES):
+        raise ValueError('前次报告缺少七维审查材料')
+    for key in ('requirements', 'validation_results', 'findings', 'blockers'):
+        if not isinstance(prior.get(key), list):
+            raise ValueError('前次报告缺少列表：' + key)
+        report[key] = copy.deepcopy(prior[key])
+    for name in CATEGORIES:
+        report['checks'][name] = {'status': '未验证', 'evidence': checks[name].get('evidence', ''),
+                                  'previous_status': checks[name].get('status', '未验证')}
+    report['previous_review'] = previous
+    report['delta_patch'] = RECEIPTS + report['fingerprint'] + '.delta.patch'
+    (root / report['delta_patch']).write_bytes(git(root, *diff_args, old_tree, tree, *scope))
+
+
+def prepare(root, previous=None, continue_from=None):
+    if previous and continue_from:
+        raise ValueError('归档继承与修复续审不能同时使用')
     base, patch, fingerprint = snapshot(root)
     directory = root / RECEIPTS
     directory.mkdir(parents=True, exist_ok=True)
@@ -92,11 +129,14 @@ def prepare(root, previous=None):
     else:
         report = {
             'fingerprint': fingerprint, 'base': base, 'scope': 'staged',
+            'snapshot_tree': git(root, 'write-tree').decode().strip(),
             'created_at': datetime.now(timezone.utc).isoformat(),
             'reviewer': '', 'completed_at': '', 'summary': '', 'previous_review': None,
             'checks': {name: {'status': '未验证', 'evidence': ''} for name in CATEGORIES},
             'findings': [], 'blockers': [], 'requirements': [], 'validation_results': []
         }
+        if continue_from:
+            continue_review(root, report, continue_from, report['snapshot_tree'])
         if previous:
             if len(previous) != 64 or any(c not in '0123456789abcdef' for c in previous):
                 raise ValueError('previous 必须是完整审查指纹')
@@ -167,13 +207,15 @@ def check(root):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('command', choices=('prepare', 'check'))
-    parser.add_argument('--previous', help='仅归档记录时复用已提交的完成报告')
+    continuation = parser.add_mutually_exclusive_group()
+    continuation.add_argument('--previous', help='仅归档记录时复用已提交的完成报告')
+    continuation.add_argument('--continue-from', help='修复后携带同一 HEAD 下的前次材料并生成差量；需要重新确认')
     args = parser.parse_args()
     try:
         if args.command == 'prepare':
-            prepare(repo_root(), args.previous)
-        elif args.previous:
-            raise ValueError('--previous 仅用于 prepare')
+            prepare(repo_root(), args.previous, args.continue_from)
+        elif args.previous or args.continue_from:
+            raise ValueError('--previous / --continue-from 仅用于 prepare')
         else:
             check(repo_root())
     except (ValueError, OSError, subprocess.CalledProcessError) as error:
