@@ -39,6 +39,10 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual('未核实', data['snapshot']['merged'])
         self.assertEqual([], data['snapshot']['releases'])
         d.save(self.root, path, data, 'refresh')
+        self.assertFalse((self.root / 'requirements/DELIVERY.md').exists())
+        subprocess.run(['python3', str(ROOT / '.agents/skills/ios-team-flow/scripts/delivery.py'),
+                        '--project', str(self.root), '--requirement', REQ, 'refresh'],
+                       check=True, capture_output=True)
         self.assertIn(REQ, (self.root / 'requirements/DELIVERY.md').read_text())
 
     def test_complete_stales_when_implementation_changes(self):
@@ -156,6 +160,33 @@ class DeliveryTests(unittest.TestCase):
         self.assertTrue(d.finish(self.root, [REQ], accept=True))
         _, data = d.load(self.root, REQ)
         self.assertEqual('✅ 执行完成', data['snapshot']['development'])
+
+    def test_batch_finish_renders_overview_once_and_preserves_readback_checks(self):
+        card = self.v2_card()
+        second = 'REQ-20260911-120001999Z-abcdef02'
+        (self.root / 'requirements' / (second + '.md')).write_text(card.read_text())
+        with patch.object(d, 'overview', wraps=d.overview) as render:
+            self.assertTrue(d.finish(self.root, [REQ, second]))
+            self.assertEqual(1, render.call_count)
+        summary = self.root / 'requirements/DELIVERY.md'
+        before = summary.read_bytes()
+        self.assertIn(REQ, before.decode())
+        self.assertIn(second, before.decode())
+        for check in (False, True):
+            with patch.object(d, 'overview', wraps=d.overview) as render:
+                self.assertTrue(d.finish(self.root, [REQ, second], check=check))
+                self.assertEqual(1, render.call_count)
+            self.assertEqual(before, summary.read_bytes())
+        original_save = d.save
+        def corrupt_after_save(root, path, data, action):
+            original_save(root, path, data, action)
+            stored = json.loads(path.read_text())
+            stored['snapshot']['development'] = '被改写'
+            path.write_text(json.dumps(stored))
+        card.write_text(card.read_text().replace('🔄 执行中', '🧪 待验证'))
+        with patch.object(d, 'save', side_effect=corrupt_after_save):
+            with self.assertRaisesRegex(ValueError, '写后快照不一致'):
+                d.finish(self.root, [REQ])
 
     def test_v2_inconsistent_completion_duplicate_and_team_confirmation_rejected(self):
         card = self.v2_card('✅ 执行完成')

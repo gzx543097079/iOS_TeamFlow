@@ -1,0 +1,664 @@
+.....................unit：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpf1t_7yd9/logs/project-checks/20260922T013051Z-65e45b6b/result.json
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01",
+    "REQ-20260911-120001999Z-abcdef02"
+  ],
+  "without_implementation_commit": [
+    "REQ-20260911-120001999Z-abcdef02"
+  ],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/REQ-20260911-120001999Z-abcdef02.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [
+    "REQ-20260911-120001999Z-abcdef02"
+  ],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/REQ-20260911-120001999Z-abcdef02.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [
+    "REQ-20260911-120001999Z-abcdef02"
+  ],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/REQ-20260911-120001999Z-abcdef02.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md"
+  ],
+  "github_checked": false,
+  "overview_outdated": true
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": true
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/REQ-20260230-120000000Z-aaaaaaaa.md",
+    "?? requirements/REQ-20260912-120000000Z-bbbbbbbb.md",
+    "?? requirements/REQ-20260912-120000001Z-cccccccc.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}................
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{"requirement": "REQ-20260912-103015123Z-a1b2c3d4", "card": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp2t0fvtd4/requirements/REQ-20260912-103015123Z-a1b2c3d4.md"}
+{"requirement": "REQ-20260912-103015123Z-b1b2c3d4", "card": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp2t0fvtd4/requirements/REQ-20260912-103015123Z-b1b2c3d4.md"}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "unarchived_changes": [
+    "?? requirements/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "unarchived_changes": [
+    "?? requirements/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "unarchived_changes": [
+    "?? requirements/"
+  ],
+  "github_checked": true,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "unarchived_changes": [
+    "?? requirements/"
+  ],
+  "github_checked": true,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+需要 Codex 审查并填写报告
+{"fingerprint": "be20edd0c78d687cc89a04b040d1250226e3f2dd6d0851c1a22ffd7122fe3bcc", "report": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp98so8z32/logs/reviews/be20edd0c78d687cc89a04b040d1250226e3f2dd6d0851c1a22ffd7122fe3bcc.json", "patch": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp98so8z32/logs/reviews/be20edd0c78d687cc89a04b040d1250226e3f2dd6d0851c1a22ffd7122fe3bcc.patch", "unstaged_changes": false, "untracked_count": 2}
+需要 Codex 审查并填写报告
+{"fingerprint": "f3dadbf4b8bc872cee74c5884a1aad3dbab6499ba164ae5a430326400497ded0", "report": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp4vzzo8ff/logs/reviews/f3dadbf4b8bc872cee74c5884a1aad3dbab6499ba164ae5a430326400497ded0.json", "patch": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp4vzzo8ff/logs/reviews/f3dadbf4b8bc872cee74c5884a1aad3dbab6499ba164ae5a430326400497ded0.patch", "unstaged_changes": true, "untracked_count": 4}
+继续未完成审查
+{"fingerprint": "f3dadbf4b8bc872cee74c5884a1aad3dbab6499ba164ae5a430326400497ded0", "report": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp4vzzo8ff/logs/reviews/f3dadbf4b8bc872cee74c5884a1aad3dbab6499ba164ae5a430326400497ded0.json", "patch": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp4vzzo8ff/logs/reviews/f3dadbf4b8bc872cee74c5884a1aad3dbab6499ba164ae5a430326400497ded0.patch", "unstaged_changes": false, "untracked_count": 0}
+工作流入口、版本、文件清单和内部链接检查通过
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp3ahvolsd/dist/iOS-TeamFlow-v2.3.4.zip.....................................
+----------------------------------------------------------------------
+Ran 74 tests in 24.254s
+
+OK
+
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp3ahvolsd/dist/ios-team-flow-skill-v2.3.4.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpa6uezpkl/source/dist/ios-team-flow-skill-v2.3.4.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpa6uezpkl/source/dist/ios-team-flow-skill-v2.3.4.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp58wi9mv_/source/dist/ios-team-flow-skill-v2.3.4.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp58wi9mv_/source/dist/ios-team-flow-skill-v2.3.4.zip
+验证结果与当前源码/配置及暂存区一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp9zv7yxtq/logs/project-checks/20260922T013105Z-104ee8a8/result.json
+审查门禁通过，复用指纹：f01fe9b8bba0640a21a580d4ce9cf5fc228f3ebaefc13bb0f191c81e0469d0ad
+审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
+复用已完成审查
+{"fingerprint": "df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf", "report": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmptnrev45d/logs/reviews/df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf.json", "patch": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmptnrev45d/logs/reviews/df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf.patch", "unstaged_changes": false, "untracked_count": 1}
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpnc_5e9ew/dist/iOS-TeamFlow-v2.3.4.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpnc_5e9ew/dist/iOS-TeamFlow-v2.3.4.zip
+审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmptlr89i7q/source/dist/ios-team-flow-skill-v2.3.4.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmptlr89i7q/source/dist/ios-team-flow-skill-v2.3.4.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpte889jjy/source/dist/ios-team-flow-skill-v2.3.4.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpte889jjy/source/dist/ios-team-flow-skill-v2.3.4.zip
+审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
+工作流入口、版本、文件清单和内部链接检查通过
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp1rb8zr16/source/dist/ios-team-flow-skill-v2.3.4.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp1rb8zr16/source/dist/ios-team-flow-skill-v2.3.4.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpd2sg4u1d/source/dist/ios-team-flow-skill-v2.3.4.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpd2sg4u1d/source/dist/ios-team-flow-skill-v2.3.4.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpt1a41hjk/source/dist/ios-team-flow-skill-v2.3.4.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpt1a41hjk/source/dist/ios-team-flow-skill-v2.3.4.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpai4gfwcx/source/dist/ios-team-flow-skill-v2.3.4.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpai4gfwcx/source/dist/ios-team-flow-skill-v2.3.4.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpdykqv9ze/source/dist/ios-team-flow-skill-v2.3.4.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpdykqv9ze/source/dist/ios-team-flow-skill-v2.3.4.zip
+需要 Codex 审查并填写报告
+{"fingerprint": "df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf", "report": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpxvi42lh9/logs/reviews/df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf.json", "patch": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpxvi42lh9/logs/reviews/df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf.patch", "unstaged_changes": false, "untracked_count": 2}
+审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
+审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp0eoi1so1/source/dist/ios-team-flow-skill-v2.3.4.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp0eoi1so1/source/dist/ios-team-flow-skill-v2.3.4.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpzz9178xo/source/dist/ios-team-flow-skill-v2.3.4.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpzz9178xo/source/dist/ios-team-flow-skill-v2.3.4.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpqbcptn6k/source/dist/ios-team-flow-skill-v2.3.4.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpqbcptn6k/source/dist/ios-team-flow-skill-v2.3.4.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpth1r9rag/source/dist/ios-team-flow-skill-v2.3.4.zip
+/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpth1r9rag/source/dist/ios-team-flow-skill-v2.3.4.zip

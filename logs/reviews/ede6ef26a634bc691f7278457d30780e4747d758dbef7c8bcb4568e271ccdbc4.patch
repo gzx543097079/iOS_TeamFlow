@@ -1,0 +1,948 @@
+diff --git a/.agents/skills/ios-team-flow/scripts/delivery.py b/.agents/skills/ios-team-flow/scripts/delivery.py
+index 0cfa13a4a2295b73ed90cf74f47ee2eb12b7fc70..396bfbc6d497d5db6c7ae23ee78c9ad0393b1ead 100644
+--- a/.agents/skills/ios-team-flow/scripts/delivery.py
++++ b/.agents/skills/ios-team-flow/scripts/delivery.py
+@@ -341,6 +341,7 @@ def history_snapshots(data):
+ 
+ 
+ def save(root, path, data, action):
++    """保存单张交付记录；调用者完成本次写入后统一生成概览。"""
+     safe_path(root, 'requirements/DELIVERY.md')
+     if 'card' in data.get('snapshot', {}):
+         data.pop('development', None)
+@@ -355,7 +356,6 @@ def save(root, path, data, action):
+     safe_path(root, str(temp.relative_to(root)))
+     temp.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n')
+     temp.replace(path)
+-    safe_path(root, 'requirements/DELIVERY.md').write_text(overview(root))
+ 
+ 
+ def created_time(requirement):
+@@ -620,6 +620,7 @@ def main():
+                     'commit': sha, 'reason': args.reason, 'at': datetime.now(timezone.utc).isoformat()})
+         refresh(root, data, getattr(args, 'github', False))
+         save(root, path, data, args.command)
++        safe_path(root, 'requirements/DELIVERY.md').write_text(overview(root))
+         print(json.dumps(data['snapshot'], ensure_ascii=False, indent=2))
+     except (ValueError, OSError, KeyError, TypeError, subprocess.CalledProcessError) as error:
+         parser.exit(2, '交付追踪失败：' + str(error) + '\n')
+diff --git a/logs/workflow-simplification/06-after.log b/logs/workflow-simplification/06-after.log
+new file mode 100644
+index 0000000000000000000000000000000000000000..b7a6f2ab54b98c0ae104754e51acaf3aef540051
+--- /dev/null
++++ b/logs/workflow-simplification/06-after.log
+@@ -0,0 +1,664 @@
++.....................unit：通过
++验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpf1t_7yd9/logs/project-checks/20260922T013051Z-65e45b6b/result.json
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01",
++    "REQ-20260911-120001999Z-abcdef02"
++  ],
++  "without_implementation_commit": [
++    "REQ-20260911-120001999Z-abcdef02"
++  ],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/REQ-20260911-120001999Z-abcdef02.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [
++    "REQ-20260911-120001999Z-abcdef02"
++  ],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/REQ-20260911-120001999Z-abcdef02.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [
++    "REQ-20260911-120001999Z-abcdef02"
++  ],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/REQ-20260911-120001999Z-abcdef02.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md"
++  ],
++  "github_checked": false,
++  "overview_outdated": true
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": true
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/REQ-20260230-120000000Z-aaaaaaaa.md",
++    "?? requirements/REQ-20260912-120000000Z-bbbbbbbb.md",
++    "?? requirements/REQ-20260912-120000001Z-cccccccc.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}................
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{"requirement": "REQ-20260912-103015123Z-a1b2c3d4", "card": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp2t0fvtd4/requirements/REQ-20260912-103015123Z-a1b2c3d4.md"}
++{"requirement": "REQ-20260912-103015123Z-b1b2c3d4", "card": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp2t0fvtd4/requirements/REQ-20260912-103015123Z-b1b2c3d4.md"}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "unarchived_changes": [
++    "?? requirements/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "unarchived_changes": [
++    "?? requirements/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "unarchived_changes": [
++    "?? requirements/"
++  ],
++  "github_checked": true,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "unarchived_changes": [
++    "?? requirements/"
++  ],
++  "github_checked": true,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++需要 Codex 审查并填写报告
++{"fingerprint": "be20edd0c78d687cc89a04b040d1250226e3f2dd6d0851c1a22ffd7122fe3bcc", "report": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp98so8z32/logs/reviews/be20edd0c78d687cc89a04b040d1250226e3f2dd6d0851c1a22ffd7122fe3bcc.json", "patch": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp98so8z32/logs/reviews/be20edd0c78d687cc89a04b040d1250226e3f2dd6d0851c1a22ffd7122fe3bcc.patch", "unstaged_changes": false, "untracked_count": 2}
++需要 Codex 审查并填写报告
++{"fingerprint": "f3dadbf4b8bc872cee74c5884a1aad3dbab6499ba164ae5a430326400497ded0", "report": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp4vzzo8ff/logs/reviews/f3dadbf4b8bc872cee74c5884a1aad3dbab6499ba164ae5a430326400497ded0.json", "patch": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp4vzzo8ff/logs/reviews/f3dadbf4b8bc872cee74c5884a1aad3dbab6499ba164ae5a430326400497ded0.patch", "unstaged_changes": true, "untracked_count": 4}
++继续未完成审查
++{"fingerprint": "f3dadbf4b8bc872cee74c5884a1aad3dbab6499ba164ae5a430326400497ded0", "report": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp4vzzo8ff/logs/reviews/f3dadbf4b8bc872cee74c5884a1aad3dbab6499ba164ae5a430326400497ded0.json", "patch": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp4vzzo8ff/logs/reviews/f3dadbf4b8bc872cee74c5884a1aad3dbab6499ba164ae5a430326400497ded0.patch", "unstaged_changes": false, "untracked_count": 0}
++工作流入口、版本、文件清单和内部链接检查通过
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp3ahvolsd/dist/iOS-TeamFlow-v2.3.4.zip.....................................
++----------------------------------------------------------------------
++Ran 74 tests in 24.254s
++
++OK
++
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp3ahvolsd/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpa6uezpkl/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpa6uezpkl/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp58wi9mv_/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp58wi9mv_/source/dist/ios-team-flow-skill-v2.3.4.zip
++验证结果与当前源码/配置及暂存区一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp9zv7yxtq/logs/project-checks/20260922T013105Z-104ee8a8/result.json
++审查门禁通过，复用指纹：f01fe9b8bba0640a21a580d4ce9cf5fc228f3ebaefc13bb0f191c81e0469d0ad
++审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
++复用已完成审查
++{"fingerprint": "df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf", "report": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmptnrev45d/logs/reviews/df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf.json", "patch": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmptnrev45d/logs/reviews/df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf.patch", "unstaged_changes": false, "untracked_count": 1}
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpnc_5e9ew/dist/iOS-TeamFlow-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpnc_5e9ew/dist/iOS-TeamFlow-v2.3.4.zip
++审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmptlr89i7q/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmptlr89i7q/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpte889jjy/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpte889jjy/source/dist/ios-team-flow-skill-v2.3.4.zip
++审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
++工作流入口、版本、文件清单和内部链接检查通过
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp1rb8zr16/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp1rb8zr16/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpd2sg4u1d/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpd2sg4u1d/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpt1a41hjk/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpt1a41hjk/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpai4gfwcx/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpai4gfwcx/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpdykqv9ze/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpdykqv9ze/source/dist/ios-team-flow-skill-v2.3.4.zip
++需要 Codex 审查并填写报告
++{"fingerprint": "df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf", "report": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpxvi42lh9/logs/reviews/df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf.json", "patch": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpxvi42lh9/logs/reviews/df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf.patch", "unstaged_changes": false, "untracked_count": 2}
++审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
++审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp0eoi1so1/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp0eoi1so1/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpzz9178xo/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpzz9178xo/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpqbcptn6k/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpqbcptn6k/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpth1r9rag/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpth1r9rag/source/dist/ios-team-flow-skill-v2.3.4.zip
+diff --git a/logs/workflow-simplification/06-before.log b/logs/workflow-simplification/06-before.log
+new file mode 100644
+index 0000000000000000000000000000000000000000..7cf28475b4f70d5aab1bbe4c350488ebbff41755
+--- /dev/null
++++ b/logs/workflow-simplification/06-before.log
+@@ -0,0 +1,31 @@
++F
++======================================================================
++FAIL: test_batch_finish_renders_overview_once_and_preserves_readback_checks (test_delivery.DeliveryTests.test_batch_finish_renders_overview_once_and_preserves_readback_checks)
++----------------------------------------------------------------------
++Traceback (most recent call last):
++  File "/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/tests/test_delivery.py", line 166, in test_batch_finish_renders_overview_once_and_preserves_readback_checks
++    self.assertEqual(1, render.call_count)
++AssertionError: 1 != 3
++
++----------------------------------------------------------------------
++Ran 1 test in 0.218s
++
++FAILED (failures=1)
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01",
++    "REQ-20260911-120001999Z-abcdef02"
++  ],
++  "without_implementation_commit": [
++    "REQ-20260911-120001999Z-abcdef02"
++  ],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/REQ-20260911-120001999Z-abcdef02.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
+diff --git a/requirements/DELIVERY.md b/requirements/DELIVERY.md
+index 71e0d6b7c550c37d5a6e8d42aa7bc47e128e171f..292fe45c252cea2dcd3325867891ba64bd85d444 100644
+--- a/requirements/DELIVERY.md
++++ b/requirements/DELIVERY.md
+@@ -36,4 +36,5 @@
+ | 30 | 2026-09-22T01:23:27.237+00:00 | [REQ-20260922-012327237Z-dff8624c](REQ-20260922-012327237Z-dff8624c.md) | 支持修复后的增量续审与证据携带 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-22T01:25:29.190349+00:00 |
+ | 31 | 2026-09-22T01:25:49.592+00:00 | [REQ-20260922-012549592Z-a0ecd8ba](REQ-20260922-012549592Z-a0ecd8ba.md) | 按启动及功能阶段确认系统权限 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-22T01:27:06.816108+00:00 |
+ | 32 | 2026-09-22T01:27:54.556+00:00 | [REQ-20260922-012754556Z-6a48ae72](REQ-20260922-012754556Z-6a48ae72.md) | 按记录目录识别无需全量回归的归档变更 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-22T01:29:08.779074+00:00 |
+-| 33 | 2026-09-22T01:29:27.766+00:00 | [REQ-20260922-012927766Z-a3362584](REQ-20260922-012927766Z-a3362584.md) | 模块事实更新与基准刷新二选一 | ✅ 执行完成 | ⬜ 未关联 | 未核实 | 未核实 | 2026-09-22T01:29:59.736502+00:00 |
++| 33 | 2026-09-22T01:29:27.766+00:00 | [REQ-20260922-012927766Z-a3362584](REQ-20260922-012927766Z-a3362584.md) | 模块事实更新与基准刷新二选一 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-22T01:30:00.509134+00:00 |
++| 34 | 2026-09-22T01:30:09.233+00:00 | [REQ-20260922-013009233Z-03ac4162](REQ-20260922-013009233Z-03ac4162.md) | 每次收尾只生成一次交付概览 | ✅ 执行完成 | ⬜ 未关联 | 未核实 | 未核实 | 2026-09-22T01:31:55.966477+00:00 |
+diff --git a/requirements/REQ-20260922-013009233Z-03ac4162.md b/requirements/REQ-20260922-013009233Z-03ac4162.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..86c0979ab7cf2274118a2bf2a66c822da00df86c
+--- /dev/null
++++ b/requirements/REQ-20260922-013009233Z-03ac4162.md
+@@ -0,0 +1,22 @@
++# REQ-20260922-013009233Z-03ac4162：每次收尾只生成一次交付概览
++<!-- teamflow:requirement:v3 -->
++
++- 状态：✅ 执行完成
++- 来源与范围：用户要求解决流程检查发现的问题，每项独立提交；本卡仅处理delivery 保存记录与生成概览的职责。
++- 拆分：否；单一流程改进，其余问题独立交付
++- 验收方式：自审
++- 验收依据：工作流工具或规则调整，可由差异核对及对应检查判断
++- 下一步：无
++- 阻塞项：无
++
++## 验收（唯一结果记录）
++
++| 编号 | 条件 | 结果 | 证据或不适用原因 |
++| --- | --- | --- | --- |
++| AC-01 | 单项及批量 finish 只生成一次概览 | 通过 | logs/workflow-simplification/06-before.log（两卡场景调用3次）；06-after.log（74项关联回归通过，两卡仅1次，保留幂等和写后核验） |
++| AC-02 | 无变化及只读核对保持文件内容，写后记录损坏仍被拒绝 | 通过 | logs/workflow-simplification/06-before.log（两卡场景调用3次）；06-after.log（74项关联回归通过，两卡仅1次，保留幂等和写后核验） |
++| AC-03 | 非 finish 的 CLI 更新仍同步概览 | 通过 | logs/workflow-simplification/06-before.log（两卡场景调用3次）；06-after.log（74项关联回归通过，两卡仅1次，保留幂等和写后核验） |
++
++## 过程与决策
++
++- 2026-09-22T01:31:55+00:00：根据本次流程检查定位每张 save 重建总表，finish 结束再次重建；采用save 仅保存单卡，finish 和其他 CLI 调用完成写入后统一生成概览。按 AC 核对；若发生回归可按本卡实施提交回退该项，不改写历史。
+diff --git a/requirements/delivery/REQ-20260922-012927766Z-a3362584.json b/requirements/delivery/REQ-20260922-012927766Z-a3362584.json
+index fda5845e7c1baa4cdc5cd19589d9b8db99937591..2106912846e3c45c47947e45c8b7d362b9071159 100644
+--- a/requirements/delivery/REQ-20260922-012927766Z-a3362584.json
++++ b/requirements/delivery/REQ-20260922-012927766Z-a3362584.json
+@@ -30,6 +30,18 @@
+         "checked_at": "2026-09-22T01:29:59.736502+00:00"
+       },
+       "removed": []
++    },
++    {
++      "at": "2026-09-22T01:30:00.509892+00:00",
++      "action": "finish",
++      "changes": {
++        "commits": [
++          "0aa496ff40e2b3477b90ed3284e27038e951f30a"
++        ],
++        "committed": true,
++        "checked_at": "2026-09-22T01:30:00.509134+00:00"
++      },
++      "removed": []
+     }
+   ],
+   "acceptance_baseline": {
+@@ -39,11 +51,17 @@
+       ".agents/skills/ios-team-flow/references/MODULE-CONTEXT.md"
+     ],
+     "results": [],
+-    "accepted_at": "2026-09-22T01:29:59.736485+00:00"
++    "accepted_at": "2026-09-22T01:29:59.736485+00:00",
++    "sealed_commits": [
++      "0aa496ff40e2b3477b90ed3284e27038e951f30a"
++    ],
++    "accepted_commit": "0aa496ff40e2b3477b90ed3284e27038e951f30a"
+   },
+   "snapshot": {
+-    "commits": [],
+-    "committed": false,
++    "commits": [
++      "0aa496ff40e2b3477b90ed3284e27038e951f30a"
++    ],
++    "committed": true,
+     "merged": "未核实",
+     "releases": [],
+     "release_status": "未核实",
+@@ -61,6 +79,6 @@
+       "acceptance_fingerprint": "313ec4e6db8246f210374fd7660b1189a7d641edfc0bd7fcce1fe0f09f53e278",
+       "implementation_fingerprint": "7bc903c9ce925fd0ea9677daf83bc4f5fbf15ecbdbd6864cc3bd8255ac6206b3"
+     },
+-    "checked_at": "2026-09-22T01:29:59.736502+00:00"
++    "checked_at": "2026-09-22T01:30:00.509134+00:00"
+   }
+ }
+diff --git a/requirements/delivery/REQ-20260922-013009233Z-03ac4162.json b/requirements/delivery/REQ-20260922-013009233Z-03ac4162.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..5fb3b3c4230faf9571bb4fc16b1364a73882630d
+--- /dev/null
++++ b/requirements/delivery/REQ-20260922-013009233Z-03ac4162.json
+@@ -0,0 +1,67 @@
++{
++  "schema_version": 1,
++  "requirement": "REQ-20260922-013009233Z-03ac4162",
++  "linked_commits": [],
++  "prs": [],
++  "events": [
++    {
++      "at": "2026-09-22T01:31:55.966735+00:00",
++      "action": "finish",
++      "changes": {
++        "commits": [],
++        "committed": false,
++        "merged": "未核实",
++        "releases": [],
++        "release_status": "未核实",
++        "prs": [],
++        "warnings": [
++          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++        ],
++        "development": "✅ 执行完成",
++        "card": {
++          "state": "✅ 执行完成",
++          "passed": 3,
++          "applicable": 3,
++          "next": "无",
++          "blocker": "无",
++          "acceptance_fingerprint": "076d1ecf05a011f12884ccfd77f4176493738fae55fb48666e80df7c39f88e93",
++          "implementation_fingerprint": "9934831d3889fd80474082162252af3f079ad60aa54f92b51ab8a64d70842a55"
++        },
++        "checked_at": "2026-09-22T01:31:55.966477+00:00"
++      },
++      "removed": []
++    }
++  ],
++  "acceptance_baseline": {
++    "implementation_fingerprint": "9934831d3889fd80474082162252af3f079ad60aa54f92b51ab8a64d70842a55",
++    "acceptance_fingerprint": "076d1ecf05a011f12884ccfd77f4176493738fae55fb48666e80df7c39f88e93",
++    "inputs": [
++      ".agents/skills/ios-team-flow/scripts/delivery.py",
++      "tests/test_delivery.py"
++    ],
++    "results": [],
++    "accepted_at": "2026-09-22T01:31:55.966447+00:00"
++  },
++  "snapshot": {
++    "commits": [],
++    "committed": false,
++    "merged": "未核实",
++    "releases": [],
++    "release_status": "未核实",
++    "prs": [],
++    "warnings": [
++      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++    ],
++    "development": "✅ 执行完成",
++    "card": {
++      "state": "✅ 执行完成",
++      "passed": 3,
++      "applicable": 3,
++      "next": "无",
++      "blocker": "无",
++      "acceptance_fingerprint": "076d1ecf05a011f12884ccfd77f4176493738fae55fb48666e80df7c39f88e93",
++      "implementation_fingerprint": "9934831d3889fd80474082162252af3f079ad60aa54f92b51ab8a64d70842a55"
++    },
++    "checked_at": "2026-09-22T01:31:55.966477+00:00"
++  }
++}
+diff --git a/tests/test_delivery.py b/tests/test_delivery.py
+index 7cc44ded4a2f75238374492e6d886ee78e50ccc2..0794b3dde7994ac386d1c7f748664cff31bd0a01 100644
+--- a/tests/test_delivery.py
++++ b/tests/test_delivery.py
+@@ -39,6 +39,10 @@ class DeliveryTests(unittest.TestCase):
+         self.assertEqual('未核实', data['snapshot']['merged'])
+         self.assertEqual([], data['snapshot']['releases'])
+         d.save(self.root, path, data, 'refresh')
++        self.assertFalse((self.root / 'requirements/DELIVERY.md').exists())
++        subprocess.run(['python3', str(ROOT / '.agents/skills/ios-team-flow/scripts/delivery.py'),
++                        '--project', str(self.root), '--requirement', REQ, 'refresh'],
++                       check=True, capture_output=True)
+         self.assertIn(REQ, (self.root / 'requirements/DELIVERY.md').read_text())
+ 
+     def test_complete_stales_when_implementation_changes(self):
+@@ -157,6 +161,33 @@ class DeliveryTests(unittest.TestCase):
+         _, data = d.load(self.root, REQ)
+         self.assertEqual('✅ 执行完成', data['snapshot']['development'])
+ 
++    def test_batch_finish_renders_overview_once_and_preserves_readback_checks(self):
++        card = self.v2_card()
++        second = 'REQ-20260911-120001999Z-abcdef02'
++        (self.root / 'requirements' / (second + '.md')).write_text(card.read_text())
++        with patch.object(d, 'overview', wraps=d.overview) as render:
++            self.assertTrue(d.finish(self.root, [REQ, second]))
++            self.assertEqual(1, render.call_count)
++        summary = self.root / 'requirements/DELIVERY.md'
++        before = summary.read_bytes()
++        self.assertIn(REQ, before.decode())
++        self.assertIn(second, before.decode())
++        for check in (False, True):
++            with patch.object(d, 'overview', wraps=d.overview) as render:
++                self.assertTrue(d.finish(self.root, [REQ, second], check=check))
++                self.assertEqual(1, render.call_count)
++            self.assertEqual(before, summary.read_bytes())
++        original_save = d.save
++        def corrupt_after_save(root, path, data, action):
++            original_save(root, path, data, action)
++            stored = json.loads(path.read_text())
++            stored['snapshot']['development'] = '被改写'
++            path.write_text(json.dumps(stored))
++        card.write_text(card.read_text().replace('🔄 执行中', '🧪 待验证'))
++        with patch.object(d, 'save', side_effect=corrupt_after_save):
++            with self.assertRaisesRegex(ValueError, '写后快照不一致'):
++                d.finish(self.root, [REQ])
++
+     def test_v2_inconsistent_completion_duplicate_and_team_confirmation_rejected(self):
+         card = self.v2_card('✅ 执行完成')
+         with self.assertRaisesRegex(ValueError, '尚未全部通过'):

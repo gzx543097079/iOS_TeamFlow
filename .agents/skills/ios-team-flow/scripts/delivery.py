@@ -341,6 +341,7 @@ def history_snapshots(data):
 
 
 def save(root, path, data, action):
+    """保存单张交付记录；调用者完成本次写入后统一生成概览。"""
     safe_path(root, 'requirements/DELIVERY.md')
     if 'card' in data.get('snapshot', {}):
         data.pop('development', None)
@@ -355,7 +356,6 @@ def save(root, path, data, action):
     safe_path(root, str(temp.relative_to(root)))
     temp.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n')
     temp.replace(path)
-    safe_path(root, 'requirements/DELIVERY.md').write_text(overview(root))
 
 
 def created_time(requirement):
@@ -620,6 +620,7 @@ def main():
                     'commit': sha, 'reason': args.reason, 'at': datetime.now(timezone.utc).isoformat()})
         refresh(root, data, getattr(args, 'github', False))
         save(root, path, data, args.command)
+        safe_path(root, 'requirements/DELIVERY.md').write_text(overview(root))
         print(json.dumps(data['snapshot'], ensure_ascii=False, indent=2))
     except (ValueError, OSError, KeyError, TypeError, subprocess.CalledProcessError) as error:
         parser.exit(2, '交付追踪失败：' + str(error) + '\n')
