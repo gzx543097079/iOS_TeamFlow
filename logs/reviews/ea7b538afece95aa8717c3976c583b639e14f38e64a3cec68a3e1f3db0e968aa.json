@@ -1,0 +1,47 @@
+{
+  "fingerprint": "ea7b538afece95aa8717c3976c583b639e14f38e64a3cec68a3e1f3db0e968aa",
+  "base": "ce6438f6a857143d954f9ba6182cf8f59dcae045",
+  "scope": "staged",
+  "snapshot_tree": "700db9856d69784e0f7ffa1d2ac5366f029dedf2",
+  "created_at": "2026-09-22T01:39:17.103771+00:00",
+  "reviewer": "Codex",
+  "completed_at": "2026-09-22T01:39:17+00:00",
+  "summary": "需求模板引导证据引用及按需过程记录，清理重复历史交付进度而保留封存验收。",
+  "previous_review": null,
+  "checks": {
+    "correctness": {
+      "status": "通过",
+      "evidence": "已核对两卡只移除重复最终进度，产品正文/AC/授权及封存对象不变（08-records.log）；模板与消费48项通过，最终全量119项通过（final-validation.log）。"
+    },
+    "standards": {
+      "status": "通过",
+      "evidence": "模板明确交付AC引用生成JSON，普通卡仅在重要事实发生时创建过程章节；保留历史验收证明，不补同步其他旧需求。"
+    },
+    "subscription": {
+      "status": "不适用",
+      "evidence": "仅流程文档与记录调整，无套餐、价格或交易路径。"
+    },
+    "memory": {
+      "status": "不适用",
+      "evidence": "无可执行代码和资源生命周期变化。"
+    },
+    "analytics": {
+      "status": "不适用",
+      "evidence": "未修改事件契约或埋点。"
+    },
+    "test_artifacts": {
+      "status": "不适用",
+      "evidence": "没有业务构建目标或测试开关变化，检查输出仅为工作流证据。"
+    },
+    "security": {
+      "status": "通过",
+      "evidence": "原始授权和重要纠正仍保留，历史验收未绑定到本轮新代码；只删除重复进度，无密钥、业务资源或外部写入。"
+    }
+  },
+  "findings": [],
+  "blockers": [],
+  "requirements": [
+    "REQ-20260922-013659716Z-584477d0"
+  ],
+  "validation_results": []
+}

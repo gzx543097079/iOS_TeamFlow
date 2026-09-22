@@ -1,0 +1,619 @@
+...............工作流入口、版本、文件清单和内部链接检查通过
+unit：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpvpc99omv/logs/project-checks/20260922T013700Z-f4eb409f/result.json
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01",
+    "REQ-20260911-120001999Z-abcdef02"
+  ],
+  "without_implementation_commit": [
+    "REQ-20260911-120001999Z-abcdef02"
+  ],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/REQ-20260911-120001999Z-abcdef02.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [
+    "REQ-20260911-120001999Z-abcdef02"
+  ],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/REQ-20260911-120001999Z-abcdef02.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [
+    "REQ-20260911-120001999Z-abcdef02"
+  ],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/REQ-20260911-120001999Z-abcdef02.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{"requirement": "REQ-20260922-013701866Z-7342098b", "card": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpfefy_xk2/requirements/REQ-20260922-013701866Z-7342098b.md"}
+{"requirement": "REQ-20260922-013701867Z-9e9b7c7f", "card": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpfefy_xk2/requirements/REQ-20260922-013701867Z-9e9b7c7f.md"}
+{"requirement": "REQ-20260922-013701920Z-49204173", "card": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpfefy_xk2/requirements/REQ-20260922-013701920Z-49204173.md"}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md"
+  ],
+  "github_checked": false,
+  "overview_outdated": true
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": true
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}.................................
+----------------------------------------------------------------------
+Ran 48 tests in 16.412s
+
+OK
+
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/REQ-20260230-120000000Z-aaaaaaaa.md",
+    "?? requirements/REQ-20260912-120000000Z-bbbbbbbb.md",
+    "?? requirements/REQ-20260912-120000001Z-cccccccc.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{"requirement": "REQ-20260912-103015123Z-a1b2c3d4", "card": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpmp3xjnyw/requirements/REQ-20260912-103015123Z-a1b2c3d4.md"}
+{"requirement": "REQ-20260912-103015123Z-b1b2c3d4", "card": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpmp3xjnyw/requirements/REQ-20260912-103015123Z-b1b2c3d4.md"}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "unarchived_changes": [
+    "?? requirements/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "unarchived_changes": [
+    "?? requirements/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "unarchived_changes": [
+    "?? requirements/"
+  ],
+  "github_checked": true,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "unarchived_changes": [
+    "?? requirements/"
+  ],
+  "github_checked": true,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/DELIVERY.md",
+    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}
+{
+  "outdated": [],
+  "updated": [
+    "REQ-20260911-120000999Z-abcdef01"
+  ],
+  "without_implementation_commit": [],
+  "unarchived_changes": [
+    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
+    "?? requirements/DELIVERY.md",
+    "?? requirements/delivery/"
+  ],
+  "github_checked": false,
+  "overview_outdated": false
+}

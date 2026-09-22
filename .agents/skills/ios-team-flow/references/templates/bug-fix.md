@@ -45,7 +45,7 @@
 失败尝试保留当时现象和证据，不覆盖为成功；当前结果只在顶部和 AC 表更新。
 已解决缺陷再次出现时续接本卡，重开受影响 AC 并记录新环境和证据；独立原因另建卡并互相引用。
 团队确认按实际回复记录确认人、时间、对象及原文；没有回复不记为通过。
-处理历史不手填当前审查指纹或提交 SHA；Git/PR/Release 事实由 delivery 生成。
+处理历史只保留复现、重要决定、失败、修复与复核；交付类 AC 引用 `delivery/REQ-YYYYMMDD-HHMMSSmmmZ-RANDOM.json`，不在历史中再次抄录验证汇总、当前审查指纹、提交 SHA 或 Git/PR/Release 状态。
 原始输出放 logs/，这里只放结论与链接。没有证据不声称修复或回归通过。 -->
 
 操作规程位于项目 `.agents/skills/ios-team-flow/references/BUGFIX.md`；交付事实由 `requirements/delivery/` 与 `requirements/DELIVERY.md` 自动维护。
