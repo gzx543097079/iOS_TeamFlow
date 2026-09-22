@@ -1,6 +1,6 @@
 import UIKit
 
-/// 购物袋按商品汇总数量，滑动移除整项；无结算入口。
+/// 购物袋按商品汇总数量，左滑每次减少一件；无结算入口。
 final class BagViewController: UITableViewController {
     private let viewModel: BagViewModel
     init(viewModel: BagViewModel) {
@@ -36,8 +36,8 @@ final class BagViewController: UITableViewController {
     }
     override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let product = viewModel.items[indexPath.row]
-        let remove = UIContextualAction(style: .destructive, title: viewModel.text("bag.remove")) { [weak self] _, _, completion in
-            self?.viewModel.remove(id: product.id)
+        let remove = UIContextualAction(style: .destructive, title: viewModel.text("bag.removeOne")) { [weak self] _, _, completion in
+            self?.viewModel.removeOne(id: product.id)
             self?.tableView.reloadData()
             completion(true)
         }

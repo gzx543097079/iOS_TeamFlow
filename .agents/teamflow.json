@@ -1,6 +1,6 @@
 {
   "skill": "ios-team-flow",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "schema_version": 2,
   "instruction_file": "AGENTS.md",
   "workflow": "single-user-explicit-actions"

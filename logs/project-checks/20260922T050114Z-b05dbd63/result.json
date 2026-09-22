@@ -1,0 +1,411 @@
+{
+  "schema_version": 1,
+  "profile": "ios-demo",
+  "started_at": "2026-09-22T05:01:14.971999+00:00",
+  "head": "284c3667510588f980db6efa955c11f7518cab30",
+  "scope": "working-tree",
+  "source_before": {
+    "algorithm": "sha256-files-v3",
+    "fingerprint": "302b825d1ff7a2e830bf68082ab7d46087187ab0bceea2e8cfe996ab77eacbc2",
+    "files": {
+      ".agents/project-checks.json": {
+        "sha256": "f4bd0826bddc6b8abb4f28cbe8f08d985bc39addeaa8c114eac3806b7b80e98a",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Info.plist": {
+        "sha256": "9b1a2e8b437259a5574572f202e48a2aaa039bd079dff021f53600b468780867",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Podfile": {
+        "sha256": "697681903320e83674dd893bfb50d6df124ad13f6d61f3188775a82aaa0f2fe0",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Podfile.lock": {
+        "sha256": "38670d98906d1730085dbbdf37551a765b0019e8a330720d94d342b0097f53ba",
+        "executable": false
+      },
+      "App/TeamFlowDemo/README.md": {
+        "sha256": "854188b7fc4edfa0168e736042571691c96f87acf119165a15532491e983d67a",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Resources/en.lproj/Localizable.strings": {
+        "sha256": "f8a9a5f8ed76149209b2e169bade968cde01ca0163f3f3ea40b891affb9c3320",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Resources/zh-Hans.lproj/Localizable.strings": {
+        "sha256": "682fa10cb1868b38c13e7acc06f277a5b531402f03d7953b8e32e9417ca37093",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Application/AppDelegate.swift": {
+        "sha256": "05a7a9773368ff5dcc7dd2d56f0435a343b1fdc784a77c111173eeeedc3da8d2",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Application/DemoAppearanceBinding.swift": {
+        "sha256": "671229a320b6d2b8a504c3e1e1f0db9e25b4d87681ec120825331b972cdc8148",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Application/DemoCoordinator.swift": {
+        "sha256": "a4d28a498b895fd523e4a53e1c39ae14011832334dbeab2467ababa2d26b3958",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Application/SceneDelegate.swift": {
+        "sha256": "3c8a269d579ab1463bc1a8ccf50810e10054cd5b9b623bb51a4d897d4065128e",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Features/Bag/ViewModels/BagViewModel.swift": {
+        "sha256": "df7d08df4bb401fa82c8362a9bf46abe37b2093cc0993f1227723c129eee1816",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Features/Bag/Views/BagViewController.swift": {
+        "sha256": "f3d835ea52bd6dcc26445cac6c17244e472798407a8f4d801133fc232dda3eb9",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Features/Product/ViewModels/ProductViewModel.swift": {
+        "sha256": "58d9840f720b37951bc01f14f154f044e2ce69c44960c2b0a591ab43990a2058",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Features/Product/Views/ProductViewController.swift": {
+        "sha256": "902f599e81770cda6e0f6b8930fb04e0cec4b221f303f87a9ebd6e0cdb34d82f",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Features/Settings/ViewModels/AboutViewModel.swift": {
+        "sha256": "e8f811392b7a1406947ea42babc0a32443d358656117bdeb43e736601470e1ea",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Features/Settings/ViewModels/AppearanceViewModel.swift": {
+        "sha256": "acde32dc27a51c1fc2892d1ce6327740bdec3981463783ac468de24b3e860959",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Features/Settings/ViewModels/LanguageViewModel.swift": {
+        "sha256": "fad8307f4350f07cecfe7488fabdd6abcf0984926c1ed2f9cc68cdc2fc680a1b",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Features/Settings/ViewModels/SettingsViewModel.swift": {
+        "sha256": "a92a9a3e22f85f6f80271b376a9b30ac72cd680bfd7f3bfd514fb5eabef2f17c",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Features/Settings/Views/AboutViewController.swift": {
+        "sha256": "39e435c456d78baaa3ae6e2a77c50a542993e5218b543e87a00a14502d3d6e4f",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Features/Settings/Views/SettingsViewController.swift": {
+        "sha256": "7cbbcadd28b624fd79e8782680a3012ec2eb4e44f677247e4353daaab56e59bf",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Features/Store/ViewModels/StoreViewModel.swift": {
+        "sha256": "fe3e3685ca989aa8f8e8e8dc5865c721f1329247b69a0c19603e32ffae0fe635",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Features/Store/Views/DemoViewController.swift": {
+        "sha256": "5f2bc2f4e72e0216b2d1e7dad89caa4747d4309e246cd5df6b91097a825a1c5c",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Features/Store/Views/ProductCard.swift": {
+        "sha256": "2871e9a22d856b415e516fd0696cf3717a1cf13638a919ff7b93dec70fed77d4",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Infrastructure/DemoEvents.swift": {
+        "sha256": "56a9a89d2ed2cea6c5487172dfde8533eede1558878000f921438da878733574",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Infrastructure/DemoPreferences.swift": {
+        "sha256": "c2eba4d700f3a8a9244f2f22ad582e7e2880be55e5a7a7834ed6f012364270a6",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Shared/Logging/TFLogger.swift": {
+        "sha256": "a49c858d95bb5d14fe3bd9185630cc5df0c3e88a8e43ef09d9aca76b368ed447",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Shared/Models/DemoCatalog.swift": {
+        "sha256": "09f642c26c00178c4995d67a33e572b33a97046d6c56a60e90730bab7cf33dfd",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Shared/Models/PreferencesStore.swift": {
+        "sha256": "24d841d00e91f782eba8bca9a5e45e1007d1bf363a97f05a3ef1895cde94cfb8",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Shared/Presentation/ChoicePresenting.swift": {
+        "sha256": "4194e29ee75eb9b4a045e820228e8dc4b8c343ed0b6d6d77163ea4ec731148ea",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Shared/Presentation/DemoViewModel.swift": {
+        "sha256": "b63c6b2d7d854fc92ba1ab8e2a234003976e330adb78625da245f9efa5ff1445",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Shared/Presentation/ProductItem.swift": {
+        "sha256": "aebf093995c67d4f9bfa00c65190792888f091738df059ebfc580044571658e8",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Shared/Views/ChoiceViewController.swift": {
+        "sha256": "810fa843c060522d782b19374b734e0fc1c4da7fede1787631d0cd50510883b5",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Shared/Views/MasonryLayout.swift": {
+        "sha256": "2d0e3b33829590d4ba52b17b16452264062bb899d07798d4ce0d136ac21a6ddc",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Shared/Views/StoreStyle.swift": {
+        "sha256": "be402e5c0b0e3c803286a65e2077c0a3bce04f6d23f93448417a918aac0cdbf3",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/TeamFlowDemo-Bridging-Header.h": {
+        "sha256": "22b2f81e5538bd2deefb6636ed7d8507ed800ca8d44829a7929e7f0e8452fec0",
+        "executable": false
+      },
+      "App/TeamFlowDemo/TeamFlowDemo.xcodeproj/project.pbxproj": {
+        "sha256": "a8eb0a054c33634ec17ac7efbc8438e7f979c36cb0fc674f6c8c296f4465bd9f",
+        "executable": false
+      },
+      "App/TeamFlowDemo/TeamFlowDemo.xcodeproj/project.xcworkspace/contents.xcworkspacedata": {
+        "sha256": "7f3b00b5c3fdb45242d7b87e1e5c4e25d1fa8129a16c94295ecc4e8ea2235c5f",
+        "executable": false
+      },
+      "App/TeamFlowDemo/TeamFlowDemo.xcodeproj/xcshareddata/xcschemes/TeamFlowDemo.xcscheme": {
+        "sha256": "8d5964f0b41413f9aafc99f29fa45a3066c7f99d12518213f861f089204246ff",
+        "executable": false
+      },
+      "App/TeamFlowDemo/TeamFlowDemo.xcworkspace/contents.xcworkspacedata": {
+        "sha256": "295cb593486f13964b5ebe25d0a73e9b1365584dd9fc4c02550a3641eb42e9b2",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Tests/DemoTests.swift": {
+        "sha256": "feff6ff6bc8c56ecbc4ccd578ff4eb22dc642031aa947e1ab63b599ed7e8ba23",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Tests/ViewModelTests.swift": {
+        "sha256": "d4fd3112debaa99bb3e8f3dabad79fbcca49fe10fe906905a33148b526f3b6cb",
+        "executable": false
+      },
+      "App/TeamFlowDemo/UITests/DemoUITests.swift": {
+        "sha256": "0249371cd1238b293f393e34308337fd90568e0e4262324a7e9ed248fecbce30",
+        "executable": false
+      },
+      "App/TeamFlowDemo/project.yml": {
+        "sha256": "b0694fddffa600fd56c0d34fc18cbe45265799a3f20e18df2211fb0351eab375",
+        "executable": false
+      },
+      "scripts/test_demo.py": {
+        "sha256": "eac5424cdc0407e1a4c95fe13c905e17f518182c13ca12b228d68cbaaa926f6f",
+        "executable": false
+      }
+    }
+  },
+  "results": [
+    {
+      "name": "ios-demo",
+      "argv": [
+        "python3",
+        "scripts/test_demo.py"
+      ],
+      "cwd": ".",
+      "log": "ios-demo.log",
+      "status": "通过",
+      "exit_code": 0,
+      "duration_seconds": 142.336
+    },
+    {
+      "name": "ios-demo-release",
+      "argv": [
+        "python3",
+        "scripts/test_demo.py",
+        "--configuration",
+        "Release",
+        "--unit-tests-only"
+      ],
+      "cwd": ".",
+      "log": "ios-demo-release.log",
+      "status": "通过",
+      "exit_code": 0,
+      "duration_seconds": 34.844
+    }
+  ],
+  "status": "通过",
+  "source_after": {
+    "algorithm": "sha256-files-v3",
+    "fingerprint": "302b825d1ff7a2e830bf68082ab7d46087187ab0bceea2e8cfe996ab77eacbc2",
+    "files": {
+      ".agents/project-checks.json": {
+        "sha256": "f4bd0826bddc6b8abb4f28cbe8f08d985bc39addeaa8c114eac3806b7b80e98a",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Info.plist": {
+        "sha256": "9b1a2e8b437259a5574572f202e48a2aaa039bd079dff021f53600b468780867",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Podfile": {
+        "sha256": "697681903320e83674dd893bfb50d6df124ad13f6d61f3188775a82aaa0f2fe0",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Podfile.lock": {
+        "sha256": "38670d98906d1730085dbbdf37551a765b0019e8a330720d94d342b0097f53ba",
+        "executable": false
+      },
+      "App/TeamFlowDemo/README.md": {
+        "sha256": "854188b7fc4edfa0168e736042571691c96f87acf119165a15532491e983d67a",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Resources/en.lproj/Localizable.strings": {
+        "sha256": "f8a9a5f8ed76149209b2e169bade968cde01ca0163f3f3ea40b891affb9c3320",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Resources/zh-Hans.lproj/Localizable.strings": {
+        "sha256": "682fa10cb1868b38c13e7acc06f277a5b531402f03d7953b8e32e9417ca37093",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Application/AppDelegate.swift": {
+        "sha256": "05a7a9773368ff5dcc7dd2d56f0435a343b1fdc784a77c111173eeeedc3da8d2",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Application/DemoAppearanceBinding.swift": {
+        "sha256": "671229a320b6d2b8a504c3e1e1f0db9e25b4d87681ec120825331b972cdc8148",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Application/DemoCoordinator.swift": {
+        "sha256": "a4d28a498b895fd523e4a53e1c39ae14011832334dbeab2467ababa2d26b3958",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Application/SceneDelegate.swift": {
+        "sha256": "3c8a269d579ab1463bc1a8ccf50810e10054cd5b9b623bb51a4d897d4065128e",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Features/Bag/ViewModels/BagViewModel.swift": {
+        "sha256": "df7d08df4bb401fa82c8362a9bf46abe37b2093cc0993f1227723c129eee1816",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Features/Bag/Views/BagViewController.swift": {
+        "sha256": "f3d835ea52bd6dcc26445cac6c17244e472798407a8f4d801133fc232dda3eb9",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Features/Product/ViewModels/ProductViewModel.swift": {
+        "sha256": "58d9840f720b37951bc01f14f154f044e2ce69c44960c2b0a591ab43990a2058",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Features/Product/Views/ProductViewController.swift": {
+        "sha256": "902f599e81770cda6e0f6b8930fb04e0cec4b221f303f87a9ebd6e0cdb34d82f",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Features/Settings/ViewModels/AboutViewModel.swift": {
+        "sha256": "e8f811392b7a1406947ea42babc0a32443d358656117bdeb43e736601470e1ea",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Features/Settings/ViewModels/AppearanceViewModel.swift": {
+        "sha256": "acde32dc27a51c1fc2892d1ce6327740bdec3981463783ac468de24b3e860959",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Features/Settings/ViewModels/LanguageViewModel.swift": {
+        "sha256": "fad8307f4350f07cecfe7488fabdd6abcf0984926c1ed2f9cc68cdc2fc680a1b",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Features/Settings/ViewModels/SettingsViewModel.swift": {
+        "sha256": "a92a9a3e22f85f6f80271b376a9b30ac72cd680bfd7f3bfd514fb5eabef2f17c",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Features/Settings/Views/AboutViewController.swift": {
+        "sha256": "39e435c456d78baaa3ae6e2a77c50a542993e5218b543e87a00a14502d3d6e4f",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Features/Settings/Views/SettingsViewController.swift": {
+        "sha256": "7cbbcadd28b624fd79e8782680a3012ec2eb4e44f677247e4353daaab56e59bf",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Features/Store/ViewModels/StoreViewModel.swift": {
+        "sha256": "fe3e3685ca989aa8f8e8e8dc5865c721f1329247b69a0c19603e32ffae0fe635",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Features/Store/Views/DemoViewController.swift": {
+        "sha256": "5f2bc2f4e72e0216b2d1e7dad89caa4747d4309e246cd5df6b91097a825a1c5c",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Features/Store/Views/ProductCard.swift": {
+        "sha256": "2871e9a22d856b415e516fd0696cf3717a1cf13638a919ff7b93dec70fed77d4",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Infrastructure/DemoEvents.swift": {
+        "sha256": "56a9a89d2ed2cea6c5487172dfde8533eede1558878000f921438da878733574",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Infrastructure/DemoPreferences.swift": {
+        "sha256": "c2eba4d700f3a8a9244f2f22ad582e7e2880be55e5a7a7834ed6f012364270a6",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Shared/Logging/TFLogger.swift": {
+        "sha256": "a49c858d95bb5d14fe3bd9185630cc5df0c3e88a8e43ef09d9aca76b368ed447",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Shared/Models/DemoCatalog.swift": {
+        "sha256": "09f642c26c00178c4995d67a33e572b33a97046d6c56a60e90730bab7cf33dfd",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Shared/Models/PreferencesStore.swift": {
+        "sha256": "24d841d00e91f782eba8bca9a5e45e1007d1bf363a97f05a3ef1895cde94cfb8",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Shared/Presentation/ChoicePresenting.swift": {
+        "sha256": "4194e29ee75eb9b4a045e820228e8dc4b8c343ed0b6d6d77163ea4ec731148ea",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Shared/Presentation/DemoViewModel.swift": {
+        "sha256": "b63c6b2d7d854fc92ba1ab8e2a234003976e330adb78625da245f9efa5ff1445",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Shared/Presentation/ProductItem.swift": {
+        "sha256": "aebf093995c67d4f9bfa00c65190792888f091738df059ebfc580044571658e8",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Shared/Views/ChoiceViewController.swift": {
+        "sha256": "810fa843c060522d782b19374b734e0fc1c4da7fede1787631d0cd50510883b5",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Shared/Views/MasonryLayout.swift": {
+        "sha256": "2d0e3b33829590d4ba52b17b16452264062bb899d07798d4ce0d136ac21a6ddc",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/Shared/Views/StoreStyle.swift": {
+        "sha256": "be402e5c0b0e3c803286a65e2077c0a3bce04f6d23f93448417a918aac0cdbf3",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Sources/TeamFlowDemo-Bridging-Header.h": {
+        "sha256": "22b2f81e5538bd2deefb6636ed7d8507ed800ca8d44829a7929e7f0e8452fec0",
+        "executable": false
+      },
+      "App/TeamFlowDemo/TeamFlowDemo.xcodeproj/project.pbxproj": {
+        "sha256": "a8eb0a054c33634ec17ac7efbc8438e7f979c36cb0fc674f6c8c296f4465bd9f",
+        "executable": false
+      },
+      "App/TeamFlowDemo/TeamFlowDemo.xcodeproj/project.xcworkspace/contents.xcworkspacedata": {
+        "sha256": "7f3b00b5c3fdb45242d7b87e1e5c4e25d1fa8129a16c94295ecc4e8ea2235c5f",
+        "executable": false
+      },
+      "App/TeamFlowDemo/TeamFlowDemo.xcodeproj/xcshareddata/xcschemes/TeamFlowDemo.xcscheme": {
+        "sha256": "8d5964f0b41413f9aafc99f29fa45a3066c7f99d12518213f861f089204246ff",
+        "executable": false
+      },
+      "App/TeamFlowDemo/TeamFlowDemo.xcworkspace/contents.xcworkspacedata": {
+        "sha256": "295cb593486f13964b5ebe25d0a73e9b1365584dd9fc4c02550a3641eb42e9b2",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Tests/DemoTests.swift": {
+        "sha256": "feff6ff6bc8c56ecbc4ccd578ff4eb22dc642031aa947e1ab63b599ed7e8ba23",
+        "executable": false
+      },
+      "App/TeamFlowDemo/Tests/ViewModelTests.swift": {
+        "sha256": "d4fd3112debaa99bb3e8f3dabad79fbcca49fe10fe906905a33148b526f3b6cb",
+        "executable": false
+      },
+      "App/TeamFlowDemo/UITests/DemoUITests.swift": {
+        "sha256": "0249371cd1238b293f393e34308337fd90568e0e4262324a7e9ed248fecbce30",
+        "executable": false
+      },
+      "App/TeamFlowDemo/project.yml": {
+        "sha256": "b0694fddffa600fd56c0d34fc18cbe45265799a3f20e18df2211fb0351eab375",
+        "executable": false
+      },
+      "scripts/test_demo.py": {
+        "sha256": "eac5424cdc0407e1a4c95fe13c905e17f518182c13ca12b228d68cbaaa926f6f",
+        "executable": false
+      }
+    }
+  },
+  "source_unchanged": true,
+  "completed_at": "2026-09-22T05:04:12.247723+00:00"
+}

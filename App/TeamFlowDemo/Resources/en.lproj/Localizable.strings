@@ -36,5 +36,5 @@
 "bag.empty" = "Your bag is empty";
 "bag.items" = "%d items in your bag";
 "bag.total" = "Sample total";
-"bag.help" = "Swipe to remove. Saved for this session only; no checkout or payment.";
-"bag.remove" = "Remove";
+"bag.help" = "Swipe to remove one. Saved for this session only; no checkout or payment.";
+"bag.removeOne" = "Remove One";

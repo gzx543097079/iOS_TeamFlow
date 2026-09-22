@@ -12,7 +12,7 @@ python3 .agents/skills/ios-team-flow/scripts/project_checks.py --project . run -
 
 ios-demo profile 同时执行 Debug 的单元/UI 测试和 Release 的单元测试；日志消息求值测试分别验证 Debug 执行、Release 不执行。源码通过项目内 TFLog 接入，五等级仅 Debug 输出，生产调用不含测试开关。
 
-需要完整 Xcode 与可用的 iPhone 模拟器。脚本优先使用环境变量 DEVELOPER_DIR，未设置时使用 /Applications/Xcode.app；只影响当前进程，不切换全局开发目录。自动选可用已启动 iPhone，也可通过 TEAMFLOW_SIMULATOR_ID 指定设备 UDID。不可用、超时、构建或测试失败均返回非零结果。
+需要完整 Xcode 与可用的 iPhone 模拟器。脚本优先使用环境变量 DEVELOPER_DIR，未设置时使用 /Applications/Xcode.app；只影响当前进程，不切换全局开发目录。默认从最新可用 iOS runtime 选择 iPhone，避免复用与当前 Xcode 测试框架不兼容的旧模拟器；也可通过 TEAMFLOW_SIMULATOR_ID 指定设备 UDID。不可用、超时、构建或测试失败均返回非零结果。
 
 首次在 App/TeamFlowDemo 执行 `pod install`，随后打开 TeamFlowDemo.xcworkspace（包含 Pods）。已提交工程无需 XcodeGen 即可安装依赖并构建。修改 project.yml 后用 XcodeGen 2.46.0 重新生成：
 
@@ -27,7 +27,7 @@ pod install --project-directory=App/TeamFlowDemo
 
 | 测试 | 检查 |
 | --- | --- |
-| 商品与购物袋 | 分类与整数金额汇总、添加及移除 |
+| 商品与购物袋 | 分类与整数金额汇总、添加及逐件减少 |
 | 事件与导航 | 点击记录一次事件，详情使用当前选中商品 |
 | 页面释放 | 导航容器释放后页面无残留强引用 |
 | UI 主路径 | 启动、分类、详情、加购/移除、设置/语言/主题、无 Tab Bar |
@@ -44,7 +44,7 @@ pod install --project-directory=App/TeamFlowDemo
 
 外观默认跟随系统，设置中也可选择浅色或暗黑模式；窗口立即切换，重启保留选择。
 
-商城首页包含四个本地示例商品、全部/音频/日常分类、详情及演示购物袋。购物袋使用整数金额汇总，左滑移除，仅在本次运行保存；没有真实库存、订单、支付或网络请求。商品插图使用系统符号，无远程图片依赖。主路径 UI 测试保留浅色商城、暗黑商城、设置、关于及详情截图。
+商城首页包含四个本地示例商品、全部/音频/日常分类、详情及演示购物袋。购物袋使用整数金额汇总，左滑每次减少一件，数量归零时移除商品行，仅在本次运行保存；没有真实库存、订单、支付或网络请求。商品插图使用系统符号，无远程图片依赖。主路径 UI 测试覆盖同一商品加入两件后逐件减少，并保留浅色商城、暗黑商城、设置、关于及详情截图。
 
 启动采用 UIKit Scene 生命周期：project.yml 生成 Info.plist 中的单窗口 Scene 配置；SceneDelegate 使用 UIWindow(windowScene:) 组装导航与主题，AppDelegate 只处理进程启动。修改配置后重新运行 XcodeGen，并同时提交生成的 plist 与工程。
 
@@ -60,4 +60,4 @@ pod install --project-directory=App/TeamFlowDemo
 
 控制器只负责渲染、布局、事件转发；DemoCoordinator 组装依赖并协调导航，Masonry 仍通过 CocoaPods 管理。语言/外观共用 ChoiceViewController，商城/详情/购物袋共用 ProductItem 格式化，布局共用 StoreStyle。同步操作后重新渲染快照，页面返回时刷新共享状态。
 
-ViewModelTests 使用内存替身检查筛选、加购/移除、设置共享状态、版本注入及 Coordinator 释放；DemoTests 和 UI 测试继续检查真实窗口、布局、语言与外观持久化、商城操作。
+ViewModelTests 使用内存替身检查筛选、加购/逐件减少、设置共享状态、版本注入及 Coordinator 释放；DemoTests 和 UI 测试继续检查真实窗口、布局、语言与外观持久化、商城操作。

@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 
@@ -18,17 +19,25 @@ if not env.get('DEVELOPER_DIR') and Path('/Applications/Xcode.app/Contents/Devel
 try:
     subprocess.run(['xcodebuild', '-version'], env=env, check=True)
     data = json.loads(subprocess.check_output(['xcrun', 'simctl', 'list', 'devices', 'available', '-j'], env=env))
-    devices = [d for runtime, group in data['devices'].items() if 'iOS' in runtime
-               for d in group if d.get('isAvailable') and d['name'].startswith('iPhone')]
+    devices = []
+    for runtime, group in data['devices'].items():
+        match = re.search(r'\.iOS-(\d+)-(\d+)$', runtime)
+        if not match:
+            continue
+        version = tuple(map(int, match.groups()))
+        devices.extend((version, device) for device in group
+                       if device.get('isAvailable') and device['name'].startswith('iPhone'))
     if not devices:
         raise ValueError('没有可用 iPhone 模拟器，请先在 Xcode 安装 iOS runtime')
     requested = env.get('TEAMFLOW_SIMULATOR_ID')
     if requested:
-        selected = next((d for d in devices if d['udid'] == requested), None)
+        selected = next((device for _, device in devices if device['udid'] == requested), None)
         if selected is None:
             raise ValueError('TEAMFLOW_SIMULATOR_ID 不是可用 iPhone 模拟器')
     else:
-        selected = next((d for d in reversed(devices) if d['state'] == 'Booted'), devices[-1])
+        latest = max(version for version, _ in devices)
+        compatible = [device for version, device in devices if version == latest]
+        selected = next((device for device in compatible if device['state'] == 'Booted'), compatible[0])
     print('测试模拟器：' + selected['name'] + ' ' + selected['udid'], flush=True)
     workspace = root / 'App/TeamFlowDemo/TeamFlowDemo.xcworkspace'
     if not (root / 'App/TeamFlowDemo/Pods/Manifest.lock').exists():
@@ -36,7 +45,9 @@ try:
     command = ['xcodebuild', 'test', '-workspace', str(workspace),
                '-scheme', 'TeamFlowDemo', '-configuration', args.configuration, '-destination', 'platform=iOS Simulator,id=' + selected['udid'],
                '-derivedDataPath', str(root / 'DerivedData/TeamFlowDemo'),
-               '-parallel-testing-enabled', 'NO', 'CODE_SIGNING_ALLOWED=NO']
+               '-parallel-testing-enabled', 'NO', 'CODE_SIGNING_ALLOWED=NO',
+               # Xcode 27 的模拟器不再接受 iOS 14；只提升测试构建目标，不改产品声明。
+               'IPHONEOS_DEPLOYMENT_TARGET=15.0']
     if args.unit_tests_only:
         # Release 单测允许访问内部类型，不改变 DEBUG 条件或日志行为。
         command.extend(['-only-testing:TeamFlowDemoTests', 'ENABLE_TESTABILITY=YES'])

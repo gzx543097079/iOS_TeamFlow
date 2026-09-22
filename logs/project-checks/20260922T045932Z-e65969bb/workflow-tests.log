@@ -1,0 +1,86 @@
+{"scope": "full", "tests": ["all"], "reason": "显式全量、基准不可用或包含公共/未知改动"}
+test_records_only_use_document_validation (test_check_selection.CheckSelectionTests) ... ok
+test_teamflow_tool_selects_related_tests (test_check_selection.CheckSelectionTests) ... ok
+test_template_selects_consumers_and_unknown_is_full (test_check_selection.CheckSelectionTests) ... ok
+test_package_contains_no_legacy_runtime (test_consumer_release.ConsumerReleaseTests) ... ok
+test_packaged_requirement_and_explicit_release_boundaries (test_consumer_release.ConsumerReleaseTests) ... ok
+test_packaged_testflight_internal_only_is_opt_in (test_consumer_release.ConsumerReleaseTests) ... ok
+test_conflict_is_preflighted_before_any_copy (test_logging_install.LoggingInstallTests) ... ok
+test_language_selection_and_idempotence_from_zip (test_logging_install.LoggingInstallTests) ... ok
+test_paths_and_external_tool_rejected (test_logging_install.LoggingInstallTests) ... ok
+test_deleted_module_path_invalidates_index_and_reports_deletion (test_module_context.ModuleContextTests) ... ok
+test_record_and_query_unchanged_module (test_module_context.ModuleContextTests) ... ok
+test_record_rejects_unsafe_or_dirty_paths (test_module_context.ModuleContextTests) ... ok
+test_refresh_requires_explicit_confirmation_and_clean_paths (test_module_context.ModuleContextTests) ... ok
+test_reports_committed_staged_unstaged_untracked_and_cross_cutting (test_module_context.ModuleContextTests) ... ok
+test_unmatched_query_and_invalid_baseline_expand_scope (test_module_context.ModuleContextTests) ... ok
+test_cli_original_output_failure_and_complete_logs (test_project_checks.ProjectChecksTests) ... ok
+test_default_deletion_then_staging_preserves_verified_snapshot (test_project_checks.ProjectChecksTests) ... ok
+test_empty_unknown_and_escape_rejected_before_execution (test_project_checks.ProjectChecksTests) ... ok
+test_failure_returns_false (test_project_checks.ProjectChecksTests) ... ok
+test_git_default_tracks_new_files_but_ignores_generated_evidence (test_project_checks.ProjectChecksTests) ... ok
+test_input_change_during_successful_command_is_not_pass (test_project_checks.ProjectChecksTests) ... ok
+test_invalid_input_rejected_and_tracked_deletion_allowed (test_project_checks.ProjectChecksTests) ... ok
+test_requirement_updates_skip_default_but_invalidate_document_profile (test_project_checks.ProjectChecksTests) ... ok
+test_source_edit_add_delete_and_config_change_invalidate (test_project_checks.ProjectChecksTests) ... ok
+test_staged_verification_rejects_old_missing_deleted_and_mode_inputs (test_project_checks.ProjectChecksTests) ... ok
+test_success_and_literal_arguments (test_project_checks.ProjectChecksTests) ... ok
+test_symlink_log_directory_rejected (test_project_checks.ProjectChecksTests) ... ok
+test_unselected_command_not_executed_and_profiles_required (test_project_checks.ProjectChecksTests) ... ok
+test_complete_rejects_unfinished_ac_and_stale_result (test_teamflow.TeamFlowTests) ... ok
+test_complete_with_project_result_and_no_delivery_record (test_teamflow.TeamFlowTests) ... ok
+test_create_uses_readable_sequence_and_ignores_old_cards (test_teamflow.TeamFlowTests) ... ok
+test_git_check_is_explicit_and_uses_staged_object (test_teamflow.TeamFlowTests) ... ok
+test_new_format_only_and_sparse_state_reason (test_teamflow.TeamFlowTests) ... ok
+test_release_prepare_is_read_only_and_record_is_one_action (test_teamflow.TeamFlowTests) ... ok
+test_testflight_internal_only_requires_explicit_option (test_teamflow.TeamFlowTests) ... ok
+test_new_project_is_stage_scoped (test_workflow.WorkflowTests) ... ok
+test_repository_documents_and_distribution_manifest (test_workflow.WorkflowTests) ... ok
+test_required_prerequisites_are_distributed_without_optional_expansion (test_workflow.WorkflowTests) ... ok
+test_setup_fresh_project_and_rejects_old_schema (test_workflow.WorkflowTests) ... ok
+
+----------------------------------------------------------------------
+Ran 39 tests in 14.280s
+
+OK
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpfskr3270/logs/project-checks/20260922T045942Z-f40c8093/result.json
+验证结果与当前源码/配置及暂存区一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpfskr3270/logs/project-checks/20260922T045942Z-f40c8093/result.json
+fail：失败
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp7x0qylsp/logs/project-checks/20260922T045942Z-103dc066/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp5uzmglme/logs/project-checks/20260922T045942Z-87b2ccdc/result.json
+验证结果与当前源码/配置一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp5uzmglme/logs/project-checks/20260922T045942Z-87b2ccdc/result.json
+验证结果与当前源码/配置一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp5uzmglme/logs/project-checks/20260922T045942Z-87b2ccdc/result.json
+mutate：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpfj7yl35j/logs/project-checks/20260922T045943Z-afe9674e/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp0blz6m_w/logs/project-checks/20260922T045943Z-853314c7/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp0blz6m_w/logs/project-checks/20260922T045943Z-75e2d5cf/result.json
+验证结果与当前源码/配置一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp0blz6m_w/logs/project-checks/20260922T045943Z-853314c7/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpuj0m_v7d/logs/project-checks/20260922T045943Z-695ff9ea/result.json
+验证结果与当前源码/配置一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpuj0m_v7d/logs/project-checks/20260922T045943Z-695ff9ea/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpviwl6xsl/logs/project-checks/20260922T045944Z-957cbd51/result.json
+验证结果与当前源码/配置一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpviwl6xsl/logs/project-checks/20260922T045944Z-957cbd51/result.json
+验证结果与当前源码/配置及暂存区一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpviwl6xsl/logs/project-checks/20260922T045944Z-957cbd51/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpviwl6xsl/logs/project-checks/20260922T045944Z-ddf9cdb6/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpviwl6xsl/logs/project-checks/20260922T045944Z-61db1970/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpviwl6xsl/logs/project-checks/20260922T045944Z-e393ad3b/result.json
+验证结果与当前源码/配置及暂存区一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpviwl6xsl/logs/project-checks/20260922T045944Z-e393ad3b/result.json
+build：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpk_7x9io0/logs/project-checks/20260922T045945Z-9c0bc9f0/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpnev6fd9r/logs/project-checks/20260922T045945Z-2360c85b/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpkjv5tb84/logs/project-checks/20260922T045945Z-5dce78a2/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpgj_mw6dy/logs/project-checks/20260922T045945Z-c45f0630/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp_54yybfk/logs/project-checks/20260922T045946Z-613ef4be/result.json
+工作流入口、版本、文件清单和内部链接检查通过

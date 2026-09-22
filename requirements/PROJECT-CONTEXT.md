@@ -21,7 +21,7 @@
 | 场景、依赖与导航组装 | Application/SceneDelegate、DemoCoordinator、DemoAppearanceBinding | 场景持有 Coordinator；回调弱引用，统一共享购物袋/偏好；功能不引用其他功能 |
 | 商城展示与筛选 | Features/Store/Views、ViewModels | 控制器只渲染/转发；VM 持有分类状态，返回时读取共享状态 |
 | 商品详情与加购 | Features/Product/Views、ViewModels | VM 输出商品快照与反馈；View 负责布局和可访问性通知 |
-| 购物袋列表与移除 | Features/Bag/Views、ViewModels | VM 转换金额/数量，按稳定 ID 删除；Model 汇总整数金额 |
+| 购物袋列表与逐件减少 | Features/Bag/Views、ViewModels | VM 转换金额/数量，按稳定 ID 每次减少一件；Model 汇总整数金额并在数量归零时移除商品 |
 | 设置、语言、外观、关于 | Features/Settings/Views、ViewModels | VM 更新 PreferencesStore，输出选择状态和文案；Application 注入版本信息 |
 | 共用数据、协议与展示组件 | Shared/Models、Presentation、Views、Logging | 不依赖 Features/Infrastructure；ProductItem 被商城/详情/购物袋复用，ChoicePresenting/ChoiceViewController 被语言和外观共用 |
 | 存储与事件实现 | Infrastructure/DemoPreferences、DemoEvents | 实现 Shared 协议，构造注入，不持有页面 |

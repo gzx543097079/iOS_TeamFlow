@@ -7,7 +7,7 @@ struct BagItem {
     let symbol: String
 }
 
-/// 将购物袋模型转换成列表快照；删除使用稳定商品 ID，避免位置变化删错商品。
+/// 将购物袋模型转换成列表快照；逐件减少使用稳定商品 ID，避免位置变化操作错商品。
 final class BagViewModel: DemoViewModel {
     private let bag: DemoBag
     init(preferences: PreferencesStore, bag: DemoBag) {
@@ -22,8 +22,8 @@ final class BagViewModel: DemoViewModel {
     }
     var header: String { bag.count == 0 ? text("bag.empty") : String(format: text("bag.items"), bag.count) }
     var footer: String { "\(text("bag.total")) \(ProductItem.formatPrice(bag.totalCents, locale: preferences.locale))\n\(text("bag.help"))" }
-    func remove(id: String) {
+    func removeOne(id: String) {
         guard let product = bag.products.first(where: { $0.id == id }) else { return }
-        bag.remove(product)
+        bag.removeOne(product)
     }
 }

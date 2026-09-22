@@ -94,7 +94,7 @@
     },
     {
       "name": "demo-bag",
-      "responsibility": "购物袋列表、金额汇总与移除",
+      "responsibility": "购物袋列表、金额汇总与逐件减少",
       "baseline": "1f5a6d3abd3ad2424e43b0b0d18e367d44a0573e",
       "triggers": [
         "购物袋",

@@ -34,6 +34,13 @@ final class DemoBag {
         quantities[product.id, default: 0] += 1
         TFLog.debug("Demo 购物袋已添加商品")
     }
-    func remove(_ product: DemoProduct) { quantities.removeValue(forKey: product.id) }
+    /// 每次只减少一件；数量归零时再移除商品行。
+    func removeOne(_ product: DemoProduct) {
+        guard let quantity = quantities[product.id] else { return }
+        if quantity > 1 {
+            quantities[product.id] = quantity - 1
+        } else {
+            quantities.removeValue(forKey: product.id)
+        }
+    }
 }
-
