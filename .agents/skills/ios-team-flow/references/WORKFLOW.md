@@ -56,7 +56,7 @@ python3 scripts/teamflow.py req complete REQ-0001 --result logs/project-checks/�
 
 只有用户明确要求对应 Git 动作时才处理。commit 前暂存本次范围并运行 `python3 scripts/teamflow.py git check REQ-0001 --result ...`；它核对暂存对象与验证结果，但语义理解仍由 Codex完成。commit 写 `Requirement: REQ-0001` trailer。提交关联从 Git 动态查询。
 
-用户没有提出 Git 目标时，不执行任何 Git 写操作。用户明确目标后，自动执行目标尚缺的最小必要前置：例如发布包含当前工作区改动的 GitHub Release，可依次完成验证、范围暂存、commit、push、标签和 Release；创建 PR 时可先推送目标分支。必要前置之外仍不扩张：commit 不自动 push，push 不自动开 PR，PR 不自动合并，Release 不代表 App Store 发布。
+用户没有提出 Git 目标时，不执行任何 Git 写操作。用户明确目标后，自动执行目标尚缺的最小必要前置：例如发布包含当前工作区改动的 GitHub Release，可依次完成验证、范围暂存、commit、push、标签和 Release。必要前置之外仍不扩张：commit 不自动 push，push 不自动打标签或发布 GitHub Release，Release 不代表 App Store 发布。
 
 ## 6. App 外部动作
 
@@ -66,4 +66,4 @@ TestFlight 上传还有一层独立边界：普通“上传 TestFlight”不得�
 
 ## 7. 停止条件
 
-需求达到 AC 且适用验证完成即结束主流程。未获明确目标指令时，不继续到 commit、push、PR、上传、审核或发布；已获目标指令时只走到该目标并包含必要前置。发现新问题只在影响当前 AC 时继续处理；独立问题报告给用户，不自动扩大范围。
+需求达到 AC 且适用验证完成即结束主流程。未获明确目标指令时，不继续到 commit、push、标签、GitHub Release、上传、审核或发布；已获目标指令时只走到该目标并包含必要前置。发现新问题只在影响当前 AC 时继续处理；独立问题报告给用户，不自动扩大范围。

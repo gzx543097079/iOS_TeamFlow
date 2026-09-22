@@ -4,8 +4,8 @@
 | --- | --- | --- |
 | “检查当前实现” | 只读分析 | 建卡、commit 或发布 |
 | “修复登录错误” | 建卡、实施、验证、完成 | 自动 commit/push |
-| “提交代码” | 暂存、最终核对、commit | push 或 PR |
-| “发布当前 GitHub Release” | 验证、提交、推送、标签及 Release 的最小依赖链 | PR、App Store 发布 |
+| “提交代码” | 暂存、最终核对、commit | push、标签或 Release |
+| “发布当前 GitHub Release” | 验证、提交、推送、标签及 Release 的最小依赖链 | App Store 发布 |
 | “检查能否上传 TestFlight” | 只读准备 | Archive 或上传 |
 | “上传 build 123 到 TestFlight” | 只上传指定 build | 分发、Beta Review、App 审核 |
 | “上传 build 123 到 TestFlight，仅限内部测试” | 上传并启用 `testFlightInternalTestingOnly` | 外部测试或 App Store 使用该 build |

@@ -54,7 +54,7 @@ flowchart TD
 - 每个开发变更只维护一张需求卡；范围、不包含内容、AC、状态和验证证据不在其他文件重复维护。
 - 问答、审计、建议和只读检查不创建需求卡。
 - 开发期间运行最小相关测试；所有改动完成并冻结后，再运行匹配范围的完整 profile。
-- 完成需求不自动触发 commit、push、PR、标签、Release 或任何 App 外部动作。
+- 完成需求不自动触发 commit、push、标签、Release 或任何 App 外部动作。
 - 明确目标动作后，可自动补齐该目标不可缺少的前置步骤，但不执行可选配置、相邻动作或目标之后的动作。
 - 普通 TestFlight 上传省略 `testFlightInternalTestingOnly`；只有明确要求 TestFlight Internal Only 时才设为 `true`。
 
@@ -127,9 +127,8 @@ python3 scripts/teamflow.py git check REQ-0001 \
 
 | 明确目标 | 自动补齐的必要前置 | 不自动执行 |
 | --- | --- | --- |
-| commit | 暂存本次范围、提交检查 | push、PR、标签、Release |
-| push | 验证、commit | PR、合并、标签、Release |
-| 创建 PR | 验证、commit、push | 合并 |
+| commit | 暂存本次范围、提交检查 | push、标签、Release |
+| push | 验证、commit | 标签、Release |
 | GitHub Release | 验证、commit、push、标签 | App Store 发布 |
 | 上传 TestFlight | 必要的 Archive | 测试分发、Beta Review、App Store 审核 |
 | 提交 App Store 审核 | 必要的 Archive 与上传 | 审核通过后的发布 |

@@ -84,6 +84,29 @@ class WorkflowTests(unittest.TestCase):
             for wording in ('单人', '用户本人', '成员只有', 'single-user'):
                 self.assertNotIn(wording, text, path)
 
+    def test_pr_module_is_absent_from_active_workflow(self):
+        paths = (
+            ROOT / package_release.SKILL / 'SKILL.md',
+            ROOT / package_release.SKILL / 'references/WORKFLOW.md',
+            ROOT / package_release.SKILL / 'references/GIT-ACTIONS.md',
+            ROOT / package_release.SKILL / 'references/SCENARIOS.md',
+            ROOT / package_release.SKILL / 'references/EXISTING-PROJECT.md',
+            ROOT / package_release.SKILL / 'references/RELEASE.md',
+            ROOT / package_release.SKILL / 'scripts/setup_project.py',
+            ROOT / 'AGENTS.md',
+            ROOT / 'README.md',
+        )
+        forbidden = ('创建 PR', '合并 PR', '开 PR', 'push、PR', 'PR、', '、PR',
+                     'pull_request', 'pull request')
+        for path in paths:
+            text = path.read_text()
+            for wording in forbidden:
+                self.assertNotIn(wording, text, path)
+        for name in package_release.FILES:
+            lowered = name.lower()
+            self.assertNotIn('pull_request', lowered)
+            self.assertNotIn('pr-review', lowered)
+
     def test_readme_explains_workflow_structure(self):
         readme = (ROOT / 'README.md').read_text()
         for heading in ('## 工作流结构', '## 分层结构', '## 核心规则', '## 需求流程',
@@ -110,6 +133,7 @@ class WorkflowTests(unittest.TestCase):
             self.assertFalse((project / 'logs/reviews').exists())
             self.assertIn(self.VALIDATION_SEQUENCE, (project / 'AGENTS.md').read_text())
             self.assertNotIn('单人', (project / 'AGENTS.md').read_text())
+            self.assertNotIn('PR', (project / 'AGENTS.md').read_text())
             help_result = subprocess.run([sys.executable, str(project / 'scripts/teamflow.py'), '--help'],
                                          capture_output=True, text=True)
             self.assertEqual(0, help_result.returncode, help_result.stderr)

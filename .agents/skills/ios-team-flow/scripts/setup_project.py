@@ -18,7 +18,7 @@ BLOCK = '''<!-- ios-team-flow:start -->
 项目空间是当前 Git 根及其目录树；处理空间外对象前必须说明并取得用户本次明确允许。
 需求卡和需求列表用固定彩色图标显示状态与 AC 进度；完整映射以 Skill 的 WORKFLOW 为准。
 有实现与交付的任务按“完成全部改动 → 环境预检 → 针对性测试 → 文件冻结 → 一次完整验证 → 目标交付”执行；完整验证后受跟踪输入变化时必须重新冻结并验证。
-commit、push、PR、合并、标签、GitHub Release，以及 Archive、TestFlight、Beta Review、App Store 审核、发布和下架只在用户明确目标时执行；目标若依赖尚未完成的前置步骤，自动执行最小必要前置，但不扩张到可选或后续动作。
+commit、push、标签、GitHub Release，以及 Archive、TestFlight、Beta Review、App Store 审核、发布和下架只在用户明确目标时执行；目标若依赖尚未完成的前置步骤，自动执行最小必要前置，但不扩张到可选或后续动作。
 普通 TestFlight 上传不启用 TestFlight Internal Only；只有用户明确要求仅内部测试时才允许写入 `testFlightInternalTestingOnly: true`。
 使用 `python3 scripts/teamflow.py` 处理需求、验证和显式动作。未经明确指令不提交、不上传、不提审、不发布。
 <!-- ios-team-flow:end -->
