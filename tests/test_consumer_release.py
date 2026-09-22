@@ -1,13 +1,12 @@
-"""从实际分发 ZIP 验证消费项目操作顺序；不模拟真实 App 验收。"""
 import contextlib
 import io
 import json
-from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import unittest
 import zipfile
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
@@ -23,206 +22,56 @@ class ConsumerReleaseTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name).resolve()
-        directory = self.root / '.agents/skills'
-        directory.mkdir(parents=True)
+        self.root = Path(self.temp.name)
         with zipfile.ZipFile(self.archive) as archive:
-            archive.extractall(directory)
-        self.skill = '.agents/skills/ios-team-flow/scripts/'
+            archive.extractall(self.root / '.agents/skills')
+        subprocess.run(['git', '-C', str(self.root), 'init', '-q'], check=True)
+        setup = self.root / '.agents/skills/ios-team-flow/scripts/setup_project.py'
+        result = subprocess.run([sys.executable, str(setup), '--project', str(self.root)],
+                                capture_output=True, text=True)
+        self.assertEqual(0, result.returncode, result.stderr)
 
-    def run_cli(self, *args, ok=True):
-        result = subprocess.run(args, cwd=self.root, capture_output=True, text=True)
+    def cli(self, *args, ok=True):
+        result = subprocess.run([sys.executable, str(self.root / 'scripts/teamflow.py'),
+                                 '--project', str(self.root), *args], capture_output=True, text=True)
         if ok:
-            self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+            self.assertEqual(0, result.returncode, result.stderr)
         return result
 
-    def cli(self, script, *args, ok=True):
-        return self.run_cli(sys.executable, self.skill + script, *args, ok=ok)
+    def test_packaged_requirement_and_explicit_release_boundaries(self):
+        created = json.loads(self.cli('req', 'create', '--title', '新需求').stdout)
+        self.assertEqual('REQ-0001', created['requirement'])
+        self.assertIn('REQ-0001', self.cli('req', 'list').stdout)
+        prepared = json.loads(self.cli('release', 'prepare', 'submit-app-review',
+                                       '--version', '1.0.0', '--build', '1').stdout)
+        self.assertFalse(prepared['external_write'])
+        self.assertEqual({}, prepared['export_options_overrides'])
+        self.assertFalse((self.root / 'releases').exists())
+        self.cli('release', 'record', 'archive', '--version', '1.0.0', '--build', '1',
+                 '--evidence', 'archive 校验通过')
+        record = self.root / 'releases/App-1.0.0-1.md'
+        self.assertIn('归档', record.read_text())
+        self.assertNotIn('提交 App Store 审核', record.read_text())
 
-    def git(self, *args, ok=True):
-        return self.run_cli('git', *args, ok=ok)
+    def test_packaged_testflight_internal_only_is_opt_in(self):
+        ordinary = json.loads(self.cli('release', 'prepare', 'upload-testflight',
+                                       '--version', '1.0.0', '--build', '2').stdout)
+        self.assertEqual({}, ordinary['export_options_overrides'])
+        internal = json.loads(self.cli('release', 'prepare', 'upload-testflight',
+                                       '--version', '1.0.0', '--build', '2',
+                                       '--testflight-internal-only').stdout)
+        self.assertEqual({'testFlightInternalTestingOnly': True},
+                         internal['export_options_overrides'])
+        rejected = self.cli('release', 'prepare', 'archive', '--version', '1.0.0',
+                            '--build', '2', '--testflight-internal-only', ok=False)
+        self.assertNotEqual(0, rejected.returncode)
+        self.assertIn('仅适用于上传 TestFlight', rejected.stderr)
 
-    def initialize(self):
-        self.git('init', '-q')
-        self.git('config', 'user.name', 'Consumer Fixture')
-        self.git('config', 'user.email', 'fixture@example.invalid')
+    def test_package_contains_no_legacy_runtime(self):
+        legacy = ('delivery.py', 'review_gate.py', 'upgrade_skill.py', 'install_git_checks.py')
+        for name in legacy:
+            self.assertFalse((self.root / '.agents/skills/ios-team-flow/scripts' / name).exists())
 
-    def test_bug_template_in_package_preserves_history_through_finish(self):
-        self.initialize()
-        created = json.loads(self.cli('delivery.py', 'create', '--template', 'bug-fix', '--title', '切换语言后返回按钮未更新').stdout)
-        identifier = created['requirement']
-        card = Path(created['card'])
-        self.assertEqual(self.root / 'requirements' / (identifier + '.md'), card)
-        self.assertIn('- 类型：Bug Fix', card.read_text())
-        self.assertNotIn('REQ-YYYYMMDD', card.read_text())
-        history = '\n| 2026-09-15T10:00:00+08:00 | Test | 复现 | 首次尝试仍失败，保留证据 | fixture-log |\n'
-        content = card.read_text().replace('⬜ 未执行', '🔄 执行中') + history
-        card.write_text(content)
-        rows = json.loads(self.cli('delivery.py', 'list', '--json').stdout)
-        self.assertEqual([identifier], [row['requirement'] for row in rows])
-        self.cli('delivery.py', '--requirement', identifier, 'finish')
-        self.assertEqual(content, card.read_text())
-        record = self.root / 'requirements/delivery' / (identifier + '.json')
-        self.assertFalse(record.exists())
-        self.cli('delivery.py', '--requirement', identifier, 'finish')
-        self.assertFalse(record.exists())
-        self.assertEqual(content, card.read_text())
-        self.assertTrue((self.root / '.agents/skills/ios-team-flow/references/BUGFIX.md').is_file())
 
-    def test_cold_install_diagnoses_without_changing_project(self):
-        (self.root / 'AGENTS.md').write_text('团队原规则\n')
-        (self.root / 'project.yml').write_text('deploymentTarget: 17.0\nframework: SwiftUI\n')
-        ignore = self.root / '.gitignore'; ignore.write_text('existing-cache/\n')
-        output = self.cli('setup_project.py', '--project', '.').stdout
-        self.assertIn('Git 根目录', output)
-        self.assertIn('待配置', output)
-        self.assertFalse((self.root / 'App').exists())
-        self.assertFalse((self.root / '.git').exists())
-        self.assertEqual('existing-cache/\n', ignore.read_text())
-        self.assertTrue((self.root / 'AGENTS.md').read_text().startswith('团队原规则'))
-        before = {p: p.read_bytes() for p in self.root.rglob('*') if p.is_file()}
-        self.cli('setup_project.py', '--project', '.', '--doctor')
-        self.cli('setup_project.py', '--project', '.')
-        self.assertEqual(before, {p: p.read_bytes() for p in self.root.rglob('*') if p.is_file()})
-        self.assertEqual('deploymentTarget: 17.0\nframework: SwiftUI\n', (self.root / 'project.yml').read_text())
-
-    def test_packaged_module_context_routes_without_reading_source_contents(self):
-        self.initialize()
-        account = self.root / 'App/Account/Login.swift'
-        account.parent.mkdir(parents=True)
-        account.write_text('private fixture source\n')
-        (self.root / 'Project.swift').write_text('project fixture\n')
-        self.git('add', 'App', 'Project.swift')
-        self.git('commit', '-qm', 'fixture')
-        self.cli('module_context.py', '--project', '.', 'record', '--name', 'account',
-                 '--trigger', '登录', '--path', 'App/Account', '--entry', 'Login',
-                 '--cross-cutting', 'Project.swift')
-        result = json.loads(self.cli('module_context.py', '--project', '.', 'inspect',
-                                     '--query', '修改登录提示').stdout)
-        self.assertEqual(['account'], result['selected_modules'])
-        self.assertEqual('unchanged', result['modules'][0]['status'])
-        self.assertNotIn('private fixture source', json.dumps(result))
-
-    def test_first_gate_without_gitignore_and_importing_test_passes(self):
-        self.cli('setup_project.py', '--project', '.')
-        self.initialize()
-        (self.root / 'model.py').write_text('value = 1\n')
-        config = {'schema_version': 1, 'checks': {'unit': {'argv': [sys.executable, '-c',
-                  'import model; assert model.value == 1']}}, 'profiles': {'change': ['unit']}}
-        (self.root / '.agents/project-checks.json').write_text(json.dumps(config))
-        self.cli('project_checks.py', 'run', '--profile', 'change')
-        result = next((self.root / 'logs/project-checks').glob('*/result.json'))
-        self.assertEqual('通过', json.loads(result.read_text())['status'])
-        self.git('add', '.')
-        self.run_cli(sys.executable, 'scripts/review_gate.py', 'prepare')
-        report = next((self.root / 'logs/reviews').glob('*.json'))
-        data = json.loads(report.read_text())
-        data.update(reviewer='消费项目 CLI 夹具', completed_at='2026-09-11T00:00:00+08:00',
-                    summary='测试首次门禁副作用，不代表业务审查', validation_results=[str(result.relative_to(self.root))])
-        for item in data['checks'].values():
-            item.update(status='不适用', evidence='纯工具 CLI 夹具，不代表 App 验收')
-        report.write_text(json.dumps(data))
-        self.git('add', 'logs/reviews')
-        self.run_cli(sys.executable, 'scripts/review_gate.py', 'check')
-        self.assertFalse((self.root / self.skill / '__pycache__').exists())
-        self.cli('setup_project.py', '--project', '.', '--doctor')
-        self.assertFalse((self.root / self.skill / '__pycache__').exists())
-
-    def test_two_branches_create_distinct_cards_and_merge(self):
-        self.cli('setup_project.py', '--project', '.')
-        self.initialize()
-        self.git('add', '.'); self.git('commit', '-qm', 'base')
-        base = self.git('rev-parse', 'HEAD').stdout.strip()
-        ids = []
-        for branch in ('member-a', 'member-b'):
-            self.git('checkout', '-qb', branch, base)
-            result = json.loads(self.cli('delivery.py', 'create', '--title', branch).stdout)
-            ids.append(result['requirement'])
-            self.assertRegex(ids[-1], r'^REQ-\d{8}-\d{9}Z-[0-9a-f]{8}$')
-            self.git('add', 'requirements')
-            self.git('commit', '-qm', branch + '\n\nRequirement: ' + ids[-1])
-        self.assertNotEqual(*ids)
-        self.git('checkout', '-q', 'member-a')
-        self.git('merge', 'member-b', '--no-edit')
-        overview = self.cli('delivery.py', 'list', '--delivery').stdout
-        for identifier in ids:
-            self.assertTrue((self.root / 'requirements' / (identifier + '.md')).exists())
-            self.assertIn(identifier, overview)
-            self.assertFalse((self.root / 'requirements/delivery' / (identifier + '.json')).exists())
-        self.assertEqual(2, overview.count('✅ 1 个提交'))
-
-    def test_existing_v2_cards_are_not_implicitly_migrated(self):
-        self.cli('setup_project.py', '--project', '.')
-        self.initialize()
-        old = self.root / 'requirements/REQ-20260911-001.md'
-        old.write_text('# 旧卡\n<!-- teamflow:requirement:v2 -->\n- 状态：✅ 执行完成\n')
-        result = json.loads(self.cli('delivery.py', 'create', '--title', '新需求').stdout)
-        self.cli('delivery.py', 'finish', '--all')
-        self.assertFalse((self.root / 'requirements/delivery/REQ-20260911-001.json').exists())
-        self.assertFalse((self.root / 'requirements/delivery' / (result['requirement'] + '.json')).exists())
-        self.assertIn(result['requirement'], self.cli('delivery.py', 'list').stdout)
-
-    def test_shared_commit_collision_can_be_relinked_without_rewriting_history(self):
-        self.cli('setup_project.py', '--project', '.')
-        self.initialize()
-        (self.root / 'code.txt').write_text('second feature')
-        old = self.root / 'requirements/REQ-20260911-120000001Z-abcdef01.md'; old.write_text('# old card')
-        self.git('add', '.'); self.git('commit', '-qm', 'feature\n\nRequirement: REQ-20260911-120000001Z-abcdef01')
-        sha = self.git('rev-parse', 'HEAD').stdout.strip()
-        new = json.loads(self.cli('delivery.py', 'create', '--title', '独立需求').stdout)['requirement']
-        self.cli('delivery.py', '--requirement', new, 'link-commit', '--commit', sha)
-        self.cli('delivery.py', '--requirement', 'REQ-20260911-120000001Z-abcdef01', 'exclude-commit', '--commit', sha, '--reason', '编号冲突，迁入新需求')
-        old_data = json.loads((self.root / 'requirements/delivery/REQ-20260911-120000001Z-abcdef01.json').read_text())
-        new_data = json.loads((self.root / 'requirements/delivery' / (new + '.json')).read_text())
-        self.assertEqual([], old_data['snapshot']['commits'])
-        self.assertEqual([sha], new_data['snapshot']['commits'])
-        self.assertEqual(sha, self.git('rev-parse', 'HEAD').stdout.strip())
-
-    def test_result_acceptance_and_two_sequential_requirements_from_zip(self):
-        self.cli('setup_project.py', '--project', '.')
-        self.initialize()
-        app = self.root / 'App'; app.mkdir()
-        (app / 'A.swift').write_text('A')
-        config = {'schema_version': 1, 'inputs': ['App'],
-                  'checks': {'unit': {'argv': [sys.executable, '-c', 'pass']}},
-                  'profiles': {'change': ['unit']}}
-        (self.root / '.agents/project-checks.json').write_text(json.dumps(config))
-        req = json.loads(self.cli('delivery.py', 'create', '--title', 'A').stdout)['requirement']
-        self.cli('project_checks.py', 'run', '--profile', 'change')
-        result = str(next((self.root / 'logs/project-checks').glob('*/result.json')).relative_to(self.root))
-        card = self.root / 'requirements' / (req + '.md')
-        card.write_text(card.read_text().replace('⬜ 未执行', '✅ 执行完成')
-                        .replace('实施并验证 AC-01', '无').replace('| 未验证 | — |', '| 通过 | ' + result + ' |'))
-        self.cli('delivery.py', '--requirement', req, 'finish', '--accept', '--result', result)
-        self.git('add', '.'); self.git('commit', '-qm', 'A\n\nRequirement: ' + req)
-        second = json.loads(self.cli('delivery.py', 'create', '--title', 'B').stdout)['requirement']
-        (app / 'B.swift').write_text('B')
-        self.git('add', '.'); self.git('commit', '-qm', 'B\n\nRequirement: ' + second)
-        record = json.loads((self.root / 'requirements/delivery' / (req + '.json')).read_text())
-        self.assertNotIn('accepted_commit', record['acceptance_baseline'])
-        current = json.loads(self.cli('delivery.py', '--requirement', req, 'status', '--history').stdout)
-        self.assertIn('accepted_commit', current['acceptance_baseline'])
-        self.assertEqual('✅ 执行完成', current['snapshot']['development'])
-        overview = self.cli('delivery.py', 'list', '--delivery').stdout
-        self.assertIn(req, overview)
-        self.assertIn(second, overview)
-
-    def test_document_validation_survives_acceptance_and_rejects_content_changes(self):
-        self.cli('setup_project.py', '--project', '.')
-        self.initialize()
-        req = json.loads(self.cli('delivery.py', 'create', '--title', '文档需求').stdout)['requirement']
-        config = {'schema_version': 1, 'inputs': ['requirements'],
-                  'checks': {'docs': {'argv': [sys.executable, '-c', 'pass']}},
-                  'profiles': {'docs': ['docs']}}
-        (self.root / '.agents/project-checks.json').write_text(json.dumps(config))
-        self.cli('project_checks.py', 'run', '--profile', 'docs')
-        result = str(next((self.root / 'logs/project-checks').glob('*/result.json')).relative_to(self.root))
-        card = self.root / 'requirements' / (req + '.md')
-        card.write_text(card.read_text().replace('⬜ 未执行', '✅ 执行完成')
-                        .replace('实施并验证 AC-01', '无').replace('| 未验证 | — |', '| 通过 | ' + result + ' |'))
-        self.cli('delivery.py', '--requirement', req, 'finish', '--accept', '--result', result)
-        self.git('add', '.')
-        self.cli('project_checks.py', 'verify', '--result', result, '--staged')
-        card.write_text(card.read_text().replace('可观察的输入、操作与预期结果', '改变了产品验收条件'))
-        self.assertNotEqual(0, self.cli('project_checks.py', 'verify', '--result', result, ok=False).returncode)
-        self.assertNotEqual(0, self.cli('delivery.py', '--requirement', req, 'finish', ok=False).returncode)
+if __name__ == '__main__':
+    unittest.main()

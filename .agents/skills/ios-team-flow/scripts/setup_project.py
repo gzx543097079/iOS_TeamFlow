@@ -1,40 +1,34 @@
 #!/usr/bin/env python3
-"""将已安装 Skill 接入指定项目，预检冲突并保留既有文件。"""
+"""把 vNext TeamFlow 接入一个新项目；不迁移或兼容旧版接入。"""
 import argparse
 import base64
-import os
 import json
-import hashlib
 import re
-import tempfile
+import shutil
 import subprocess
 import sys
-import shutil
-import importlib.util
 from pathlib import Path
 
 START = '<!-- ios-team-flow:start -->'
 END = '<!-- ios-team-flow:end -->'
 BLOCK = '''<!-- ios-team-flow:start -->
-## iOS 团队工作流
+## iOS 单人工作流
 
-本项目采用仓库内的 `.agents/skills/ios-team-flow/SKILL.md`。实施 iOS 需求和提交前必须读取该文件，无需用户再次点名 Skill；按 OC / Swift / SwiftUI / UI 类型加载规范，维护 requirements/ 需求过程与 logs/ 审查记录。
-项目空间是接入时确定的项目根及其目录树；把空间外文件、目录或其他项目作为工作对象前，必须先说明具体范围和操作并获得用户本次明确允许。
-任务所需开发工具按官方或既有包管理器默认位置安装，不受项目空间限制；无法直接默认安装时必须停止，说明原因和解决方案，并给出安装及验证命令，不擅自改用其他位置。
-新产品先整理 PRD 交团队确认。提交前只 review 本次改动，相同有效指纹复用；运行 `python3 scripts/review_gate.py check`。未经授权不提交或发布。
-版本见 .agents/teamflow.json，Skill 与项目一起提交和克隆，不依赖用户级安装。找不到本地 Skill 时明确报告缺失，不自动改用其他项目或用户级同名版本。遵守项目现有具体约定，有冲突先说明。
+本项目使用 `.agents/skills/ios-team-flow/SKILL.md`。开发变更维护一张需求卡和一份验证证据；问答、检查和只读分析不建卡。
+项目空间是当前 Git 根及其目录树；处理空间外对象前必须说明并取得用户本次明确允许。
+commit、push、PR、合并、标签、GitHub Release，以及 Archive、TestFlight、Beta Review、App Store 审核、发布和下架只在用户明确目标时执行；目标若依赖尚未完成的前置步骤，自动执行最小必要前置，但不扩张到可选或后续动作。
+普通 TestFlight 上传不启用 TestFlight Internal Only；只有用户明确要求仅内部测试时才允许写入 `testFlightInternalTestingOnly: true`。
+使用 `python3 scripts/teamflow.py` 处理需求、验证和显式动作。未经明确指令不提交、不上传、不提审、不发布。
 <!-- ios-team-flow:end -->
 '''
+ENTRY = '''#!/usr/bin/env python3
+"""从项目内 Skill 加载 TeamFlow 唯一实现。"""
+import runpy
+from pathlib import Path
 
-
-GATE_ENTRY = '#!/usr/bin/env python3\n"""从项目内 Skill 加载审查门禁，唯一实现维护在 Skill 内。"""\nimport runpy\nfrom pathlib import Path\n\n_source = Path(__file__).resolve().parents[1] / \'.agents/skills/ios-team-flow/scripts/review_gate.py\'\nglobals().update(runpy.run_path(str(_source), run_name=__name__))\n'
-
-# 已发布 1.2.1 的托管内容指纹；仅用于没有基线的旧接入记录。
-LEGACY_121 = {'agents_block': '2ed1594fbeb374590c3ecd0cca48910b7f86726acc3204ce1634d5a58e6f9a8e', 'gate_entry': '1c6e0ee2a0554883d7fd1ce35b4f93a3dccb3d4a7aabe9aa8fecabdd9124db94'}
-
-
-def digest(content):
-    return hashlib.sha256(content.encode()).hexdigest()
+_source = Path(__file__).resolve().parents[1] / '.agents/skills/ios-team-flow/scripts/teamflow.py'
+globals().update(runpy.run_path(str(_source), run_name=__name__))
+'''
 
 
 def version_tuple(value):
@@ -43,296 +37,119 @@ def version_tuple(value):
     return tuple(map(int, value.split('.')))
 
 
-MANAGED_FILES = {'.agents/teamflow.json', 'scripts/review_gate.py', 'AGENTS.md', 'AGENTS.override.md', '.agents/teamflow-skill-baseline.json'}
-
-
-def managed_name(name):
-    if not isinstance(name, str) or Path(name).is_absolute() or '..' in Path(name).parts:
-        return False
-    return name in MANAGED_FILES or name.startswith('.agents/skills/ios-team-flow/')
-
-
-def atomic_write(path, content, mode=0o644):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    fd, temporary = tempfile.mkstemp(prefix='.teamflow-', dir=path.parent)
-    try:
-        with os.fdopen(fd, 'wb') as stream:
-            stream.write(content)
-            stream.flush()
-            os.fsync(stream.fileno())
-        os.chmod(temporary, mode)
-        os.replace(temporary, path)
-    finally:
-        if os.path.exists(temporary):
-            os.unlink(temporary)
-
-
-def recover(project, journal_path):
-    project = project.expanduser().resolve()
-    journal_path = journal_path.absolute()
-    expected = project / '.agents/teamflow-backups'
-    if not journal_path.resolve().is_relative_to(expected):
-        raise ValueError('恢复记录必须位于本项目 .agents/teamflow-backups')
-    for node in (journal_path, *journal_path.parents):
+def safe(project, name):
+    path = project / name
+    if Path(name).is_absolute() or '..' in Path(name).parts:
+        raise ValueError('接入路径必须位于项目内：' + name)
+    for node in (path, *path.parents):
         if node == project:
             break
         if node.is_symlink():
-            raise ValueError('恢复路径不允许符号链接')
-    data = json.loads(journal_path.read_text())
-    if (data.get('schema') != 1 or data.get('project') != str(project)
-            or not isinstance(data.get('files'), dict) or not data['files']
-            or not all(managed_name(name) for name in data['files'])):
-        raise ValueError('恢复记录无效或属于其他项目')
-    originals = {}
-    # 在任何恢复写入之前核对所有文件，拒绝覆盖升级后的人工修改。
-    for name, entry in data['files'].items():
-        target = project / name
-        for node in (target, *target.parents):
-            if node == project:
-                break
-            if node.is_symlink():
-                raise ValueError('恢复目标包含符号链接：' + name)
-        old = None if entry['before'] is None else base64.b64decode(entry['before'], validate=True)
-        new = None if entry['after'] is None else base64.b64decode(entry['after'], validate=True)
-        mode = entry['mode']
-        if type(mode) is not int or not 0 <= mode <= 0o777:
-            raise ValueError('恢复权限无效')
-        current = target.read_bytes() if target.exists() else None
-        if current != old and current != new:
-            raise ValueError('恢复冲突，文件已有其他修改：' + name)
-        originals[name] = (old, mode)
-    for name, (old, mode) in originals.items():
-        target = project / name
-        if old is None:
-            target.unlink(missing_ok=True)
-        else:
-            atomic_write(target, old, mode)
-    data['state'] = 'restored'
-    atomic_write(journal_path, (json.dumps(data, ensure_ascii=False, indent=2) + '\n').encode(), 0o600)
-    print('已恢复接入前托管文件：' + str(journal_path))
+            raise ValueError('接入路径不能含符号链接：' + name)
+    return path
 
 
-def apply_transaction(project, changed, before):
-    if not changed:
-        return None
-    backup_root = project / '.agents/teamflow-backups'
-    backup_root.mkdir(parents=True, exist_ok=True)
-    backup = Path(tempfile.mkdtemp(prefix='upgrade-', dir=backup_root))
-    journal = backup / 'transaction.json'
-    files = {}
-    for name, content in changed.items():
-        target = project / name
-        mode = (target.stat().st_mode & 0o777) if target.exists() else 0o644
-        files[name] = {'before': None if before[name] is None else base64.b64encode(before[name]).decode(),
-                       'after': None if content is None else base64.b64encode(content).decode(), 'mode': mode}
-        if before[name] is not None:
-            saved = backup / name
-            atomic_write(saved, before[name], mode)
-    data = {'schema': 1, 'project': str(project), 'state': 'prepared', 'files': files}
-    atomic_write(journal, (json.dumps(data, ensure_ascii=False, indent=2) + '\n').encode(), 0o600)
-    try:
-        for name, content in changed.items():
-            if content is None:
-                (project / name).unlink(missing_ok=True)
-            else:
-                atomic_write(project / name, content, files[name]['mode'])
-        for name in ('requirements', 'logs/reviews'):
-            (project / name).mkdir(parents=True, exist_ok=True)
-        data['state'] = 'applied'
-        atomic_write(journal, (json.dumps(data, ensure_ascii=False, indent=2) + '\n').encode(), 0o600)
-    except OSError as error:
-        try:
-            recover(project, journal)
-        except (OSError, ValueError) as rollback_error:
-            raise OSError(f'接入失败：{error}；自动恢复失败：{rollback_error}；修复原因后使用 --recover {journal}') from error
-        raise OSError(f'接入失败，托管文件已恢复：{error}；记录：{journal}') from error
-    return backup
+def agents_content(current):
+    if START in current or END in current:
+        if current.count(START) != 1 or current.count(END) != 1 or current.index(START) >= current.index(END):
+            raise ValueError('AGENTS.md 托管标记无效')
+        start = current.index(START)
+        end = current.index(END) + len(END)
+        return current[:start] + BLOCK.strip() + current[end:]
+    return current + ('\n\n' if current else '') + BLOCK
+
+
+def plan(project, skill):
+    project = project.expanduser().resolve()
+    skill = skill.resolve()
+    expected = project / '.agents/skills/ios-team-flow'
+    if skill != expected or not (skill / 'SKILL.md').is_file():
+        raise ValueError('请先把完整 Skill 放到当前项目 .agents/skills/ios-team-flow')
+    version = (skill / 'references/VERSION').read_text().strip()
+    version_tuple(version)
+    manifest_path = safe(project, '.agents/teamflow.json')
+    if manifest_path.exists():
+        manifest = json.loads(manifest_path.read_text())
+        if manifest.get('schema_version') != 2:
+            raise ValueError('检测到旧版接入；vNext 不提供兼容升级，请在新项目或清理旧入口后接入')
+    agents = safe(project, 'AGENTS.md')
+    entry = safe(project, 'scripts/teamflow.py')
+    for path in (agents, entry, manifest_path, safe(project, 'requirements')):
+        if path.exists() and path not in (agents, entry, manifest_path) and not path.is_dir():
+            raise ValueError('接入目标类型不正确：' + str(path.relative_to(project)))
+    current = agents.read_text() if agents.exists() else ''
+    return {
+        'AGENTS.md': agents_content(current).encode(),
+        'scripts/teamflow.py': ENTRY.encode(),
+        '.agents/teamflow.json': (json.dumps({'schema_version': 2, 'skill': 'ios-team-flow',
+                                              'version': version, 'instruction_file': 'AGENTS.md'},
+                                             ensure_ascii=False, indent=2) + '\n').encode(),
+    }
 
 
 def setup(project, skill, dry_run=False):
     project = project.expanduser().resolve()
-    skill = skill.resolve()
-    local_skill = project / '.agents/skills/ios-team-flow'
-    if skill != local_skill or any(node.is_symlink() for node in
-                                   (local_skill, local_skill.parent, local_skill.parent.parent)):
-        raise ValueError('请先将完整 Skill 放入目标项目的 .agents/skills/ios-team-flow，再运行该项目内的接入脚本')
-    version = (skill / 'references/VERSION').read_text().strip()
-    version_tuple(version)
-    manifest_name = '.agents/teamflow.json'
-    gate_name = 'scripts/review_gate.py'
-    override = project / 'AGENTS.override.md'
-    if override.is_symlink():
-        raise ValueError('AGENTS.override.md 不能为符号链接')
-    agents_name = 'AGENTS.override.md' if override.exists() and override.stat().st_size > 0 else 'AGENTS.md'
-    names = (manifest_name, gate_name, agents_name)
-    conflicts = []
-    for name in (*names, 'requirements', 'logs/reviews', '.agents/teamflow-backups'):
-        path = project / name
-        for node in (path, *path.parents):
-            if node == project:
-                break
-            if node.is_symlink():
-                conflicts.append(name + ' 路径包含符号链接')
-        for parent in path.parents:
-            if parent == project:
-                break
-            if parent.exists() and not parent.is_dir():
-                conflicts.append(name + ' 的父路径不是目录')
-        if path.exists() and (not path.is_file() if name in names else not path.is_dir()):
-            conflicts.append(name + ' 类型不正确')
-    if conflicts:
-        raise ValueError('接入前预检发现冲突，未写入文件：\n' + '\n'.join(sorted(set(conflicts))))
-    for journal in (project / '.agents/teamflow-backups').glob('upgrade-*/transaction.json'):
-        if json.loads(journal.read_text()).get('state') == 'prepared':
-            raise ValueError('发现中断的接入，请先使用 --recover ' + str(journal))
-    before = {name: (project / name).read_bytes() if (project / name).exists() else None
-              for name in names}
-    manifest = {}
-    baseline = {}
-    if before[manifest_name] is not None:
-        try:
-            manifest = json.loads(before[manifest_name])
-            if not isinstance(manifest, dict) or manifest.get('skill') != 'ios-team-flow':
-                raise ValueError('不是 ios-team-flow 的项目记录')
-            if version_tuple(manifest.get('version')) > version_tuple(version):
-                raise ValueError('不自动降级，请恢复匹配版本的 Skill')
-            if 'managed' in manifest:
-                baseline = manifest['managed']
-                if (manifest.get('schema_version') != 1 or not isinstance(baseline, dict)
-                        or set(baseline) != {'agents_block', 'gate_entry'}
-                        or any(not isinstance(v, str) or not re.fullmatch(r'[0-9a-f]{64}', v)
-                               for v in baseline.values())):
-                    raise ValueError('托管基线无效，请从项目 Git 历史恢复接入记录')
-            elif manifest.get('version') == '1.2.1':
-                baseline = LEGACY_121
-            else:
-                raise ValueError('旧接入记录没有可识别的基线，请先人工核对托管文件')
-        except (ValueError, TypeError) as error:
-            raise ValueError('接入前预检发现冲突，未写入文件：' + manifest_name + '：' + str(error)) from error
-    old = before[agents_name].decode() if before[agents_name] is not None else ''
-    updated = old
-    if START in old or END in old:
-        if old.count(START) != 1 or old.count(END) != 1 or old.index(START) >= old.index(END):
-            conflicts.append('AGENTS.md 托管标记缺失、重复或顺序错误，请恢复成对标记')
-        else:
-            start, end = old.index(START), old.index(END) + len(END)
-            current = old[start:end]
-            if digest(BLOCK.strip()) == baseline.get('agents_block'):
-                pass  # 新版未改此区块，保留团队定制。
-            elif current != BLOCK.strip() and digest(current) != baseline.get('agents_block'):
-                conflicts.append('AGENTS.md 托管区块有团队修改，请合并到新版区块；区块外规则会保留')
-            else:
-                updated = old[:start] + BLOCK.strip() + old[end:]
-    elif baseline and manifest.get('instruction_file', 'AGENTS.md') == agents_name:
-        conflicts.append(agents_name + ' 托管区块已被移除，请恢复后重试')
-    else:
-        updated = old + ('\n\n' if old else '') + BLOCK
-    current_gate = before[gate_name]
-    desired_gate = GATE_ENTRY.encode()
-    if current_gate is not None:
-        if digest(GATE_ENTRY) == baseline.get('gate_entry'):
-            desired_gate = current_gate  # 新版入口未变，保留团队定制。
-        elif current_gate != GATE_ENTRY.encode() and hashlib.sha256(current_gate).hexdigest() != baseline.get('gate_entry'):
-            conflicts.append(gate_name + ' 有团队修改或来源未知，请合并新版入口后重试')
-    elif baseline:
-        conflicts.append(gate_name + ' 已被移除，请恢复后重试')
-    if conflicts:
-        raise ValueError('接入前预检发现冲突，未写入文件：\n' + '\n'.join(conflicts))
-    # 保留接入记录中的其他团队字段，只更新本工具拥有的字段。
-    manifest.update(skill='ios-team-flow', version=version, schema_version=1, instruction_file=agents_name,
-                    managed={'agents_block': digest(BLOCK.strip()), 'gate_entry': digest(GATE_ENTRY)})
-    planned = {manifest_name: (json.dumps(manifest, ensure_ascii=False, indent=2) + '\n').encode(),
-               gate_name: desired_gate, agents_name: updated.encode()}
-    changed = {name: data for name, data in planned.items() if data != before[name]}
+    planned = plan(project, skill)
     if dry_run:
         return planned
-    backup = apply_transaction(project, changed, before)
-    for name in ('requirements', 'logs/reviews'):
-        (project / name).mkdir(parents=True, exist_ok=True)
-    print('项目已接入 ios-team-flow ' + version + '：' + str(project))
-    if backup:
-        print('升级前文件备份：' + str(backup))
+    for name, data in planned.items():
+        target = safe(project, name)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
+    safe(project, 'requirements').mkdir(exist_ok=True)
+    print('项目已接入 ios-team-flow vNext：' + str(project))
 
 
 def diagnose(project):
-    """只读诊断；不初始化 Git、不修改忽略规则或 Hook、不执行项目配置命令。"""
     project = project.expanduser().resolve()
     items = []
-    def item(name, status, detail):
-        items.append({'item': name, 'status': status, 'detail': detail})
-    item('Python', '就绪' if sys.version_info >= (3, 10) else '需处理', sys.version.split()[0])
+    def add(name, ready, detail):
+        items.append({'item': name, 'status': '就绪' if ready else '需处理', 'detail': detail})
+    add('Python', sys.version_info >= (3, 10), sys.version.split()[0])
     try:
-        result = subprocess.run(['git', '-C', str(project), 'rev-parse', '--show-toplevel'], capture_output=True, text=True)
-        has_git = result.returncode == 0 and Path(result.stdout.strip()).resolve() == project
-    except OSError:
-        has_git = False
-    item('Git 根目录', '就绪' if has_git else '需处理', '已在根目录' if has_git else '首次需求收尾前确认根目录并初始化 Git；不能嵌套')
+        top = subprocess.check_output(['git', '-C', str(project), 'rev-parse', '--show-toplevel'], text=True).strip()
+        git_ready = Path(top).resolve() == project
+    except (OSError, subprocess.CalledProcessError):
+        git_ready = False
+    add('Git 根目录', git_ready, '项目根必须是 Git 根')
     try:
-        record = json.loads((project / '.agents/teamflow.json').read_text())
+        manifest = json.loads((project / '.agents/teamflow.json').read_text())
         version = (project / '.agents/skills/ios-team-flow/references/VERSION').read_text().strip()
-        ready = record['version'] == version and (project / record['instruction_file']).is_file() and (project / 'scripts/review_gate.py').is_file()
-        item('Skill 与入口', '就绪' if ready else '需处理', '版本 ' + version)
-    except (OSError, ValueError, KeyError, TypeError):
-        item('Skill 与入口', '需处理', '缺失或版本记录无效；执行项目接入')
-    config = project / '.agents/project-checks.json'
-    if config.exists():
-        try:
-            spec = importlib.util.spec_from_file_location('doctor_checks', Path(__file__).with_name('project_checks.py'))
-            module = importlib.util.module_from_spec(spec)
-            previous = sys.dont_write_bytecode
-            try:
-                sys.dont_write_bytecode = True
-                spec.loader.exec_module(module)
-            finally:
-                sys.dont_write_bytecode = previous
-            profiles = module.load_config(project)['profiles']
-            item('项目验证', '就绪' if profiles else '待配置', ', '.join(profiles) if profiles else '填入实际构建/测试命令，空配置不能验证')
-        except (OSError, ValueError, KeyError, TypeError):
-            item('项目验证', '需处理', '验证配置无效；检查项目路径和 profile')
-    else:
-        item('项目验证', '待配置', '业务实现前从实际工程配置 project_checks；新工程创建后补齐')
-    samples = ['.agents/skills/ios-team-flow/scripts/__pycache__/probe.pyc', '.agents/teamflow-backups/probe', 'DerivedData/probe']
-    ignored = False
-    if has_git:
-        result = subprocess.run(['git', '-C', str(project), 'check-ignore', '--no-index', '--stdin'],
-                                input='\n'.join(samples) + '\n', capture_output=True, text=True)
-        ignored = set(result.stdout.splitlines()) == set(samples)
-    item('生成物忽略', '就绪' if ignored else '建议检查', '工具自身缓存已排除；按既有 .gitignore 合并缓存、备份和实际构建输出规则')
-    hook = project / '.git/hooks/pre-commit'
-    if has_git:
-        configured = subprocess.run(['git', '-C', str(project), 'config', '--get', 'core.hooksPath'], capture_output=True, text=True)
-        if configured.returncode == 0:
-            hook = project / configured.stdout.strip() / 'pre-commit'
-        else:
-            git_path = subprocess.run(['git', '-C', str(project), 'rev-parse', '--git-path', 'hooks/pre-commit'], capture_output=True, text=True)
-            if git_path.returncode == 0:
-                hook = project / git_path.stdout.strip()
-    item('本地 Hook（可选）', '存在' if hook.is_file() else '未安装', '存在不等于已接入 TeamFlow；按 GIT-CHECKS 保留既有 Hook')
-    item('Xcode', '可找到工具' if shutil.which('xcodebuild') else '未找到工具', '仅检测工具入口，不代表 App 已构建或 Scheme 可用')
-    report = {'project': str(project), 'checks': items, 'needs_action': any(i['status'] in ('需处理', '待配置') for i in items)}
+        entry_ready = (manifest.get('schema_version') == 2 and manifest.get('version') == version
+                       and (project / 'scripts/teamflow.py').is_file())
+    except (OSError, ValueError, TypeError):
+        entry_ready = False
+        version = '未知'
+    add('Skill 与入口', entry_ready, '版本 ' + version)
+    add('项目验证', (project / '.agents/project-checks.json').is_file(),
+        '工程就绪后配置实际构建/测试命令')
+    add('Xcode', bool(shutil.which('xcodebuild')), '只检查工具入口')
+    report = {'project': str(project), 'checks': items,
+              'needs_action': any(item['status'] == '需处理' for item in items)}
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return report
 
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--project', required=True, type=Path)
-    parser.add_argument('--plan', action='store_true', help='只输出接入计划，不写入文件')
-    parser.add_argument('--doctor', action='store_true', help='只读诊断接入与验证就绪情况')
-    parser.add_argument('--recover', type=Path, help='恢复本项目 transaction.json 中的接入前托管文件')
+    parser.add_argument('--plan', action='store_true')
+    parser.add_argument('--doctor', action='store_true')
     args = parser.parse_args()
     try:
-        if sum((args.doctor, args.plan, bool(args.recover))) > 1:
-            raise ValueError('--doctor、--plan、--recover 不能组合')
         if args.doctor:
+            if args.plan:
+                raise ValueError('--doctor 与 --plan 不能组合')
             diagnose(args.project)
-        elif args.recover:
-            recover(args.project, args.recover)
         else:
-            planned = setup(args.project, Path(__file__).resolve().parents[1], dry_run=args.plan)
+            planned = setup(args.project, Path(__file__).resolve().parents[1], args.plan)
             if args.plan:
                 print(json.dumps({name: base64.b64encode(data).decode() for name, data in planned.items()}))
             else:
                 diagnose(args.project)
-    except (ValueError, OSError, KeyError, TypeError) as error:
+    except (ValueError, OSError, KeyError, TypeError, subprocess.CalledProcessError) as error:
         parser.exit(1, str(error) + '\n')
+
+
+if __name__ == '__main__':
+    main()

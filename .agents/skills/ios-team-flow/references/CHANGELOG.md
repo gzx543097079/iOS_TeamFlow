@@ -1,5 +1,14 @@
 # 版本记录
 
+## 3.0.0
+
+- 断代改为单人 + Codex 工作流，主路径只保留需求分析、单卡跟踪、实施、一次验证和完成。
+- 新增统一 `teamflow.py`，使用可读递增需求编号；删除 delivery、review receipt、Hook 和旧版升级兼容入口。
+- 新 App 模板拆分为启动与功能阶段；发布规则只有在用户明确提出具体 App 外部动作时加载。
+- commit、push、PR、标签、GitHub Release、Archive、TestFlight、审核、发布和下架均改为独立显式授权。
+- 普通 TestFlight 上传默认省略 `testFlightInternalTestingOnly`；只有明确要求仅内部测试时才启用该不可用于外部测试或 App Store 的限制选项。
+- 明确目标动作后自动执行尚缺的最小必要前置；可选参数与目标之后的动作仍需另行明确。
+
 ## 2.4.0
 
 - 提交 SHA、提交数量和交付概览改为从 Requirement trailer 与当前卡片动态查询，移除提交后固定 finish、派生 `requirements/DELIVERY.md` 及纯归档提交链路。

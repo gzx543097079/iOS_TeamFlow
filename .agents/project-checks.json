@@ -19,12 +19,46 @@
       ],
       "cwd": ".",
       "timeout_seconds": 900
+    },
+    "workflow-tests": {
+      "argv": [
+        "python3",
+        "scripts/run_workflow_checks.py",
+        "--full"
+      ],
+      "cwd": ".",
+      "timeout_seconds": 900
+    },
+    "workflow-package": {
+      "argv": [
+        "python3",
+        "scripts/package_release.py"
+      ],
+      "cwd": ".",
+      "timeout_seconds": 300
     }
   },
   "profiles": {
     "ios-demo": [
       "ios-demo",
       "ios-demo-release"
+    ],
+    "workflow": [
+      "workflow-tests",
+      "workflow-package"
+    ]
+  },
+  "profile_inputs": {
+    "workflow": [
+      ".agents/skills/ios-team-flow",
+      ".agents/teamflow.json",
+      ".github",
+      ".gitignore",
+      "AGENTS.md",
+      "README.md",
+      "scripts",
+      "tests",
+      "requirements"
     ]
   },
   "inputs": [

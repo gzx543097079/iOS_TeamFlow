@@ -24,7 +24,7 @@
 
 - [AGENTS.md 自定义指令](https://learn.chatgpt.com/docs/agent-configuration/agents-md)：根到工作目录的发现与覆盖机制，入口保持精简。
 - [Build skills](https://learn.chatgpt.com/docs/build-skills)：项目 `.agents/skills` 与 SKILL.md 的 name/description 元数据，按需读取详细规范。
-- 官方机制只负责加载指令，不自动提供本包需求状态机、Git hook 或语义 review 证明；这些由流程和工具补充。
+- 官方机制只负责加载指令，不自动提供本包需求状态机、验证绑定或外部动作授权；这些由流程和工具补充。
 
 ## Apple 与语言官方资料
 

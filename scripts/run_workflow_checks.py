@@ -13,13 +13,10 @@ SKILL = '.agents/skills/ios-team-flow/'
 DOCUMENTS = 'test_workflow.WorkflowTests.test_repository_documents'
 TEMPLATE = 'test_workflow.WorkflowTests.test_requirement_template_links_at_destination'
 TOOLS = {
-    'project_checks.py': ['test_project_checks', 'test_delivery', 'test_workflow', 'test_consumer_release', 'test_scenarios'],
-    'delivery.py': ['test_delivery', 'test_workflow', 'test_consumer_release'],
-    'review_gate.py': ['test_workflow', 'test_git_checks', 'test_consumer_release', 'test_scenarios'],
-    'install_git_checks.py': ['test_git_checks', 'test_workflow', 'test_consumer_release'],
+    'project_checks.py': ['test_project_checks', 'test_teamflow', 'test_workflow', 'test_consumer_release'],
+    'teamflow.py': ['test_teamflow', 'test_workflow', 'test_consumer_release'],
     'module_context.py': ['test_module_context', 'test_workflow', 'test_consumer_release'],
-    'setup_project.py': ['test_workflow', 'test_setup_recovery', 'test_skill_upgrade', 'test_consumer_release', 'test_scenarios'],
-    'upgrade_skill.py': ['test_workflow', 'test_setup_recovery', 'test_skill_upgrade', 'test_consumer_release'],
+    'setup_project.py': ['test_workflow', 'test_consumer_release'],
 }
 
 
@@ -29,7 +26,8 @@ def select_checks(paths):
         # 记录按目录职责与格式识别，不解析需求编号或维护每个日志子目录的清单。
         # 可执行脚本及未知格式仍进入下方公共/未知变化的全量回退。
         if ((path.startswith('requirements/') and Path(path).suffix in ('.md', '.json'))
-                or (path.startswith('logs/') and Path(path).suffix in ('.md', '.json', '.patch', '.log'))):
+                or (path.startswith('logs/') and Path(path).suffix in ('.md', '.json', '.patch', '.log'))
+                or (path.startswith('releases/') and Path(path).suffix == '.md')):
             continue
         if path in ('AGENTS.md', 'README.md', SKILL + 'SKILL.md'):
             continue
@@ -38,9 +36,9 @@ def select_checks(paths):
                 selected.update([TEMPLATE, 'test_scenarios', 'test_consumer_release'])
             continue
         name = path.removeprefix(SKILL + 'scripts/')
-        if path == 'scripts/review_gate.py':
-            name = 'review_gate.py'
-        if name in TOOLS and (path.startswith(SKILL + 'scripts/') or path == 'scripts/review_gate.py'):
+        if path == 'scripts/teamflow.py':
+            name = 'teamflow.py'
+        if name in TOOLS and (path.startswith(SKILL + 'scripts/') or path == 'scripts/teamflow.py'):
             selected.update(TOOLS[name])
             continue
         # 未知文件、测试/CI/打包及版本变化都执行全量，避免遗漏跨模块依赖。

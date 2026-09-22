@@ -1,10 +1,7 @@
 {
   "skill": "ios-team-flow",
-  "version": "2.4.0",
-  "schema_version": 1,
+  "version": "3.0.0",
+  "schema_version": 2,
   "instruction_file": "AGENTS.md",
-  "managed": {
-    "agents_block": "2ed1594fbeb374590c3ecd0cca48910b7f86726acc3204ce1634d5a58e6f9a8e",
-    "gate_entry": "1c6e0ee2a0554883d7fd1ce35b4f93a3dccb3d4a7aabe9aa8fecabdd9124db94"
-  }
+  "workflow": "single-user-explicit-actions"
 }

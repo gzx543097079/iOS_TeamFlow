@@ -56,12 +56,12 @@ def load_config(root):
 
 
 # 自动生成的证据不参与源码指纹，避免报告写入令自身失效。
-EVIDENCE_DIRS = ('logs/project-checks/', 'logs/reviews/', '.agents/teamflow-backups/', 'requirements/delivery/')
+EVIDENCE_DIRS = ('logs/project-checks/', '.agents/teamflow-backups/', 'releases/')
 
 
 def excluded_input(name):
     parts = Path(name).parts
-    return (name == 'requirements/DELIVERY.md' or name.startswith(EVIDENCE_DIRS) or any(p in ('.git', '__pycache__', '.build', 'DerivedData')
+    return (name.startswith(EVIDENCE_DIRS) or any(p in ('.git', '__pycache__', '.build', 'DerivedData')
             or p.endswith('.xcresult') for p in parts) or Path(name).suffix in ('.pyc', '.pyo'))
 
 
@@ -99,23 +99,22 @@ def input_paths(root, inputs=None, candidates=None):
 
 
 def content_for_snapshot(name, content):
-    """需求卡只绑定产品条件，状态/结果/历史由需求及审查语义核对，避免验收自引用。"""
+    """需求卡只绑定范围和 AC；状态、验证与异常记录不令既有测试自失效。"""
     if not (name.startswith('requirements/REQ-') and name.endswith('.md')):
         return content
     text = content.decode('utf-8')
-    if '<!-- teamflow:requirement:v' not in text:
+    if '<!-- teamflow:requirement:vnext -->' not in text:
         return content
     lines = []
-    history = False
+    ignored_section = False
     for line in text.splitlines():
         if line.startswith('## '):
-            history = line.startswith('## 过程与决策')
-        if history or re.match(r'^- (状态|下一步|阻塞项|团队确认|暂停或取消原因)：', line):
+            ignored_section = line in ('## 验证', '## 决策与异常')
+        if ignored_section or re.match(r'^- 状态：', line):
             continue
-        if re.match(r'^\|\s*AC-', line):
-            cells = [c.strip() for c in line.strip().strip('|').split('|')]
-            if len(cells) == 4:
-                line = '| ' + cells[0] + ' | ' + cells[1] + ' |'
+        match = re.match(r'^- \[[ xX]\] (AC-\d+：.+)$', line)
+        if match:
+            line = '- ' + match.group(1)
         lines.append(line)
     return ('\n'.join(lines) + '\n').encode('utf-8')
 
@@ -145,7 +144,7 @@ def source_snapshot(root, config, profile=None, staged=False):
         if excluded_input(name):
             continue
         # 默认业务验证忽略需求管理记录；文档验证可通过 inputs 显式纳入。
-        if inputs is None and name.startswith('requirements/') and Path(name).suffix in ('.md', '.json'):
+        if inputs is None and name.startswith('requirements/') and Path(name).suffix == '.md':
             continue
         path = local_path(root, name)
         if staged:
