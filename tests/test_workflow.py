@@ -12,6 +12,8 @@ import validate_workflow
 
 
 class WorkflowTests(unittest.TestCase):
+    VALIDATION_SEQUENCE = '完成全部改动 → 环境预检 → 针对性测试 → 文件冻结 → 一次完整验证 → 目标交付'
+
     def test_repository_documents_and_distribution_manifest(self):
         validate_workflow.validate(ROOT)
         names = set(package_release.FILES)
@@ -41,6 +43,17 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn('testFlightInternalTestingOnly', app_release)
         self.assertIn('可选上传参数', app_release)
 
+    def test_frozen_input_validation_sequence_is_distributed(self):
+        paths = (
+            ROOT / package_release.SKILL / 'SKILL.md',
+            ROOT / package_release.SKILL / 'references/WORKFLOW.md',
+            ROOT / package_release.SKILL / 'references/PROJECT-CHECKS.md',
+            ROOT / package_release.SKILL / 'scripts/setup_project.py',
+            ROOT / 'README.md',
+        )
+        for path in paths:
+            self.assertIn(self.VALIDATION_SEQUENCE, path.read_text(), path)
+
     def test_setup_fresh_project_and_rejects_old_schema(self):
         with tempfile.TemporaryDirectory() as directory:
             project = Path(directory)
@@ -56,6 +69,7 @@ class WorkflowTests(unittest.TestCase):
             self.assertTrue((project / 'scripts/teamflow.py').is_file())
             self.assertTrue((project / 'requirements').is_dir())
             self.assertFalse((project / 'logs/reviews').exists())
+            self.assertIn(self.VALIDATION_SEQUENCE, (project / 'AGENTS.md').read_text())
             help_result = subprocess.run([sys.executable, str(project / 'scripts/teamflow.py'), '--help'],
                                          capture_output=True, text=True)
             self.assertEqual(0, help_result.returncode, help_result.stderr)

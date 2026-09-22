@@ -28,6 +28,8 @@ PROJECT_ROOT 是当前 Git 根及其目录树；只使用本项目内的 Skill�
 
 问答、检查和只读分析不建需求。开发变更使用 `python3 scripts/teamflow.py req create --title "标题"` 建立唯一需求卡；同一需求续接原卡。需求完成不自动授权 Git 或 App 外部动作。
 
+有实现与交付的任务默认按固定顺序执行：完成全部改动 → 环境预检 → 针对性测试 → 文件冻结 → 一次完整验证 → 目标交付。完整验证前先同步本次代码、测试、文档、配置、版本和需求范围；完整验证后如其输入变化，原证据失效并重新执行，不为了凑“一次”沿用旧结果。详细规则见 [PROJECT-CHECKS](references/PROJECT-CHECKS.md)。
+
 任何外部或共享状态写入都必须由用户明确指出目标动作。目标动作若客观依赖尚未完成的前置步骤，自动执行最小必要前置，不再逐项索要授权；例如发布当前 GitHub Release 可补齐验证、commit、push 和标签。目标授权不向后续动作、可选配置或相邻动作扩张：commit 不自动 push，push 不自动创建 PR，PR 不自动合并，TestFlight 上传不自动分发，审核不自动发布。无法确定目标、前置需要额外业务选择或会越出当前范围时停止并询问。
 
 “上传 TestFlight”本身不授权启用 `TestFlight Internal Only`。只有用户明确要求“仅内部测试”或明确点名该选项时，才允许将 ExportOptions 的 `testFlightInternalTestingOnly` 设为 `true`；否则必须省略该键。
