@@ -68,7 +68,7 @@
 		1BADF842591C2CC152224C69 /* libPods-TeamFlowDemoTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-TeamFlowDemoTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1DE7F77E855302AF2F3F1BF2 /* DemoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoViewController.swift; sourceTree = "<group>"; };
 		254C9AC74E7604512C0B6A29 /* DemoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoTests.swift; sourceTree = "<group>"; };
-		26438125DF437720EC7EC938 /* TeamFlowDemo.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = TeamFlowDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		26438125DF437720EC7EC938 /* TeamFlowDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TeamFlowDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		271CCE30335D3E9061CD03FA /* ProductViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductViewController.swift; sourceTree = "<group>"; };
 		2B3EA7FFCBEC3C6E49C83D45 /* DemoViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoViewModel.swift; sourceTree = "<group>"; };
 		2CEE4D952E592FFB49F1D627 /* DemoCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoCoordinator.swift; sourceTree = "<group>"; };
@@ -84,7 +84,7 @@
 		6E026A2EC8B9E92C189E873C /* MasonryLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasonryLayout.swift; sourceTree = "<group>"; };
 		7A05920A630CFE1229D6DF5C /* TeamFlowDemoUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TeamFlowDemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7AE0BE6F02E518861E9F3175 /* TeamFlowDemo-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "TeamFlowDemo-Bridging-Header.h"; sourceTree = "<group>"; };
-		7E73A8EF27AF0F19B7418A01 /* TeamFlowDemoTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TeamFlowDemoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		7E73A8EF27AF0F19B7418A01 /* TeamFlowDemoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TeamFlowDemoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		852485F295D2AC51AA1CBE68 /* BagViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BagViewController.swift; sourceTree = "<group>"; };
 		90446E01AC1A315456995579 /* ProductCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductCard.swift; sourceTree = "<group>"; };
 		91D90813EFAA8D6AAFB24179 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -227,7 +227,6 @@
 				5EAF9101B8966A1E8E58DFA3 /* Pods-TeamFlowDemoTests.debug.xcconfig */,
 				B43A8BF06E9B2665C22C1FEF /* Pods-TeamFlowDemoTests.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -646,7 +645,9 @@
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = C8TZB8JGML;
 				INFOPLIST_FILE = Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -743,7 +744,9 @@
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = C8TZB8JGML;
 				INFOPLIST_FILE = Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
