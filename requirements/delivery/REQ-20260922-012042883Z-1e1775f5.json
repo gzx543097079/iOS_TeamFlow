@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "requirement": "REQ-20260922-012042883Z-1e1775f5",
+  "linked_commits": [],
+  "prs": [],
+  "events": [
+    {
+      "at": "2026-09-22T01:21:29.097384+00:00",
+      "action": "finish",
+      "changes": {
+        "commits": [],
+        "committed": false,
+        "merged": "未核实",
+        "releases": [],
+        "release_status": "未核实",
+        "prs": [],
+        "warnings": [
+          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+        ],
+        "development": "✅ 执行完成",
+        "card": {
+          "state": "✅ 执行完成",
+          "passed": 2,
+          "applicable": 2,
+          "next": "无",
+          "blocker": "无",
+          "acceptance_fingerprint": "bbefa29e1bbee6ad39551bab57941af9191c75e57773a542f3856d46d0f169ba",
+          "implementation_fingerprint": "6d46636dc4697f021a5b1b19c3c9d2b3dae97af029c273850bc131d831e8fca7"
+        },
+        "checked_at": "2026-09-22T01:21:29.096969+00:00"
+      },
+      "removed": []
+    }
+  ],
+  "acceptance_baseline": {
+    "implementation_fingerprint": "6d46636dc4697f021a5b1b19c3c9d2b3dae97af029c273850bc131d831e8fca7",
+    "acceptance_fingerprint": "bbefa29e1bbee6ad39551bab57941af9191c75e57773a542f3856d46d0f169ba",
+    "inputs": [
+      ".agents/skills/ios-team-flow/references/REVIEW.md"
+    ],
+    "results": [],
+    "accepted_at": "2026-09-22T01:21:29.096943+00:00"
+  },
+  "snapshot": {
+    "commits": [],
+    "committed": false,
+    "merged": "未核实",
+    "releases": [],
+    "release_status": "未核实",
+    "prs": [],
+    "warnings": [
+      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+    ],
+    "development": "✅ 执行完成",
+    "card": {
+      "state": "✅ 执行完成",
+      "passed": 2,
+      "applicable": 2,
+      "next": "无",
+      "blocker": "无",
+      "acceptance_fingerprint": "bbefa29e1bbee6ad39551bab57941af9191c75e57773a542f3856d46d0f169ba",
+      "implementation_fingerprint": "6d46636dc4697f021a5b1b19c3c9d2b3dae97af029c273850bc131d831e8fca7"
+    },
+    "checked_at": "2026-09-22T01:21:29.096969+00:00"
+  }
+}
