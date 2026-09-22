@@ -47,6 +47,30 @@
         "checked_at": "2026-09-22T02:45:15.660815+00:00"
       },
       "removed": []
+    },
+    {
+      "at": "2026-09-22T02:51:04.198489+00:00",
+      "action": "finish",
+      "changes": {
+        "commits": [
+          "28fb66503308b35f60bf62772a0a13101baba779"
+        ],
+        "committed": true,
+        "merged": "未确认全部合并",
+        "releases": [
+          {
+            "tag": "teamflow-v2.4.0",
+            "commit": "28fb66503308b35f60bf62772a0a13101baba779",
+            "url": "https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v2.4.0",
+            "published_at": "2026-09-22T02:49:46Z"
+          }
+        ],
+        "release_status": "✅ 已发布",
+        "warnings": [],
+        "github_checked_at": "2026-09-22T02:50:59.138453+00:00",
+        "checked_at": "2026-09-22T02:51:04.197111+00:00"
+      },
+      "removed": []
     }
   ],
   "acceptance_baseline": {
@@ -62,18 +86,29 @@
       "logs/workflow-simplification/10-validation.md"
     ],
     "results": [],
-    "accepted_at": "2026-09-22T02:45:15.660597+00:00"
+    "accepted_at": "2026-09-22T02:45:15.660597+00:00",
+    "sealed_commits": [
+      "28fb66503308b35f60bf62772a0a13101baba779"
+    ],
+    "accepted_commit": "28fb66503308b35f60bf62772a0a13101baba779"
   },
   "snapshot": {
-    "commits": [],
-    "committed": false,
-    "merged": "未核实",
-    "releases": [],
-    "release_status": "未核实",
-    "prs": [],
-    "warnings": [
-      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+    "commits": [
+      "28fb66503308b35f60bf62772a0a13101baba779"
     ],
+    "committed": true,
+    "merged": "未确认全部合并",
+    "releases": [
+      {
+        "tag": "teamflow-v2.4.0",
+        "commit": "28fb66503308b35f60bf62772a0a13101baba779",
+        "url": "https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v2.4.0",
+        "published_at": "2026-09-22T02:49:46Z"
+      }
+    ],
+    "release_status": "✅ 已发布",
+    "prs": [],
+    "warnings": [],
     "development": "✅ 执行完成",
     "card": {
       "state": "✅ 执行完成",
@@ -84,6 +119,7 @@
       "acceptance_fingerprint": "4457658ea1cf41fc937aa1f76379f5b3918a7a692d171899420b71b156275210",
       "implementation_fingerprint": "4dd4a0d722bad52d7a604b1adbb76b2fd7e642996c974d7984ccb1b4c9ca2573"
     },
-    "checked_at": "2026-09-22T02:45:15.660815+00:00"
+    "github_checked_at": "2026-09-22T02:50:59.138453+00:00",
+    "checked_at": "2026-09-22T02:51:04.197111+00:00"
   }
 }

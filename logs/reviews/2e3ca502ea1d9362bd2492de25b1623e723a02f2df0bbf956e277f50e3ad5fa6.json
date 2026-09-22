@@ -1,0 +1,44 @@
+{
+  "fingerprint": "2e3ca502ea1d9362bd2492de25b1623e723a02f2df0bbf956e277f50e3ad5fa6",
+  "base": "28fb66503308b35f60bf62772a0a13101baba779",
+  "scope": "staged",
+  "snapshot_tree": "16d48a2edc97f3f23d4525840a7e76fead3791be",
+  "created_at": "2026-09-22T02:51:27.561791+00:00",
+  "reviewer": "Codex",
+  "completed_at": "2026-09-22T02:52:00+00:00",
+  "summary": "归档 2.4.0 GitHub Release 外部事实；未修改实现、标签或发布附件。",
+  "previous_review": null,
+  "required_checks": [
+    "correctness",
+    "standards",
+    "test_artifacts",
+    "security"
+  ],
+  "routing_reasons": {
+    "test_artifacts": "暂存范围包含可执行脚本或运行配置"
+  },
+  "checks": {
+    "correctness": {
+      "status": "通过",
+      "evidence": "gh release view 证实 teamflow-v2.4.0 为非草稿、非预发布且已公开；远端解引用标签指向实施提交 28fb665，四个附件上传完成，ZIP 摘要与本地发布候选一致。"
+    },
+    "standards": {
+      "status": "通过",
+      "evidence": "仅在 requirements/delivery 保存无法从本地 Git 独立推导的 GitHub Release 事实；未恢复派生 DELIVERY.md，也未修改需求卡状态副本。"
+    },
+    "test_artifacts": {
+      "status": "不适用",
+      "evidence": "暂存内容仅为脱敏交付 JSON，不含生产代码、测试帐号、debug 开关、mock、临时环境或可执行内容。"
+    },
+    "security": {
+      "status": "通过",
+      "evidence": "记录只包含公开提交 SHA、标签、Release URL 与时间；未写入 GitHub token、SSH 配置、主机路径或其他凭据。"
+    }
+  },
+  "findings": [],
+  "blockers": [],
+  "requirements": [
+    "REQ-20260922-020044779Z-0a587fba"
+  ],
+  "validation_results": []
+}
