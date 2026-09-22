@@ -12,7 +12,17 @@ from pathlib import Path
 
 CATEGORIES = ('correctness', 'standards', 'subscription', 'memory', 'analytics',
               'test_artifacts', 'security')
+CORE_CATEGORIES = ('correctness', 'standards', 'security')
+OPTIONAL_CATEGORIES = tuple(name for name in CATEGORIES if name not in CORE_CATEGORIES)
 RECEIPTS = 'logs/reviews/'
+SOURCE_SUFFIXES = ('.swift', '.m', '.mm', '.h', '.c', '.cc', '.cpp', '.hpp')
+KNOWN_SUFFIXES = SOURCE_SUFFIXES + ('.md', '.txt', '.json', '.plist', '.strings', '.xcconfig',
+                                    '.pbxproj', '.xcscheme', '.yaml', '.yml', '.toml', '.lock', '.py',
+                                    '.sh', '.rb', '.js', '.ts', '.tsx', '.jsx', '.html', '.css', '.xml')
+RISK_TERMS = {
+    'subscription': ('storekit', 'subscription', 'productid', 'product_id', 'purchase', 'iap', '订阅', '购买', '商品'),
+    'analytics': ('analytics', 'tracking', 'trackevent', 'event_name', '埋点', '打点'),
+}
 
 
 def git(root, *args):
@@ -43,6 +53,40 @@ def snapshot(root):
     return base, patch, fingerprint
 
 
+def review_route(root, patch, full=False, risks=()):
+    """按暂存路径与内容选择审查维度；未知范围保守回退完整审查。"""
+    requested = set(risks)
+    if requested - set(OPTIONAL_CATEGORIES):
+        raise ValueError('未知风险维度：' + ', '.join(sorted(requested - set(OPTIONAL_CATEGORIES))))
+    names = [name for name in git(root, 'diff', '--cached', '--name-only', '-z', '--', '.',
+                                  ':(exclude)' + RECEIPTS + '**').decode().split('\0') if name]
+    required = set(CORE_CATEGORIES) | requested
+    reasons = {name: '显式指定风险维度' for name in requested}
+    unknown = len(names) > 50
+    for name in names:
+        suffix = Path(name).suffix.lower()
+        if suffix not in KNOWN_SUFFIXES and suffix not in ('.png', '.jpg', '.jpeg', '.gif', '.pdf', '.xcassets'):
+            unknown = True
+        if suffix in SOURCE_SUFFIXES:
+            required.update(('memory', 'test_artifacts'))
+            reasons.setdefault('memory', '暂存范围包含运行时源码')
+            reasons.setdefault('test_artifacts', '暂存范围包含生产源码')
+        elif suffix in ('.py', '.sh', '.rb', '.js', '.ts', '.tsx', '.jsx', '.plist', '.xcconfig',
+                        '.pbxproj', '.xcscheme', '.json'):
+            required.add('test_artifacts')
+            reasons.setdefault('test_artifacts', '暂存范围包含可执行脚本或运行配置')
+    lowered = patch.lower()
+    for category, terms in RISK_TERMS.items():
+        if any(term.encode() in lowered for term in terms):
+            required.add(category)
+            reasons.setdefault(category, '暂存差异命中' + category + '风险信号')
+    if full or unknown:
+        required = set(CATEGORIES)
+        reason = '显式要求完整审查' if full else '暂存范围包含未知类型或文件过多，保守执行完整审查'
+        reasons.update({name: reason for name in OPTIONAL_CATEGORIES})
+    return [name for name in CATEGORIES if name in required], reasons
+
+
 def report_errors(report, base, fingerprint):
     if not isinstance(report, dict):
         return ['报告必须为 JSON 对象']
@@ -55,7 +99,12 @@ def report_errors(report, base, fingerprint):
     checks = report.get('checks', {})
     if not isinstance(checks, dict):
         return errors + ['checks 必须为对象']
-    for name in CATEGORIES:
+    required = report.get('required_checks', list(CATEGORIES))
+    if (not isinstance(required, list) or not required or len(set(required)) != len(required)
+            or any(name not in CATEGORIES for name in required)
+            or any(name not in required for name in CORE_CATEGORIES)):
+        return errors + ['required_checks 必须包含全部核心维度且只能使用已知维度']
+    for name in required:
         item = checks.get(name, {})
         if not isinstance(item, dict):
             errors.append(name + ' 格式错误')
@@ -90,41 +139,49 @@ def continue_review(root, report, previous, tree):
     prior = json.loads(source.read_text())
     if not isinstance(prior, dict) or prior.get('base') != report['base']:
         raise ValueError('续审要求相同 HEAD；基准变化后重新审查')
-    patch = source.with_suffix('.patch').read_bytes()
-    if (prior.get('fingerprint') != previous
-            or hashlib.sha256(report['base'].encode() + b'\0' + patch).hexdigest() != previous):
-        raise ValueError('前次报告与快照不匹配')
     old_tree = prior.get('snapshot_tree', '')
     if not isinstance(old_tree, str) or len(old_tree) not in (40, 64) or any(c not in '0123456789abcdef' for c in old_tree):
         raise ValueError('前次报告缺少有效暂存树快照，不能续审')
     diff_args = ('diff', '--binary', '--full-index', '--no-ext-diff', '--no-textconv', '--no-renames')
     scope = ('--', '.', ':(exclude)logs/reviews/**')
-    if git(root, *diff_args, report['base'], old_tree, *scope) != patch:
+    prior_patch = git(root, *diff_args, report['base'], old_tree, *scope)
+    if (prior.get('fingerprint') != previous
+            or hashlib.sha256(report['base'].encode() + b'\0' + prior_patch).hexdigest() != previous):
         raise ValueError('前次暂存树与审查快照不匹配')
     checks = prior.get('checks')
-    if not isinstance(checks, dict) or any(not isinstance(checks.get(name), dict) for name in CATEGORIES):
-        raise ValueError('前次报告缺少七维审查材料')
+    prior_required = prior.get('required_checks', list(CATEGORIES))
+    if (not isinstance(checks, dict)
+            or any(not isinstance(checks.get(name), dict) for name in prior_required)):
+        raise ValueError('前次报告缺少所需审查材料')
     for key in ('requirements', 'validation_results', 'findings', 'blockers'):
         if not isinstance(prior.get(key), list):
             raise ValueError('前次报告缺少列表：' + key)
         report[key] = copy.deepcopy(prior[key])
-    for name in CATEGORIES:
-        report['checks'][name] = {'status': '未验证', 'evidence': checks[name].get('evidence', ''),
-                                  'previous_status': checks[name].get('status', '未验证')}
+    for name in report['required_checks']:
+        old = checks.get(name, {})
+        report['checks'][name] = {'status': '未验证', 'evidence': old.get('evidence', ''),
+                                  'previous_status': old.get('status', '未验证')}
     report['previous_review'] = previous
-    report['delta_patch'] = RECEIPTS + report['fingerprint'] + '.delta.patch'
-    (root / report['delta_patch']).write_bytes(git(root, *diff_args, old_tree, tree, *scope))
+    report['previous_tree'] = old_tree
 
 
-def prepare(root, previous=None, continue_from=None):
+def prepare(root, previous=None, continue_from=None, full=False, risks=()):
     if previous and continue_from:
         raise ValueError('归档继承与修复续审不能同时使用')
     base, patch, fingerprint = snapshot(root)
+    required, routing = review_route(root, patch, full, risks)
     directory = root / RECEIPTS
     directory.mkdir(parents=True, exist_ok=True)
     target = directory / (fingerprint + '.json')
     if target.exists():
         report = json.loads(target.read_text())
+        missing = [name for name in required if name not in report.get('required_checks', list(CATEGORIES))]
+        if missing:
+            report['required_checks'] = [name for name in CATEGORIES
+                                         if name in set(report.get('required_checks', list(CATEGORIES))) | set(required)]
+            report.setdefault('checks', {}).update({name: {'status': '未验证', 'evidence': ''} for name in missing})
+            report.setdefault('routing_reasons', {}).update(routing)
+            target.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
         print('复用已完成审查' if not report_errors(report, base, fingerprint) else '继续未完成审查')
     else:
         report = {
@@ -132,7 +189,8 @@ def prepare(root, previous=None, continue_from=None):
             'snapshot_tree': git(root, 'write-tree').decode().strip(),
             'created_at': datetime.now(timezone.utc).isoformat(),
             'reviewer': '', 'completed_at': '', 'summary': '', 'previous_review': None,
-            'checks': {name: {'status': '未验证', 'evidence': ''} for name in CATEGORIES},
+            'required_checks': required, 'routing_reasons': routing,
+            'checks': {name: {'status': '未验证', 'evidence': ''} for name in required},
             'findings': [], 'blockers': [], 'requirements': [], 'validation_results': []
         }
         if continue_from:
@@ -152,20 +210,22 @@ def prepare(root, previous=None, continue_from=None):
                 raise ValueError('前次报告不覆盖当前 HEAD，不能自动继承')
             report['previous_review'] = previous
             report['requirements'] = prior.get('requirements', [])
-            for category in CATEGORIES:
-                if category not in ('correctness', 'security'):
-                    report['checks'][category] = {'status': prior['checks'][category]['status'],
-                        'evidence': '复用 ' + previous + ' 的 ' + category + '；仅生成记录归档，无业务变化。'}
+            for category in report['required_checks']:
+                if category not in CORE_CATEGORIES:
+                    old = prior.get('checks', {}).get(category)
+                    if old:
+                        report['checks'][category] = {'status': old['status'],
+                            'evidence': '复用 ' + previous + ' 的 ' + category + '；仅生成记录归档，无业务变化。'}
         # 不覆盖已有报告；并发创建同一指纹时由后续调用续接。
         with target.open('x') as stream:
             json.dump(report, stream, ensure_ascii=False, indent=2)
             stream.write('\n')
         print('需要 Codex 审查并填写报告')
-    (directory / (fingerprint + '.patch')).write_bytes(patch)
     unstaged = bool(git(root, 'diff', '--name-only', '-z'))
     untracked = len(list(filter(None, git(root, 'ls-files', '--others', '--exclude-standard', '-z').split(b'\0'))))
     print(json.dumps({'fingerprint': fingerprint, 'report': str(target),
-                      'patch': str(directory / (fingerprint + '.patch')),
+                      'snapshot_tree': report.get('snapshot_tree'), 'required_checks': report.get('required_checks'),
+                      'diff_command': 'git diff --cached --binary -- . ":(exclude)logs/reviews/**"',
                       'unstaged_changes': unstaged, 'untracked_count': untracked}, ensure_ascii=False))
     return target
 
@@ -182,6 +242,10 @@ def check(root):
     except subprocess.CalledProcessError as error:
         raise ValueError('缺少已暂存的审查报告；完成报告后 git add ' + name) from error
     errors = report_errors(report, base, fingerprint)
+    expected, _ = review_route(root, patch)
+    reported = report.get('required_checks', list(CATEGORIES))
+    if isinstance(reported, list) and not set(expected) <= set(reported):
+        errors.append('报告缺少自动风险路由维度：' + ', '.join(name for name in expected if name not in reported))
     if report.get('scope') != 'staged':
         errors.append('提交报告 scope 必须为 staged')
     if errors:
@@ -210,12 +274,15 @@ def main():
     continuation = parser.add_mutually_exclusive_group()
     continuation.add_argument('--previous', help='仅归档记录时复用已提交的完成报告')
     continuation.add_argument('--continue-from', help='修复后携带同一 HEAD 下的前次材料并生成差量；需要重新确认')
+    parser.add_argument('--full', action='store_true', help='prepare 时显式执行完整七维审查')
+    parser.add_argument('--risk', action='append', choices=OPTIONAL_CATEGORIES, default=[],
+                        help='prepare 时显式增加风险维度；可重复')
     args = parser.parse_args()
     try:
         if args.command == 'prepare':
-            prepare(repo_root(), args.previous, args.continue_from)
-        elif args.previous or args.continue_from:
-            raise ValueError('--previous / --continue-from 仅用于 prepare')
+            prepare(repo_root(), args.previous, args.continue_from, args.full, args.risk)
+        elif args.previous or args.continue_from or args.full or args.risk:
+            raise ValueError('--previous / --continue-from / --full / --risk 仅用于 prepare')
         else:
             check(repo_root())
     except (ValueError, OSError, subprocess.CalledProcessError) as error:

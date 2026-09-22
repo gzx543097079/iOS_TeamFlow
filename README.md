@@ -1,6 +1,6 @@
 # iOS TeamFlow
 
-项目级中文 iOS 团队工作流，支持 Objective-C、Swift、SwiftUI、UI 规范、需求追踪、验证、提交审查和交付记录。当前版本为 **2.3.4**。完整规则只维护在项目 `.agents/skills/ios-team-flow/`，团队克隆后共用。
+项目级中文 iOS 团队工作流，支持 Objective-C、Swift、SwiftUI、UI 规范、需求追踪、验证、提交审查和交付记录。当前版本为 **2.4.0**。完整规则只维护在项目 `.agents/skills/ios-team-flow/`，团队克隆后共用。
 
 ## 先看你属于哪种情况
 
@@ -37,9 +37,9 @@ git init
 
 ### 2. 放入完整 Skill
 
-当前版本为 2.3.4：明确接入项目空间的操作边界，并规定任务必需开发工具的默认安装与失败提示。大型已有项目可通过 `.agents/project-modules.json` 和 `module_context.py` 执行模块路由、Git 增量检查和受控基准刷新。商城 Demo 仅保留在源码仓库，不进入分发包。
+当前正式版本为 2.4.0：审查按风险路由且只保存 JSON 回执，提交关联与概览动态读取 Git，并增加低风险轻量卡。大型已有项目可通过 `.agents/project-modules.json` 和 `module_context.py` 执行模块路由、Git 增量检查和受控基准刷新。商城 Demo 仅保留在源码仓库，不进入分发包。
 
-从 [2.3.4 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v2.3.4) 下载 `ios-team-flow-skill-v2.3.4.zip`，解压后把完整的 `ios-team-flow` 文件夹放到 `.agents/skills/`。
+从 [2.4.0 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v2.4.0) 下载 `ios-team-flow-skill-v2.4.0.zip`，解压后把完整的 `ios-team-flow` 文件夹放到 `.agents/skills/`。
 
 最终必须是 `.agents/skills/ios-team-flow/SKILL.md`，不要只复制 SKILL.md，也不要多套一层同名文件夹。Finder 按 `Command + Shift + .` 显示隐藏文件夹。
 
@@ -53,7 +53,7 @@ MyApp/
             └── scripts/
 ```
 
-已有同名 Skill 时先比较版本和定制，按升级流程处理。业务项目使用上述独立 Skill 包；`iOS-TeamFlow-v2.3.0.zip` 是带源仓库测试和发布流水线的完整分发包。
+已有同名 Skill 时先比较版本和定制，按升级流程处理。业务项目使用上述独立 Skill 包；`iOS-TeamFlow-v2.4.0.zip` 是带源仓库测试和发布流水线的完整分发包。
 
 ### 3. 接入项目并查看诊断
 
@@ -99,14 +99,14 @@ Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/refer
 
 需求编号采用 `REQ-YYYYMMDD-HHMMSSmmmZ-随机码`，文件名按 UTC 创建时间排序。用 `delivery.py list` 查看序号、时间、标题和状态，`list --reverse` 查看最新需求；序号仅用于浏览，引用始终使用固定编号。
 
-提出需求 → 一次确定范围与 AC（验收条件）→ 实施和验证 → 更新验收记录并绑定证据 → 最终提交门禁 → 授权交付后同步事实。
+提出需求 → 一次确定范围与 AC（验收条件）→ 实施和验证 → 完整卡绑定验收证据 → 风险路由审查与最终门禁 → 提交后动态查询 Git 事实。
 
-- 小需求在一张卡完成，复杂需求按可交付结果拆分；同一需求续接原卡，历史需求不补同步。
+- 产品/App 需求在一张完整卡完成，复杂需求按可交付结果拆分；仅低风险文档、版本号或纯记录调整可用轻量卡，不改变产品行为。同一需求续接原卡，历史需求不补同步。
 - 当前状态和 AC 结果只在需求卡维护；测试命令及范围在 `.agents/project-checks.json`；原始结果由日志保存、卡片引用，Git 交付索引自动生成。
 - 输入和事实未变不重复测试、审查或收尾。自动测试验收引用真实 result；已封存验收绑定当时提交，新需求不会自动迫使旧需求重验。
 - 团队验收与测试、自审分别取证。待团队验收也可按授权提交、推送或开 PR，需求保持待验证；合并/发布遵守团队门槛。
-- 提交前默认审查本次暂存内容，检查正确性、规范、订阅、内存、打点、测试代码及安全；工具核对记录和指纹，不能代替语义审查或证明无泄漏。
-- 生成交付记录可随下一次正常提交归档；需要立即归档时复用未变审查维度，核对新增事实和安全。没有授权不自动提交、推送或发布。
+- 提交前默认审查本次暂存内容；正确性、规范和安全固定，订阅、内存、打点及测试产物按差异风险增加，未知范围回退完整七维。工具核对记录和指纹，不能代替语义审查或证明无泄漏。
+- 新审查只提交 JSON 回执，不复制 Git patch。提交 SHA 与交付概览动态查询，commit 后不再 finish 或创建纯归档提交；只有 PR、Release 等外部事实变化时写记录。没有授权不自动提交、推送或发布。
 
 出现实际流程缺陷、重复返工或明确纠正时，按 [自我进化机制](.agents/skills/ios-team-flow/references/EVOLUTION.md) 改进相关规则、模板或工具；复用现有需求与验证记录，无问题不额外复盘。机制在任务内执行，提交和发布仍按授权。该能力随 2.1.0 分发。
 
@@ -123,7 +123,7 @@ Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/refer
 | 配置实际构建/测试命令、检查输入和结果 | [PROJECT-CHECKS](.agents/skills/ios-team-flow/references/PROJECT-CHECKS.md)；工具测试不代替 App 验证，未明确要求不验证超大字号 |
 | 团队验收、失败和多轮复核证据 | [ACCEPTANCE](.agents/skills/ios-team-flow/references/ACCEPTANCE.md) · [详细证据模板](.agents/skills/ios-team-flow/references/templates/acceptance.md) |
 | 手动操作或排错：验收绑定、只读 status、按需历史、PR/Release 关联 | [DELIVERY](.agents/skills/ios-team-flow/references/DELIVERY.md) |
-| 提交审查、归档继承 | [REVIEW](.agents/skills/ios-team-flow/references/REVIEW.md) |
+| 提交审查、风险路由与 JSON 回执 | [REVIEW](.agents/skills/ios-team-flow/references/REVIEW.md) |
 | 可选本地提交 Hook | [GIT-CHECKS](.agents/skills/ios-team-flow/references/GIT-CHECKS.md)；每个克隆单独接入，可被 `--no-verify` 跳过，不宣称远端强制门禁 |
 | App 归档、TestFlight、审核和商店上线 | [APP-RELEASE](.agents/skills/ios-team-flow/references/APP-RELEASE.md) · [发布记录模板](.agents/skills/ios-team-flow/references/templates/app-release.md)；GitHub Release 不代表 App Store 上线 |
 | 场景试运行与验证边界 | [SCENARIOS](.agents/skills/ios-team-flow/references/SCENARIOS.md) |
@@ -137,7 +137,7 @@ Codex 先根据 [详细新项目需求模板](.agents/skills/ios-team-flow/refer
 ├── .agents/project-modules.json  # 大型项目按需建立的可执行模块索引
 ├── .agents/project-checks.json   # 工程就绪后配置实际验证
 ├── App/                          # 新工程默认；已有工程保留目录
-├── requirements/                 # PRD、需求卡、验收证据及生成交付索引
+├── requirements/                 # PRD、完整/轻量需求卡、验收证据及外部交付事实
 ├── logs/                         # 测试和审查证据
 ├── scripts/                      # 根门禁入口及项目辅助脚本
 └── .github/workflows/            # 可选 push 校验与发布流程

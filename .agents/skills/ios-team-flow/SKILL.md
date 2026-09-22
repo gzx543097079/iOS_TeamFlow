@@ -26,7 +26,7 @@ SKILL_ROOT 是本文件所在目录；PROJECT_ROOT 是接入时确定的当前 G
 | Bug 修复、复现与处理历史 | [缺陷处理](references/BUGFIX.md) |
 | 新 App 生成或启动生命周期修改 | [Scene 生命周期](references/APP-LIFECYCLE.md) |
 | 业务验证 | [PROJECT-CHECKS](references/PROJECT-CHECKS.md) |
-| 验收绑定、状态/交付事实变化 | [DELIVERY](references/DELIVERY.md) |
+| 验收绑定、动态提交关联与外部交付事实 | [DELIVERY](references/DELIVERY.md) |
 | 提交前审查 | [REVIEW](references/REVIEW.md) |
 | 团队验收、多轮问题复核 | [ACCEPTANCE](references/ACCEPTANCE.md) |
 | 可选本地提交 Hook | [GIT-CHECKS](references/GIT-CHECKS.md) |

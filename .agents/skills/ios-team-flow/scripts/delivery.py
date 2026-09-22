@@ -18,6 +18,7 @@ from urllib.parse import urlparse
 ID = re.compile(r'REQ-\d{8}-\d{9}Z-[0-9a-f]{8}')
 CARD_V2 = '<!-- teamflow:requirement:v2 -->'
 CARD_V3 = '<!-- teamflow:requirement:v3 -->'
+LIGHTWEIGHT_V1 = '<!-- teamflow:lightweight:v1 -->'
 STATES = ('❔ 待确认', '⬜ 未执行', '🔄 执行中', '🧪 待验证', '✅ 执行完成',
           '⛔ 阻塞', '⏸️ 已暂停', '🚫 已取消')
 
@@ -265,7 +266,7 @@ def refresh(root, data, github=False, accept=False, inputs=None, results=None):
                         data['acceptance_baseline'] = {**data['acceptance_baseline'],
                             'sealed_commits': commits, 'accepted_commit': latest}
             card['implementation_fingerprint'] = current
-        elif baseline and baseline.get('sealed_commits'):
+        elif baseline:
             data['acceptance_baseline'] = {**{k: v for k, v in baseline.items()
                                            if k not in ('sealed_commits', 'accepted_commit')}, 'reopened': True}
         snapshot['development'] = card['state']
@@ -340,9 +341,15 @@ def history_snapshots(data):
     return expanded
 
 
+def durable_baseline(value):
+    """提交集合与 accepted_commit 可由 Git trailer 动态恢复，不制造提交后归档写入。"""
+    if not value:
+        return value
+    return {key: item for key, item in value.items() if key not in ('sealed_commits', 'accepted_commit')}
+
+
 def save(root, path, data, action):
-    """保存单张交付记录；调用者完成本次写入后统一生成概览。"""
-    safe_path(root, 'requirements/DELIVERY.md')
+    """保存需要持久化的验收或外部交付事实；概览始终只读生成。"""
     if 'card' in data.get('snapshot', {}):
         data.pop('development', None)
     history = history_snapshots(data)
@@ -383,7 +390,8 @@ def requirement_rows(root, reverse=False, warnings=None, kind=None):
             else:
                 warnings.append(warning)
             continue
-        card_kind = 'bug-fix' if re.search(r'^- 类型：Bug Fix\s*$', content, re.M) else 'requirement'
+        card_kind = ('bug-fix' if re.search(r'^- 类型：Bug Fix\s*$', content, re.M)
+                     else 'lightweight' if LIGHTWEIGHT_V1 in content else 'requirement')
         if kind is not None and card_kind != kind:
             continue
         heading = next((line[2:] for line in content.splitlines() if line.startswith('# ')), card.stem)
@@ -409,18 +417,30 @@ def list_requirements(root, reverse=False, kind=None):
     return '\n'.join(lines)
 
 
+def overview_snapshot(root, requirement, state):
+    """只读组合当前卡片、Git trailer 和已保存外部事实，不生成派生文件。"""
+    path = safe_path(root, 'requirements/delivery/' + requirement + '.json')
+    data = json.loads(path.read_text()) if path.exists() else {'linked_commits': []}
+    if path.exists() and (data.get('requirement') != requirement or data.get('schema_version') != 1):
+        raise ValueError('交付记录格式或编号不匹配：' + requirement)
+    commits = sorted(set(commits_for(root, requirement) + data.get('linked_commits', []))
+                     - set(data.get('excluded_commits', [])))
+    stored = data.get('snapshot', {})
+    same_object = stored.get('commits') == commits
+    return {'commits': commits, 'development': state,
+            'merged': stored.get('merged', '未核实') if same_object else '未核实',
+            'release_status': stored.get('release_status', '未核实') if same_object else '未核实',
+            'checked_at': stored.get('github_checked_at', stored.get('checked_at', '—')) if same_object else '—'}
+
+
 def overview(root):
-    lines = ['# 需求交付概览', '', '由 delivery.py 按创建时间升序生成；序号仅用于浏览，引用使用固定需求编号。仅收录当前编号格式，旧文件不改写。', '',
+    lines = ['# 需求交付概览', '', '由 delivery.py 根据当前需求卡、Git Requirement 尾注和已保存外部事实动态生成；不写入派生总表。', '',
              '| 序号 | 创建时间（UTC） | 需求 | 标题 | 开发 | 提交 | PR 合并 | Release | 最近核对 |',
              '| --- | --- | --- | --- | --- | --- | --- | --- | --- |']
     warnings = []
     for row in requirement_rows(root, warnings=warnings):
         req = row['requirement']
-        path = safe_path(root, 'requirements/delivery/' + req + '.json')
-        data = json.loads(path.read_text()) if path.exists() else {}
-        if data and data.get('requirement') != req:
-            raise ValueError('交付记录编号不匹配：' + req)
-        snap = data.get('snapshot', {})
+        snap = overview_snapshot(root, req, row['state'])
         values = [row['number'], row['created_at'], '[' + req + '](' + req + '.md)', row['title'], row['state'],
                   '✅ ' + str(len(snap['commits'])) + ' 个提交' if snap.get('commits') else '⬜ 未关联',
                   snap.get('merged', '未核实'), snap.get('release_status', '未核实'), snap.get('checked_at', '—')]
@@ -432,7 +452,7 @@ def overview(root):
 
 
 def finish(root, requirements, github=False, check=False, accept=False, inputs=None, results=None):
-    """统一收尾：核对提交与交付记录，刷新当前卡片字段；不批准开发验收。"""
+    """绑定验收或外部事实；Git 提交关联与当前卡片状态始终只读派生。"""
     if accept and (check or len(requirements) != 1):
         raise ValueError('--accept 只用于单项实际验收，不与 --check/--all 组合')
     if results and (not accept or inputs is not None):
@@ -467,8 +487,10 @@ def finish(root, requirements, github=False, check=False, accept=False, inputs=N
         # checked_at 本身变化不意味着记录过期；其他事实和查询范围变化需要归档。
         strip_time = lambda value: {k: v for k, v in value.items()
                                     if k not in ('checked_at', 'github_checked_at')}
-        dirty = (not path.exists() or strip_time(old) != strip_time(snapshot) or updated != text
-                 or old_baseline != data.get('acceptance_baseline'))
+        external_keys = ('merged', 'prs', 'releases', 'release_status')
+        external_changed = github and any(old.get(key) != snapshot.get(key) for key in external_keys)
+        dirty = (updated != text or durable_baseline(old_baseline) != durable_baseline(data.get('acceptance_baseline'))
+                 or external_changed)
         if dirty:
             stale.append(requirement)
             if not check:
@@ -482,36 +504,29 @@ def finish(root, requirements, github=False, check=False, accept=False, inputs=N
                     safe_path(root, str(temporary.relative_to(root)))
                     temporary.write_text(updated)
                     temporary.replace(card)
-    summary = safe_path(root, 'requirements/DELIVERY.md')
-    expected = overview(root)
-    overview_outdated = not summary.exists() or summary.read_text() != expected
-    if overview_outdated and not check:
-        summary.parent.mkdir(parents=True, exist_ok=True)
-        summary.write_text(expected)
     if not check:
         # 写后只读核验，不重复扫描源码、Git 历史或查询远端。
         for requirement, path, data, old, old_baseline in prepared:
-            stored = json.loads(path.read_text())
-            if strip_time(stored.get('snapshot', {})) != strip_time(data['snapshot']):
-                raise ValueError(requirement + ' 写后快照不一致')
-            if stored.get('acceptance_baseline') != data.get('acceptance_baseline'):
-                raise ValueError(requirement + ' 写后验收基线不一致')
+            if path.exists():
+                stored = json.loads(path.read_text())
+                if durable_baseline(stored.get('acceptance_baseline')) != durable_baseline(data.get('acceptance_baseline')):
+                    raise ValueError(requirement + ' 写后验收基线不一致')
+            elif data.get('acceptance_baseline'):
+                raise OSError(requirement + ' 验收基线未保存')
             if card_state(root, requirement) != ({k: v for k, v in data['snapshot'].get('card', {}).items()
-                                                if k != 'implementation_fingerprint'} or None):
+                                                  if k != 'implementation_fingerprint'} or None):
                 raise ValueError(requirement + ' 收尾时需求卡变化，请重试')
-        if summary.read_text() != expected:
-            raise ValueError('交付索引写后不一致')
-    status = git(root, 'status', '--porcelain', '--', 'requirements')
+    status = git(root, 'status', '--porcelain', '--', 'requirements/delivery')
     result = {'outdated': stale if check else [], 'updated': stale if not check else [],
               'without_implementation_commit': unlinked, 'unarchived_changes': status.splitlines(),
-              'github_checked': github, 'overview_outdated': overview_outdated if check else False}
+              'github_checked': github}
     print(json.dumps(result, ensure_ascii=False, indent=2))
-    return (not stale and not overview_outdated) if check else True
+    return not stale if check else True
 
 
 def create(root, title, template_name="requirement"):
     # 模板名使用白名单，不允许外部路径替换项目内模板。
-    if template_name not in ("requirement", "bug-fix"):
+    if template_name not in ("requirement", "bug-fix", "lightweight"):
         raise ValueError("未知需求模板：" + str(template_name))
     if not title.strip() or '\n' in title or '\r' in title:
         raise ValueError('标题须为单行非空文本')
@@ -542,14 +557,15 @@ def main():
     listing = sub.add_parser('list', help='按创建时间列出当前需求，序号不用于引用')
     listing.add_argument('--reverse', action='store_true', help='最新需求在前，保留升序序号')
     listing.add_argument('--json', action='store_true', help='输出结构化列表')
-    listing.add_argument('--type', dest='kind', choices=('requirement', 'bug-fix'),
+    listing.add_argument('--type', dest='kind', choices=('requirement', 'bug-fix', 'lightweight'),
                          help='按卡片类型筛选，缺陷标题及链接直接从当前卡片生成')
+    listing.add_argument('--delivery', action='store_true', help='只读生成包含提交、PR 和 Release 的动态交付概览')
     status = sub.add_parser('status')
     status.add_argument('--history', action='store_true', help='按需展开完整历史事件')
     creator = sub.add_parser('create')
     creator.add_argument('--title', required=True)
-    creator.add_argument('--template', choices=('requirement', 'bug-fix'), default='requirement',
-                         help='普通需求或含复现与处理历史的 Bug Fix 模板')
+    creator.add_argument('--template', choices=('requirement', 'bug-fix', 'lightweight'), default='requirement',
+                         help='普通需求、Bug Fix，或仅用于低风险文档/版本/纯记录调整的轻量卡')
     finishing = sub.add_parser('finish')
     finishing.add_argument('--all', action='store_true', help='处理所有需求卡')
     finishing.add_argument('--github', action='store_true')
@@ -580,6 +596,11 @@ def main():
         if args.command == 'list':
             if args.requirement:
                 raise ValueError('list 不接收 --requirement')
+            if args.delivery:
+                if args.json or args.kind or args.reverse:
+                    raise ValueError('--delivery 不与 --json/--type/--reverse 组合')
+                print(overview(root), end='')
+                return 0
             print(json.dumps(requirement_rows(root, args.reverse, kind=args.kind), ensure_ascii=False, indent=2)
                   if args.json else list_requirements(root, args.reverse, args.kind))
             return 0
@@ -598,7 +619,8 @@ def main():
             raise ValueError('该命令需要 --requirement')
         path, data = load(root, args.requirement)
         if args.command == 'status':
-            print(json.dumps({**data, 'events': history_snapshots(data)} if args.history else data.get('snapshot', {}), ensure_ascii=False, indent=2))
+            refresh(root, data)
+            print(json.dumps({**data, 'events': history_snapshots(data)} if args.history else data['snapshot'], ensure_ascii=False, indent=2))
             return 0
         if args.command == 'development':
             if card_state(root, args.requirement) is not None:
@@ -628,7 +650,6 @@ def main():
                     'commit': sha, 'reason': args.reason, 'at': datetime.now(timezone.utc).isoformat()})
         refresh(root, data, getattr(args, 'github', False))
         save(root, path, data, args.command)
-        safe_path(root, 'requirements/DELIVERY.md').write_text(overview(root))
         print(json.dumps(data['snapshot'], ensure_ascii=False, indent=2))
     except (ValueError, OSError, KeyError, TypeError, subprocess.CalledProcessError) as error:
         parser.exit(2, '交付追踪失败：' + str(error) + '\n')

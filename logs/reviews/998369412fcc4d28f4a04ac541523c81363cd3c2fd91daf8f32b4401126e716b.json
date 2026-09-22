@@ -1,0 +1,62 @@
+{
+  "fingerprint": "998369412fcc4d28f4a04ac541523c81363cd3c2fd91daf8f32b4401126e716b",
+  "base": "f82cfe00eb37187f895faf443d46cc4683d935f8",
+  "scope": "staged",
+  "snapshot_tree": "68cdde0c26fd81ae7d841f4cacd4f83c388bffc1",
+  "created_at": "2026-09-22T02:45:15.813945+00:00",
+  "reviewer": "Codex",
+  "completed_at": "2026-09-22T02:47:00+00:00",
+  "summary": "2.4.0 工作流精简与发布候选审查通过：Git 可推导事实改为动态查询，审查按风险路由且仅保存 JSON，低风险记录支持轻量卡；历史重复 patch 与派生总表已清理。",
+  "previous_review": null,
+  "required_checks": [
+    "correctness",
+    "standards",
+    "subscription",
+    "memory",
+    "analytics",
+    "test_artifacts",
+    "security"
+  ],
+  "routing_reasons": {
+    "test_artifacts": "显式要求完整审查",
+    "subscription": "显式要求完整审查",
+    "analytics": "显式要求完整审查",
+    "memory": "显式要求完整审查"
+  },
+  "checks": {
+    "correctness": {
+      "status": "通过",
+      "evidence": "核对暂存工具实现、模板和交付记录；动态 trailer/概览、验收重开与封存、风险路由、续审树差量及防降级均由 122 项全量回归覆盖。"
+    },
+    "standards": {
+      "status": "通过",
+      "evidence": "SKILL、WORKFLOW、REVIEW、DELIVERY、模板、README、VERSION、teamflow.json 与分发清单已同步为 2.4.0；validate_workflow.py 和 git diff --check 通过。"
+    },
+    "subscription": {
+      "status": "不适用",
+      "evidence": "本次只修改工作流工具、文档、测试和证据存储，不修改 StoreKit、商品 ID、价格、权益、购买或恢复流程。"
+    },
+    "memory": {
+      "status": "不适用",
+      "evidence": "暂存范围不含 App 运行时源码、闭包、代理、通知、Task 或 Objective-C/C++ 所有权变化；Demo 工程改动明确未暂存。"
+    },
+    "analytics": {
+      "status": "不适用",
+      "evidence": "本次不新增或修改产品埋点、事件名称、参数、触发时机及隐私数据采集。"
+    },
+    "test_artifacts": {
+      "status": "通过",
+      "evidence": "检查暂存脚本、测试和显式打包清单；测试代码仅位于 tests，分发包排除 App、requirements、logs、.git 与密钥，未发现测试帐号、强制成功、debug 菜单或临时开关进入生产包。"
+    },
+    "security": {
+      "status": "通过",
+      "evidence": "新入口沿用 safe_path、模板白名单、参数数组和 JSON 结构校验；审查快照绑定 Git tree，check 会重算自动路由并拒绝降级；差异及分发产物未发现凭据或隐私数据。"
+    }
+  },
+  "findings": [],
+  "blockers": [],
+  "requirements": [
+    "REQ-20260922-020044779Z-0a587fba"
+  ],
+  "validation_results": []
+}

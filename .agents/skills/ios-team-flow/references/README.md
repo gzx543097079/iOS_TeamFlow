@@ -18,7 +18,7 @@
 | 需求处理、拆分与状态 | [工作流](WORKFLOW.md) |
 | Objective-C / Swift / SwiftUI | [OC](standards/objective-c.md) · [Swift](standards/swift.md) · [SwiftUI](standards/swiftui.md) |
 | 业务构建与测试入口 | [配置与执行](PROJECT-CHECKS.md) |
-| 需求与交付状态 | [交付追踪](DELIVERY.md) |
+| 完整/轻量需求、验收绑定与动态交付状态 | [交付追踪](DELIVERY.md) |
 | 可选本地提交 Hook | [Git 检查](GIT-CHECKS.md) |
 | 提交审查及去重 | [Review](REVIEW.md) |
 | 已有项目增量开发 | [处理流程](EXISTING-PROJECT.md) · [模块增量工具](MODULE-CONTEXT.md) · [项目现状模板](templates/project-context.md) |

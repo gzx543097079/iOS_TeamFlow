@@ -48,4 +48,4 @@
 处理历史只保留复现、重要决定、失败、修复与复核；交付类 AC 引用 `delivery/REQ-YYYYMMDD-HHMMSSmmmZ-RANDOM.json`，不在历史中再次抄录验证汇总、当前审查指纹、提交 SHA 或 Git/PR/Release 状态。
 原始输出放 logs/，这里只放结论与链接。没有证据不声称修复或回归通过。 -->
 
-操作规程位于项目 `.agents/skills/ios-team-flow/references/BUGFIX.md`；交付事实由 `requirements/delivery/` 与 `requirements/DELIVERY.md` 自动维护。
+操作规程位于项目 `.agents/skills/ios-team-flow/references/BUGFIX.md`；提交关联动态读取 Git trailer，验收绑定及 PR/Release 外部事实按需保存在 `requirements/delivery/`。

@@ -143,6 +143,18 @@ class WorkflowTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             gate.check(self.root)
 
+    def test_gate_rejects_removing_automatically_routed_dimension(self):
+        self.stage('App/subscription.json', '{"product_id":"monthly"}')
+        target = self.complete()
+        report = json.loads(target.read_text())
+        self.assertIn('subscription', report['required_checks'])
+        report['required_checks'].remove('subscription')
+        report['checks'].pop('subscription')
+        target.write_text(json.dumps(report))
+        self.git('add', str(target.relative_to(self.root)))
+        with self.assertRaisesRegex(ValueError, '自动风险路由'):
+            gate.check(self.root)
+
     def test_delete_rename_binary_and_mode_change_invalidate(self):
         self.stage('App/old.swift')
         self.git('commit', '-qm', 'base')
@@ -531,13 +543,15 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(prior.stem, data['previous_review'])
         for key in ('requirements', 'validation_results', 'findings', 'blockers'):
             self.assertEqual(old[key], data[key])
-        for key in gate.CATEGORIES:
+        for key in data['required_checks']:
             self.assertEqual('未验证', data['checks'][key]['status'])
             self.assertEqual(old['checks'][key]['evidence'], data['checks'][key]['evidence'])
             self.assertEqual(old['checks'][key]['status'], data['checks'][key]['previous_status'])
-        delta = (self.root / data['delta_patch']).read_text()
+        delta = self.git('diff', data['previous_tree'], data['snapshot_tree'], '--', '.',
+                         ':(exclude)logs/reviews/**').decode()
         self.assertIn('-let value = 1', delta)
         self.assertIn('+let value = 2', delta)
+        self.assertFalse(list((self.root / 'logs/reviews').glob('*.patch')))
         self.assertEqual('', data['completed_at'])
         self.git('add', 'logs/reviews')
         with self.assertRaises(ValueError):
@@ -549,12 +563,11 @@ class WorkflowTests(unittest.TestCase):
         prior = self.complete()
         original = prior.read_bytes()
         self.stage(body='let value = 2\n')
-        old_patch = prior.with_suffix('.patch')
-        patch = old_patch.read_bytes()
-        old_patch.write_bytes(patch + b'changed')
+        old = json.loads(original)
+        old['fingerprint'] = '0' * 64
+        prior.write_text(json.dumps(old))
         with self.assertRaisesRegex(ValueError, '快照'):
             gate.prepare(self.root, continue_from=prior.stem)
-        old_patch.write_bytes(patch)
         old = json.loads(original)
         old['snapshot_tree'] = self.git('write-tree').decode().strip()
         prior.write_text(json.dumps(old))
@@ -568,29 +581,43 @@ class WorkflowTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             gate.prepare(self.root, continue_from='../unsafe')
 
-    def test_archive_prepare_inherits_only_unchanged_dimensions(self):
+    def test_legacy_archive_prepare_inherits_only_required_dimensions(self):
         self.stage()
         prior = self.complete()
         self.git('add', 'logs/reviews'); self.git('commit', '-qm', 'reviewed implementation')
-        self.stage('requirements/DELIVERY.md', 'generated index')
+        self.stage('requirements/delivery/REQ-example.json', '{}')
         report = gate.prepare(self.root, prior.stem)
         data = json.loads(report.read_text())
         self.assertEqual(prior.stem, data['previous_review'])
         self.assertEqual('未验证', data['checks']['correctness']['status'])
         self.assertEqual('未验证', data['checks']['security']['status'])
-        self.assertEqual('不适用', data['checks']['memory']['status'])
+        self.assertEqual('不适用', data['checks']['test_artifacts']['status'])
+        self.assertNotIn('memory', data['checks'])
         self.git('add', 'logs/reviews')
         with self.assertRaises(ValueError):
             gate.check(self.root)
         self.git('reset', '--hard', 'HEAD')
         self.stage('App/unreviewed.swift', 'changed after prior review')
         self.git('commit', '-qm', 'later implementation')
-        self.stage('requirements/DELIVERY.md', 'new index')
+        self.stage('requirements/delivery/REQ-example.json', '{"new": true}')
         with self.assertRaisesRegex(ValueError, '不覆盖当前 HEAD'):
             gate.prepare(self.root, prior.stem)
         self.stage('App/new.swift', 'new implementation')
         with self.assertRaisesRegex(ValueError, '实施变化'):
             gate.prepare(self.root, prior.stem)
+
+    def test_risk_route_uses_core_conditional_and_full_dimensions(self):
+        self.stage('README.md', 'documentation only')
+        report = json.loads(gate.prepare(self.root).read_text())
+        self.assertEqual(list(gate.CORE_CATEGORIES), report['required_checks'])
+        self.git('reset', '--hard')
+        self.stage('App/View.swift', 'final class View { var task: Task<Void, Never>? }')
+        source = json.loads(gate.prepare(self.root).read_text())
+        self.assertIn('memory', source['required_checks'])
+        self.assertIn('test_artifacts', source['required_checks'])
+        self.assertNotIn('subscription', source['required_checks'])
+        escalated = json.loads(gate.prepare(self.root, full=True).read_text())
+        self.assertEqual(list(gate.CATEGORIES), escalated['required_checks'])
 
 
 if __name__ == '__main__':

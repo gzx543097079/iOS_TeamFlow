@@ -63,9 +63,9 @@ class ConsumerReleaseTests(unittest.TestCase):
         self.cli('delivery.py', '--requirement', identifier, 'finish')
         self.assertEqual(content, card.read_text())
         record = self.root / 'requirements/delivery' / (identifier + '.json')
-        before = record.read_bytes()
+        self.assertFalse(record.exists())
         self.cli('delivery.py', '--requirement', identifier, 'finish')
-        self.assertEqual(before, record.read_bytes())
+        self.assertFalse(record.exists())
         self.assertEqual(content, card.read_text())
         self.assertTrue((self.root / '.agents/skills/ios-team-flow/references/BUGFIX.md').is_file())
 
@@ -144,11 +144,12 @@ class ConsumerReleaseTests(unittest.TestCase):
         self.assertNotEqual(*ids)
         self.git('checkout', '-q', 'member-a')
         self.git('merge', 'member-b', '--no-edit')
-        self.cli('delivery.py', 'finish', '--all')
+        overview = self.cli('delivery.py', 'list', '--delivery').stdout
         for identifier in ids:
             self.assertTrue((self.root / 'requirements' / (identifier + '.md')).exists())
-            record = json.loads((self.root / 'requirements/delivery' / (identifier + '.json')).read_text())
-            self.assertEqual(1, len(record['snapshot']['commits']))
+            self.assertIn(identifier, overview)
+            self.assertFalse((self.root / 'requirements/delivery' / (identifier + '.json')).exists())
+        self.assertEqual(2, overview.count('✅ 1 个提交'))
 
     def test_existing_v2_cards_are_not_implicitly_migrated(self):
         self.cli('setup_project.py', '--project', '.')
@@ -158,7 +159,8 @@ class ConsumerReleaseTests(unittest.TestCase):
         result = json.loads(self.cli('delivery.py', 'create', '--title', '新需求').stdout)
         self.cli('delivery.py', 'finish', '--all')
         self.assertFalse((self.root / 'requirements/delivery/REQ-20260911-001.json').exists())
-        self.assertTrue((self.root / 'requirements/delivery' / (result['requirement'] + '.json')).exists())
+        self.assertFalse((self.root / 'requirements/delivery' / (result['requirement'] + '.json')).exists())
+        self.assertIn(result['requirement'], self.cli('delivery.py', 'list').stdout)
 
     def test_shared_commit_collision_can_be_relinked_without_rewriting_history(self):
         self.cli('setup_project.py', '--project', '.')
@@ -193,15 +195,17 @@ class ConsumerReleaseTests(unittest.TestCase):
                         .replace('实施并验证 AC-01', '无').replace('| 未验证 | — |', '| 通过 | ' + result + ' |'))
         self.cli('delivery.py', '--requirement', req, 'finish', '--accept', '--result', result)
         self.git('add', '.'); self.git('commit', '-qm', 'A\n\nRequirement: ' + req)
-        self.cli('delivery.py', '--requirement', req, 'finish')
         second = json.loads(self.cli('delivery.py', 'create', '--title', 'B').stdout)['requirement']
         (app / 'B.swift').write_text('B')
         self.git('add', '.'); self.git('commit', '-qm', 'B\n\nRequirement: ' + second)
-        self.cli('delivery.py', 'finish', '--all')
         record = json.loads((self.root / 'requirements/delivery' / (req + '.json')).read_text())
-        self.assertIn('accepted_commit', record['acceptance_baseline'])
-        self.assertEqual('✅ 执行完成', record['snapshot']['development'])
-        self.cli('delivery.py', 'finish', '--all', '--check')
+        self.assertNotIn('accepted_commit', record['acceptance_baseline'])
+        current = json.loads(self.cli('delivery.py', '--requirement', req, 'status', '--history').stdout)
+        self.assertIn('accepted_commit', current['acceptance_baseline'])
+        self.assertEqual('✅ 执行完成', current['snapshot']['development'])
+        overview = self.cli('delivery.py', 'list', '--delivery').stdout
+        self.assertIn(req, overview)
+        self.assertIn(second, overview)
 
     def test_document_validation_survives_acceptance_and_rejects_content_changes(self):
         self.cli('setup_project.py', '--project', '.')

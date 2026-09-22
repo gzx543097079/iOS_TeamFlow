@@ -23,4 +23,4 @@
 仅触发流程改进时，在过程与决策按需记录改进依据：触发与来源、根因证据、最小改动、验证方法及撤销方式；预期和条件写正文与 AC，当前结果仍只写 AC 表。普通需求不添加此记录。
 验收绑定与收尾命令见下方交付规程。 -->
 
-交付索引由首次 finish 创建在 `requirements/DELIVERY.md`。操作规程：[交付追踪](../.agents/skills/ios-team-flow/references/DELIVERY.md)、[团队验收](../.agents/skills/ios-team-flow/references/ACCEPTANCE.md)。
+提交关联与交付概览由 delivery.py 从当前卡片、Git trailer 和已保存外部事实动态生成，不创建派生总表。操作规程：[交付追踪](../.agents/skills/ios-team-flow/references/DELIVERY.md)、[团队验收](../.agents/skills/ios-team-flow/references/ACCEPTANCE.md)。

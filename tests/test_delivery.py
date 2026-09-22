@@ -43,7 +43,10 @@ class DeliveryTests(unittest.TestCase):
         subprocess.run(['python3', str(ROOT / '.agents/skills/ios-team-flow/scripts/delivery.py'),
                         '--project', str(self.root), '--requirement', REQ, 'refresh'],
                        check=True, capture_output=True)
-        self.assertIn(REQ, (self.root / 'requirements/DELIVERY.md').read_text())
+        self.assertFalse((self.root / 'requirements/DELIVERY.md').exists())
+        overview = subprocess.check_output(['python3', str(ROOT / '.agents/skills/ios-team-flow/scripts/delivery.py'),
+                                            '--project', str(self.root), 'list', '--delivery'], text=True)
+        self.assertIn(REQ, overview)
 
     def test_complete_stales_when_implementation_changes(self):
         _, data = d.load(self.root, REQ)
@@ -116,10 +119,6 @@ class DeliveryTests(unittest.TestCase):
         self.assertIn(d.resolve(self.root, 'HEAD'), card.read_text())
         self.assertIn('产品验收：待确认', card.read_text())
         self.assertTrue(d.finish(self.root, [REQ], check=True))
-        (self.root / 'requirements/DELIVERY.md').unlink()
-        self.assertFalse(d.finish(self.root, [REQ], check=True))
-        self.assertTrue(d.finish(self.root, [REQ]))
-        self.assertTrue(d.finish(self.root, [REQ], check=True))
         _, record = d.load(self.root, REQ)
         self.assertEqual('未登记', record['development']['state'])
         self.assertEqual('- Git 状态：未提交', record['card_history'][0]['previous_git_status'])
@@ -147,9 +146,8 @@ class DeliveryTests(unittest.TestCase):
         original = card.read_bytes()
         self.assertTrue(d.finish(self.root, [REQ]))
         self.assertEqual(original, card.read_bytes())
-        _, data = d.load(self.root, REQ)
-        self.assertNotIn('development', data)
-        self.assertEqual('🔄 执行中', data['snapshot']['development'])
+        path, _ = d.load(self.root, REQ)
+        self.assertFalse(path.exists())
         files = {p: p.read_bytes() for p in (self.root / 'requirements').rglob('*') if p.is_file()}
         self.assertTrue(d.finish(self.root, [REQ]))
         self.assertTrue(d.finish(self.root, [REQ], check=True))
@@ -161,32 +159,29 @@ class DeliveryTests(unittest.TestCase):
         _, data = d.load(self.root, REQ)
         self.assertEqual('✅ 执行完成', data['snapshot']['development'])
 
-    def test_batch_finish_renders_overview_once_and_preserves_readback_checks(self):
+    def test_batch_finish_does_not_write_overview_and_preserves_readback_checks(self):
         card = self.v2_card()
         second = 'REQ-20260911-120001999Z-abcdef02'
         (self.root / 'requirements' / (second + '.md')).write_text(card.read_text())
         with patch.object(d, 'overview', wraps=d.overview) as render:
             self.assertTrue(d.finish(self.root, [REQ, second]))
-            self.assertEqual(1, render.call_count)
-        summary = self.root / 'requirements/DELIVERY.md'
-        before = summary.read_bytes()
-        self.assertIn(REQ, before.decode())
-        self.assertIn(second, before.decode())
+            self.assertEqual(0, render.call_count)
+        self.assertFalse((self.root / 'requirements/DELIVERY.md').exists())
         for check in (False, True):
             with patch.object(d, 'overview', wraps=d.overview) as render:
                 self.assertTrue(d.finish(self.root, [REQ, second], check=check))
-                self.assertEqual(1, render.call_count)
-            self.assertEqual(before, summary.read_bytes())
+                self.assertEqual(0, render.call_count)
         original_save = d.save
         def corrupt_after_save(root, path, data, action):
             original_save(root, path, data, action)
             stored = json.loads(path.read_text())
-            stored['snapshot']['development'] = '被改写'
+            stored['acceptance_baseline']['implementation_fingerprint'] = '被改写'
             path.write_text(json.dumps(stored))
-        card.write_text(card.read_text().replace('🔄 执行中', '🧪 待验证'))
+        card.write_text(card.read_text().replace('🔄 执行中', '✅ 执行完成')
+                        .replace('实施并验收', '无').replace('未验证 | —', '通过 | 实际证据'))
         with patch.object(d, 'save', side_effect=corrupt_after_save):
-            with self.assertRaisesRegex(ValueError, '写后快照不一致'):
-                d.finish(self.root, [REQ])
+            with self.assertRaisesRegex(ValueError, '写后验收基线不一致'):
+                d.finish(self.root, [REQ], accept=True)
 
     def test_v2_inconsistent_completion_duplicate_and_team_confirmation_rejected(self):
         card = self.v2_card('✅ 执行完成')
@@ -288,7 +283,8 @@ class DeliveryTests(unittest.TestCase):
         self.v2_card('🔄 执行中')
         d.finish(self.root, [REQ])
         _, data = d.load(self.root, REQ)
-        self.assertEqual(json.loads(before)['acceptance_baseline'], data['acceptance_baseline'])
+        self.assertEqual({**json.loads(before)['acceptance_baseline'], 'reopened': True},
+                         data['acceptance_baseline'])
         self.v2_card('✅ 执行完成', '通过', '新版本实际复测证据')
         d.finish(self.root, [REQ], accept=True)
         self.assertTrue(d.finish(self.root, [REQ], check=True))
@@ -307,10 +303,10 @@ class DeliveryTests(unittest.TestCase):
             d.finish(self.root, [REQ], accept=True, inputs=['../outside'])
 
     def test_finish_detects_failed_persistence_without_second_command(self):
-        self.v2_card()
+        self.v2_card('✅ 执行完成', '通过', '实际证据')
         with patch.object(d, 'save'):
             with self.assertRaises(OSError):
-                d.finish(self.root, [REQ])
+                d.finish(self.root, [REQ], accept=True)
 
     def test_sealed_acceptance_survives_other_requirement_and_reopens(self):
         app = self.root / 'App'; app.mkdir()
@@ -321,12 +317,14 @@ class DeliveryTests(unittest.TestCase):
         self.commit('one', 'A implementation\n\nRequirement: ' + REQ)
         d.finish(self.root, [REQ])
         _, sealed = d.load(self.root, REQ)
+        self.assertNotIn('accepted_commit', sealed['acceptance_baseline'])
+        d.refresh(self.root, sealed)
         self.assertIn('accepted_commit', sealed['acceptance_baseline'])
         (app / 'B.swift').write_text('unrelated B')
         self.commit('one', 'B implementation\n\nRequirement: REQ-20260911-120000888Z-abcdef01')
         d.finish(self.root, [REQ])
         _, after = d.load(self.root, REQ)
-        self.assertEqual(sealed['acceptance_baseline'], after['acceptance_baseline'])
+        self.assertEqual(d.durable_baseline(sealed['acceptance_baseline']), after['acceptance_baseline'])
         self.assertTrue(d.finish(self.root, [REQ], check=True))
         self.v2_card('🔄 执行中')
         d.finish(self.root, [REQ])
@@ -347,6 +345,7 @@ class DeliveryTests(unittest.TestCase):
         self.commit('B changed same file', 'Requirement: REQ-20260911-120000888Z-abcdef01')
         d.finish(self.root, [REQ])
         _, data = d.load(self.root, REQ)
+        d.refresh(self.root, data)
         self.assertEqual(sha, data['acceptance_baseline']['accepted_commit'])
         self.commit('unverified A followup', 'Requirement: ' + REQ)
         with self.assertRaisesRegex(ValueError, '尚未复核'):
@@ -401,11 +400,11 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual('🔄 执行中', d.card_state(self.root, REQ)['state'])
 
     def test_history_delta_preserves_complete_snapshots(self):
-        self.v2_card()
-        d.finish(self.root, [REQ])
+        self.v2_card('✅ 执行完成', '通过', '第一次证据')
+        d.finish(self.root, [REQ], accept=True)
         _, before = d.load(self.root, REQ)
-        self.v2_card('🧪 待验证')
-        d.finish(self.root, [REQ])
+        self.v2_card('✅ 执行完成', '通过', '第二次证据')
+        d.finish(self.root, [REQ], accept=True)
         _, after = d.load(self.root, REQ)
         self.assertNotIn('snapshot', after['events'][-1])
         expanded = d.history_snapshots(after)
@@ -416,14 +415,14 @@ class DeliveryTests(unittest.TestCase):
 
     def test_status_full_snapshot_and_history_without_writes(self):
         import sys
-        self.v2_card()
-        d.finish(self.root, [REQ])
+        self.v2_card('✅ 执行完成', '通过', '实际证据')
+        d.finish(self.root, [REQ], accept=True)
         path, data = d.load(self.root, REQ)
         before = path.read_bytes()
         command = [sys.executable, str(ROOT / '.agents/skills/ios-team-flow/scripts/delivery.py'),
                    '--project', str(self.root), '--requirement', REQ, 'status']
         full = json.loads(subprocess.check_output(command, text=True))
-        self.assertEqual(data['snapshot'], full)
+        self.assertEqual(data['snapshot']['development'], full['development'])
         self.assertIn('card', full)
         self.assertEqual(data['snapshot']['warnings'], full['warnings'])
         history = json.loads(subprocess.check_output(command + ['--history'], text=True))
@@ -437,7 +436,8 @@ class DeliveryTests(unittest.TestCase):
         command = [sys.executable, str(ROOT / '.agents/skills/ios-team-flow/scripts/delivery.py'),
                    '--project', str(self.root), '--requirement', REQ, 'status']
         snapshot = json.loads(subprocess.check_output(command, text=True))
-        self.assertEqual({}, snapshot)
+        self.assertEqual('🔄 执行中', snapshot['development'])
+        self.assertTrue(snapshot['committed'])
         self.assertFalse(path.exists())
 
     def test_unknown_template_rejected_without_writing(self):
@@ -470,6 +470,16 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual(before, {p: p.read_bytes() for p in before})
         self.assertFalse((self.root / 'requirements/BUGFIX-HISTORY.md').exists())
         self.assertFalse((self.root / 'requirements/delivery').exists())
+
+    def test_lightweight_card_is_listed_without_delivery_record(self):
+        import sys
+        card = d.create(self.root, '更新说明', 'lightweight')
+        self.assertIn(d.LIGHTWEIGHT_V1, card.read_text())
+        command = [sys.executable, str(ROOT / '.agents/skills/ios-team-flow/scripts/delivery.py'),
+                   '--project', str(self.root), 'list', '--type', 'lightweight', '--json']
+        rows = json.loads(subprocess.check_output(command, text=True))
+        self.assertEqual([card.stem], [row['requirement'] for row in rows])
+        self.assertFalse((self.root / 'requirements/delivery' / (card.stem + '.json')).exists())
 
     def test_timestamp_ids_sort_and_retry_without_overwrite(self):
         from datetime import datetime, timezone
@@ -556,7 +566,7 @@ class DeliveryTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             d.load(self.root, bad_date.stem)
         d.finish(self.root, [REQ])
-        self.assertIn(bad_date.name, (self.root / 'requirements/DELIVERY.md').read_text())
+        self.assertIn(bad_date.name, d.overview(self.root))
         (self.root / 'requirements' / (REQ + '.md')).unlink()
         result = subprocess.run(command + ['--json'], capture_output=True, text=True)
         self.assertEqual(0, result.returncode)
