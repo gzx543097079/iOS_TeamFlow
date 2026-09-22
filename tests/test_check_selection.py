@@ -33,9 +33,24 @@ class CheckSelectionTests(unittest.TestCase):
         for name in ('scripts/run_workflow_checks.py', 'scripts/package_release.py',
                      'scripts/validate_workflow.py', 'tests/test_delivery.py', 'delivery.py',
                      'requirements/source.py', 'logs/reviews/hidden.py',
+                     'logs/workflow-simplification/check.sh', 'requirements/data.json.py',
+                     'logs/unknown.bin', 'other/verification.md',
                      '.github/workflows/teamflow-check.yml', selection.SKILL + 'references/VERSION',
                      selection.SKILL + 'scripts/future_tool.py'):
             self.assertIsNone(selection.select_checks(['README.md', name]), name)
+
+    def test_record_changes_do_not_depend_on_requirement_id_or_log_folder(self):
+        records = ['requirements/REQ-20260911-003.md', 'requirements/BUGFIX-HISTORY.md',
+                   'requirements/delivery/REQ-20260911-003.json',
+                   'logs/version-2.3.3/verification.md', 'logs/validation.md',
+                   'logs/project-checks/run/result.json', 'logs/project-checks/run/check.log',
+                   'logs/workflow-simplification/02-after.log']
+        for path in records:
+            with self.subTest(path=path):
+                self.assertEqual([selection.DOCUMENTS], selection.select_checks(['README.md', path]))
+        self.assertIsNone(selection.select_checks(records + ['tests/test_delivery.py']))
+        expected = selection.select_checks([selection.SKILL + 'scripts/delivery.py'])
+        self.assertEqual(expected, selection.select_checks(records + [selection.SKILL + 'scripts/delivery.py']))
 
     def test_tool_dependencies_include_consumers_and_gates(self):
         for tool in selection.TOOLS:

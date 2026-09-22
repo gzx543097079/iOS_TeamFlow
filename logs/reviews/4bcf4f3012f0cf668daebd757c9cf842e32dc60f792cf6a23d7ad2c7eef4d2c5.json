@@ -1,0 +1,47 @@
+{
+  "fingerprint": "4bcf4f3012f0cf668daebd757c9cf842e32dc60f792cf6a23d7ad2c7eef4d2c5",
+  "base": "39d4652d8463f8b015e8e714463227e88372a217",
+  "scope": "staged",
+  "snapshot_tree": "ce6835a7e698942ccf54e28321245e7bf65d5a51",
+  "created_at": "2026-09-22T01:29:08.137844+00:00",
+  "reviewer": "Codex",
+  "completed_at": "2026-09-22T01:29:08+00:00",
+  "summary": "需求和日志归档按目录及格式识别，保留代码与未知路径的测试回退。",
+  "previous_review": null,
+  "checks": {
+    "correctness": {
+      "status": "通过",
+      "evidence": "纯记录修复前回归失败，修改后117项全量检查通过，见04-before.log/04-after.log；已核对混合代码仍取关联测试，未知格式及公共改动仍回退全量。"
+    },
+    "standards": {
+      "status": "通过",
+      "evidence": "按目录职责统一记录分类，不添加旧需求编号兼容解析；RELEASE同步保留正式发布全量及未知输入保护。"
+    },
+    "subscription": {
+      "status": "不适用",
+      "evidence": "仅流程文档与记录调整，无套餐、价格或交易路径。"
+    },
+    "memory": {
+      "status": "不适用",
+      "evidence": "仅路径选择的纯函数条件变化，没有持久资源或异步生命周期。"
+    },
+    "analytics": {
+      "status": "不适用",
+      "evidence": "未修改事件契约或埋点。"
+    },
+    "test_artifacts": {
+      "status": "通过",
+      "evidence": "边界回归包含记录、夹带脚本、双扩展名、未知目录及代码混合；全部测试数据在 tests 中，日志为实际测试输出。"
+    },
+    "security": {
+      "status": "通过",
+      "evidence": "记录目录只排除明确文档/日志后缀，脚本、未知二进制及根外路径仍回退全量；无新增外部执行或凭据。"
+    }
+  },
+  "findings": [],
+  "blockers": [],
+  "requirements": [
+    "REQ-20260922-012754556Z-6a48ae72"
+  ],
+  "validation_results": []
+}

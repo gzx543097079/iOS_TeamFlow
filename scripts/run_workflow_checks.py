@@ -26,8 +26,10 @@ TOOLS = {
 def select_checks(paths):
     selected = {DOCUMENTS}
     for path in paths:
-        if (re.fullmatch(r'requirements/(?:DELIVERY\.md|(?:delivery/)?REQ-\d{8}-\d{9}Z-[0-9a-f]{8}\.(?:md|json))', path)
-                or (path.startswith('logs/reviews/') and Path(path).suffix in ('.md', '.json', '.patch'))):
+        # 记录按目录职责与格式识别，不解析需求编号或维护每个日志子目录的清单。
+        # 可执行脚本及未知格式仍进入下方公共/未知变化的全量回退。
+        if ((path.startswith('requirements/') and Path(path).suffix in ('.md', '.json'))
+                or (path.startswith('logs/') and Path(path).suffix in ('.md', '.json', '.patch', '.log'))):
             continue
         if path in ('AGENTS.md', 'README.md', SKILL + 'SKILL.md'):
             continue

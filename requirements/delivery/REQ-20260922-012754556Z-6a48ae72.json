@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "requirement": "REQ-20260922-012754556Z-6a48ae72",
+  "linked_commits": [],
+  "prs": [],
+  "events": [
+    {
+      "at": "2026-09-22T01:29:07.890078+00:00",
+      "action": "finish",
+      "changes": {
+        "commits": [],
+        "committed": false,
+        "merged": "未核实",
+        "releases": [],
+        "release_status": "未核实",
+        "prs": [],
+        "warnings": [
+          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+        ],
+        "development": "✅ 执行完成",
+        "card": {
+          "state": "✅ 执行完成",
+          "passed": 2,
+          "applicable": 2,
+          "next": "无",
+          "blocker": "无",
+          "acceptance_fingerprint": "5fa9dfa121dffd3568aa66e4278b9ef4c911233d3b99fef9c5582ccc44a3976b",
+          "implementation_fingerprint": "6faa205e0853e264d8e0494670145be69c2e0553a5522717f13f157d45fb9175"
+        },
+        "checked_at": "2026-09-22T01:29:07.889868+00:00"
+      },
+      "removed": []
+    }
+  ],
+  "acceptance_baseline": {
+    "implementation_fingerprint": "6faa205e0853e264d8e0494670145be69c2e0553a5522717f13f157d45fb9175",
+    "acceptance_fingerprint": "5fa9dfa121dffd3568aa66e4278b9ef4c911233d3b99fef9c5582ccc44a3976b",
+    "inputs": [
+      "scripts/run_workflow_checks.py",
+      "tests/test_check_selection.py",
+      ".agents/skills/ios-team-flow/references/RELEASE.md"
+    ],
+    "results": [],
+    "accepted_at": "2026-09-22T01:29:07.889847+00:00"
+  },
+  "snapshot": {
+    "commits": [],
+    "committed": false,
+    "merged": "未核实",
+    "releases": [],
+    "release_status": "未核实",
+    "prs": [],
+    "warnings": [
+      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
+    ],
+    "development": "✅ 执行完成",
+    "card": {
+      "state": "✅ 执行完成",
+      "passed": 2,
+      "applicable": 2,
+      "next": "无",
+      "blocker": "无",
+      "acceptance_fingerprint": "5fa9dfa121dffd3568aa66e4278b9ef4c911233d3b99fef9c5582ccc44a3976b",
+      "implementation_fingerprint": "6faa205e0853e264d8e0494670145be69c2e0553a5522717f13f157d45fb9175"
+    },
+    "checked_at": "2026-09-22T01:29:07.889868+00:00"
+  }
+}

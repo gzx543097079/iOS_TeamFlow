@@ -1,0 +1,77 @@
+FFFFFFFFF
+======================================================================
+FAIL: test_record_changes_do_not_depend_on_requirement_id_or_log_folder (test_check_selection.CheckSelectionTests.test_record_changes_do_not_depend_on_requirement_id_or_log_folder) (path='requirements/REQ-20260911-003.md')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/tests/test_check_selection.py", line 50, in test_record_changes_do_not_depend_on_requirement_id_or_log_folder
+    self.assertEqual([selection.DOCUMENTS], selection.select_checks(['README.md', path]))
+AssertionError: ['test_workflow.WorkflowTests.test_repository_documents'] != None
+
+======================================================================
+FAIL: test_record_changes_do_not_depend_on_requirement_id_or_log_folder (test_check_selection.CheckSelectionTests.test_record_changes_do_not_depend_on_requirement_id_or_log_folder) (path='requirements/BUGFIX-HISTORY.md')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/tests/test_check_selection.py", line 50, in test_record_changes_do_not_depend_on_requirement_id_or_log_folder
+    self.assertEqual([selection.DOCUMENTS], selection.select_checks(['README.md', path]))
+AssertionError: ['test_workflow.WorkflowTests.test_repository_documents'] != None
+
+======================================================================
+FAIL: test_record_changes_do_not_depend_on_requirement_id_or_log_folder (test_check_selection.CheckSelectionTests.test_record_changes_do_not_depend_on_requirement_id_or_log_folder) (path='requirements/delivery/REQ-20260911-003.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/tests/test_check_selection.py", line 50, in test_record_changes_do_not_depend_on_requirement_id_or_log_folder
+    self.assertEqual([selection.DOCUMENTS], selection.select_checks(['README.md', path]))
+AssertionError: ['test_workflow.WorkflowTests.test_repository_documents'] != None
+
+======================================================================
+FAIL: test_record_changes_do_not_depend_on_requirement_id_or_log_folder (test_check_selection.CheckSelectionTests.test_record_changes_do_not_depend_on_requirement_id_or_log_folder) (path='logs/version-2.3.3/verification.md')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/tests/test_check_selection.py", line 50, in test_record_changes_do_not_depend_on_requirement_id_or_log_folder
+    self.assertEqual([selection.DOCUMENTS], selection.select_checks(['README.md', path]))
+AssertionError: ['test_workflow.WorkflowTests.test_repository_documents'] != None
+
+======================================================================
+FAIL: test_record_changes_do_not_depend_on_requirement_id_or_log_folder (test_check_selection.CheckSelectionTests.test_record_changes_do_not_depend_on_requirement_id_or_log_folder) (path='logs/validation.md')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/tests/test_check_selection.py", line 50, in test_record_changes_do_not_depend_on_requirement_id_or_log_folder
+    self.assertEqual([selection.DOCUMENTS], selection.select_checks(['README.md', path]))
+AssertionError: ['test_workflow.WorkflowTests.test_repository_documents'] != None
+
+======================================================================
+FAIL: test_record_changes_do_not_depend_on_requirement_id_or_log_folder (test_check_selection.CheckSelectionTests.test_record_changes_do_not_depend_on_requirement_id_or_log_folder) (path='logs/project-checks/run/result.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/tests/test_check_selection.py", line 50, in test_record_changes_do_not_depend_on_requirement_id_or_log_folder
+    self.assertEqual([selection.DOCUMENTS], selection.select_checks(['README.md', path]))
+AssertionError: ['test_workflow.WorkflowTests.test_repository_documents'] != None
+
+======================================================================
+FAIL: test_record_changes_do_not_depend_on_requirement_id_or_log_folder (test_check_selection.CheckSelectionTests.test_record_changes_do_not_depend_on_requirement_id_or_log_folder) (path='logs/project-checks/run/check.log')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/tests/test_check_selection.py", line 50, in test_record_changes_do_not_depend_on_requirement_id_or_log_folder
+    self.assertEqual([selection.DOCUMENTS], selection.select_checks(['README.md', path]))
+AssertionError: ['test_workflow.WorkflowTests.test_repository_documents'] != None
+
+======================================================================
+FAIL: test_record_changes_do_not_depend_on_requirement_id_or_log_folder (test_check_selection.CheckSelectionTests.test_record_changes_do_not_depend_on_requirement_id_or_log_folder) (path='logs/workflow-simplification/02-after.log')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/tests/test_check_selection.py", line 50, in test_record_changes_do_not_depend_on_requirement_id_or_log_folder
+    self.assertEqual([selection.DOCUMENTS], selection.select_checks(['README.md', path]))
+AssertionError: ['test_workflow.WorkflowTests.test_repository_documents'] != None
+
+======================================================================
+FAIL: test_record_changes_do_not_depend_on_requirement_id_or_log_folder (test_check_selection.CheckSelectionTests.test_record_changes_do_not_depend_on_requirement_id_or_log_folder)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/tests/test_check_selection.py", line 53, in test_record_changes_do_not_depend_on_requirement_id_or_log_folder
+    self.assertEqual(expected, selection.select_checks(records + [selection.SKILL + 'scripts/delivery.py']))
+AssertionError: ['test_consumer_release', 'test_delivery', 'test_workflow'] != None
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (failures=9)
