@@ -112,7 +112,7 @@ def content_for_snapshot(name, content):
             ignored_section = line in ('## 验证', '## 决策与异常')
         if ignored_section or re.match(r'^- 状态：', line):
             continue
-        match = re.match(r'^- \[[ xX]\] (?:⚪|✅) (AC-\d+：.+)$', line)
+        match = re.match(r'^- (?:⚪|✅) (AC-\d+：.+)$', line)
         if match:
             line = '- ' + match.group(1)
         lines.append(line)

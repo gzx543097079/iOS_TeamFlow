@@ -99,13 +99,10 @@ def parse_card(path):
         raise ValueError('范围和不包含必须填写实际内容')
     ac = []
     for line in text.splitlines():
-        match = re.match(r'^- \[([ xX])\] (⚪|✅) (AC-\d+)：(.+)$', line)
+        match = re.match(r'^- (⚪|✅) (AC-\d+)：(.+)$', line)
         if match:
-            done = match.group(1).lower() == 'x'
-            if (match.group(2) == '✅') != done:
-                raise ValueError('AC 复选框与进度图标不一致：' + match.group(3))
-            ac.append({'id': match.group(3), 'done': done,
-                       'condition': match.group(4).strip()})
+            ac.append({'id': match.group(2), 'done': match.group(1) == '✅',
+                       'condition': match.group(3).strip()})
     if not ac or len({item['id'] for item in ac}) != len(ac):
         raise ValueError('需求卡必须包含不重复的 AC 项')
     done = sum(item['done'] for item in ac)

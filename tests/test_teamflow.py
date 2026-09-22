@@ -45,8 +45,8 @@ class TeamFlowTests(unittest.TestCase):
         path = self.root / 'requirements' / (requirement + '.md')
         text = path.read_text().replace('待填写本次要达到的结果', '实现登录错误提示')
         text = text.replace('待填写本次明确不处理的内容；没有时写“无额外排除”', '无额外排除')
-        text = text.replace('- [ ] ⚪ AC-01：填写可观察的输入、操作和预期结果',
-                            '- [x] ✅ AC-01：错误时显示提示')
+        text = text.replace('- ⚪ AC-01：填写可观察的输入、操作和预期结果',
+                            '- ✅ AC-01：错误时显示提示')
         path.write_text(text)
         return path
 
@@ -124,11 +124,13 @@ class TeamFlowTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, '需求状态无效'):
             flow.parse_card(card)
 
-    def test_ac_checkbox_and_progress_icon_must_agree(self):
+    def test_ac_uses_progress_icon_without_checkbox(self):
         req = self.create()
         card = self.root / 'requirements' / (req + '.md')
-        card.write_text(card.read_text().replace('- [ ] ⚪ AC-01', '- [x] ⚪ AC-01'))
-        with self.assertRaisesRegex(ValueError, '复选框与进度图标不一致'):
+        self.assertIn('- ⚪ AC-01', card.read_text())
+        self.assertNotIn('- [ ]', card.read_text())
+        card.write_text(card.read_text().replace('- ⚪ AC-01', '- 🔵 AC-01'))
+        with self.assertRaisesRegex(ValueError, '必须包含不重复的 AC 项'):
             flow.parse_card(card)
 
     def test_wait_user_completion_uses_colored_state(self):

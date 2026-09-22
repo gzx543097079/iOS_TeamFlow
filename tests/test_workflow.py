@@ -66,7 +66,8 @@ class WorkflowTests(unittest.TestCase):
             self.assertIn(self.COLORED_PROGRESS, path.read_text(), path)
         template = (ROOT / package_release.SKILL / 'references/templates/requirement.md').read_text()
         self.assertIn('- 状态：🔵 进行中', template)
-        self.assertIn('- [ ] ⚪ AC-01', template)
+        self.assertIn('- ⚪ AC-01', template)
+        self.assertNotIn('- [ ]', template)
 
     def test_setup_fresh_project_and_rejects_old_schema(self):
         with tempfile.TemporaryDirectory() as directory:
