@@ -18,13 +18,14 @@ PROJECT_ROOT 是当前 Git 根及其目录树；只使用本项目内的 Skill�
 | 业务代码或架构调整 | [ARCHITECTURE](references/ARCHITECTURE.md) |
 | Bug 修复 | [BUGFIX](references/BUGFIX.md) |
 | 构建与测试 | [PROJECT-CHECKS](references/PROJECT-CHECKS.md) |
+| App 用户可见文本或多语言变更 | [LOCALIZATION](references/LOCALIZATION.md) |
 | 用户明确要求 commit、push、标签或 GitHub Release | [GIT-ACTIONS](references/GIT-ACTIONS.md) |
 | 用户明确要求 Archive、TestFlight、审核、发布或下架中的某一动作 | [APP-RELEASE](references/APP-RELEASE.md) |
 | 新 App 或生命周期变化 | [APP-LIFECYCLE](references/APP-LIFECYCLE.md) |
 | 新工程日志组件 | [LOGGING](references/LOGGING.md) |
 | 已复现流程缺陷或明确工作方式纠正 | [EVOLUTION](references/EVOLUTION.md) |
 
-修改业务代码时按实际语言读取 OC、Swift、SwiftUI 与 UI 规范，并遵守中文注释规则。已有项目明确约定优先，不顺手迁移无关代码。
+修改业务代码时按实际语言读取 OC、Swift、SwiftUI 与 UI 规范，并遵守中文注释规则。生成或修改 App 用户可见文本时同时读取多语言规则，使用按场景伸缩层级的点分本地化键，代码不直接写最终展示文案。已有项目明确约定优先，不顺手迁移无关代码。
 
 问答、检查和只读分析不建需求。开发变更使用 `python3 scripts/teamflow.py req create --title "标题"` 建立唯一需求卡；同一需求续接原卡。需求完成不自动授权 Git 或 App 外部动作。
 

@@ -11,6 +11,7 @@
 - 错误通过现有 NSError/回调约定传递；不要吞错或用 NSException 处理常规业务错误。判断集合边界、对象类型、nil、重复回调和取消。
 - Core Foundation 创建/复制对象确认释放；桥接明确 __bridge / __bridge_transfer 等所有权，不混用 ARC 与 CF 管理。
 - `.mm` 的 C++ 对象释放、RAII、异常边界沿用已有 C++ 规范；OC 规则不能替代 C++ 审查。
+- App 用户可见文本通过 `NSLocalizedString` 或项目现有封装读取，并按 [多语言文本生成规则](../LOCALIZATION.md) 使用层级可伸缩的点分键；不在 `.h/.m/.mm` 中直接写最终展示文案。
 - 变更验证：使用工程现有 clang-format 配置检查改动文件；运行相关构建和测试，涉及所有权时用 Xcode Analyze、Memory Graph / Instruments 补证据。没有工具记录未验证，不声称零泄漏。
 
 - 新生成和本次修改的代码按 [中文注释规范](comments.md) 补充职责、接口契约与关键逻辑说明。

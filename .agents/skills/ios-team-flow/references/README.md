@@ -7,6 +7,7 @@
 | 当前功能分析 | [功能模板](templates/feature.md) |
 | 需求卡 | [需求模板](templates/requirement.md) · [Bug 模板](templates/bug-fix.md) |
 | 项目构建与测试 | [PROJECT-CHECKS](PROJECT-CHECKS.md) |
+| 多语言文本生成 | [LOCALIZATION](LOCALIZATION.md) |
 | 显式 Git 动作 | [GIT-ACTIONS](GIT-ACTIONS.md) |
 | 显式 App 外部动作 | [APP-RELEASE](APP-RELEASE.md) |
 | 已有工程和大型模块 | [EXISTING-PROJECT](EXISTING-PROJECT.md) · [MODULE-CONTEXT](MODULE-CONTEXT.md) |

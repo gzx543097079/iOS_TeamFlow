@@ -69,6 +69,15 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn('- ⚪ AC-01', template)
         self.assertNotIn('- [ ]', template)
 
+    def test_localization_rules_are_distributed(self):
+        reference = package_release.SKILL + '/references/LOCALIZATION.md'
+        self.assertIn(reference, package_release.FILES)
+        self.assertTrue((ROOT / reference).is_file())
+        skill = (ROOT / package_release.SKILL / 'SKILL.md').read_text()
+        feature = (ROOT / package_release.SKILL / 'references/templates/feature.md').read_text()
+        self.assertIn('references/LOCALIZATION.md', skill)
+        self.assertIn('../LOCALIZATION.md', feature)
+
     def test_active_workflow_copy_is_identity_neutral(self):
         paths = (
             ROOT / package_release.SKILL / 'SKILL.md',
@@ -130,6 +139,7 @@ class WorkflowTests(unittest.TestCase):
             self.assertEqual(0, result.returncode, result.stderr)
             self.assertTrue((project / 'scripts/teamflow.py').is_file())
             self.assertTrue((project / 'requirements').is_dir())
+            self.assertTrue((skill / 'references/LOCALIZATION.md').is_file())
             self.assertFalse((project / 'logs/reviews').exists())
             self.assertIn(self.VALIDATION_SEQUENCE, (project / 'AGENTS.md').read_text())
             self.assertNotIn('单人', (project / 'AGENTS.md').read_text())

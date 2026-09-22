@@ -41,7 +41,7 @@ flowchart TD
 | 项目入口 | `AGENTS.md` | 声明 Skill、项目空间、验证顺序和外部动作边界 |
 | 工作流入口 | `.agents/skills/ios-team-flow/SKILL.md` | 根据当前任务路由需要读取的专题 |
 | 主流程 | `references/WORKFLOW.md` | 定义请求识别、需求跟踪、实施验证和停止条件 |
-| 专题规则 | `references/*.md` | 按需提供架构、测试、Git、App 发布和语言/UI 规范 |
+| 专题规则 | `references/*.md` | 按需提供架构、测试、多语言、Git、App 发布和语言/UI 规范 |
 | 执行工具 | `scripts/teamflow.py` | 创建需求、查询状态、运行验证和执行提交前检查 |
 | 项目配置 | `.agents/project-checks.json` | 保存真实构建、测试命令以及 profile 输入范围 |
 | 过程记录 | `requirements/` | 保存需求范围、AC、状态与验证证据 |
@@ -56,6 +56,7 @@ flowchart TD
 - 开发期间运行最小相关测试；所有改动完成并冻结后，再运行匹配范围的完整 profile。
 - 完成需求不自动触发 commit、push、标签、Release 或任何 App 外部动作。
 - 明确目标动作后，可自动补齐该目标不可缺少的前置步骤，但不执行可选配置、相邻动作或目标之后的动作。
+- App 用户可见文本必须来自本地化资源，键采用按实际语义层级伸缩的点分格式；至少两段但不固定为三段。
 - 普通 TestFlight 上传省略 `testFlightInternalTestingOnly`；只有明确要求 TestFlight Internal Only 时才设为 `true`。
 
 ## 安装
