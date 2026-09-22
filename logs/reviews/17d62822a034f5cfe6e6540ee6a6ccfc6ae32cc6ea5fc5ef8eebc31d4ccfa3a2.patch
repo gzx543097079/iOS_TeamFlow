@@ -1,0 +1,1023 @@
+diff --git a/.agents/skills/ios-team-flow/references/BUGFIX.md b/.agents/skills/ios-team-flow/references/BUGFIX.md
+index 5ba52db24acfbd7edf007928afaf97fae651228d..ffc643bf584f30393464eac96d882a99fcae38c0 100644
+--- a/.agents/skills/ios-team-flow/references/BUGFIX.md
++++ b/.agents/skills/ios-team-flow/references/BUGFIX.md
+@@ -24,7 +24,7 @@ python3 .agents/skills/ios-team-flow/scripts/delivery.py create --template bug-f
+ | 提交前语义审查与修复复查 | `logs/reviews/` |
+ | 提交、PR、Release 事实及同步历史 | `requirements/delivery/REQ-实际编号.json`，由工具生成 |
+ 
+-需要集中浏览时在项目 `requirements/BUGFIX-HISTORY.md` 只维护标题和卡片链接，不复制状态、根因或验收结果。Codex 首次处理缺陷时按需创建该索引，新缺陷新增链接、续接原卡不重复插入；create 命令只生成卡片，不自动改写索引。历史需求只引用已有真实记录，不为补目录伪造旧过程或新建重复卡。
++集中浏览时执行 `delivery.py list --type bug-fix`，工具按卡片的“类型：Bug Fix”生成标题、当前状态和相对项目根的卡片链接；可加 `--reverse` 或 `--json`。创建后无需 finish 即可查到，改名或重开直接反映在下次查询中，不再手填 BUGFIX-HISTORY 索引。普通需求可用 `--type requirement`。已有 BUGFIX-HISTORY 仅保留无法按类型查询的历史参考，不再为新卡追加链接；不迁移旧编号、不伪造旧过程。
+ 
+ 查阅某卡的交付同步历史（区别于人工修复过程）：
+ 
+diff --git a/.agents/skills/ios-team-flow/references/DELIVERY.md b/.agents/skills/ios-team-flow/references/DELIVERY.md
+index f832374ebda21115a18efec6cbee9a9fb583fd51..c54c3801d676f28883f37a7d6148231ea41d273c 100644
+--- a/.agents/skills/ios-team-flow/references/DELIVERY.md
++++ b/.agents/skills/ios-team-flow/references/DELIVERY.md
+@@ -56,9 +56,10 @@ GitHub Release 与 App Store/TestFlight 分开，业务发布见 [APP-RELEASE](A
+ python3 .agents/skills/ios-team-flow/scripts/delivery.py list
+ python3 .agents/skills/ios-team-flow/scripts/delivery.py list --reverse
+ python3 .agents/skills/ios-team-flow/scripts/delivery.py list --json
++python3 .agents/skills/ios-team-flow/scripts/delivery.py list --type bug-fix
+ ```
+ 
+-列表直接读取当前需求卡，未执行 finish 的新卡也可见；支持 Git 初始化前查看。默认按创建时间升序，--reverse 仅反转显示，保留升序序号。生成交付概览同样包含序号、创建时间、标题和当前状态；Git 事实仍取最近一次同步记录。
++列表直接读取当前需求卡，未执行 finish 的新卡也可见；支持 Git 初始化前查看。`--type bug-fix` 按卡片类型筛选缺陷，`--type requirement` 筛选普通需求；Markdown 输出的卡片链接相对项目根。标题和状态随卡片更新，不维护人工索引。默认按创建时间升序，--reverse 仅反转显示，保留筛选后列表的升序序号。生成交付概览同样包含序号、创建时间、标题和当前状态；Git 事实仍取最近一次同步记录。
+ 
+ 序号为当前集合中的浏览位置，合并更早需求后可能变化；文件名、引用、父子关系及 Requirement 尾注使用固定完整编号，不能使用序号。列表不写文件或联网，交付概览随 finish 更新，不维护第二套人工状态。
+ 
+diff --git a/.agents/skills/ios-team-flow/scripts/delivery.py b/.agents/skills/ios-team-flow/scripts/delivery.py
+index 396bfbc6d497d5db6c7ae23ee78c9ad0393b1ead..f5562e27bbe70d3a572568eb509844be044b18f7 100644
+--- a/.agents/skills/ios-team-flow/scripts/delivery.py
++++ b/.agents/skills/ios-team-flow/scripts/delivery.py
+@@ -367,7 +367,7 @@ def created_time(requirement):
+                     int(clock[6:9]) * 1000, tzinfo=timezone.utc)
+ 
+ 
+-def requirement_rows(root, reverse=False, warnings=None):
++def requirement_rows(root, reverse=False, warnings=None, kind=None):
+     """直接读取当前卡片，未 finish 的新卡也可查询；不维护第二份状态。"""
+     rows = []
+     for card in sorted(safe_path(root, 'requirements').glob('REQ-*.md')):
+@@ -383,6 +383,9 @@ def requirement_rows(root, reverse=False, warnings=None):
+             else:
+                 warnings.append(warning)
+             continue
++        card_kind = 'bug-fix' if re.search(r'^- 类型：Bug Fix\s*$', content, re.M) else 'requirement'
++        if kind is not None and card_kind != kind:
++            continue
+         heading = next((line[2:] for line in content.splitlines() if line.startswith('# ')), card.stem)
+         title = heading.removeprefix(card.stem + '：')
+         state = re.search(r'^- 状态：(.+)$', content, re.M)
+@@ -396,10 +399,13 @@ def table_cell(value):
+     return str(value).replace('\n', ' ').replace('|', '&#124;')
+ 
+ 
+-def list_requirements(root, reverse=False):
++def list_requirements(root, reverse=False, kind=None):
+     lines = ['| 序号 | 创建时间（UTC） | 需求 | 标题 | 状态 |', '| --- | --- | --- | --- | --- |']
+-    for row in requirement_rows(root, reverse):
+-        lines.append('| ' + ' | '.join(table_cell(row[key]) for key in ('number', 'created_at', 'requirement', 'title', 'state')) + ' |')
++    for row in requirement_rows(root, reverse, kind=kind):
++        values = [table_cell(row[key]) for key in ('number', 'created_at', 'requirement', 'title', 'state')]
++        req = row['requirement']
++        values[2] = f'[{req}](requirements/{req}.md)'
++        lines.append('| ' + ' | '.join(values) + ' |')
+     return '\n'.join(lines)
+ 
+ 
+@@ -536,6 +542,8 @@ def main():
+     listing = sub.add_parser('list', help='按创建时间列出当前需求，序号不用于引用')
+     listing.add_argument('--reverse', action='store_true', help='最新需求在前，保留升序序号')
+     listing.add_argument('--json', action='store_true', help='输出结构化列表')
++    listing.add_argument('--type', dest='kind', choices=('requirement', 'bug-fix'),
++                         help='按卡片类型筛选，缺陷标题及链接直接从当前卡片生成')
+     status = sub.add_parser('status')
+     status.add_argument('--history', action='store_true', help='按需展开完整历史事件')
+     creator = sub.add_parser('create')
+@@ -572,8 +580,8 @@ def main():
+         if args.command == 'list':
+             if args.requirement:
+                 raise ValueError('list 不接收 --requirement')
+-            print(json.dumps(requirement_rows(root, args.reverse), ensure_ascii=False, indent=2)
+-                  if args.json else list_requirements(root, args.reverse))
++            print(json.dumps(requirement_rows(root, args.reverse, kind=args.kind), ensure_ascii=False, indent=2)
++                  if args.json else list_requirements(root, args.reverse, args.kind))
+             return 0
+         if Path(git(root, 'rev-parse', '--show-toplevel')).resolve() != root:
+             raise ValueError('请指定 Git 根目录')
+diff --git a/README.md b/README.md
+index 4a4182bce49fb64e04dbae239ee30f226877485e..be95584e620308c47bd09be051ad1521371185ab 100644
+--- a/README.md
++++ b/README.md
+@@ -160,4 +160,4 @@ python3 scripts/package_release.py
+ 
+ ## Bug 修复模板与历史
+ 
+-缺陷使用 [Bug Fix 模板](.agents/skills/ios-team-flow/references/templates/bug-fix.md)，包含复现、根因、修复、回归和处理历史。创建与续接规则见 [缺陷处理规程](.agents/skills/ios-team-flow/references/BUGFIX.md)。本仓库已有记录入口见 `requirements/BUGFIX-HISTORY.md`；业务项目的真实记录保留在各自 requirements/。
++缺陷使用 [Bug Fix 模板](.agents/skills/ios-team-flow/references/templates/bug-fix.md)，包含复现、根因、修复、回归和处理历史。创建与续接规则见 [缺陷处理规程](.agents/skills/ios-team-flow/references/BUGFIX.md)。用 `delivery.py list --type bug-fix` 从当前卡片生成缺陷列表、标题和链接，无需手工维护索引；本仓库 `requirements/BUGFIX-HISTORY.md` 仅保留历史参考。业务项目的真实记录保留在各自 requirements/。
+diff --git a/logs/workflow-simplification/07-after.log b/logs/workflow-simplification/07-after.log
+new file mode 100644
+index 0000000000000000000000000000000000000000..59c68530d620e97a73eb80f114dfc07294d757d1
+--- /dev/null
++++ b/logs/workflow-simplification/07-after.log
+@@ -0,0 +1,667 @@
++...............unit：通过
++验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpwgpwn48d/logs/project-checks/20260922T013350Z-26aa60f2/result.json
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01",
++    "REQ-20260911-120001999Z-abcdef02"
++  ],
++  "without_implementation_commit": [
++    "REQ-20260911-120001999Z-abcdef02"
++  ],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/REQ-20260911-120001999Z-abcdef02.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [
++    "REQ-20260911-120001999Z-abcdef02"
++  ],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/REQ-20260911-120001999Z-abcdef02.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [
++    "REQ-20260911-120001999Z-abcdef02"
++  ],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/REQ-20260911-120001999Z-abcdef02.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{"requirement": "REQ-20260922-013351986Z-bbbe8089", "card": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmplhges7pp/requirements/REQ-20260922-013351986Z-bbbe8089.md"}
++{"requirement": "REQ-20260922-013351986Z-6ad30a3b", "card": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmplhges7pp/requirements/REQ-20260922-013351986Z-6ad30a3b.md"}
++{"requirement": "REQ-20260922-013352039Z-4ca83939", "card": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmplhges7pp/requirements/REQ-20260922-013352039Z-4ca83939.md"}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md"
++  ],
++  "github_checked": false,
++  "overview_outdated": true
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": true
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/REQ-20260230-120000000Z-aaaaaaaa.md",
++    "?? requirements/REQ-20260912-120000000Z-bbbbbbbb.md",
++    "?? requirements/REQ-20260912-120000001Z-cccccccc.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}....................
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{"requirement": "REQ-20260912-103015123Z-a1b2c3d4", "card": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp20y5qdou/requirements/REQ-20260912-103015123Z-a1b2c3d4.md"}
++{"requirement": "REQ-20260912-103015123Z-b1b2c3d4", "card": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp20y5qdou/requirements/REQ-20260912-103015123Z-b1b2c3d4.md"}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "unarchived_changes": [
++    "?? requirements/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "unarchived_changes": [
++    "?? requirements/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "unarchived_changes": [
++    "?? requirements/"
++  ],
++  "github_checked": true,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "unarchived_changes": [
++    "?? requirements/"
++  ],
++  "github_checked": true,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/DELIVERY.md",
++    " M requirements/delivery/REQ-20260911-120000999Z-abcdef01.json"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++{
++  "outdated": [],
++  "updated": [
++    "REQ-20260911-120000999Z-abcdef01"
++  ],
++  "without_implementation_commit": [],
++  "unarchived_changes": [
++    "M requirements/REQ-20260911-120000999Z-abcdef01.md",
++    "?? requirements/DELIVERY.md",
++    "?? requirements/delivery/"
++  ],
++  "github_checked": false,
++  "overview_outdated": false
++}
++需要 Codex 审查并填写报告
++{"fingerprint": "368e6fc2d5bfbce80d91847084d69e52b16698254d51d0e21e136259ade8d8b6", "report": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmps25bsdtt/logs/reviews/368e6fc2d5bfbce80d91847084d69e52b16698254d51d0e21e136259ade8d8b6.json", "patch": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmps25bsdtt/logs/reviews/368e6fc2d5bfbce80d91847084d69e52b16698254d51d0e21e136259ade8d8b6.patch", "unstaged_changes": false, "untracked_count": 2}
++需要 Codex 审查并填写报告
++{"fingerprint": "f3dadbf4b8bc872cee74c5884a1aad3dbab6499ba164ae5a430326400497ded0", "report": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpllybj0ii/logs/reviews/f3dadbf4b8bc872cee74c5884a1aad3dbab6499ba164ae5a430326400497ded0.json", "patch": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpllybj0ii/logs/reviews/f3dadbf4b8bc872cee74c5884a1aad3dbab6499ba164ae5a430326400497ded0.patch", "unstaged_changes": true, "untracked_count": 4}
++继续未完成审查
++{"fingerprint": "f3dadbf4b8bc872cee74c5884a1aad3dbab6499ba164ae5a430326400497ded0", "report": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpllybj0ii/logs/reviews/f3dadbf4b8bc872cee74c5884a1aad3dbab6499ba164ae5a430326400497ded0.json", "patch": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpllybj0ii/logs/reviews/f3dadbf4b8bc872cee74c5884a1aad3dbab6499ba164ae5a430326400497ded0.patch", "unstaged_changes": false, "untracked_count": 0}........................................
++----------------------------------------------------------------------
++Ran 75 tests in 23.115s
++
++OK
++
++工作流入口、版本、文件清单和内部链接检查通过
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpshg0ux7m/dist/iOS-TeamFlow-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpshg0ux7m/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpnoe_vxav/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpnoe_vxav/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp7mbggahl/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp7mbggahl/source/dist/ios-team-flow-skill-v2.3.4.zip
++验证结果与当前源码/配置及暂存区一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp561nqawr/logs/project-checks/20260922T013403Z-8fb9deb1/result.json
++审查门禁通过，复用指纹：cdf1cf9207f3114ab17ceaec560879251c680fa0d94a3de4e285ecf9f56137e2
++审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
++复用已完成审查
++{"fingerprint": "df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf", "report": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpshebocma/logs/reviews/df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf.json", "patch": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpshebocma/logs/reviews/df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf.patch", "unstaged_changes": false, "untracked_count": 1}
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp8_cqcyws/dist/iOS-TeamFlow-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp8_cqcyws/dist/iOS-TeamFlow-v2.3.4.zip
++审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp8i95iwmg/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp8i95iwmg/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp8aboqufn/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp8aboqufn/source/dist/ios-team-flow-skill-v2.3.4.zip
++审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
++工作流入口、版本、文件清单和内部链接检查通过
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp71fuytfn/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp71fuytfn/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp6348wrmr/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp6348wrmr/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp1v66r3g3/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp1v66r3g3/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp54lphu03/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp54lphu03/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpm5yfuxgd/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpm5yfuxgd/source/dist/ios-team-flow-skill-v2.3.4.zip
++需要 Codex 审查并填写报告
++{"fingerprint": "df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf", "report": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpbwfsjehw/logs/reviews/df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf.json", "patch": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpbwfsjehw/logs/reviews/df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf.patch", "unstaged_changes": false, "untracked_count": 2}
++审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
++审查门禁通过，复用指纹：df4de6bbe449517ff6d0265ad574e4b2a88fc0e4fa9f9bc3a334028975bd45cf
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpnhm0il_d/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpnhm0il_d/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpq34ajz5i/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpq34ajz5i/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpsg9stfx0/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpsg9stfx0/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmptawuc_q7/source/dist/ios-team-flow-skill-v2.3.4.zip
++/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmptawuc_q7/source/dist/ios-team-flow-skill-v2.3.4.zip
+diff --git a/logs/workflow-simplification/07-before.log b/logs/workflow-simplification/07-before.log
+new file mode 100644
+index 0000000000000000000000000000000000000000..3536f5177d214461649ff8ef671977d7e6c3bf9d
+--- /dev/null
++++ b/logs/workflow-simplification/07-before.log
+@@ -0,0 +1,25 @@
++usage: delivery.py [-h] [--project PROJECT] [--requirement REQUIREMENT]
++                   {list,status,create,finish,development,link-pr,link-commit,exclude-commit,refresh}
++                   ...
++delivery.py: error: unrecognized arguments: --type bug-fix
++E
++======================================================================
++ERROR: test_bug_list_reads_current_cards_without_manual_index (test_delivery.DeliveryTests.test_bug_list_reads_current_cards_without_manual_index)
++----------------------------------------------------------------------
++Traceback (most recent call last):
++  File "/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/tests/test_delivery.py", line 456, in test_bug_list_reads_current_cards_without_manual_index
++    rows = json.loads(subprocess.check_output(command + ['--json'], text=True))
++                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++  File "/Users/hhdz/.local/share/uv/python/cpython-3.12.14-macos-aarch64-none/lib/python3.12/subprocess.py", line 466, in check_output
++    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
++           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++  File "/Users/hhdz/.local/share/uv/python/cpython-3.12.14-macos-aarch64-none/lib/python3.12/subprocess.py", line 571, in run
++    raise CalledProcessError(retcode, process.args,
++subprocess.CalledProcessError: Command '['/Users/hhdz/.local/bin/python3.12', '/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.agents/skills/ios-team-flow/scripts/delivery.py', '--project', '/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpdy2e_qa7', 'list', '--type', 'bug-fix', '--json']' returned non-zero exit status 2.
++
++----------------------------------------------------------------------
++Ran 1 test in 0.132s
++
++FAILED (errors=1)
++{"requirement": "REQ-20260922-013350030Z-d12e29ad", "card": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpdy2e_qa7/requirements/REQ-20260922-013350030Z-d12e29ad.md"}
++{"requirement": "REQ-20260922-013350030Z-e7766ed1", "card": "/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpdy2e_qa7/requirements/REQ-20260922-013350030Z-e7766ed1.md"}
+diff --git a/requirements/BUGFIX-HISTORY.md b/requirements/BUGFIX-HISTORY.md
+index 8995fa35b3785398b40e7f0ef5071f46534df03a..ff18643ca32b7d67f92b76422f3c533820e2f09a 100644
+--- a/requirements/BUGFIX-HISTORY.md
++++ b/requirements/BUGFIX-HISTORY.md
+@@ -10,10 +10,8 @@
+ | 切换中文后返回按钮仍为英文 | [商城整合卡：过程与决策](REQ-20260914-093347091Z-29ecd886.md#过程与决策) |
+ | 商城横屏安全区约束问题 | [商城整合卡](REQ-20260914-093347091Z-29ecd886.md) · [审查发现](../logs/reviews/4e4a1a9950f70a8786000c15b89ea344cd29113bab4d7f7aab7e6475d12782f3.json) · [复核记录](../logs/reviews/5ace650c9e0cca0634fcaca6deeeb6e335a63cc6c74e21c2928b549321cc7e81.json) |
+ 
+-## 新增记录
++## 当前缺陷列表
+ 
+-- [Demo 未采用 UIScene 生命周期的启动警告](REQ-20260915-022234308Z-308dc111.md)
+-
+-后续新 Bug 创建卡片后在这里追加标题与卡片链接；同一卡片只保留一个入口，重开和失败尝试记录在卡片内部。上表为旧结构记录的引用，不表示已补充新的历史或重新验收。
++从项目根执行 `python3 .agents/skills/ios-team-flow/scripts/delivery.py list --type bug-fix`，直接从缺陷卡生成最新标题、状态和链接；新建、改名及重开均无需维护本页。上表仅保留旧结构历史参考，不再追加新卡。
+ 
+ 模板：[bug-fix.md](../.agents/skills/ios-team-flow/references/templates/bug-fix.md)；规程：[BUGFIX.md](../.agents/skills/ios-team-flow/references/BUGFIX.md)。
+diff --git a/requirements/DELIVERY.md b/requirements/DELIVERY.md
+index 292fe45c252cea2dcd3325867891ba64bd85d444..375ee7e70e4fa7f57af605fa6e6c5134a3a6e977 100644
+--- a/requirements/DELIVERY.md
++++ b/requirements/DELIVERY.md
+@@ -37,4 +37,5 @@
+ | 31 | 2026-09-22T01:25:49.592+00:00 | [REQ-20260922-012549592Z-a0ecd8ba](REQ-20260922-012549592Z-a0ecd8ba.md) | 按启动及功能阶段确认系统权限 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-22T01:27:06.816108+00:00 |
+ | 32 | 2026-09-22T01:27:54.556+00:00 | [REQ-20260922-012754556Z-6a48ae72](REQ-20260922-012754556Z-6a48ae72.md) | 按记录目录识别无需全量回归的归档变更 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-22T01:29:08.779074+00:00 |
+ | 33 | 2026-09-22T01:29:27.766+00:00 | [REQ-20260922-012927766Z-a3362584](REQ-20260922-012927766Z-a3362584.md) | 模块事实更新与基准刷新二选一 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-22T01:30:00.509134+00:00 |
+-| 34 | 2026-09-22T01:30:09.233+00:00 | [REQ-20260922-013009233Z-03ac4162](REQ-20260922-013009233Z-03ac4162.md) | 每次收尾只生成一次交付概览 | ✅ 执行完成 | ⬜ 未关联 | 未核实 | 未核实 | 2026-09-22T01:31:55.966477+00:00 |
++| 34 | 2026-09-22T01:30:09.233+00:00 | [REQ-20260922-013009233Z-03ac4162](REQ-20260922-013009233Z-03ac4162.md) | 每次收尾只生成一次交付概览 | ✅ 执行完成 | ✅ 1 个提交 | 未核实 | 未核实 | 2026-09-22T01:31:56.793887+00:00 |
++| 35 | 2026-09-22T01:32:22.187+00:00 | [REQ-20260922-013222187Z-d5dac7e4](REQ-20260922-013222187Z-d5dac7e4.md) | 从缺陷卡动态生成分类列表与链接 | ✅ 执行完成 | ⬜ 未关联 | 未核实 | 未核实 | 2026-09-22T01:35:23.412624+00:00 |
+diff --git a/requirements/REQ-20260922-013222187Z-d5dac7e4.md b/requirements/REQ-20260922-013222187Z-d5dac7e4.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..268690a8c353f3e52fd3c009b9a7d809a651f466
+--- /dev/null
++++ b/requirements/REQ-20260922-013222187Z-d5dac7e4.md
+@@ -0,0 +1,22 @@
++# REQ-20260922-013222187Z-d5dac7e4：从缺陷卡动态生成分类列表与链接
++<!-- teamflow:requirement:v3 -->
++
++- 状态：✅ 执行完成
++- 来源与范围：用户要求解决流程检查发现的问题，每项独立提交；本卡仅处理Bug 手工索引维护。
++- 拆分：否；单一流程改进，其余问题独立交付
++- 验收方式：自审
++- 验收依据：工作流工具或规则调整，可由差异核对及对应检查判断
++- 下一步：无
++- 阻塞项：无
++
++## 验收（唯一结果记录）
++
++| 编号 | 条件 | 结果 | 证据或不适用原因 |
++| --- | --- | --- | --- |
++| AC-01 | 按 bug-fix 类型直接生成当前缺陷标题、状态和卡片链接 | 通过 | logs/workflow-simplification/07-before.log（旧CLI拒绝类型筛选）；07-after.log（75项回归通过）；本仓库 list --type bug-fix 返回实际 Scene 缺陷卡及链接 |
++| AC-02 | 新建无需 finish、改名和重开不维护另一文件，支持倒序及 JSON | 通过 | logs/workflow-simplification/07-before.log（旧CLI拒绝类型筛选）；07-after.log（75项回归通过）；本仓库 list --type bug-fix 返回实际 Scene 缺陷卡及链接 |
++| AC-03 | 查询只读且普通需求不混入缺陷列表 | 通过 | logs/workflow-simplification/07-before.log（旧CLI拒绝类型筛选）；07-after.log（75项回归通过）；本仓库 list --type bug-fix 返回实际 Scene 缺陷卡及链接 |
++
++## 过程与决策
++
++- 2026-09-22T01:35:23+00:00：根据本次流程检查定位新建缺陷后还需人工复制标题与链接到索引；采用新增 list --type 动态查询，停止给历史参考页追加新卡。按 AC 核对；若发生回归可按本卡实施提交回退该项，不改写历史。
+diff --git a/requirements/delivery/REQ-20260922-013009233Z-03ac4162.json b/requirements/delivery/REQ-20260922-013009233Z-03ac4162.json
+index 5fb3b3c4230faf9571bb4fc16b1364a73882630d..e39e49b9219818dfb5ce64013ae7d21ccccae45b 100644
+--- a/requirements/delivery/REQ-20260922-013009233Z-03ac4162.json
++++ b/requirements/delivery/REQ-20260922-013009233Z-03ac4162.json
+@@ -30,6 +30,18 @@
+         "checked_at": "2026-09-22T01:31:55.966477+00:00"
+       },
+       "removed": []
++    },
++    {
++      "at": "2026-09-22T01:31:56.794376+00:00",
++      "action": "finish",
++      "changes": {
++        "commits": [
++          "03279c1f08d18ae2535c11e5ff44b299cb24c384"
++        ],
++        "committed": true,
++        "checked_at": "2026-09-22T01:31:56.793887+00:00"
++      },
++      "removed": []
+     }
+   ],
+   "acceptance_baseline": {
+@@ -40,11 +52,17 @@
+       "tests/test_delivery.py"
+     ],
+     "results": [],
+-    "accepted_at": "2026-09-22T01:31:55.966447+00:00"
++    "accepted_at": "2026-09-22T01:31:55.966447+00:00",
++    "sealed_commits": [
++      "03279c1f08d18ae2535c11e5ff44b299cb24c384"
++    ],
++    "accepted_commit": "03279c1f08d18ae2535c11e5ff44b299cb24c384"
+   },
+   "snapshot": {
+-    "commits": [],
+-    "committed": false,
++    "commits": [
++      "03279c1f08d18ae2535c11e5ff44b299cb24c384"
++    ],
++    "committed": true,
+     "merged": "未核实",
+     "releases": [],
+     "release_status": "未核实",
+@@ -62,6 +80,6 @@
+       "acceptance_fingerprint": "076d1ecf05a011f12884ccfd77f4176493738fae55fb48666e80df7c39f88e93",
+       "implementation_fingerprint": "9934831d3889fd80474082162252af3f079ad60aa54f92b51ab8a64d70842a55"
+     },
+-    "checked_at": "2026-09-22T01:31:55.966477+00:00"
++    "checked_at": "2026-09-22T01:31:56.793887+00:00"
+   }
+ }
+diff --git a/requirements/delivery/REQ-20260922-013222187Z-d5dac7e4.json b/requirements/delivery/REQ-20260922-013222187Z-d5dac7e4.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..93ae8938d02899eab8654b40ce600dc0e2594e8d
+--- /dev/null
++++ b/requirements/delivery/REQ-20260922-013222187Z-d5dac7e4.json
+@@ -0,0 +1,71 @@
++{
++  "schema_version": 1,
++  "requirement": "REQ-20260922-013222187Z-d5dac7e4",
++  "linked_commits": [],
++  "prs": [],
++  "events": [
++    {
++      "at": "2026-09-22T01:35:23.412853+00:00",
++      "action": "finish",
++      "changes": {
++        "commits": [],
++        "committed": false,
++        "merged": "未核实",
++        "releases": [],
++        "release_status": "未核实",
++        "prs": [],
++        "warnings": [
++          "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++        ],
++        "development": "✅ 执行完成",
++        "card": {
++          "state": "✅ 执行完成",
++          "passed": 3,
++          "applicable": 3,
++          "next": "无",
++          "blocker": "无",
++          "acceptance_fingerprint": "284715b038e770b1d6eaf57420a7d1997d149c60d46549f53da1e27c624d9f8c",
++          "implementation_fingerprint": "c5fa73ed05bdc7189e7d6b1e5187367994c60ca28e16e05d57ce823aa7333959"
++        },
++        "checked_at": "2026-09-22T01:35:23.412624+00:00"
++      },
++      "removed": []
++    }
++  ],
++  "acceptance_baseline": {
++    "implementation_fingerprint": "c5fa73ed05bdc7189e7d6b1e5187367994c60ca28e16e05d57ce823aa7333959",
++    "acceptance_fingerprint": "284715b038e770b1d6eaf57420a7d1997d149c60d46549f53da1e27c624d9f8c",
++    "inputs": [
++      ".agents/skills/ios-team-flow/scripts/delivery.py",
++      "tests/test_delivery.py",
++      ".agents/skills/ios-team-flow/references/BUGFIX.md",
++      ".agents/skills/ios-team-flow/references/DELIVERY.md",
++      "requirements/BUGFIX-HISTORY.md",
++      "README.md"
++    ],
++    "results": [],
++    "accepted_at": "2026-09-22T01:35:23.412598+00:00"
++  },
++  "snapshot": {
++    "commits": [],
++    "committed": false,
++    "merged": "未核实",
++    "releases": [],
++    "release_status": "未核实",
++    "prs": [],
++    "warnings": [
++      "未查询 GitHub；本地提交或标签不能证明 PR 已合并或 Release 已发布"
++    ],
++    "development": "✅ 执行完成",
++    "card": {
++      "state": "✅ 执行完成",
++      "passed": 3,
++      "applicable": 3,
++      "next": "无",
++      "blocker": "无",
++      "acceptance_fingerprint": "284715b038e770b1d6eaf57420a7d1997d149c60d46549f53da1e27c624d9f8c",
++      "implementation_fingerprint": "c5fa73ed05bdc7189e7d6b1e5187367994c60ca28e16e05d57ce823aa7333959"
++    },
++    "checked_at": "2026-09-22T01:35:23.412624+00:00"
++  }
++}
+diff --git a/tests/test_delivery.py b/tests/test_delivery.py
+index 0794b3dde7994ac386d1c7f748664cff31bd0a01..0bb86c1bb1a847edd809fe1871fc56f8fce9f292 100644
+--- a/tests/test_delivery.py
++++ b/tests/test_delivery.py
+@@ -447,6 +447,30 @@ class DeliveryTests(unittest.TestCase):
+                 d.create(self.root, '缺陷', name)
+         self.assertEqual(before, {p: p.read_bytes() for p in (self.root / 'requirements').rglob('*') if p.is_file()})
+ 
++    def test_bug_list_reads_current_cards_without_manual_index(self):
++        import sys
++        bug = d.create(self.root, '缺陷初始标题', 'bug-fix')
++        normal = d.create(self.root, '普通需求')
++        command = [sys.executable, str(ROOT / '.agents/skills/ios-team-flow/scripts/delivery.py'),
++                   '--project', str(self.root), 'list', '--type', 'bug-fix']
++        rows = json.loads(subprocess.check_output(command + ['--json'], text=True))
++        self.assertEqual([bug.stem], [row['requirement'] for row in rows])
++        self.assertNotIn(normal.stem, subprocess.check_output(command, text=True))
++        bug.write_text(bug.read_text().replace('缺陷初始标题', '改名后的缺陷')
++                       .replace('⬜ 未执行', '🔄 执行中'))
++        second = d.create(self.root, '另一缺陷', 'bug-fix')
++        before = {p: p.read_bytes() for p in (self.root / 'requirements').rglob('*') if p.is_file()}
++        output = subprocess.check_output(command, text=True)
++        self.assertIn('改名后的缺陷', output)
++        self.assertIn('🔄 执行中', output)
++        self.assertIn(f'[{bug.stem}](requirements/{bug.name})', output)
++        rows = json.loads(subprocess.check_output(command + ['--json', '--reverse'], text=True))
++        self.assertEqual([second.stem, bug.stem], [row['requirement'] for row in rows])
++        self.assertEqual([2, 1], [row['number'] for row in rows])
++        self.assertEqual(before, {p: p.read_bytes() for p in before})
++        self.assertFalse((self.root / 'requirements/BUGFIX-HISTORY.md').exists())
++        self.assertFalse((self.root / 'requirements/delivery').exists())
++
+     def test_timestamp_ids_sort_and_retry_without_overwrite(self):
+         from datetime import datetime, timezone
+         from types import SimpleNamespace

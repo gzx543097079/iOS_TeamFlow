@@ -367,7 +367,7 @@ def created_time(requirement):
                     int(clock[6:9]) * 1000, tzinfo=timezone.utc)
 
 
-def requirement_rows(root, reverse=False, warnings=None):
+def requirement_rows(root, reverse=False, warnings=None, kind=None):
     """直接读取当前卡片，未 finish 的新卡也可查询；不维护第二份状态。"""
     rows = []
     for card in sorted(safe_path(root, 'requirements').glob('REQ-*.md')):
@@ -383,6 +383,9 @@ def requirement_rows(root, reverse=False, warnings=None):
             else:
                 warnings.append(warning)
             continue
+        card_kind = 'bug-fix' if re.search(r'^- 类型：Bug Fix\s*$', content, re.M) else 'requirement'
+        if kind is not None and card_kind != kind:
+            continue
         heading = next((line[2:] for line in content.splitlines() if line.startswith('# ')), card.stem)
         title = heading.removeprefix(card.stem + '：')
         state = re.search(r'^- 状态：(.+)$', content, re.M)
@@ -396,10 +399,13 @@ def table_cell(value):
     return str(value).replace('\n', ' ').replace('|', '&#124;')
 
 
-def list_requirements(root, reverse=False):
+def list_requirements(root, reverse=False, kind=None):
     lines = ['| 序号 | 创建时间（UTC） | 需求 | 标题 | 状态 |', '| --- | --- | --- | --- | --- |']
-    for row in requirement_rows(root, reverse):
-        lines.append('| ' + ' | '.join(table_cell(row[key]) for key in ('number', 'created_at', 'requirement', 'title', 'state')) + ' |')
+    for row in requirement_rows(root, reverse, kind=kind):
+        values = [table_cell(row[key]) for key in ('number', 'created_at', 'requirement', 'title', 'state')]
+        req = row['requirement']
+        values[2] = f'[{req}](requirements/{req}.md)'
+        lines.append('| ' + ' | '.join(values) + ' |')
     return '\n'.join(lines)
 
 
@@ -536,6 +542,8 @@ def main():
     listing = sub.add_parser('list', help='按创建时间列出当前需求，序号不用于引用')
     listing.add_argument('--reverse', action='store_true', help='最新需求在前，保留升序序号')
     listing.add_argument('--json', action='store_true', help='输出结构化列表')
+    listing.add_argument('--type', dest='kind', choices=('requirement', 'bug-fix'),
+                         help='按卡片类型筛选，缺陷标题及链接直接从当前卡片生成')
     status = sub.add_parser('status')
     status.add_argument('--history', action='store_true', help='按需展开完整历史事件')
     creator = sub.add_parser('create')
@@ -572,8 +580,8 @@ def main():
         if args.command == 'list':
             if args.requirement:
                 raise ValueError('list 不接收 --requirement')
-            print(json.dumps(requirement_rows(root, args.reverse), ensure_ascii=False, indent=2)
-                  if args.json else list_requirements(root, args.reverse))
+            print(json.dumps(requirement_rows(root, args.reverse, kind=args.kind), ensure_ascii=False, indent=2)
+                  if args.json else list_requirements(root, args.reverse, args.kind))
             return 0
         if Path(git(root, 'rev-parse', '--show-toplevel')).resolve() != root:
             raise ValueError('请指定 Git 根目录')

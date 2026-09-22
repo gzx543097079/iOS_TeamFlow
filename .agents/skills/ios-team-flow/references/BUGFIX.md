@@ -24,7 +24,7 @@ python3 .agents/skills/ios-team-flow/scripts/delivery.py create --template bug-f
 | 提交前语义审查与修复复查 | `logs/reviews/` |
 | 提交、PR、Release 事实及同步历史 | `requirements/delivery/REQ-实际编号.json`，由工具生成 |
 
-需要集中浏览时在项目 `requirements/BUGFIX-HISTORY.md` 只维护标题和卡片链接，不复制状态、根因或验收结果。Codex 首次处理缺陷时按需创建该索引，新缺陷新增链接、续接原卡不重复插入；create 命令只生成卡片，不自动改写索引。历史需求只引用已有真实记录，不为补目录伪造旧过程或新建重复卡。
+集中浏览时执行 `delivery.py list --type bug-fix`，工具按卡片的“类型：Bug Fix”生成标题、当前状态和相对项目根的卡片链接；可加 `--reverse` 或 `--json`。创建后无需 finish 即可查到，改名或重开直接反映在下次查询中，不再手填 BUGFIX-HISTORY 索引。普通需求可用 `--type requirement`。已有 BUGFIX-HISTORY 仅保留无法按类型查询的历史参考，不再为新卡追加链接；不迁移旧编号、不伪造旧过程。
 
 查阅某卡的交付同步历史（区别于人工修复过程）：
 

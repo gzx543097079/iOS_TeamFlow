@@ -30,6 +30,18 @@
         "checked_at": "2026-09-22T01:31:55.966477+00:00"
       },
       "removed": []
+    },
+    {
+      "at": "2026-09-22T01:31:56.794376+00:00",
+      "action": "finish",
+      "changes": {
+        "commits": [
+          "03279c1f08d18ae2535c11e5ff44b299cb24c384"
+        ],
+        "committed": true,
+        "checked_at": "2026-09-22T01:31:56.793887+00:00"
+      },
+      "removed": []
     }
   ],
   "acceptance_baseline": {
@@ -40,11 +52,17 @@
       "tests/test_delivery.py"
     ],
     "results": [],
-    "accepted_at": "2026-09-22T01:31:55.966447+00:00"
+    "accepted_at": "2026-09-22T01:31:55.966447+00:00",
+    "sealed_commits": [
+      "03279c1f08d18ae2535c11e5ff44b299cb24c384"
+    ],
+    "accepted_commit": "03279c1f08d18ae2535c11e5ff44b299cb24c384"
   },
   "snapshot": {
-    "commits": [],
-    "committed": false,
+    "commits": [
+      "03279c1f08d18ae2535c11e5ff44b299cb24c384"
+    ],
+    "committed": true,
     "merged": "未核实",
     "releases": [],
     "release_status": "未核实",
@@ -62,6 +80,6 @@
       "acceptance_fingerprint": "076d1ecf05a011f12884ccfd77f4176493738fae55fb48666e80df7c39f88e93",
       "implementation_fingerprint": "9934831d3889fd80474082162252af3f079ad60aa54f92b51ab8a64d70842a55"
     },
-    "checked_at": "2026-09-22T01:31:55.966477+00:00"
+    "checked_at": "2026-09-22T01:31:56.793887+00:00"
   }
 }

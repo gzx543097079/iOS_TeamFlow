@@ -10,10 +10,8 @@
 | 切换中文后返回按钮仍为英文 | [商城整合卡：过程与决策](REQ-20260914-093347091Z-29ecd886.md#过程与决策) |
 | 商城横屏安全区约束问题 | [商城整合卡](REQ-20260914-093347091Z-29ecd886.md) · [审查发现](../logs/reviews/4e4a1a9950f70a8786000c15b89ea344cd29113bab4d7f7aab7e6475d12782f3.json) · [复核记录](../logs/reviews/5ace650c9e0cca0634fcaca6deeeb6e335a63cc6c74e21c2928b549321cc7e81.json) |
 
-## 新增记录
+## 当前缺陷列表
 
-- [Demo 未采用 UIScene 生命周期的启动警告](REQ-20260915-022234308Z-308dc111.md)
-
-后续新 Bug 创建卡片后在这里追加标题与卡片链接；同一卡片只保留一个入口，重开和失败尝试记录在卡片内部。上表为旧结构记录的引用，不表示已补充新的历史或重新验收。
+从项目根执行 `python3 .agents/skills/ios-team-flow/scripts/delivery.py list --type bug-fix`，直接从缺陷卡生成最新标题、状态和链接；新建、改名及重开均无需维护本页。上表仅保留旧结构历史参考，不再追加新卡。
 
 模板：[bug-fix.md](../.agents/skills/ios-team-flow/references/templates/bug-fix.md)；规程：[BUGFIX.md](../.agents/skills/ios-team-flow/references/BUGFIX.md)。

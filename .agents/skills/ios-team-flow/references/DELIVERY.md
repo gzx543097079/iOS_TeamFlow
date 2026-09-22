@@ -56,9 +56,10 @@ GitHub Release 与 App Store/TestFlight 分开，业务发布见 [APP-RELEASE](A
 python3 .agents/skills/ios-team-flow/scripts/delivery.py list
 python3 .agents/skills/ios-team-flow/scripts/delivery.py list --reverse
 python3 .agents/skills/ios-team-flow/scripts/delivery.py list --json
+python3 .agents/skills/ios-team-flow/scripts/delivery.py list --type bug-fix
 ```
 
-列表直接读取当前需求卡，未执行 finish 的新卡也可见；支持 Git 初始化前查看。默认按创建时间升序，--reverse 仅反转显示，保留升序序号。生成交付概览同样包含序号、创建时间、标题和当前状态；Git 事实仍取最近一次同步记录。
+列表直接读取当前需求卡，未执行 finish 的新卡也可见；支持 Git 初始化前查看。`--type bug-fix` 按卡片类型筛选缺陷，`--type requirement` 筛选普通需求；Markdown 输出的卡片链接相对项目根。标题和状态随卡片更新，不维护人工索引。默认按创建时间升序，--reverse 仅反转显示，保留筛选后列表的升序序号。生成交付概览同样包含序号、创建时间、标题和当前状态；Git 事实仍取最近一次同步记录。
 
 序号为当前集合中的浏览位置，合并更早需求后可能变化；文件名、引用、父子关系及 Requirement 尾注使用固定完整编号，不能使用序号。列表不写文件或联网，交付概览随 finish 更新，不维护第二套人工状态。
 

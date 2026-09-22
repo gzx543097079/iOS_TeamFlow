@@ -160,4 +160,4 @@ python3 scripts/package_release.py
 
 ## Bug 修复模板与历史
 
-缺陷使用 [Bug Fix 模板](.agents/skills/ios-team-flow/references/templates/bug-fix.md)，包含复现、根因、修复、回归和处理历史。创建与续接规则见 [缺陷处理规程](.agents/skills/ios-team-flow/references/BUGFIX.md)。本仓库已有记录入口见 `requirements/BUGFIX-HISTORY.md`；业务项目的真实记录保留在各自 requirements/。
+缺陷使用 [Bug Fix 模板](.agents/skills/ios-team-flow/references/templates/bug-fix.md)，包含复现、根因、修复、回归和处理历史。创建与续接规则见 [缺陷处理规程](.agents/skills/ios-team-flow/references/BUGFIX.md)。用 `delivery.py list --type bug-fix` 从当前卡片生成缺陷列表、标题和链接，无需手工维护索引；本仓库 `requirements/BUGFIX-HISTORY.md` 仅保留历史参考。业务项目的真实记录保留在各自 requirements/。

@@ -447,6 +447,30 @@ class DeliveryTests(unittest.TestCase):
                 d.create(self.root, '缺陷', name)
         self.assertEqual(before, {p: p.read_bytes() for p in (self.root / 'requirements').rglob('*') if p.is_file()})
 
+    def test_bug_list_reads_current_cards_without_manual_index(self):
+        import sys
+        bug = d.create(self.root, '缺陷初始标题', 'bug-fix')
+        normal = d.create(self.root, '普通需求')
+        command = [sys.executable, str(ROOT / '.agents/skills/ios-team-flow/scripts/delivery.py'),
+                   '--project', str(self.root), 'list', '--type', 'bug-fix']
+        rows = json.loads(subprocess.check_output(command + ['--json'], text=True))
+        self.assertEqual([bug.stem], [row['requirement'] for row in rows])
+        self.assertNotIn(normal.stem, subprocess.check_output(command, text=True))
+        bug.write_text(bug.read_text().replace('缺陷初始标题', '改名后的缺陷')
+                       .replace('⬜ 未执行', '🔄 执行中'))
+        second = d.create(self.root, '另一缺陷', 'bug-fix')
+        before = {p: p.read_bytes() for p in (self.root / 'requirements').rglob('*') if p.is_file()}
+        output = subprocess.check_output(command, text=True)
+        self.assertIn('改名后的缺陷', output)
+        self.assertIn('🔄 执行中', output)
+        self.assertIn(f'[{bug.stem}](requirements/{bug.name})', output)
+        rows = json.loads(subprocess.check_output(command + ['--json', '--reverse'], text=True))
+        self.assertEqual([second.stem, bug.stem], [row['requirement'] for row in rows])
+        self.assertEqual([2, 1], [row['number'] for row in rows])
+        self.assertEqual(before, {p: p.read_bytes() for p in before})
+        self.assertFalse((self.root / 'requirements/BUGFIX-HISTORY.md').exists())
+        self.assertFalse((self.root / 'requirements/delivery').exists())
+
     def test_timestamp_ids_sort_and_retry_without_overwrite(self):
         from datetime import datetime, timezone
         from types import SimpleNamespace
