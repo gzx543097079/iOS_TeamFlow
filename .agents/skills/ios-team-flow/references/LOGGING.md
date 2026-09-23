@@ -44,4 +44,4 @@ TFLLog(TFLogLevelInfo, @"一次阶段性检查完成");
 
 源仓库运行 `python3 scripts/check_logging.py`，使用 macOS/Xcode 实际编译、运行 OC/Swift 的 Debug 与 Release，验证等级、调用位置、消息求值及 iOS 模拟器 SDK 编译。运行 `python3 -m unittest discover -s tests -p test_logging_install.py` 验证从独立 ZIP 接入、语言选择、幂等和冲突保护。普通 Python 回归不代替原生日志验证。
 
-生成业务工程后仍需实际 Target 的 Debug/Release 验证，不把源仓库组件测试当产品构建成功。组件和规程属于当前源码未发布变更，旧 2.1.0 Release 附件不包含它们。
+生成业务工程后仍需实际 Target 的 Debug/Release 验证，不把源仓库组件测试当产品构建成功。

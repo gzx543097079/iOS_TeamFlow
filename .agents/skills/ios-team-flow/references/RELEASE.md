@@ -2,7 +2,7 @@
 
 本文件只处理 TeamFlow ZIP，不处理业务 App。
 
-发布时更新版本与 CHANGELOG；完成本次分发清单和测试变更后运行：
+发布时更新版本与 CHANGELOG；完成本次分发清单和测试变更后，源码仓库可用 `req complete REQ-0001 --profile workflow-release` 一次验证、打包并绑定需求证据（替换实际需求编号）。已运行该 profile 时不重复执行下面的独立命令；没有该项目配置时运行：
 
 ```sh
 python3 scripts/run_workflow_checks.py

@@ -34,7 +34,7 @@ pod install --project-directory=App/TeamFlowDemo
 
 要演练完整开发流程，在当前仓库提出针对该 App 的明确小需求：例如“增加一件本地演示商品”，要求创建需求卡、运行 ios-demo、审查本次差异并关联证据。可在本地临时分支制造文案与模型不一致，再由 Codex 定位和修复；不要把故意失败代码合入正常分支。测试通过不会自动生成语义 review，也不等于团队验收。
 
-实际构建日志和结果由 project_checks 写入根 logs/project-checks；xcresult 与产物位于忽略的 DerivedData。需求记录见根 requirements/REQ-20260911-017.md。默认不测试超大字号。
+实际构建日志和结果由 project_checks 写入根 logs/project-checks；xcresult 与产物位于忽略的 DerivedData。工程约定见 [项目现状](../../requirements/PROJECT-CONTEXT.md)。默认不测试超大字号。
 
 当前测试不覆盖真实 StoreKit 商品、支付恢复、系统权限弹窗、OC/SwiftUI、中英文以外语言或全部辅助功能。页面释放断言只证明本场景，不代表 App 全面无内存泄漏。最低部署配置不等于已经在 iOS 14 设备运行。
 

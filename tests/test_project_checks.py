@@ -364,7 +364,7 @@ class ProjectChecksTests(unittest.TestCase):
                                       'checks': config['profiles']['change']['checks']}
         config_path.write_text(json.dumps(config))
         (self.root / 'requirements').mkdir()
-        card = self.root / 'requirements/REQ-20260911-120000001Z-abcdef01.md'
+        card = self.root / 'requirements/PROJECT-CONTEXT.md'
         card.write_text('执行中')
         result, _ = checks.run(self.root, 'change')
         docs, _ = checks.run(self.root, 'docs')

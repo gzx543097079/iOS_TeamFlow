@@ -1,0 +1,279 @@
+{
+  "schema_version": 2,
+  "profile": "workflow-release",
+  "requirement": "REQ-0035",
+  "started_at": "2026-09-23T03:09:28.608754+00:00",
+  "head": "e569c5e19a3a9661d952b61691fdec68621fea83",
+  "scope": "working-tree",
+  "source": {
+    "algorithm": "sha256-files-v4",
+    "fingerprint": "53a9423d3fd828c4a4ee200ec37b772a1b094c5747bc022036456de27b69e9bc",
+    "files": {
+      ".agents/project-checks.json": {
+        "sha256": "e201a60527db669052ae07e99544440e3ef6b755f6fc21010fd4a8f0b5d782a0",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/SKILL.md": {
+        "sha256": "1a390b349e51af6fcaa984c1937db24a95ba7e2f07e7b52578bba97afa450fa4",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/assets/logging/TFLogger.h": {
+        "sha256": "5a9600abc2515dea875987d94942d8be660be6d373784c3778bc774822c687a0",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/assets/logging/TFLogger.m": {
+        "sha256": "9f4becfac5c7e9b2e6c1f51d843270bef844bd2bcb6496b3ca5e89a075b2780f",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/assets/logging/TFLogger.swift": {
+        "sha256": "a49c858d95bb5d14fe3bd9185630cc5df0c3e88a8e43ef09d9aca76b368ed447",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/APP-LIFECYCLE.md": {
+        "sha256": "b43976d01731d945f6fe1b42af9dcb32ac15210da2bb238826f15fe84e6cfebe",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/APP-RELEASE.md": {
+        "sha256": "bd38b92f0b565099106876a8dca7fad8b7fbfa6f59fd47197d171961326c1a12",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/ARCHITECTURE.md": {
+        "sha256": "dc8f92f44f5c79d9e069d36c967c3d4c6ac924aaddc0cc7be9b675f897ad860b",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/BUGFIX.md": {
+        "sha256": "0c13f8b3c673a4dadea7c933abd6423584c64006a38bd574dcfa74ee1f73e097",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/CHANGELOG.md": {
+        "sha256": "e3ab72ac1db4cb841d4d59001422e8f410e6926b1759fcc1cc8f339ac2f722f6",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/EVOLUTION.md": {
+        "sha256": "fb6cadae4cf6608f6456dedc18c9deba8c6e50371b4ad626272d33764f52f742",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/EXISTING-PROJECT.md": {
+        "sha256": "87deb890e3241bc8f430f099c34b13d81821989eb371b9512be3b2f980c0f8ad",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/GIT-ACTIONS.md": {
+        "sha256": "e0c021fc4709677312e4716599463974ef574e8e1cc7650115c289a8a23926cc",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/INSTALL.md": {
+        "sha256": "0cb4bdf0369611e4519f0e8f3170b1c32cbb4d8a448be4384e610e21b211dd3f",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/LOCALIZATION.md": {
+        "sha256": "8c88cd44b3a9bdebcaf68cc7bac82b97c30c0ecadd654ca826e1d0bc24c32968",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/LOGGING.md": {
+        "sha256": "1d68bc01afd1a7192e5bdc188f60f4d1b3ae388587a9b53903239b2e7f3cf640",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/MODULE-CONTEXT.md": {
+        "sha256": "a0e1412781d1bfab695276736d5a0b6cc35c694cab5003c8ccac03d830830bf5",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/PROJECT-CHECKS.md": {
+        "sha256": "61c62d1b345609feb04b2e0212e599a43ad39392fd3f3d85dd07641f6431f6dc",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/RELEASE.md": {
+        "sha256": "52257f1b598cd63ec875d00658b96eead6d4d87df085273427b3c20f4ddb6bf2",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/SCENARIOS.md": {
+        "sha256": "9ba52d38ce74aea04c27f71b445dc4b9e58760c69733cf6513a4a6cdc310ff34",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/SOURCES.md": {
+        "sha256": "452d79841ebd3cdece43f7a3e367655d2ddb6e69f6cd92fae9ab76055a566e7a",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/VERSION": {
+        "sha256": "33bdaf9e2d6bcbde2e4e613e865e403f8fe21fc621078d34c30b0bdc7f68d903",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/WORKFLOW.md": {
+        "sha256": "c05666007fc108d0be011d56b9dc18b0038731ea5efdaf48a2ca9189ef51848c",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/standards/comments.md": {
+        "sha256": "a7ac60bd20c2bc6344580c9e525dc04dd7613acff0c41cb2a0728f81663ea9f8",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/standards/objective-c.md": {
+        "sha256": "576e50a1bacffe5ce95555e18535ba83b91e5fb054e9b5f7b6a1282d3b483b88",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/standards/swift.md": {
+        "sha256": "b4fec74eea3f8dc0b4e70b326b8a622d359b742baf5db2112bbcced5cd52ead9",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/standards/swiftui.md": {
+        "sha256": "d231025aeb804c300923b79a181959b54ed67f4de278281aec0eb87f156b1404",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/standards/ui.md": {
+        "sha256": "0ec334770226e86305c61ad76b01d55984924ff74078926ef4c0e37e6bf925b5",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/templates/app-release.md": {
+        "sha256": "cacb0604bab3eed90a8a868fb3cffca60152109030b8a579e3c5bdbe4414b761",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/templates/feature.md": {
+        "sha256": "190b4a40e738688fe17d3e5a3ea0349404060d745a8e22053ca19cb29791b34d",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/templates/new-project.md": {
+        "sha256": "f83cc10e35f183593e4cff75baec6d21a2e8cd1d1265caf7208f6512050e0d66",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/templates/project-context.md": {
+        "sha256": "3f8a01186919e358319fa79b882c3aa08890b5c1afb7a0fdd1fc9e74db193466",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/references/templates/requirement.md": {
+        "sha256": "335bad2d7320c3f714f77dbfae33a0c3fb2c78d816556feab85d144e905ef085",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/scripts/install_logging.py": {
+        "sha256": "b178b4d27bb5b9133670c3533849f274d22449705316cc7df2c465ee3135c25d",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/scripts/module_context.py": {
+        "sha256": "93b398427b7a3d2fb38e29f8794ec1926612b2af68e711fa3117937b0b179fc2",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/scripts/project_checks.py": {
+        "sha256": "0eb91080d6abdd8bd40e51a3b0c167ab9bb9881f2b7de2701e3e1fea87fd6c70",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/scripts/requirement_model.py": {
+        "sha256": "3f07301d788dbc950d965dbb0e749794b1c1f0df4ed1ef75aa4b7053cd29abac",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/scripts/setup_project.py": {
+        "sha256": "41182205ed071599be1c4bad4465689bb3b88ffed21d0396a4e9bed866151241",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/scripts/teamflow.py": {
+        "sha256": "4ae8b419496c53537f03cd37bf7c50a75bc5601da753235fc5b742244b22f6ac",
+        "executable": false
+      },
+      ".agents/skills/ios-team-flow/scripts/teamflow_common.py": {
+        "sha256": "f0c1e248d40ba7f2803d5aa34f84f7c069db3b4d22b925b12e1ece6adee18542",
+        "executable": false
+      },
+      ".github/workflows/teamflow-check.yml": {
+        "sha256": "cf3ab2b99cfe11bafee3ddfb342ccd61bab878fa291548b863d41eda7c58c320",
+        "executable": false
+      },
+      ".github/workflows/teamflow-logging.yml": {
+        "sha256": "bbd3e09cfb6f02ca908ec28a55be11007f8f37255dd84558cbf74d0a1c3baffa",
+        "executable": false
+      },
+      ".github/workflows/teamflow-release.yml": {
+        "sha256": "9bf49351f8e17cd3a4f5cea33da60106d253acb42305509dd897b6c0edb91be0",
+        "executable": false
+      },
+      ".gitignore": {
+        "sha256": "339d3eceecbae37bcb18894c995d53f71277bdf5c06750de5514c57da014e352",
+        "executable": false
+      },
+      "AGENTS.md": {
+        "sha256": "9fc4f69c46aedee40101282e2152931962bc2751d3195332b1d5c14ab0e7115e",
+        "executable": false
+      },
+      "README.md": {
+        "sha256": "4580e30c6427acd0d65dd6f89187622da9a53bee448e91b60442fdb15b332454",
+        "executable": false
+      },
+      "requirements/REQ-0035.md": {
+        "sha256": "ad0ab91553aeb46f1a2a2146e17663ab189b48ed7c24177dd1b71ffe8f9cfefd",
+        "executable": false
+      },
+      "scripts/check_logging.py": {
+        "sha256": "28b43a5b354f952b4b82c73833e95537b2ebc1a8b540b6911f1a4295c4fdc708",
+        "executable": false
+      },
+      "scripts/package_release.py": {
+        "sha256": "595deb6dcade3585af1f722764d8325df18187afb96eb0431fb6cd99b2896057",
+        "executable": false
+      },
+      "scripts/run_workflow_checks.py": {
+        "sha256": "2460e2eafaeb2010508ba154a6a9e1955f45261b1400f11949e9950d266dbe9f",
+        "executable": false
+      },
+      "scripts/teamflow.py": {
+        "sha256": "64feb5b284536b10d3a2fab494c071c4fc4c10eb61b8a499e68022cb719b1748",
+        "executable": false
+      },
+      "scripts/validate_workflow.py": {
+        "sha256": "773ac63a5f60a8e1835acf50a3f951f7e9170577a983809824a4079556234929",
+        "executable": false
+      },
+      "tests/release_fixture.py": {
+        "sha256": "1e2b02722a570b54854eae556aee8f79451ff0a41d7bfaea7537e71e092682d5",
+        "executable": false
+      },
+      "tests/test_consumer_release.py": {
+        "sha256": "689899a12df6541e5fba2e342a94102737b175221f682f3a34ffc36c25513657",
+        "executable": false
+      },
+      "tests/test_logging_install.py": {
+        "sha256": "77375b7383122ae5e41537fd6ec1a10d4d5f6fb0120456bacacd08aaae6a3a63",
+        "executable": false
+      },
+      "tests/test_module_context.py": {
+        "sha256": "695e6215a85ba7ab9ccb7ed14d06dad5bafa08a1170d1961746275ebe4f403c2",
+        "executable": false
+      },
+      "tests/test_project_checks.py": {
+        "sha256": "9d595fc86bb7f76fe9c20650a4cd084328c8c05da1931fcf98d12b552900fc40",
+        "executable": false
+      },
+      "tests/test_teamflow.py": {
+        "sha256": "ed56c6399a68fdbc8adccb4854a92ab1156cb4d738684387100610ebc948e697",
+        "executable": false
+      },
+      "tests/test_workflow.py": {
+        "sha256": "8a0b81b7d63e54ad64f4f90dd26025a12c362f6d21747eb2cc84aef9694fec73",
+        "executable": false
+      }
+    }
+  },
+  "results": [
+    {
+      "name": "workflow-tests",
+      "argv": [
+        "python3",
+        "scripts/run_workflow_checks.py"
+      ],
+      "cwd": ".",
+      "log": "workflow-tests.log",
+      "status": "通过",
+      "exit_code": 0,
+      "duration_seconds": 9.68
+    },
+    {
+      "name": "workflow-package",
+      "argv": [
+        "python3",
+        "scripts/package_release.py"
+      ],
+      "cwd": ".",
+      "log": "workflow-package.log",
+      "status": "通过",
+      "exit_code": 0,
+      "duration_seconds": 0.078
+    }
+  ],
+  "status": "通过",
+  "end_fingerprint": "53a9423d3fd828c4a4ee200ec37b772a1b094c5747bc022036456de27b69e9bc",
+  "completed_at": "2026-09-23T03:09:38.388724+00:00"
+}

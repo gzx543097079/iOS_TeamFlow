@@ -28,6 +28,6 @@ UIKit 窗口、根导航及窗口级主题绑定放在 Scene 连接阶段；Swif
 
 冷启动和窗口归属优先用能在实际 App 测试宿主运行的集成测试、UI 测试或等效可核验运行证据；字符串匹配 SceneDelegate 文件名不能证明运行时正确。没有可用设备/模拟器或未拿到启动日志时标记未验证，列明缺项，不伪填通过。
 
-在对应需求卡 AC 引用结果与启动证据，当前结论不另建台账。提交审查的 correctness 维度核对这些证据；普通业务改动可复用未变的有效启动验证，不为每次页面修改重复整套迁移验收。
+在对应需求卡 AC 引用结果与启动证据，当前结论不另建台账。普通业务改动可复用未变的有效启动验证，不为每次页面修改重复整套迁移验收。
 
 参考：[Apple：迁移到 UIKit Scene 生命周期](https://developer.apple.com/documentation/uikit/transitioning-to-the-uikit-scene-based-life-cycle)。规则针对当前项目实际框架和部署目标，不以此文件代替未来 SDK 的可用性核对。

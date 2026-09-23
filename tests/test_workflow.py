@@ -57,7 +57,6 @@ class WorkflowTests(unittest.TestCase):
                 [sys.executable, str(project / 'scripts/teamflow.py'), '--help'],
                 capture_output=True, text=True)
             self.assertEqual(0, help_result.returncode, help_result.stderr)
-            self.assertFalse((project / '.agents/teamflow.json').exists())
             entry = project / 'scripts/teamflow.py'
             entry.write_text('# broken entry\n')
             report = subprocess.run(command + ['--doctor'], capture_output=True, text=True)

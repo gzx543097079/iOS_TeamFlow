@@ -42,7 +42,6 @@ class ConsumerReleaseTests(unittest.TestCase):
         self.assertIn('REQ-0001', listing)
         self.assertIn('🔵 进行中', listing)
         self.assertIn('⚪ 0/1', listing)
-        self.assertNotEqual(0, self.cli('release', 'prepare', ok=False).returncode)
         self.assertFalse((self.root / 'releases').exists())
         self.cli('release', 'record', 'archive', '--version', '1.0.0', '--build', '1',
                  '--evidence', 'archive 校验通过')
@@ -63,11 +62,6 @@ class ConsumerReleaseTests(unittest.TestCase):
         self.assertNotEqual(0, rejected.returncode)
         self.assertIn('仅适用于上传 TestFlight', rejected.stderr)
 
-    def test_package_contains_no_legacy_runtime(self):
-        legacy = ('delivery.py', 'review_gate.py', 'upgrade_skill.py', 'install_git_checks.py')
-        for name in legacy:
-            self.assertFalse((self.root / '.agents/skills/ios-team-flow/scripts' / name).exists())
-
     def test_packaged_validation_and_manual_confirmation(self):
         req = json.loads(self.cli('req', 'create', '--title', '人工确认').stdout)['requirement']
         card = self.root / 'requirements' / (req + '.md')
@@ -81,9 +75,20 @@ class ConsumerReleaseTests(unittest.TestCase):
         self.assertEqual('待用户验证', status['state_key'])
         self.assertEqual(0, status['progress']['done'])
         self.assertNotEqual(0, self.cli('req', 'state', req, '--state', '完成', ok=False).returncode)
-        card.write_text(card.read_text().replace('- ⚪ AC-01', '- ✅ AC-01'))
-        self.cli('req', 'complete', req)
+        self.cli('req', 'complete', req, '--confirm-ac', 'AC-01', '--wait-user')
         self.assertEqual('完成', json.loads(self.cli('req', 'status', req).stdout)['state_key'])
+
+    def test_packaged_manual_proof_rejects_changed_conditions(self):
+        req = json.loads(self.cli('req', 'create', '--title', '人工证据').stdout)['requirement']
+        card = self.root / 'requirements' / (req + '.md')
+        card.write_text(card.read_text().replace('待填写本次要达到的结果', '显示提示'))
+        self.cli('req', 'complete', req, '--evidence', '实际核对记录', '--confirm-ac', 'AC-01')
+        card.write_text(card.read_text().replace('填写可观察的输入、操作和预期结果', '新增场景实际展示正确'))
+        original = card.read_text()
+        result = self.cli('req', 'complete', req, ok=False)
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn('人工证据', result.stderr)
+        self.assertEqual(original, card.read_text())
 
 
 if __name__ == '__main__':

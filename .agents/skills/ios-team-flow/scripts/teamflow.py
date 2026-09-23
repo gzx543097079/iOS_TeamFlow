@@ -2,6 +2,7 @@
 """iOS 工作流：需求、验证、提交前核对与显式 App 外部动作记录。"""
 import argparse
 import contextlib
+import hashlib
 import io
 import json
 import re
@@ -11,7 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from teamflow_common import local_path as safe
 from requirement_model import (ID, STATES, STATE_ICONS, field, field_pattern,
-                               state_display, progress_display, parse_card)
+                               state_display, progress_display, parse_card, semantic_content)
 
 OPERATIONS = (
     'archive', 'upload-testflight', 'distribute-testflight', 'submit-beta-review',
@@ -127,17 +128,23 @@ def checks_module():
 def validation_proof(root, card, result=None, evidence=None, staged=False):
     if result is not None and evidence is not None:
         raise ValueError('只能提供一种验证证据')
+    binding = {'requirement': card['requirement'],
+               'requirement_fingerprint': hashlib.sha256(
+                   semantic_content(card['text'], card['requirement'])).hexdigest()}
     if result is None and evidence is None:
         try:
             saved = json.loads(field(card['text'], '验证证据'))
             if saved['kind'] == 'result':
                 result = saved['path']
             elif saved['kind'] == 'manual':
+                if any(saved.get(key) != value for key, value in binding.items()):
+                    raise ValueError('人工证据未绑定当前需求内容；请重新核对并提供 --evidence')
                 evidence = saved['text']
             else:
                 raise ValueError('未知证据类型')
         except (ValueError, KeyError, TypeError) as error:
-            raise ValueError('没有有效的已绑定证据；请提供 --profile、--result 或 --evidence') from error
+            raise ValueError('没有有效的已绑定证据；请提供 --profile、--result 或 --evidence：'
+                             + str(error)) from error
     if result is not None:
         if not isinstance(result, str) or not result.strip():
             raise ValueError('验证结果路径不能为空')
@@ -148,14 +155,19 @@ def validation_proof(root, card, result=None, evidence=None, staged=False):
         return {'kind': 'result', 'path': result}
     if not isinstance(evidence, str) or not evidence.strip():
         raise ValueError('验证证据不能为空')
-    return {'kind': 'manual', 'text': evidence.strip()}
+    return {'kind': 'manual', 'text': evidence.strip(), **binding}
 
 
-def complete(root, requirement, result=None, evidence=None, wait_user=False, profile=None):
+def complete(root, requirement, result=None, evidence=None, wait_user=False, profile=None,
+             confirm_ac=None):
     if sum(value is not None for value in (result, evidence, profile)) > 1:
         raise ValueError('只能提供 --profile、--result、--evidence 中的一种')
     path = requirement_path(root, requirement)
     card = parse_card(path)
+    confirmed = set(confirm_ac or [])
+    unknown = confirmed - {item['id'] for item in card['ac']}
+    if unknown:
+        raise ValueError('未知 AC：' + '、'.join(sorted(unknown)))
     if profile is not None:
         target, passed = checks_module().run(root, profile, requirement)
         if not passed:
@@ -164,13 +176,30 @@ def complete(root, requirement, result=None, evidence=None, wait_user=False, pro
     else:
         proof = validation_proof(root, card, result, evidence)
     card = parse_card(path)
+    text = card['text']
+    for item in card['ac']:
+        if item['id'] in confirmed:
+            text = re.sub(r'^([ \t]*-[ \t]+)⚪([ \t]+' + re.escape(item['id']) + r'：)',
+                          r'\g<1>✅\g<2>', text, flags=re.M)
+            item['done'] = True
     pending = [item['id'] for item in card['ac'] if not item['done']]
-    target_state = '待用户验证' if wait_user else ('进行中' if pending else '完成')
-    text = replace_field(card['text'], '状态', state_display(target_state))
+    target_state = ('待用户验证' if wait_user else '进行中') if pending else '完成'
+    text = replace_field(text, '状态', state_display(target_state))
     text = replace_field(text, '验证证据', json.dumps(proof, ensure_ascii=False))
     path.write_text(text)
+    if target_state == '完成':
+        message, next_step = '需求已完成，全部 AC 已确认且证据有效。', None
+    else:
+        message = ('验证证据已绑定，需求尚未完成；等待用户实际确认。' if wait_user
+                   else '验证证据已绑定，需求尚未完成；请核对剩余 AC。')
+        next_step = (f'核对实际证据后，在项目根执行 python3 scripts/teamflow.py req complete {requirement}'
+                     ' --confirm-ac AC-编号（可重复传入，仅指定已实际确认的条件）；'
+                     '输入未变化时复用证据，无需重跑测试。')
     print(json.dumps({'requirement': requirement, 'state': state_display(target_state),
-                      'state_key': target_state, 'pending_ac': pending, 'evidence': proof}, ensure_ascii=False))
+                      'state_key': target_state, 'pending_ac': pending,
+                      'pending_conditions': [{'id': item['id'], 'condition': item['condition']}
+                                             for item in card['ac'] if not item['done']],
+                      'message': message, 'next_step': next_step, 'evidence': proof}, ensure_ascii=False))
 
 
 def git_root(root):
@@ -256,6 +285,8 @@ def main():
     proof.add_argument('--result')
     proof.add_argument('--evidence')
     done.add_argument('--wait-user', action='store_true')
+    done.add_argument('--confirm-ac', action='append', metavar='AC-编号',
+                      help='显式确认已实际核对的条件，可重复传入；验证证据有效后才写入')
 
     verify = top.add_parser('verify')
     verify_sub = verify.add_subparsers(dest='command', required=True)
@@ -298,7 +329,8 @@ def main():
             elif args.command == 'state':
                 set_state(root, args.requirement, args.state, args.reason)
             else:
-                complete(root, args.requirement, args.result, args.evidence, args.wait_user, args.profile)
+                complete(root, args.requirement, args.result, args.evidence, args.wait_user,
+                         args.profile, args.confirm_ac)
         elif args.area == 'verify':
             checks = checks_module()
             if args.command == 'init':

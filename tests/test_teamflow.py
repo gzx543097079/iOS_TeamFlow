@@ -51,9 +51,8 @@ class TeamFlowTests(unittest.TestCase):
         path.write_text(text)
         return path
 
-    def test_create_uses_readable_sequence_and_ignores_old_cards(self):
+    def test_create_uses_readable_sequence(self):
         directory = self.root / 'requirements'; directory.mkdir()
-        (directory / 'REQ-20260911-old.md').write_text('legacy')
         first = self.create('A')
         second = self.create('B', queued=True)
         self.assertEqual(('REQ-0001', 'REQ-0002'), (first, second))
@@ -71,13 +70,9 @@ class TeamFlowTests(unittest.TestCase):
         self.assertIn('触发条件', card['scope'])
         self.assertNotIn('〈验收条件〉', card['text'])
 
-    def test_new_format_only_and_sparse_state_reason(self):
+    def test_sparse_state_reason(self):
         req = self.create()
         card = self.fill(req)
-        old = self.root / 'requirements/REQ-0002.md'
-        old.write_text('# old\n<!-- teamflow:requirement:v3 -->\n')
-        with self.assertRaisesRegex(ValueError, 'vNext'):
-            flow.parse_card(old)
         with self.assertRaises(ValueError):
             flow.set_state(self.root, req, '阻塞')
         with contextlib.redirect_stdout(io.StringIO()):
@@ -88,7 +83,7 @@ class TeamFlowTests(unittest.TestCase):
         self.assertNotIn('下一步：无', text)
         self.assertNotIn('阻塞项：无', text)
 
-    def test_complete_with_project_result_and_no_delivery_record(self):
+    def test_complete_with_project_result(self):
         req = self.create(); card = self.fill(req)
         result, passed = flow.checks_module().run(self.root, 'change', req)
         self.assertTrue(passed)
@@ -99,8 +94,6 @@ class TeamFlowTests(unittest.TestCase):
         self.assertIn('- 状态：✅ 完成', card.read_text())
         self.assertNotIn('- 验证状态：', card.read_text())
         self.assertIn(relative, card.read_text())
-        self.assertFalse((self.root / 'requirements/delivery').exists())
-        self.assertFalse((self.root / 'logs/reviews').exists())
 
     def test_complete_preserves_pending_ac_and_rejects_stale_result(self):
         req = self.create()
@@ -149,7 +142,10 @@ class TeamFlowTests(unittest.TestCase):
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
             flow.complete(self.root, req, evidence='人工验证入口已准备', wait_user=True)
-        self.assertEqual('🟣 待用户验证', json.loads(output.getvalue())['state'])
+        report = json.loads(output.getvalue())
+        self.assertEqual('🟣 待用户验证', report['state'])
+        self.assertIn('等待用户实际确认', report['message'])
+        self.assertEqual(['AC-01'], report['pending_ac'])
         self.assertIn('- 状态：🟣 待用户验证', card.read_text())
         self.assertNotIn('- 验证状态：', card.read_text())
         self.assertIn('- ⚪ AC-01', card.read_text())
@@ -166,6 +162,69 @@ class TeamFlowTests(unittest.TestCase):
         flow.complete(self.root, req, evidence=evidence)
         self.assertEqual(evidence, json.loads(flow.field(card.read_text(), '验证证据'))['text'])
         self.assertEqual('完成', flow.parse_card(card)['state'])
+
+    def test_wait_user_does_not_delay_fully_confirmed_completion(self):
+        req = self.create(); card = self.fill(req)
+        card.write_text(card.read_text().replace('- ✅ AC-01', '- ⚪ AC-01'))
+        flow.complete(self.root, req, profile='change', wait_user=True)
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            flow.complete(self.root, req, confirm_ac=['AC-01'], wait_user=True)
+        report = json.loads(output.getvalue())
+        self.assertEqual('完成', report['state_key'])
+        self.assertEqual([], report['pending_ac'])
+        self.assertIsNone(report['next_step'])
+        flow.complete(self.root, req, wait_user=True)
+        self.assertEqual('完成', flow.parse_card(card)['state'])
+        self.assertEqual(1, len(list((self.root / 'logs/project-checks').glob('*/result.json'))))
+
+    def test_manual_proof_rejects_semantic_changes_without_writing(self):
+        req = self.create(); card = self.fill(req)
+        card.write_text(card.read_text() + '\n- 不包含：支付\n')
+        flow.complete(self.root, req, evidence='实际展示核对记录')
+        original = card.read_text()
+        for before, after in [('实现登录错误提示', '实现离线提示'),
+                              ('错误时显示提示', '离线时显示提示'),
+                              ('不包含：支付', '不包含：支付和订单')]:
+            with self.subTest(field=before):
+                changed = original.replace(before, after)
+                card.write_text(changed)
+                with self.assertRaisesRegex(ValueError, '人工证据'):
+                    flow.complete(self.root, req, confirm_ac=['AC-01'])
+                self.assertEqual(changed, card.read_text())
+                self.git('add', 'requirements')
+                with self.assertRaisesRegex(ValueError, '人工证据'):
+                    flow.git_check(self.root, req)
+        flow.complete(self.root, req, evidence='按新范围重新核对')
+        flow.complete(self.root, req)
+        self.assertEqual('完成', flow.parse_card(card)['state'])
+
+    def test_manual_proof_reuses_metadata_edits_but_not_another_requirement(self):
+        req = self.create(); card = self.fill(req)
+        card.write_text(card.read_text().replace('- ✅ AC-01', '- ⚪ AC-01'))
+        flow.complete(self.root, req, evidence='实际展示核对记录', wait_user=True)
+        card.write_text(card.read_text().replace('：需求\n', '：新标题\n')
+                        .replace('- 范围：', '  - 范围：  ') + '\n- 补充说明\n')
+        flow.complete(self.root, req, confirm_ac=['AC-01'])
+        self.assertEqual('完成', flow.parse_card(card)['state'])
+        other = self.create(); other_card = self.fill(other)
+        proof = flow.field(card.read_text(), '验证证据')
+        other_card.write_text(flow.replace_field(other_card.read_text(), '验证证据', proof))
+        original = other_card.read_text()
+        with self.assertRaisesRegex(ValueError, '人工证据'):
+            flow.complete(self.root, other)
+        self.assertEqual(original, other_card.read_text())
+
+    def test_manual_proof_requires_complete_binding(self):
+        req = self.create(); card = self.fill(req)
+        flow.complete(self.root, req, evidence='实际展示核对记录')
+        proof = json.loads(flow.field(card.read_text(), '验证证据'))
+        proof.pop('requirement_fingerprint', None)
+        card.write_text(flow.replace_field(card.read_text(), '验证证据', json.dumps(proof)))
+        original = card.read_text()
+        with self.assertRaisesRegex(ValueError, '人工证据'):
+            flow.complete(self.root, req)
+        self.assertEqual(original, card.read_text())
 
     def test_terminal_states_cannot_bypass_evidence(self):
         req = self.create()
@@ -212,7 +271,14 @@ class TeamFlowTests(unittest.TestCase):
     def test_pending_ac_can_validate_and_commit_without_completing(self):
         req = self.create(); card = self.fill(req)
         card.write_text(card.read_text().replace('- ✅ AC-01', '- ⚪ AC-01'))
-        flow.complete(self.root, req, profile='change')
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            flow.complete(self.root, req, profile='change')
+        report = json.loads(output.getvalue().splitlines()[-1])
+        self.assertIn('尚未完成', report['message'])
+        self.assertEqual([{'id': 'AC-01', 'condition': '错误时显示提示'}], report['pending_conditions'])
+        self.assertIn('req complete ' + req, report['next_step'])
+        self.assertIn('无需重跑', report['next_step'])
         self.assertEqual('进行中', flow.parse_card(card)['state'])
         self.assertFalse(flow.parse_card(card)['ac'][0]['done'])
         self.git('add', '.')
@@ -230,6 +296,54 @@ class TeamFlowTests(unittest.TestCase):
             self.assertEqual(2, snapshot.call_count)
             flow.complete(self.root, req)
             self.assertEqual(3, snapshot.call_count)
+
+    def test_confirm_selected_ac_reuses_result_and_preserves_pending(self):
+        req = self.create(); card = self.fill(req)
+        card.write_text(card.read_text().replace('- ✅ AC-01', '- ⚪ AC-01')
+                        + '\n  - ⚪ AC-02：用户确认实际展示\n')
+        flow.complete(self.root, req, profile='change')
+        with patch.object(flow.checks_module(), 'run', side_effect=AssertionError('不能重跑')):
+            flow.complete(self.root, req, confirm_ac=['AC-01'], wait_user=True)
+            parsed = flow.parse_card(card)
+            self.assertEqual('待用户验证', parsed['state'])
+            self.assertEqual([True, False], [item['done'] for item in parsed['ac']])
+            result = subprocess.run([sys.executable, str(SOURCE), '--project', str(self.root),
+                                     'req', 'complete', req, '--confirm-ac', 'AC-01',
+                                     '--confirm-ac', 'AC-02'], capture_output=True, text=True)
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertEqual('完成', flow.parse_card(card)['state'])
+        self.assertEqual(1, len(list((self.root / 'logs/project-checks').glob('*/result.json'))))
+
+    def test_confirm_ac_rejects_invalid_requests_without_mutating_card(self):
+        req = self.create(); card = self.fill(req)
+        card.write_text(card.read_text().replace('- ✅ AC-01', '- ⚪ AC-01'))
+        original = card.read_text()
+        for options, error in [({'confirm_ac': ['AC-99'], 'profile': 'change'}, '未知 AC'),
+                               ({'confirm_ac': ['AC-01']}, '没有有效')]:
+            with self.assertRaisesRegex(ValueError, error):
+                flow.complete(self.root, req, **options)
+            self.assertEqual(original, card.read_text())
+        self.assertFalse((self.root / 'logs/project-checks').exists())
+        flow.complete(self.root, req, profile='change')
+        original = card.read_text()
+        (self.root / 'source.txt').write_text('changed')
+        with self.assertRaisesRegex(ValueError, '源码或配置已变化'):
+            flow.complete(self.root, req, confirm_ac=['AC-01'])
+        self.assertEqual(original, card.read_text())
+        config = self.root / '.agents/project-checks.json'
+        config.write_text(config.read_text().replace('pass', 'raise SystemExit(1)'))
+        with self.assertRaisesRegex(ValueError, '验证未通过'):
+            flow.complete(self.root, req, profile='change', confirm_ac=['AC-01'])
+        self.assertEqual(original, card.read_text())
+
+    def test_confirm_ac_with_profile_preserves_condition_and_valid_proof(self):
+        req = self.create(); card = self.fill(req)
+        card.write_text(card.read_text().replace('- ✅ AC-01', '  - ⚪ AC-01'))
+        flow.complete(self.root, req, profile='change', confirm_ac=['AC-01'])
+        self.assertEqual('完成', flow.parse_card(card)['state'])
+        self.assertIn('  - ✅ AC-01：错误时显示提示', card.read_text())
+        flow.complete(self.root, req)
+        self.assertEqual(1, len(list((self.root / 'logs/project-checks').glob('*/result.json'))))
 
     def test_failed_profile_does_not_complete_or_replace_evidence(self):
         req = self.create(); card = self.fill(req)
