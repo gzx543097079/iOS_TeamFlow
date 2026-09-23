@@ -2,7 +2,6 @@
 """iOS 工作流：需求、验证、提交前核对与显式 App 外部动作记录。"""
 import argparse
 import contextlib
-import importlib.util
 import io
 import json
 import re
@@ -10,6 +9,7 @@ import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from teamflow_common import local_path as safe
 
 MARKER = '<!-- teamflow:requirement:vnext -->'
 ID = re.compile(r'REQ-(\d{4})')
@@ -39,18 +39,6 @@ OPERATION_NAMES = {
     'pause-phased-release': '暂停分阶段发布',
     'remove-sale': '下架',
 }
-
-
-def safe(root, name):
-    path = root / name
-    if Path(name).is_absolute() or '..' in Path(name).parts:
-        raise ValueError('路径必须位于项目内：' + str(name))
-    for node in (path, *path.parents):
-        if node == root:
-            break
-        if node.is_symlink():
-            raise ValueError('路径不能包含符号链接：' + str(name))
-    return path
 
 
 def requirement_path(root, requirement):
@@ -190,11 +178,8 @@ def set_state(root, requirement, state, reason=None):
 
 
 def checks_module():
-    source = Path(__file__).with_name('project_checks.py')
-    spec = importlib.util.spec_from_file_location('teamflow_project_checks', source)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+    import project_checks
+    return project_checks
 
 
 def validation_proof(root, card, result=None, evidence=None, staged=False):

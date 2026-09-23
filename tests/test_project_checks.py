@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / ".agents/skills/ios-team-flow/scripts"))
 spec = importlib.util.spec_from_file_location('project_checks', ROOT / '.agents/skills/ios-team-flow/scripts/project_checks.py')
 checks = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(checks)

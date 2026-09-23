@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+from teamflow_common import local_path as safe
 
 START = '<!-- ios-team-flow:start -->'
 END = '<!-- ios-team-flow:end -->'
@@ -23,9 +24,11 @@ BLOCK = '''<!-- ios-team-flow:start -->
 ENTRY = '''#!/usr/bin/env python3
 """从项目内 Skill 加载 TeamFlow 唯一实现。"""
 import runpy
+import sys
 from pathlib import Path
 
 _source = Path(__file__).resolve().parents[1] / '.agents/skills/ios-team-flow/scripts/teamflow.py'
+sys.path.insert(0, str(_source.parent))
 globals().update(runpy.run_path(str(_source), run_name=__name__))
 '''
 
@@ -34,18 +37,6 @@ def version_tuple(value):
     if not isinstance(value, str) or not re.fullmatch(r'\d+\.\d+\.\d+', value):
         raise ValueError('版本必须为 X.Y.Z')
     return tuple(map(int, value.split('.')))
-
-
-def safe(project, name):
-    path = project / name
-    if Path(name).is_absolute() or '..' in Path(name).parts:
-        raise ValueError('接入路径必须位于项目内：' + name)
-    for node in (path, *path.parents):
-        if node == project:
-            break
-        if node.is_symlink():
-            raise ValueError('接入路径不能含符号链接：' + name)
-    return path
 
 
 def agents_content(current):

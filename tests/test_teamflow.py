@@ -9,6 +9,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / ".agents/skills/ios-team-flow/scripts"))
 SOURCE = ROOT / '.agents/skills/ios-team-flow/scripts/teamflow.py'
 spec = importlib.util.spec_from_file_location('teamflow', SOURCE)
 flow = importlib.util.module_from_spec(spec)

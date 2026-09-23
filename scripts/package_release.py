@@ -20,55 +20,28 @@ FILES = (
     'scripts/teamflow.py', 'scripts/package_release.py', 'scripts/validate_workflow.py', 'scripts/run_workflow_checks.py',
     'tests/test_consumer_release.py', 'tests/test_workflow.py', 'tests/test_project_checks.py', 'tests/test_teamflow.py', 'tests/test_module_context.py', SKILL + '/SKILL.md',
     SKILL + '/assets/logging/TFLogger.swift', SKILL + '/assets/logging/TFLogger.h', SKILL + '/assets/logging/TFLogger.m',
-    SKILL + '/scripts/install_logging.py',
+    SKILL + '/scripts/install_logging.py', SKILL + '/scripts/teamflow_common.py',
     SKILL + '/scripts/module_context.py', SKILL + '/scripts/teamflow.py', SKILL + '/scripts/project_checks.py', SKILL + '/scripts/setup_project.py',
 ) + tuple(SKILL + '/references/' + name for name in REFERENCES)
 
 
-def package(root):
+def write_package(root, prefix, entries):
     root = root.resolve()
     version = (root / SKILL / 'references/VERSION').read_text().strip()
     if not re.fullmatch(r'\d+\.\d+\.\d+', version):
         raise ValueError('VERSION 必须为 X.Y.Z')
-    for name in FILES:
+    for name in entries:
         path = root / name
-        if not path.is_file() or any(p.is_symlink() for p in [path, *path.parents] if p != root.parent):
+        if not path.is_file() or any(p.is_symlink() for p in (path, *path.parents)):
             raise ValueError('分发文件缺失或包含符号链接：' + name)
         if not path.resolve().is_relative_to(root):
             raise ValueError('文件越出项目目录：' + name)
     output = root / 'dist'
     output.mkdir(exist_ok=True)
-    archive = output / ('iOS-TeamFlow-v' + version + '.zip')
+    archive = output / (prefix + version + '.zip')
     with zipfile.ZipFile(archive, 'w', compression=zipfile.ZIP_DEFLATED) as stream:
-        for name in sorted(FILES):
-            entry = zipfile.ZipInfo(name, date_time=(2020, 1, 1, 0, 0, 0))
-            entry.compress_type = zipfile.ZIP_DEFLATED
-            entry.create_system = 3
-            entry.external_attr = 0o100644 << 16
-            stream.writestr(entry, (root / name).read_bytes())
-    checksum = hashlib.sha256(archive.read_bytes()).hexdigest()
-    archive.with_suffix('.zip.sha256').write_text(checksum + '  ' + archive.name + '\n')
-    print(archive)
-    return archive
-
-
-def package_skill(root):
-    root = root.resolve()
-    version = (root / SKILL / 'references/VERSION').read_text().strip()
-    if not re.fullmatch(r'\d+\.\d+\.\d+', version):
-        raise ValueError('VERSION 必须为 X.Y.Z')
-    output = root / 'dist'
-    output.mkdir(exist_ok=True)
-    archive = output / ('ios-team-flow-skill-v' + version + '.zip')
-    names = sorted(name for name in FILES if name.startswith(SKILL + '/'))
-    for name in names:
-        path = root / name
-        if not path.is_file() or any(p.is_symlink() for p in (path, *path.parents)):
-            raise ValueError('Skill 文件缺失或含符号链接：' + name)
-    with zipfile.ZipFile(archive, 'w') as stream:
-        for name in names:
-            entry = zipfile.ZipInfo('ios-team-flow/' + name[len(SKILL) + 1:],
-                                    date_time=(2020, 1, 1, 0, 0, 0))
+        for name, destination in sorted(entries.items()):
+            entry = zipfile.ZipInfo(destination, date_time=(2020, 1, 1, 0, 0, 0))
             entry.compress_type = zipfile.ZIP_DEFLATED
             entry.create_system = 3
             entry.external_attr = 0o100644 << 16
@@ -77,6 +50,16 @@ def package_skill(root):
         hashlib.sha256(archive.read_bytes()).hexdigest() + '  ' + archive.name + '\n')
     print(archive)
     return archive
+
+
+def package(root):
+    return write_package(root, 'iOS-TeamFlow-v', {name: name for name in FILES})
+
+
+def package_skill(root):
+    return write_package(root, 'ios-team-flow-skill-v', {
+        name: 'ios-team-flow/' + name[len(SKILL) + 1:]
+        for name in FILES if name.startswith(SKILL + '/')})
 
 
 if __name__ == '__main__':
