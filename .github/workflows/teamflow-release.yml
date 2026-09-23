@@ -18,7 +18,6 @@ jobs:
           python-version: '3.12'
       - run: python3 scripts/check_logging.py
   package:
-    needs: native-logging
     runs-on: ubuntu-latest
     env:
       RELEASE_TAG: ${{ github.ref_name }}
@@ -52,7 +51,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
   publish:
-    needs: package
+    needs: [native-logging, package]
     runs-on: ubuntu-latest
     permissions:
       contents: write
