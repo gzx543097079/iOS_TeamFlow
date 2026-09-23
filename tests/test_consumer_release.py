@@ -1,5 +1,3 @@
-import contextlib
-import io
 import json
 import subprocess
 import sys
@@ -10,14 +8,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
-import package_release
+from release_fixture import skill_archive
 
 
 class ConsumerReleaseTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        with contextlib.redirect_stdout(io.StringIO()):
-            cls.archive = package_release.package_skill(ROOT)
+        cls.archive = skill_archive()
 
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()

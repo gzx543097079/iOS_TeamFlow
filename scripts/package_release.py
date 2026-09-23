@@ -18,7 +18,7 @@ FILES = (
     '.github/workflows/teamflow-check.yml', '.github/workflows/teamflow-release.yml',
     'scripts/check_logging.py', '.github/workflows/teamflow-logging.yml', 'tests/test_logging_install.py',
     'scripts/teamflow.py', 'scripts/package_release.py', 'scripts/validate_workflow.py', 'scripts/run_workflow_checks.py',
-    'tests/test_consumer_release.py', 'tests/test_workflow.py', 'tests/test_project_checks.py', 'tests/test_teamflow.py', 'tests/test_module_context.py', SKILL + '/SKILL.md',
+    'tests/release_fixture.py', 'tests/test_consumer_release.py', 'tests/test_workflow.py', 'tests/test_project_checks.py', 'tests/test_teamflow.py', 'tests/test_module_context.py', SKILL + '/SKILL.md',
     SKILL + '/assets/logging/TFLogger.swift', SKILL + '/assets/logging/TFLogger.h', SKILL + '/assets/logging/TFLogger.m',
     SKILL + '/scripts/install_logging.py', SKILL + '/scripts/teamflow_common.py',
     SKILL + '/scripts/module_context.py', SKILL + '/scripts/teamflow.py', SKILL + '/scripts/project_checks.py', SKILL + '/scripts/setup_project.py',
