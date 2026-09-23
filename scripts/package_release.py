@@ -6,7 +6,7 @@ import zipfile
 from pathlib import Path
 SKILL = '.agents/skills/ios-team-flow'
 REFERENCES = (
-    'LOGGING.md', 'LOCALIZATION.md', 'ARCHITECTURE.md', 'APP-LIFECYCLE.md', 'EVOLUTION.md', 'SCENARIOS.md', 'APP-RELEASE.md', 'templates/app-release.md', 'VERSION', 'README.md', 'CHANGELOG.md', 'WORKFLOW.md', 'GIT-ACTIONS.md',
+    'LOGGING.md', 'LOCALIZATION.md', 'ARCHITECTURE.md', 'APP-LIFECYCLE.md', 'EVOLUTION.md', 'SCENARIOS.md', 'APP-RELEASE.md', 'templates/app-release.md', 'VERSION', 'CHANGELOG.md', 'WORKFLOW.md', 'GIT-ACTIONS.md',
     'RELEASE.md', 'SOURCES.md', 'INSTALL.md', 'standards/ui.md',
     'standards/comments.md', 'standards/objective-c.md', 'standards/swift.md', 'standards/swiftui.md',
     'templates/new-project.md', 'templates/feature.md', 'templates/requirement.md', 'BUGFIX.md', 'templates/bug-fix.md',

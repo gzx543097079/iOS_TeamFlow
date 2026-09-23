@@ -11,6 +11,8 @@ PROJECT_ROOT 是当前 Git 根及其目录树；只使用本项目内的 Skill�
 
 | 当前工作 | 资料 |
 | --- | --- |
+| 安装或接入诊断 | [INSTALL](references/INSTALL.md) |
+| 工作流源码分发 | [RELEASE](references/RELEASE.md) |
 | 新 App 启动 | [启动模板](references/templates/new-project.md) |
 | 功能分析清单；复杂功能设计 | [功能清单](references/templates/feature.md) |
 | 已有工程现状 | [EXISTING-PROJECT](references/EXISTING-PROJECT.md) |
