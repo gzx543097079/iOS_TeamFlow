@@ -12,6 +12,7 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from teamflow_common import local_path
+from requirement_model import ID, semantic_content
 
 CONFIG = '.agents/project-checks.json'
 
@@ -86,24 +87,10 @@ def input_paths(root, inputs=None, candidates=None):
 
 
 def content_for_snapshot(name, content):
-    """需求卡只绑定范围和 AC；状态、验证与异常记录不令既有测试自失效。"""
-    if not (name.startswith('requirements/REQ-') and name.endswith('.md')):
-        return content
-    text = content.decode('utf-8')
-    if '<!-- teamflow:requirement:vnext -->' not in text:
-        return content
-    lines = []
-    ignored_section = False
-    for line in text.splitlines():
-        if line.startswith('## '):
-            ignored_section = line in ('## 验证', '## 决策与异常')
-        if ignored_section or re.match(r'^- 状态：', line):
-            continue
-        match = re.match(r'^- (?:⚪|✅) (AC-\d+：.+)$', line)
-        if match:
-            line = '- ' + match.group(1)
-        lines.append(line)
-    return ('\n'.join(lines) + '\n').encode('utf-8')
+    path = Path(name)
+    if path.parent == Path('requirements') and path.suffix == '.md' and ID.fullmatch(path.stem):
+        return semantic_content(content.decode('utf-8'), path.stem)
+    return content
 
 
 def effective_config(config, profile):
@@ -158,7 +145,7 @@ def source_snapshot(root, config, profile, staged=False, requirement=None):
         paths.update(input_paths(root, inputs, index))
     paths.add(CONFIG)
     if requirement is not None:
-        if not re.fullmatch(r'REQ-\d{4}', requirement):
+        if not ID.fullmatch(requirement):
             raise ValueError('需求编号格式应为 REQ-0001')
         card = 'requirements/' + requirement + '.md'
         if not local_path(root, card).is_file():

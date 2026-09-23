@@ -117,6 +117,25 @@ class ProjectChecksTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             checks.verify(self.root, relative)
 
+    def test_requirement_semantics_ignore_display_but_track_scope_exclusions_and_conditions(self):
+        self.config({'ok': {'argv': [sys.executable, '-c', 'pass']}})
+        directory = self.root / 'requirements'; directory.mkdir()
+        card = directory / 'REQ-0001.md'
+        original = ('# 原标题\n<!-- teamflow:requirement:vnext -->\n'
+                    '- 状态：🔵 进行中\n- 范围：显示结果\n- 不包含：支付\n'
+                    '- ⚪ AC-01：文字正确\n- ⚪ AC-02：点击有效\n')
+        card.write_text(original)
+        result, _ = checks.run(self.root, 'change', 'REQ-0001')
+        relative = str(result.relative_to(self.root))
+        display = original.replace('原标题', '新标题').replace('- 范围：显示结果', '  - 范围：  显示结果  ')
+        display = display.replace('- ⚪ AC-01：文字正确', '  - ✅ AC-01：  文字正确  ')
+        card.write_text(display + '\n## 决策与异常\n说明\n')
+        checks.verify(self.root, relative)
+        for old, new in [('显示结果', '隐藏结果'), ('支付', '登录'), ('点击有效', '点击无效')]:
+            card.write_text(original.replace(old, new))
+            with self.assertRaisesRegex(ValueError, '源码或配置已变化'):
+                checks.verify(self.root, relative)
+
     def test_bound_requirement_preserves_explicit_project_context_input(self):
         import subprocess
         subprocess.run(['git', '-C', str(self.root), 'init', '-q'], check=True)
@@ -127,7 +146,7 @@ class ProjectChecksTests(unittest.TestCase):
         config_path.write_text(json.dumps(config))
         directory = self.root / 'requirements'
         directory.mkdir()
-        (directory / 'REQ-0001.md').write_text('<!-- teamflow:requirement:vnext -->\n- 范围：范围\n')
+        (directory / 'REQ-0001.md').write_text('<!-- teamflow:requirement:vnext -->\n- 状态：🔵 进行中\n- 范围：范围\n- ⚪ AC-01：结果\n')
         context = directory / 'PROJECT-CONTEXT.md'
         context.write_text('工程配置入口')
         result, _ = checks.run(self.root, 'change', 'REQ-0001')
@@ -146,7 +165,7 @@ class ProjectChecksTests(unittest.TestCase):
         self.config({'ok': {'argv': [sys.executable, '-c', 'pass']}})
         (self.root / 'requirements').mkdir()
         card = self.root / 'requirements/REQ-0001.md'
-        card.write_text('<!-- teamflow:requirement:vnext -->\n- 范围：范围\n- ⚪ AC-01：结果\n')
+        card.write_text('<!-- teamflow:requirement:vnext -->\n- 状态：🔵 进行中\n- 范围：范围\n- ⚪ AC-01：结果\n')
         git('add', '.')
         result, _ = checks.run(self.root, 'change', 'REQ-0001')
         relative = str(result.relative_to(self.root))
@@ -249,6 +268,7 @@ class ProjectChecksTests(unittest.TestCase):
 <!-- teamflow:requirement:vnext -->
 
 - 状态：🔵 进行中
+- 范围：显示提示
 - ⚪ AC-01：显示结果
 
 ## 验证

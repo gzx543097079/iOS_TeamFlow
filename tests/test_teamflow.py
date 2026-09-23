@@ -159,6 +159,14 @@ class TeamFlowTests(unittest.TestCase):
         flow.complete(self.root, req, evidence='用户已确认真机结果')
         self.assertEqual('完成', flow.parse_card(card)['state'])
 
+    def test_complete_preserves_literal_evidence_and_accepts_field_spacing(self):
+        req = self.create(); card = self.fill(req)
+        card.write_text(card.read_text().replace('- 状态：', '  - 状态：  '))
+        evidence = r'核对路径 App\new，命令含字面量 \1'
+        flow.complete(self.root, req, evidence=evidence)
+        self.assertEqual(evidence, json.loads(flow.field(card.read_text(), '验证证据'))['text'])
+        self.assertEqual('完成', flow.parse_card(card)['state'])
+
     def test_terminal_states_cannot_bypass_evidence(self):
         req = self.create()
         for state in ('完成', '待用户验证'):

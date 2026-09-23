@@ -10,20 +10,9 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from teamflow_common import local_path as safe
+from requirement_model import (ID, STATES, STATE_ICONS, field, field_pattern,
+                               state_display, progress_display, parse_card)
 
-MARKER = '<!-- teamflow:requirement:vnext -->'
-ID = re.compile(r'REQ-(\d{4})')
-STATE_ICONS = {
-    '待处理': '⚪',
-    '待确认': '🟡',
-    '进行中': '🔵',
-    '待用户验证': '🟣',
-    '完成': '✅',
-    '阻塞': '🔴',
-    '暂停': '🟠',
-    '取消': '⚫',
-}
-STATES = tuple(STATE_ICONS)
 OPERATIONS = (
     'archive', 'upload-testflight', 'distribute-testflight', 'submit-beta-review',
     'submit-app-review', 'publish', 'phased-release', 'pause-phased-release', 'remove-sale',
@@ -48,56 +37,6 @@ def requirement_path(root, requirement):
     if not path.is_file():
         raise ValueError('需求不存在：' + requirement)
     return path
-
-
-def field(text, name):
-    values = re.findall(r'^- ' + re.escape(name) + r'：(.+)$', text, re.M)
-    if len(values) != 1 or not values[0].strip():
-        raise ValueError('需求卡必须且只能填写一处：' + name)
-    return values[0].strip()
-
-
-def state_display(state):
-    return STATE_ICONS[state] + ' ' + state
-
-
-def parse_state(value):
-    for state in STATES:
-        if value == state_display(state):
-            return state
-    raise ValueError('需求状态无效：' + value)
-
-
-def progress_display(done, total):
-    icon = '✅' if done == total else ('🔵' if done else '⚪')
-    return f'{icon} {done}/{total}'
-
-
-def parse_card(path):
-    text = path.read_text()
-    if MARKER not in text:
-        raise ValueError('只支持 vNext 需求卡：' + path.name)
-    requirement = path.stem
-    if not ID.fullmatch(requirement):
-        raise ValueError('需求文件名格式无效：' + path.name)
-    state = parse_state(field(text, '状态'))
-    scope = field(text, '范围')
-    excluded = field(text, '不包含') if re.search(r'^- 不包含：', text, re.M) else ''
-    if scope in ('待填写', '—') or excluded in ('待填写', '—'):
-        raise ValueError('范围和不包含必须填写实际内容')
-    ac = []
-    for line in text.splitlines():
-        match = re.match(r'^- (⚪|✅) (AC-\d+)：(.+)$', line)
-        if match:
-            ac.append({'id': match.group(2), 'done': match.group(1) == '✅',
-                       'condition': match.group(3).strip()})
-    if not ac or len({item['id'] for item in ac}) != len(ac):
-        raise ValueError('需求卡必须包含不重复的 AC 项')
-    done = sum(item['done'] for item in ac)
-    return {'requirement': requirement, 'state': state, 'state_display': state_display(state),
-            'progress': {'done': done, 'total': len(ac),
-                         'display': progress_display(done, len(ac))},
-            'scope': scope, 'excluded': excluded, 'ac': ac, 'text': text}
 
 
 def cards(root):
@@ -152,10 +91,10 @@ def create(root, title, queued=False, bug=False):
 
 
 def replace_field(text, name, value):
-    pattern = r'^- ' + re.escape(name) + r'：.*$'
+    pattern = field_pattern(name)
     if len(re.findall(pattern, text, re.M)) != 1:
         raise ValueError('需求卡字段缺失或重复：' + name)
-    return re.sub(pattern, '- ' + name + '：' + value, text, count=1, flags=re.M)
+    return re.sub(pattern, lambda match: '- ' + name + '：' + value, text, count=1, flags=re.M)
 
 
 def set_state(root, requirement, state, reason=None):

@@ -20,7 +20,7 @@ FILES = (
     'scripts/teamflow.py', 'scripts/package_release.py', 'scripts/validate_workflow.py', 'scripts/run_workflow_checks.py',
     'tests/release_fixture.py', 'tests/test_consumer_release.py', 'tests/test_workflow.py', 'tests/test_project_checks.py', 'tests/test_teamflow.py', 'tests/test_module_context.py', SKILL + '/SKILL.md',
     SKILL + '/assets/logging/TFLogger.swift', SKILL + '/assets/logging/TFLogger.h', SKILL + '/assets/logging/TFLogger.m',
-    SKILL + '/scripts/install_logging.py', SKILL + '/scripts/teamflow_common.py',
+    SKILL + '/scripts/install_logging.py', SKILL + '/scripts/teamflow_common.py', SKILL + '/scripts/requirement_model.py',
     SKILL + '/scripts/module_context.py', SKILL + '/scripts/teamflow.py', SKILL + '/scripts/project_checks.py', SKILL + '/scripts/setup_project.py',
 ) + tuple(SKILL + '/references/' + name for name in REFERENCES)
 
