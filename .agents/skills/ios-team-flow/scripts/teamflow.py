@@ -217,21 +217,20 @@ def complete(root, requirement, result=None, evidence=None, wait_user=False, pro
         raise ValueError('只能提供 --profile、--result、--evidence 中的一种')
     path = requirement_path(root, requirement)
     card = parse_card(path)
-    pending = [item['id'] for item in card['ac'] if not item['done']]
-    if pending and not wait_user:
-        raise ValueError('仍有未完成 AC：' + ', '.join(pending))
     if profile is not None:
         target, passed = checks_module().run(root, profile, requirement)
         if not passed:
             raise ValueError('验证未通过，需求状态保持不变')
         result = str(target.relative_to(root.resolve()))
     proof = validation_proof(root, card, result, evidence)
-    target_state = '待用户验证' if wait_user else '完成'
+    card = parse_card(path)
+    pending = [item['id'] for item in card['ac'] if not item['done']]
+    target_state = '待用户验证' if wait_user else ('进行中' if pending else '完成')
     text = replace_field(card['text'], '状态', state_display(target_state))
     text = replace_field(text, '验证证据', json.dumps(proof, ensure_ascii=False))
     path.write_text(text)
     print(json.dumps({'requirement': requirement, 'state': state_display(target_state),
-                      'state_key': target_state, 'evidence': proof}, ensure_ascii=False))
+                      'state_key': target_state, 'pending_ac': pending, 'evidence': proof}, ensure_ascii=False))
 
 
 def git_root(root):
@@ -243,8 +242,6 @@ def git_root(root):
 def git_check(root, requirement, result=None, evidence=None):
     git_root(root)
     card = parse_card(requirement_path(root, requirement))
-    if card['state'] not in ('完成', '待用户验证'):
-        raise ValueError('只有完成或待用户验证的需求可以进入提交检查')
     names = [name for name in subprocess.check_output(
         ['git', '-C', str(root), 'diff', '--cached', '--name-only', '-z']).decode().split('\0') if name]
     if not names:

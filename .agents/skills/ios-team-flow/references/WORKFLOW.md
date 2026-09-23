@@ -25,6 +25,8 @@ python3 scripts/teamflow.py req complete REQ-0001 --profile change
 # 人工 AC 尚待确认时，追加 --wait-user
 ```
 
+`req complete --profile` 先执行验证并绑定证据；仍有未确认 AC 时保持进行中并列出未完成项，不自动勾选。只有明确等待用户实际确认时使用 `--wait-user`。确认 AC 后可复用证据完成，无需提前勾选测试类 AC。
+
 已有验证结果时使用 `--result` 绑定；已绑定证据时可直接 `req complete REQ-0001` 复用并复核，不重跑测试。证据以 JSON 对象保存在卡片唯一的“验证证据”字段。没有自动检查但有可定位人工证据时使用 `--evidence`。相关验证输入变化后重新验证；状态、AC 完成图标和证据记录更新不使证据失效。
 
 ## 状态与记录
