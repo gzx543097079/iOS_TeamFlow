@@ -197,28 +197,50 @@ def checks_module():
     return module
 
 
-def complete(root, requirement, result=None, evidence=None, wait_user=False):
-    if bool(result) == bool(evidence):
-        raise ValueError('完成需求时必须且只能提供 --result 或 --evidence')
+def validation_proof(root, card, result=None, evidence=None, staged=False):
+    if result is not None and evidence is not None:
+        raise ValueError('只能提供一种验证证据')
+    if result is None and evidence is None:
+        try:
+            saved = json.loads(field(card['text'], '验证证据'))
+            if saved['kind'] == 'result':
+                result = saved['path']
+            elif saved['kind'] == 'manual':
+                evidence = saved['text']
+            else:
+                raise ValueError('未知证据类型')
+        except (ValueError, KeyError, TypeError) as error:
+            raise ValueError('没有有效的已绑定证据；请提供 --profile、--result 或 --evidence') from error
+    if result is not None:
+        if not isinstance(result, str) or not result.strip():
+            raise ValueError('验证结果路径不能为空')
+        with contextlib.redirect_stdout(io.StringIO()):
+            report = checks_module().verify(root, result, staged=staged)
+        if report.get('requirement') != card['requirement']:
+            raise ValueError('验证结果未绑定当前需求：' + card['requirement'])
+        return {'kind': 'result', 'path': result}
+    if not isinstance(evidence, str) or not evidence.strip():
+        raise ValueError('验证证据不能为空')
+    return {'kind': 'manual', 'text': evidence.strip()}
+
+
+def complete(root, requirement, result=None, evidence=None, wait_user=False, profile=None):
+    if sum(value is not None for value in (result, evidence, profile)) > 1:
+        raise ValueError('只能提供 --profile、--result、--evidence 中的一种')
     path = requirement_path(root, requirement)
     card = parse_card(path)
     pending = [item['id'] for item in card['ac'] if not item['done']]
     if pending and not wait_user:
         raise ValueError('仍有未完成 AC：' + ', '.join(pending))
-    if result:
-        with contextlib.redirect_stdout(io.StringIO()):
-            report = checks_module().verify(root, result)
-        if report.get('requirement') != requirement:
-            raise ValueError('验证结果未绑定当前需求；请使用 verify run --requirement ' + requirement)
-        proof = result + '（' + report['profile'] + '，通过）'
-    else:
-        proof = evidence.strip()
-        if not proof:
-            raise ValueError('验证证据不能为空')
+    if profile is not None:
+        target, passed = checks_module().run(root, profile, requirement)
+        if not passed:
+            raise ValueError('验证未通过，需求状态保持不变')
+        result = str(target.relative_to(root.resolve()))
+    proof = validation_proof(root, card, result, evidence)
     target_state = '待用户验证' if wait_user else '完成'
     text = replace_field(card['text'], '状态', state_display(target_state))
-    text = re.sub(r'^- 验证状态：.*\n?', '', text, flags=re.M)
-    text = replace_field(text, '验证证据', proof)
+    text = replace_field(text, '验证证据', json.dumps(proof, ensure_ascii=False))
     path.write_text(text)
     print(json.dumps({'requirement': requirement, 'state': state_display(target_state),
                       'state_key': target_state, 'evidence': proof}, ensure_ascii=False))
@@ -239,18 +261,7 @@ def git_check(root, requirement, result=None, evidence=None):
         ['git', '-C', str(root), 'diff', '--cached', '--name-only', '-z']).decode().split('\0') if name]
     if not names:
         raise ValueError('暂存区为空')
-    if bool(result) == bool(evidence):
-        raise ValueError('提交检查必须且只能提供 --result 或 --evidence')
-    if result:
-        with contextlib.redirect_stdout(io.StringIO()):
-            report = checks_module().verify(root, result, staged=True)
-        if report.get('requirement') != requirement:
-            raise ValueError('验证结果未绑定当前需求：' + requirement)
-        proof = result
-    else:
-        proof = evidence.strip()
-        if not proof:
-            raise ValueError('提交检查证据不能为空')
+    proof = validation_proof(root, card, result, evidence, staged=True)
     risky = [name for name in names if Path(name).suffix.lower() in
              ('.swift', '.m', '.mm', '.h', '.plist', '.entitlements', '.pbxproj', '.xcconfig')]
     print(json.dumps({'requirement': requirement, 'staged_files': names, 'validation': proof,
@@ -321,8 +332,10 @@ def main():
     state.add_argument('--reason')
     done = req_sub.add_parser('complete')
     done.add_argument('requirement')
-    done.add_argument('--result')
-    done.add_argument('--evidence')
+    proof = done.add_mutually_exclusive_group()
+    proof.add_argument('--profile')
+    proof.add_argument('--result')
+    proof.add_argument('--evidence')
     done.add_argument('--wait-user', action='store_true')
 
     verify = top.add_parser('verify')
@@ -366,7 +379,7 @@ def main():
             elif args.command == 'state':
                 set_state(root, args.requirement, args.state, args.reason)
             else:
-                complete(root, args.requirement, args.result, args.evidence, args.wait_user)
+                complete(root, args.requirement, args.result, args.evidence, args.wait_user, args.profile)
         elif args.area == 'verify':
             checks = checks_module()
             if args.command == 'init':

@@ -24,6 +24,8 @@ python3 scripts/teamflow.py verify run --profile change --requirement REQ-0001
 
 `--requirement` 额外绑定本次需求，忽略其他需求记录。需求范围与 AC 条件变化令证据失效；状态、AC 完成图标、验证证据和异常记录变化不影响它。不指定需求可执行独立工程检查，但该结果不能直接用于 `req complete`。配置输入应指向实际工程，避免纳入全部历史资料。
 
+`req complete REQ-0001 --profile change` 可一次执行验证、绑定证据并完成需求；未确认人工 AC 时追加 `--wait-user`。已绑定证据后，完成及提交检查均可省略证据参数，复用时仍检查有效性。
+
 完成命令读取结果并核对其需求绑定及当前输入。commit 前按 [GIT-ACTIONS](GIT-ACTIONS.md) 额外核对暂存快照，包含本次需求卡及所选有效配置；该核对不重新运行测试。
 
 工具测试不能代替真机、视觉、账号、购买或平台验证。人工证据应可定位；尚未确认的 AC 按主流程保留待验证。

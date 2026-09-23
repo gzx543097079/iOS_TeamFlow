@@ -19,8 +19,7 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
 ```sh
 python3 scripts/teamflow.py req create --title "登录失败提示优化"
 python3 scripts/teamflow.py req list
-python3 scripts/teamflow.py verify run --profile change --requirement REQ-0001
-python3 scripts/teamflow.py req complete REQ-0001 --result logs/project-checks/运行编号/result.json
+python3 scripts/teamflow.py req complete REQ-0001 --profile change
 ```
 
 `change` 是项目自行配置的 profile 名。需求跟踪见 [WORKFLOW](.agents/skills/ios-team-flow/references/WORKFLOW.md)，命令配置与输入绑定见 [PROJECT-CHECKS](.agents/skills/ios-team-flow/references/PROJECT-CHECKS.md)。

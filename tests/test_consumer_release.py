@@ -80,16 +80,13 @@ class ConsumerReleaseTests(unittest.TestCase):
                   'checks': {'unit': {'argv': [sys.executable, '-c', 'pass']}},
                   'profiles': {'change': ['unit']}}
         (self.root / '.agents/project-checks.json').write_text(json.dumps(config))
-        self.cli('verify', 'run', '--profile', 'change', '--requirement', req)
-        result = next((self.root / 'logs/project-checks').glob('*/result.json'))
-        relative = str(result.relative_to(self.root))
-        self.cli('req', 'complete', req, '--result', relative, '--wait-user')
+        self.cli('req', 'complete', req, '--profile', 'change', '--wait-user')
         status = json.loads(self.cli('req', 'status', req).stdout)
         self.assertEqual('待用户验证', status['state_key'])
         self.assertEqual(0, status['progress']['done'])
         self.assertNotEqual(0, self.cli('req', 'state', req, '--state', '完成', ok=False).returncode)
         card.write_text(card.read_text().replace('- ⚪ AC-01', '- ✅ AC-01'))
-        self.cli('req', 'complete', req, '--result', relative)
+        self.cli('req', 'complete', req)
         self.assertEqual('完成', json.loads(self.cli('req', 'status', req).stdout)['state_key'])
 
 

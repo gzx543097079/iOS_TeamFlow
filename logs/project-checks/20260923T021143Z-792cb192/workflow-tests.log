@@ -1,0 +1,140 @@
+test_package_contains_no_legacy_runtime (test_consumer_release.ConsumerReleaseTests) ... ok
+test_packaged_requirement_and_explicit_release_boundaries (test_consumer_release.ConsumerReleaseTests) ... ok
+test_packaged_testflight_internal_only_is_opt_in (test_consumer_release.ConsumerReleaseTests) ... ok
+test_packaged_validation_and_manual_confirmation (test_consumer_release.ConsumerReleaseTests) ... ok
+test_conflict_is_preflighted_before_any_copy (test_logging_install.LoggingInstallTests) ... ok
+test_language_selection_and_idempotence_from_zip (test_logging_install.LoggingInstallTests) ... ok
+test_paths_and_external_tool_rejected (test_logging_install.LoggingInstallTests) ... ok
+test_deleted_module_path_invalidates_index_and_reports_deletion (test_module_context.ModuleContextTests) ... ok
+test_record_and_query_unchanged_module (test_module_context.ModuleContextTests) ... ok
+test_record_rejects_unsafe_or_dirty_paths (test_module_context.ModuleContextTests) ... ok
+test_refresh_requires_explicit_confirmation_and_clean_paths (test_module_context.ModuleContextTests) ... ok
+test_reports_committed_staged_unstaged_untracked_and_cross_cutting (test_module_context.ModuleContextTests) ... ok
+test_unmatched_query_and_invalid_baseline_expand_scope (test_module_context.ModuleContextTests) ... ok
+test_bound_requirement_preserves_explicit_project_context_input (test_project_checks.ProjectChecksTests) ... ok
+test_cli_original_output_failure_and_complete_logs (test_project_checks.ProjectChecksTests) ... ok
+test_default_deletion_then_staging_preserves_verified_snapshot (test_project_checks.ProjectChecksTests) ... ok
+test_empty_unknown_and_escape_rejected_before_execution (test_project_checks.ProjectChecksTests) ... ok
+test_failure_returns_false (test_project_checks.ProjectChecksTests) ... ok
+test_git_default_tracks_new_files_but_ignores_generated_evidence (test_project_checks.ProjectChecksTests) ... ok
+test_input_change_during_successful_command_is_not_pass (test_project_checks.ProjectChecksTests) ... ok
+test_invalid_input_rejected_and_tracked_deletion_allowed (test_project_checks.ProjectChecksTests) ... ok
+test_only_selected_effective_configuration_invalidates_result (test_project_checks.ProjectChecksTests) ... ok
+test_requirement_binding_ignores_other_cards_but_tracks_scope_and_ac (test_project_checks.ProjectChecksTests) ... ok
+test_requirement_snapshot_ignores_colored_status_and_ac_progress (test_project_checks.ProjectChecksTests) ... ok
+test_requirement_updates_skip_default_but_invalidate_document_profile (test_project_checks.ProjectChecksTests) ... ok
+test_source_edit_add_delete_and_config_change_invalidate (test_project_checks.ProjectChecksTests) ... ok
+test_staged_effective_config_and_bound_requirement (test_project_checks.ProjectChecksTests) ... ok
+test_staged_verification_rejects_old_missing_deleted_and_mode_inputs (test_project_checks.ProjectChecksTests) ... ok
+test_success_and_literal_arguments (test_project_checks.ProjectChecksTests) ... ok
+test_symlink_log_directory_rejected (test_project_checks.ProjectChecksTests) ... ok
+test_unselected_command_not_executed_and_profiles_required (test_project_checks.ProjectChecksTests) ... ok
+test_ac_uses_progress_icon_without_checkbox (test_teamflow.TeamFlowTests) ... ok
+test_colored_state_and_progress_are_required_and_listed (test_teamflow.TeamFlowTests) ... ok
+test_complete_rejects_unfinished_ac_and_stale_result (test_teamflow.TeamFlowTests) ... ok
+test_complete_with_project_result_and_no_delivery_record (test_teamflow.TeamFlowTests) ... ok
+test_create_uses_readable_sequence_and_ignores_old_cards (test_teamflow.TeamFlowTests) ... ok
+test_failed_profile_does_not_complete_or_replace_evidence (test_teamflow.TeamFlowTests) ... ok
+test_git_check_is_explicit_and_uses_staged_object (test_teamflow.TeamFlowTests) ... ok
+test_new_format_only_and_sparse_state_reason (test_teamflow.TeamFlowTests) ... ok
+test_profile_completion_reuses_proof_and_rejects_changes (test_teamflow.TeamFlowTests) ... ok
+test_release_record_is_one_action (test_teamflow.TeamFlowTests) ... ok
+test_result_must_bind_current_requirement (test_teamflow.TeamFlowTests) ... ok
+test_terminal_states_cannot_bypass_evidence (test_teamflow.TeamFlowTests) ... ok
+test_testflight_internal_only_requires_explicit_option (test_teamflow.TeamFlowTests) ... ok
+test_wait_user_completion_uses_colored_state (test_teamflow.TeamFlowTests) ... ok
+test_discovery_loads_real_tests (test_workflow.WorkflowTests) ... ok
+test_repository_documents_and_distribution_manifest (test_workflow.WorkflowTests) ... ok
+test_setup_preserves_project_instructions_and_is_repeatable (test_workflow.WorkflowTests) ... ok
+
+----------------------------------------------------------------------
+Ran 48 tests in 8.595s
+
+OK
+ok：通过
+验证证据：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpnje1muc9/logs/project-checks/20260923T021146Z-3777df52/result.json
+验证结果与当前源码/配置一致：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpnje1muc9/logs/project-checks/20260923T021146Z-3777df52/result.json
+ok：通过
+验证证据：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpmyx19y4h/logs/project-checks/20260923T021148Z-c17dbba6/result.json
+验证结果与当前源码/配置及暂存区一致：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpmyx19y4h/logs/project-checks/20260923T021148Z-c17dbba6/result.json
+fail：失败
+验证证据：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmp7z23fhjm/logs/project-checks/20260923T021148Z-fd564c37/result.json
+ok：通过
+验证证据：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpn1ivzfec/logs/project-checks/20260923T021148Z-7b402930/result.json
+验证结果与当前源码/配置一致：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpn1ivzfec/logs/project-checks/20260923T021148Z-7b402930/result.json
+验证结果与当前源码/配置一致：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpn1ivzfec/logs/project-checks/20260923T021148Z-7b402930/result.json
+mutate：通过
+验证证据：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmprkiyzfax/logs/project-checks/20260923T021148Z-fe1454ee/result.json
+ok：通过
+验证证据：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmp8nh4gl4u/logs/project-checks/20260923T021148Z-74c7a8cb/result.json
+验证结果与当前源码/配置一致：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmp8nh4gl4u/logs/project-checks/20260923T021148Z-74c7a8cb/result.json
+ok：通过
+验证证据：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmp8qnj4le8/logs/project-checks/20260923T021148Z-2de02a3b/result.json
+验证结果与当前源码/配置一致：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmp8qnj4le8/logs/project-checks/20260923T021148Z-2de02a3b/result.json
+ok：通过
+验证证据：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpnuvjo0dk/logs/project-checks/20260923T021148Z-07cc9033/result.json
+ok：通过
+验证证据：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpnuvjo0dk/logs/project-checks/20260923T021149Z-ada8f377/result.json
+验证结果与当前源码/配置一致：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpnuvjo0dk/logs/project-checks/20260923T021148Z-07cc9033/result.json
+ok：通过
+验证证据：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpujc2pxqz/logs/project-checks/20260923T021149Z-11a25cf1/result.json
+验证结果与当前源码/配置一致：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpujc2pxqz/logs/project-checks/20260923T021149Z-11a25cf1/result.json
+ok：通过
+验证证据：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpkehjumum/logs/project-checks/20260923T021149Z-b18becf5/result.json
+验证结果与当前源码/配置及暂存区一致：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpkehjumum/logs/project-checks/20260923T021149Z-b18becf5/result.json
+ok：通过
+验证证据：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpkehjumum/logs/project-checks/20260923T021149Z-7bd4fcc9/result.json
+验证结果与当前源码/配置及暂存区一致：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpkehjumum/logs/project-checks/20260923T021149Z-7bd4fcc9/result.json
+ok：通过
+验证证据：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpkehjumum/logs/project-checks/20260923T021149Z-d3c0c7ca/result.json
+验证结果与当前源码/配置及暂存区一致：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpkehjumum/logs/project-checks/20260923T021149Z-d3c0c7ca/result.json
+ok：通过
+验证证据：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpk45ypokj/logs/project-checks/20260923T021149Z-1146c32d/result.json
+验证结果与当前源码/配置一致：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpk45ypokj/logs/project-checks/20260923T021149Z-1146c32d/result.json
+验证结果与当前源码/配置及暂存区一致：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpk45ypokj/logs/project-checks/20260923T021149Z-1146c32d/result.json
+ok：通过
+验证证据：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpk45ypokj/logs/project-checks/20260923T021149Z-26af784e/result.json
+ok：通过
+验证证据：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpk45ypokj/logs/project-checks/20260923T021150Z-cab1a91a/result.json
+ok：通过
+验证证据：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpk45ypokj/logs/project-checks/20260923T021150Z-1cf69dac/result.json
+验证结果与当前源码/配置及暂存区一致：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpk45ypokj/logs/project-checks/20260923T021150Z-1cf69dac/result.json
+build：通过
+验证证据：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmp745emkib/logs/project-checks/20260923T021150Z-6e1e6a81/result.json
+ok：通过
+验证证据：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmptr1q9trq/logs/project-checks/20260923T021150Z-2196f4da/result.json
+ok：通过
+验证证据：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpic8jufb1/logs/project-checks/20260923T021150Z-cef36b1e/result.json
+ok：通过
+验证证据：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpan4q4ics/logs/project-checks/20260923T021150Z-032efbe2/result.json
+ok：失败
+验证证据：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmp2rwf_hve/logs/project-checks/20260923T021150Z-8004f1af/result.json
+ok：通过
+验证证据：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpdh_r8i3d/logs/project-checks/20260923T021150Z-3625327d/result.json
+ok：通过
+验证证据：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmp1yyuonz6/logs/project-checks/20260923T021151Z-4dd103af/result.json
+{"requirement": "REQ-0001", "state": "✅ 完成", "state_key": "完成", "evidence": {"kind": "result", "path": "logs/project-checks/20260923T021151Z-4dd103af/result.json"}}
+{"requirement": "REQ-0001", "state": "✅ 完成", "state_key": "完成", "evidence": {"kind": "result", "path": "logs/project-checks/20260923T021151Z-4dd103af/result.json"}}
+{
+  "requirement": "REQ-0001",
+  "staged_files": [
+    ".agents/project-checks.json",
+    "logs/project-checks/20260923T021151Z-4dd103af/ok.log",
+    "logs/project-checks/20260923T021151Z-4dd103af/result.json",
+    "requirements/REQ-0001.md",
+    "source.txt"
+  ],
+  "validation": {
+    "kind": "result",
+    "path": "logs/project-checks/20260923T021151Z-4dd103af/result.json"
+  },
+  "semantic_review_required": true,
+  "release_sensitive_files": [],
+  "commit_trailer": "Requirement: REQ-0001"
+}
+ok：通过
+验证证据：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpt6rareb7/logs/project-checks/20260923T021151Z-39fa69c2/result.json
+ok：通过
+验证证据：/Users/hhdz/Desktop/MyGit/iOS_TeamFlow/.build/tmp/tmpt6rareb7/logs/project-checks/20260923T021151Z-22fc9194/result.json
+{"requirement": "REQ-0001", "state": "✅ 完成", "state_key": "完成", "evidence": {"kind": "manual", "text": "用户已确认真机结果"}}
+工作流入口、版本、文件清单和内部链接检查通过

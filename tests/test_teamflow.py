@@ -178,6 +178,32 @@ class TeamFlowTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, '源码或配置已变化'):
             flow.git_check(self.root, req, result=str(result.relative_to(self.root)))
 
+    def test_profile_completion_reuses_proof_and_rejects_changes(self):
+        req = self.create(); card = self.fill(req)
+        flow.complete(self.root, req, profile='change')
+        self.assertEqual('result', json.loads(flow.field(card.read_text(), '验证证据'))['kind'])
+        flow.complete(self.root, req)
+        self.git('add', '.')
+        flow.git_check(self.root, req)
+        self.assertEqual(1, len(list((self.root / 'logs/project-checks').glob('*/result.json'))))
+        (self.root / 'source.txt').write_text('new source')
+        for action in (flow.complete, flow.git_check):
+            with self.assertRaisesRegex(ValueError, '源码或配置已变化'):
+                action(self.root, req)
+
+    def test_failed_profile_does_not_complete_or_replace_evidence(self):
+        req = self.create(); card = self.fill(req)
+        original = card.read_text()
+        config = self.root / '.agents/project-checks.json'
+        config.write_text(config.read_text().replace('pass', 'raise SystemExit(1)'))
+        with self.assertRaisesRegex(ValueError, '验证未通过'):
+            flow.complete(self.root, req, profile='change')
+        self.assertEqual(original, card.read_text())
+        with self.assertRaisesRegex(ValueError, '没有有效'):
+            flow.complete(self.root, req)
+        with self.assertRaisesRegex(ValueError, '只能提供'):
+            flow.complete(self.root, req, profile='change', evidence='manual')
+
     def test_release_record_is_one_action(self):
         with contextlib.redirect_stdout(io.StringIO()):
             flow.release_record(self.root, 'upload-testflight', '1.2.0', '123', '处理完成')

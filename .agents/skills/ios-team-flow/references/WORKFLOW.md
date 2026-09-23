@@ -21,11 +21,11 @@ python3 scripts/teamflow.py req create --title "标题"
 适用检查通过且所有 AC 已确认才能完成；真机、视觉、账号或业务 AC 尚待实际确认时保留未完成项，进入待用户验证。用户确认后更新对应 AC，再完成需求。自动检查通过不自动代表人工 AC 通过。
 
 ```sh
-python3 scripts/teamflow.py req complete REQ-0001 --result logs/project-checks/运行编号/result.json
+python3 scripts/teamflow.py req complete REQ-0001 --profile change
 # 人工 AC 尚待确认时，追加 --wait-user
 ```
 
-没有自动检查但有可定位人工证据时使用 `--evidence`。相关验证输入变化后重新验证；状态、AC 完成图标和证据记录更新不使证据失效。
+已有验证结果时使用 `--result` 绑定；已绑定证据时可直接 `req complete REQ-0001` 复用并复核，不重跑测试。证据以 JSON 对象保存在卡片唯一的“验证证据”字段。没有自动检查但有可定位人工证据时使用 `--evidence`。相关验证输入变化后重新验证；状态、AC 完成图标和证据记录更新不使证据失效。
 
 ## 状态与记录
 

@@ -12,9 +12,9 @@
 提交前检查：
 
 ```sh
-python3 scripts/teamflow.py git check REQ-0001 --result logs/project-checks/运行编号/result.json
+python3 scripts/teamflow.py git check REQ-0001
 ```
 
-纯文档或记录变更可用 `--evidence "实际核对内容"`。检查通过后，只在 commit 是用户目标或目标的必要前置时执行 commit。暂存范围变化后重新检查。提交消息包含独立尾注 `Requirement: REQ-0001`；提交关联直接从 Git 查询，不写派生文件。
+默认复用需求卡中的证据，并复核当前输入和暂存快照；也可用 `--result` 指定已有结果。纯文档或记录变更可用 `--evidence "实际核对内容"`。检查通过后，只在 commit 是用户目标或目标的必要前置时执行 commit。暂存范围变化后重新检查。提交消息包含独立尾注 `Requirement: REQ-0001`；提交关联直接从 Git 查询，不写派生文件。
 
 没有明确用户目标时不得安装 Hook、commit、push、打标签或发布。目标已明确时自动完成最小依赖链，不重复索要每个前置的批准；如果前置会纳入目标范围外改动、目标版本不明确或需要不可推断的选择，则先停止询问。
