@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """把 TeamFlow 接入项目并诊断实际文件。"""
 import argparse
-import base64
+import difflib
 import json
 import re
 import shutil
@@ -33,10 +33,9 @@ globals().update(runpy.run_path(str(_source), run_name=__name__))
 '''
 
 
-def version_tuple(value):
+def validate_version(value):
     if not isinstance(value, str) or not re.fullmatch(r'\d+\.\d+\.\d+', value):
         raise ValueError('版本必须为 X.Y.Z')
-    return tuple(map(int, value.split('.')))
 
 
 def agents_content(current):
@@ -56,7 +55,7 @@ def plan(project, skill):
     if skill != expected or not (skill / 'SKILL.md').is_file():
         raise ValueError('请先把完整 Skill 放到当前项目 .agents/skills/ios-team-flow')
     version = (skill / 'references/VERSION').read_text().strip()
-    version_tuple(version)
+    validate_version(version)
     agents = safe(project, 'AGENTS.md')
     entry = safe(project, 'scripts/teamflow.py')
     for path in (agents, entry, safe(project, 'requirements')):
@@ -98,7 +97,7 @@ def diagnose(project):
     try:
         skill = safe(project, '.agents/skills/ios-team-flow')
         version = (skill / 'references/VERSION').read_text().strip()
-        version_tuple(version)
+        validate_version(version)
         entry_ready = ((skill / 'SKILL.md').is_file()
                        and safe(project, 'scripts/teamflow.py').read_text() == ENTRY
                        and BLOCK.strip() in safe(project, 'AGENTS.md').read_text())
@@ -129,7 +128,12 @@ def main():
         else:
             planned = setup(args.project, Path(__file__).resolve().parents[1], args.plan)
             if args.plan:
-                print(json.dumps({name: base64.b64encode(data).decode() for name, data in planned.items()}))
+                for name, data in planned.items():
+                    target = safe(args.project.resolve(), name)
+                    current = target.read_text() if target.exists() else ''
+                    sys.stdout.writelines(difflib.unified_diff(
+                        current.splitlines(keepends=True), data.decode('utf-8').splitlines(keepends=True),
+                        fromfile=name, tofile=name))
             else:
                 diagnose(args.project)
     except (ValueError, OSError, KeyError, TypeError, subprocess.CalledProcessError) as error:

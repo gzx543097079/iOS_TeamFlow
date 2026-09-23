@@ -190,21 +190,15 @@ def git_check(root, requirement, result=None, evidence=None):
     risky = [name for name in names if Path(name).suffix.lower() in
              ('.swift', '.m', '.mm', '.h', '.plist', '.entitlements', '.pbxproj', '.xcconfig')]
     print(json.dumps({'requirement': requirement, 'staged_files': names, 'validation': proof,
-                      'semantic_review_required': True, 'release_sensitive_files': risky,
+                      'release_sensitive_files': risky,
                       'commit_trailer': 'Requirement: ' + requirement}, ensure_ascii=False, indent=2))
-
-
-def release_export_options(operation, testflight_internal_only=False):
-    if testflight_internal_only and operation != 'upload-testflight':
-        raise ValueError('TestFlight Internal Only 仅适用于上传 TestFlight')
-    # 默认完全省略该键，而不是主动写入 false。
-    return {'testFlightInternalTestingOnly': True} if testflight_internal_only else {}
 
 
 def release_record(root, operation, version, build, evidence, testflight_internal_only=False):
     if not evidence.strip():
         raise ValueError('外部动作记录必须包含真实证据')
-    release_export_options(operation, testflight_internal_only)
+    if testflight_internal_only and operation != 'upload-testflight':
+        raise ValueError('TestFlight Internal Only 仅适用于上传 TestFlight')
     directory = safe(root, 'releases')
     directory.mkdir(parents=True, exist_ok=True)
     name = re.sub(r'[^A-Za-z0-9._-]', '-', version)

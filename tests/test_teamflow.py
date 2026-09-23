@@ -253,11 +253,9 @@ class TeamFlowTests(unittest.TestCase):
         self.assertNotIn('提交 App Store 审核', record.read_text())
 
     def test_testflight_internal_only_requires_explicit_option(self):
-        self.assertEqual({}, flow.release_export_options('upload-testflight'))
-        self.assertEqual({'testFlightInternalTestingOnly': True},
-                         flow.release_export_options('upload-testflight', True))
         with self.assertRaisesRegex(ValueError, '仅适用于上传 TestFlight'):
-            flow.release_export_options('archive', True)
+            flow.release_record(self.root, 'archive', '1.2.0', '124', '处理完成', True)
+        self.assertFalse((self.root / 'releases').exists())
         with contextlib.redirect_stdout(io.StringIO()):
             flow.release_record(self.root, 'upload-testflight', '1.2.0', '124',
                                 '处理完成', True)
