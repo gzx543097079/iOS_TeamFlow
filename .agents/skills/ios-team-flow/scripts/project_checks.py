@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """按项目配置执行构建/测试，保存真实退出结果；不猜测 Scheme 或工具链。"""
-import argparse
 import hashlib
 import json
 import os
@@ -273,41 +272,3 @@ def run(root, profile, requirement=None):
     target.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
     print('验证证据：' + str(target))
     return target, report['status'] == '通过'
-
-
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--project', type=Path, default=Path('.'))
-    sub = parser.add_subparsers(dest='command', required=True)
-    sub.add_parser('init')
-    sub.add_parser('list')
-    verifier = sub.add_parser('verify')
-    verifier.add_argument('--result', required=True, help='项目相对 result.json 路径')
-    verifier.add_argument('--staged', action='store_true', help='同时核对暂存对象；提交前必须使用')
-    runner = sub.add_parser('run')
-    runner.add_argument('--profile', required=True)
-    runner.add_argument('--requirement')
-    args = parser.parse_args()
-    try:
-        root = args.project.resolve()
-        if args.command == 'init':
-            path = local_path(root, CONFIG)
-            path.parent.mkdir(parents=True, exist_ok=True)
-            with path.open('x') as stream:
-                json.dump({'schema_version': 1, 'checks': {}, 'profiles': {}}, stream, indent=2)
-                stream.write('\n')
-            print('已创建空配置，请填写实际命令；空配置不能执行成功：' + str(path))
-        elif args.command == 'verify':
-            verify(root, args.result, args.staged)
-        elif args.command == 'list':
-            print(json.dumps(load_config(root), ensure_ascii=False, indent=2))
-        else:
-            _, passed = run(root, args.profile, args.requirement)
-            return 0 if passed else 1
-    except (ValueError, OSError, TypeError, subprocess.CalledProcessError) as error:
-        parser.exit(2, str(error) + '\n')
-    return 0
-
-
-if __name__ == '__main__':
-    raise SystemExit(main())

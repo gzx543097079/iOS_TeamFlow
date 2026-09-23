@@ -359,8 +359,8 @@ class ProjectChecksTests(unittest.TestCase):
 
     def test_cli_original_output_failure_and_complete_logs(self):
         import subprocess
-        command = [sys.executable, str(ROOT / '.agents/skills/ios-team-flow/scripts/project_checks.py'),
-                   '--project', str(self.root), 'run', '--profile', 'change']
+        command = [sys.executable, str(ROOT / 'scripts/teamflow.py'),
+                   '--project', str(self.root), 'verify', 'run', '--profile', 'change']
         self.config({'ok': {'argv': [sys.executable, '-c', 'print("raw-output-" * 2000)']}})
         result = subprocess.run(command, capture_output=True, text=True)
         self.assertEqual(0, result.returncode, result.stderr)
