@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from teamflow_common import local_path as safe
 from requirement_model import (ID, STATES, STATE_ICONS, field, field_pattern,
-                               state_display, progress_display, parse_card, semantic_content)
+                               state_display, progress_display, parse_card, semantic_content, require_ready)
 
 OPERATIONS = (
     'archive', 'upload-testflight', 'distribute-testflight', 'submit-beta-review',
@@ -49,7 +49,7 @@ def cards(root):
         if not ID.fullmatch(path.stem):
             continue
         try:
-            card = parse_card(path)
+            card = parse_card(safe(root, str(path.relative_to(root))))
         except (OSError, ValueError) as error:
             print('已跳过异常需求卡 ' + path.name + '：' + str(error), file=sys.stderr)
             continue
@@ -125,12 +125,23 @@ def checks_module():
     return project_checks
 
 
-def validation_proof(root, card, result=None, evidence=None, staged=False):
+def manual_snapshot(root, card, inputs, staged=False):
+    """人工证据复用源码快照算法；配置按原始内容绑定，不伪装为自动检查。"""
+    checks = checks_module()
+    config = {'profiles': {'manual': {'inputs': inputs, 'checks': {}}}}
+    return checks.source_snapshot(root, config, 'manual', staged=staged,
+                                  requirement=card['requirement'], raw_config=True)
+
+
+def validation_proof(root, card, result=None, evidence=None, staged=False, evidence_inputs=None):
     if result is not None and evidence is not None:
         raise ValueError('只能提供一种验证证据')
     binding = {'requirement': card['requirement'],
                'requirement_fingerprint': hashlib.sha256(
                    semantic_content(card['text'], card['requirement'])).hexdigest()}
+    if evidence_inputs is not None and evidence is None:
+        raise ValueError('--evidence-input 只能与新的 --evidence 一起使用')
+    snapshot = None
     if result is None and evidence is None:
         try:
             saved = json.loads(field(card['text'], '验证证据'))
@@ -140,6 +151,12 @@ def validation_proof(root, card, result=None, evidence=None, staged=False):
                 if any(saved.get(key) != value for key, value in binding.items()):
                     raise ValueError('人工证据未绑定当前需求内容；请重新核对并提供 --evidence')
                 evidence = saved['text']
+                evidence_inputs = saved.get('inputs')
+                if not evidence_inputs:
+                    raise ValueError('人工证据缺少核对范围；请重新实际核对')
+                snapshot = manual_snapshot(root, card, evidence_inputs)
+                if saved.get('source_fingerprint') != snapshot['fingerprint']:
+                    raise ValueError('人工证据输入已变化或缺少源码绑定；请重新实际核对')
             else:
                 raise ValueError('未知证据类型')
         except (ValueError, KeyError, TypeError) as error:
@@ -155,15 +172,33 @@ def validation_proof(root, card, result=None, evidence=None, staged=False):
         return {'kind': 'result', 'path': result}
     if not isinstance(evidence, str) or not evidence.strip():
         raise ValueError('验证证据不能为空')
-    return {'kind': 'manual', 'text': evidence.strip(), **binding}
+    inputs = evidence_inputs or ['.']
+    if safe(root, checks_module().CONFIG).exists():
+        code_suffixes = {'.swift', '.m', '.mm', '.h', '.py', '.sh', '.js', '.ts', '.c', '.cpp',
+                         '.plist', '.entitlements', '.pbxproj', '.xcconfig'}
+        changed = checks_module().input_paths(root, inputs, checks_module().changed_paths(root))
+        if any(Path(name).suffix.lower() in code_suffixes for name in changed):
+            raise ValueError('项目已配置自动验证且人工范围内存在代码变更；请使用 --profile 或 --result，'
+                             '人工 AC 通过 --confirm-ac 实际确认')
+    if snapshot is None:
+        snapshot = manual_snapshot(root, card, inputs)
+    if staged and manual_snapshot(root, card, inputs, staged=True) != snapshot:
+        raise ValueError('人工证据暂存内容与已核对工作区不一致')
+    return {'kind': 'manual', 'text': evidence.strip(), 'inputs': inputs,
+            'source_fingerprint': snapshot['fingerprint'], **binding}
 
 
 def complete(root, requirement, result=None, evidence=None, wait_user=False, profile=None,
-             confirm_ac=None):
+             confirm_ac=None, evidence_inputs=None):
     if sum(value is not None for value in (result, evidence, profile)) > 1:
         raise ValueError('只能提供 --profile、--result、--evidence 中的一种')
     path = requirement_path(root, requirement)
     card = parse_card(path)
+    require_ready(card)
+    if card['state'] in ('暂停', '取消'):
+        raise ValueError('请按用户明确决定先恢复需求为进行中，再验收')
+    if evidence_inputs is not None and evidence is None:
+        raise ValueError('--evidence-input 只能与新的 --evidence 一起使用')
     confirmed = set(confirm_ac or [])
     unknown = confirmed - {item['id'] for item in card['ac']}
     if unknown:
@@ -174,7 +209,7 @@ def complete(root, requirement, result=None, evidence=None, wait_user=False, pro
             raise ValueError('验证未通过，需求状态保持不变')
         proof = {'kind': 'result', 'path': str(target.relative_to(root.resolve()))}
     else:
-        proof = validation_proof(root, card, result, evidence)
+        proof = validation_proof(root, card, result, evidence, evidence_inputs=evidence_inputs)
     card = parse_card(path)
     text = card['text']
     for item in card['ac']:
@@ -208,42 +243,76 @@ def git_root(root):
         raise ValueError('请从项目 Git 根目录执行')
 
 
-def git_check(root, requirement, result=None, evidence=None):
+def git_check(root, requirement, result=None, evidence=None, evidence_inputs=None):
     git_root(root)
     card = parse_card(requirement_path(root, requirement))
     names = [name for name in subprocess.check_output(
         ['git', '-C', str(root), 'diff', '--cached', '--name-only', '-z']).decode().split('\0') if name]
     if not names:
         raise ValueError('暂存区为空')
-    proof = validation_proof(root, card, result, evidence, staged=True)
+    # 人工提交检查只用于文档/记录，不能替代业务或工具代码的自动验证。
+    saved_kind = None
+    if result is None and evidence is None:
+        try:
+            saved_kind = json.loads(field(card['text'], '验证证据')).get('kind')
+        except (ValueError, TypeError, AttributeError):
+            pass
+    if evidence is not None or saved_kind == 'manual':
+        if any(Path(name).suffix.lower() not in ('.md', '.rst', '.txt') for name in names):
+            raise ValueError('非文档暂存变更必须使用自动验证，不能仅提供人工证据')
+    proof = validation_proof(root, card, result, evidence, staged=True, evidence_inputs=evidence_inputs)
+    checks = checks_module()
+    if proof['kind'] == 'result':
+        report = json.loads(safe(root, proof['path']).read_text())
+        inputs = checks.load_config(root)['profiles'][report['profile']].get('inputs')
+        # 当前报告及其声明的原始日志是交付证据，不是待测源码。
+        evidence_dir = Path(proof['path']).parent
+        generated = {str(evidence_dir / 'result.json')}
+        generated.update(str(evidence_dir / item['log']) for item in report['results'])
+    else:
+        inputs, generated = proof['inputs'], set()
+    covered = checks.input_paths(root, inputs, set(names))
+    covered.update({'requirements/' + requirement + '.md', checks.CONFIG} | generated)
+    uncovered = sorted(set(names) - covered)
+    if uncovered:
+        raise ValueError('验证未覆盖暂存文件：' + '、'.join(uncovered) + '；请配置覆盖本次提交的 profile')
     risky = [name for name in names if Path(name).suffix.lower() in
              ('.swift', '.m', '.mm', '.h', '.plist', '.entitlements', '.pbxproj', '.xcconfig')]
     print(json.dumps({'requirement': requirement, 'staged_files': names, 'validation': proof,
-                      'release_sensitive_files': risky,
+                      'covered_files': names, 'uncovered_files': [], 'release_sensitive_files': risky,
                       'commit_trailer': 'Requirement: ' + requirement}, ensure_ascii=False, indent=2))
 
 
-def release_record(root, operation, version, build, evidence, testflight_internal_only=False):
+def release_record(root, operation, version, build, evidence, testflight_internal_only=False,
+                   *, bundle_id=None, environment=None, commit=None, outcome=None):
     if not evidence.strip():
         raise ValueError('外部动作记录必须包含真实证据')
     if testflight_internal_only and operation != 'upload-testflight':
         raise ValueError('TestFlight Internal Only 仅适用于上传 TestFlight')
-    directory = safe(root, 'releases')
-    directory.mkdir(parents=True, exist_ok=True)
-    name = re.sub(r'[^A-Za-z0-9._-]', '-', version)
-    build_name = re.sub(r'[^A-Za-z0-9._-]', '-', build)
-    if not name or not build_name:
-        raise ValueError('版本和 build 不能为空')
-    path = directory / f'App-{name}-{build_name}.md'
+    identity = {'bundle_id': bundle_id, 'environment': environment,
+                'version': version, 'build': build, 'commit': commit}
+    if any(not isinstance(value, str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]*', value)
+           for value in identity.values()):
+        raise ValueError('发布身份必须明确填写 Bundle ID、环境、版本、build 和 commit；仅使用字母数字及 ._-')
+    if not re.fullmatch(r'[0-9a-fA-F]{40}|[0-9a-fA-F]{64}', commit):
+        raise ValueError('commit 必须为完整提交哈希')
+    if outcome not in ('failed', 'processing', 'succeeded'):
+        raise ValueError('结果必须为 failed、processing 或 succeeded')
+    path = safe(root, f'releases/{bundle_id}-{environment}-{version}-{build}.md')
+    header = '# App 发布动作\n\n' + json.dumps(identity, ensure_ascii=False, sort_keys=True) + '\n'
     if path.exists():
         text = path.read_text()
+        if not text.startswith(header):
+            raise ValueError('发布记录身份冲突：同一 App、环境和 build 不得替换 commit')
     else:
-        text = f'# App 发布动作：{version} / {build}\n\n'
+        text = header
     display_name = OPERATION_NAMES[operation]
     if testflight_internal_only:
         display_name += '（TestFlight Internal Only）'
-    entry = (f'- {datetime.now(timezone.utc).isoformat()} | {display_name} | '
-             f'{evidence.strip()}\n')
+    entry = '- ' + json.dumps({'time': datetime.now(timezone.utc).isoformat(),
+                              'operation': operation, 'name': display_name,
+                              'outcome': outcome, 'evidence': evidence.strip()}, ensure_ascii=False) + '\n'
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text.rstrip() + '\n\n' + entry)
     print(json.dumps({'record': str(path), 'operation': operation}, ensure_ascii=False))
 
@@ -263,6 +332,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--project', type=Path, default=Path('.'))
     top = parser.add_subparsers(dest='area', required=True)
+    top.add_parser('doctor', help='只读核对接入、配置、需求证据和可选模块索引')
 
     req = top.add_parser('req')
     req_sub = req.add_subparsers(dest='command', required=True)
@@ -274,6 +344,8 @@ def main():
     listing.add_argument('--json', action='store_true')
     status = req_sub.add_parser('status')
     status.add_argument('requirement')
+    resume = req_sub.add_parser('resume', help='只读恢复摘要，不改变状态')
+    resume.add_argument('requirement')
     state = req_sub.add_parser('state')
     state.add_argument('requirement')
     state.add_argument('--state', choices=STATES, required=True)
@@ -285,6 +357,7 @@ def main():
     proof.add_argument('--result')
     proof.add_argument('--evidence')
     done.add_argument('--wait-user', action='store_true')
+    done.add_argument('--evidence-input', action='append', help='人工核对的项目相对文件/目录，可重复；默认整个项目')
     done.add_argument('--confirm-ac', action='append', metavar='AC-编号',
                       help='显式确认已实际核对的条件，可重复传入；验证证据有效后才写入')
 
@@ -292,6 +365,7 @@ def main():
     verify_sub = verify.add_subparsers(dest='command', required=True)
     verify_sub.add_parser('init')
     verify_sub.add_parser('list')
+    verify_sub.add_parser('suggest', help='按改动路径建议验证范围，不运行检查')
     run = verify_sub.add_parser('run')
     run.add_argument('--profile', required=True)
     run.add_argument('--requirement', help='绑定本次需求的范围和 AC，忽略其他需求')
@@ -302,6 +376,7 @@ def main():
     check.add_argument('requirement')
     check.add_argument('--result')
     check.add_argument('--evidence')
+    check.add_argument('--evidence-input', action='append')
 
     release = top.add_parser('release')
     release_sub = release.add_subparsers(dest='command', required=True)
@@ -311,11 +386,20 @@ def main():
     record.add_argument('--build', required=True)
     record.add_argument('--evidence', required=True)
     record.add_argument('--testflight-internal-only', action='store_true')
+    record.add_argument('--bundle-id', required=True)
+    record.add_argument('--environment', required=True)
+    record.add_argument('--commit', required=True)
+    record.add_argument('--outcome', required=True, choices=('failed', 'processing', 'succeeded'))
 
     args = parser.parse_args()
     root = args.project.resolve()
     try:
-        if args.area == 'req':
+        if args.area == 'doctor':
+            from diagnostics import doctor
+            report = doctor(root)
+            print(json.dumps(report, ensure_ascii=False, indent=2))
+            return 1 if report['needs_action'] else 0
+        elif args.area == 'req':
             if args.command == 'create':
                 create(root, args.title, args.queued, args.bug)
             elif args.command == 'list':
@@ -326,11 +410,14 @@ def main():
                 payload['state_key'] = payload['state']
                 payload['state'] = card['state_display']
                 print(json.dumps(payload, ensure_ascii=False, indent=2))
+            elif args.command == 'resume':
+                from diagnostics import resume
+                print(json.dumps(resume(root, args.requirement), ensure_ascii=False, indent=2))
             elif args.command == 'state':
                 set_state(root, args.requirement, args.state, args.reason)
             else:
                 complete(root, args.requirement, args.result, args.evidence, args.wait_user,
-                         args.profile, args.confirm_ac)
+                         args.profile, args.confirm_ac, args.evidence_input)
         elif args.area == 'verify':
             checks = checks_module()
             if args.command == 'init':
@@ -340,16 +427,19 @@ def main():
                     json.dump({'schema_version': 2, 'profiles': {}}, stream, indent=2)
                     stream.write('\n')
                 print('已创建空验证配置：' + str(path))
+            elif args.command == 'suggest':
+                print(json.dumps(checks.suggest(root), ensure_ascii=False, indent=2))
             elif args.command == 'list':
                 print(json.dumps(checks.load_config(root), ensure_ascii=False, indent=2))
             else:
                 _, passed = checks.run(root, args.profile, args.requirement)
                 return 0 if passed else 1
         elif args.area == 'git':
-            git_check(root, args.requirement, args.result, args.evidence)
+            git_check(root, args.requirement, args.result, args.evidence, args.evidence_input)
         else:
             release_record(root, args.operation, args.version, args.build, args.evidence,
-                           args.testflight_internal_only)
+                           args.testflight_internal_only, bundle_id=args.bundle_id,
+                           environment=args.environment, commit=args.commit, outcome=args.outcome)
     except (ValueError, OSError, KeyError, TypeError, subprocess.CalledProcessError) as error:
         parser.exit(2, str(error) + '\n')
     return 0

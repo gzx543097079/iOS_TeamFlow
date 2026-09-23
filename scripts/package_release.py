@@ -6,6 +6,7 @@ import zipfile
 from pathlib import Path
 SKILL = '.agents/skills/ios-team-flow'
 REFERENCES = (
+    'COMMANDS.md', 'DATA-MIGRATION.md', 'SECURITY-BOUNDARIES.md',
     'LOGGING.md', 'LOCALIZATION.md', 'ARCHITECTURE.md', 'APP-LIFECYCLE.md', 'EVOLUTION.md', 'SCENARIOS.md', 'APP-RELEASE.md', 'templates/app-release.md', 'VERSION', 'CHANGELOG.md', 'WORKFLOW.md', 'GIT-ACTIONS.md',
     'RELEASE.md', 'SOURCES.md', 'INSTALL.md', 'standards/ui.md',
     'standards/comments.md', 'standards/objective-c.md', 'standards/swift.md', 'standards/swiftui.md',
@@ -14,6 +15,7 @@ REFERENCES = (
 )
 # 仅打包明确登记的通用文件，不打包项目接入记录、需求或日志。
 FILES = (
+    'tests/test_boundaries.py', 'tests/test_diagnostics.py', SKILL + '/scripts/diagnostics.py',
     'AGENTS.md', 'README.md', '.gitignore',
     '.github/workflows/teamflow-check.yml', '.github/workflows/teamflow-release.yml',
     'scripts/check_logging.py', '.github/workflows/teamflow-logging.yml', 'tests/test_logging_install.py',

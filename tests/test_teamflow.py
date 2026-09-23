@@ -99,7 +99,8 @@ class TeamFlowTests(unittest.TestCase):
         req = self.create()
         path = self.root / 'requirements' / (req + '.md')
         path.write_text(path.read_text().replace('待填写本次要达到的结果', '范围')
-                        .replace('待填写本次明确不处理的内容；没有时写“无额外排除”', '无'))
+                        .replace('待填写本次明确不处理的内容；没有时写“无额外排除”', '无')
+                        .replace('填写可观察的输入、操作和预期结果', '显示提示'))
         flow.complete(self.root, req, evidence='人工核对')
         self.assertEqual('进行中', flow.parse_card(path)['state'])
         self.fill(req)
@@ -360,20 +361,23 @@ class TeamFlowTests(unittest.TestCase):
 
     def test_release_record_is_one_action(self):
         with contextlib.redirect_stdout(io.StringIO()):
-            flow.release_record(self.root, 'upload-testflight', '1.2.0', '123', '处理完成')
-        record = self.root / 'releases/App-1.2.0-123.md'
+            flow.release_record(self.root, 'upload-testflight', '1.2.0', '123', '处理完成',
+                                bundle_id='com.example.app', environment='production', commit='a'*40, outcome='succeeded')
+        record = self.root / 'releases/com.example.app-production-1.2.0-123.md'
         self.assertIn('上传 TestFlight', record.read_text())
         self.assertNotIn('Internal Only', record.read_text())
         self.assertNotIn('提交 App Store 审核', record.read_text())
 
     def test_testflight_internal_only_requires_explicit_option(self):
         with self.assertRaisesRegex(ValueError, '仅适用于上传 TestFlight'):
-            flow.release_record(self.root, 'archive', '1.2.0', '124', '处理完成', True)
+            flow.release_record(self.root, 'archive', '1.2.0', '124', '处理完成', True, bundle_id='com.example.app',
+                                environment='production', commit='a'*40, outcome='succeeded')
         self.assertFalse((self.root / 'releases').exists())
         with contextlib.redirect_stdout(io.StringIO()):
             flow.release_record(self.root, 'upload-testflight', '1.2.0', '124',
-                                '处理完成', True)
-        record = self.root / 'releases/App-1.2.0-124.md'
+                                '处理完成', True, bundle_id='com.example.app',
+                                environment='production', commit='a'*40, outcome='succeeded')
+        record = self.root / 'releases/com.example.app-production-1.2.0-124.md'
         self.assertIn('上传 TestFlight（TestFlight Internal Only）', record.read_text())
 
 

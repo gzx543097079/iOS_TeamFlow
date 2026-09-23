@@ -1,12 +1,25 @@
 #!/usr/bin/env python3
 """验证分发入口、版本与内部 Markdown 链接。仅检查通用分发文件。"""
 import re
+import json
 from pathlib import Path
 from package_release import FILES, SKILL
 
 
+def validate_profile_overlap(config):
+    profiles = config['profiles']
+    base = profiles['workflow']
+    release = profiles['workflow-release']
+    if base.get('inputs') != release.get('inputs') or any(
+            release['checks'].get(name) != check for name, check in base['checks'].items()):
+        raise ValueError('workflow-release 必须保留 workflow 的相同输入和检查')
+
+
 def validate(root):
     errors = []
+    config = root / '.agents/project-checks.json'
+    if config.is_file():
+        validate_profile_overlap(json.loads(config.read_text()))
     for name in FILES:
         path = root / name
         if not path.is_file():

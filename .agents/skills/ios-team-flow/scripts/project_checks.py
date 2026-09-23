@@ -17,6 +17,43 @@ from requirement_model import ID, semantic_content
 CONFIG = '.agents/project-checks.json'
 
 
+def changed_paths(root):
+    """读取相对 HEAD 的暂存/工作区差异和未跟踪文件，支持尚无提交的仓库。"""
+    top = subprocess.check_output(['git', '-C', str(root), 'rev-parse', '--show-toplevel'],
+                                  stderr=subprocess.PIPE).decode().strip()
+    if Path(top).resolve() != root.resolve():
+        raise ValueError('改动范围检查必须从项目 Git 根执行')
+    head = subprocess.run(['git', '-C', str(root), 'rev-parse', '--verify', 'HEAD'],
+                          capture_output=True)
+    commands = [['diff', 'HEAD', '--name-only', '--no-renames', '-z']] if head.returncode == 0 else [
+        ['diff', '--cached', '--name-only', '--no-renames', '-z'],
+        ['diff', '--name-only', '--no-renames', '-z']]
+    commands.append(['ls-files', '--others', '--exclude-standard', '-z'])
+    names = set()
+    for argv in commands:
+        raw = subprocess.check_output(['git', '-C', str(root), *argv])
+        names.update(os.fsdecode(name) for name in raw.split(b'\0') if name)
+    return names
+
+
+def suggest(root):
+    config = load_config(root)
+    names = {name for name in changed_paths(root) if not excluded_input(name)
+             and not name.startswith('requirements/')}
+    profiles, covered = [], set()
+    for profile, settings in config['profiles'].items():
+        selected = input_paths(root, settings.get('inputs'), names)
+        if CONFIG in names:
+            selected.add(CONFIG)
+        covered.update(selected)
+        profiles.append({'profile': profile, 'covered_files': sorted(selected),
+                         'uncovered_files': sorted(names - selected),
+                         'covers_all_changes': bool(names) and selected == names})
+    return {'changed_files': sorted(names), 'profiles': profiles,
+            'uncovered_files': sorted(names - covered),
+            'note': '仅按路径建议；必须核对检查内容与实际影响面，不自动运行或省略必要测试。'}
+
+
 def load_config(root):
     config = json.loads(local_path(root, CONFIG).read_text())
     if not isinstance(config, dict) or config.get('schema_version') != 2:
@@ -64,6 +101,11 @@ def input_paths(root, inputs=None, candidates=None):
     validate_inputs = candidates is None
     if candidates is None:
         try:
+            top = subprocess.check_output(['git', '-C', str(root), 'rev-parse', '--show-toplevel'],
+                                          stderr=subprocess.PIPE).decode().strip()
+            if Path(top).resolve() != root.resolve():
+                # 嵌套普通目录不能借用外层仓库的忽略规则或文件清单。
+                raise subprocess.CalledProcessError(1, ['git', 'rev-parse'])
             raw = subprocess.check_output(['git', '-C', str(root), 'ls-files', '--cached', '--others',
                                            '--exclude-standard', '-z'], stderr=subprocess.PIPE)
             candidates = {os.fsdecode(n) for n in raw.split(b'\0') if n}
@@ -127,7 +169,7 @@ def read_blobs(root, object_ids):
     return blobs
 
 
-def source_snapshot(root, config, profile, staged=False, requirement=None):
+def source_snapshot(root, config, profile, staged=False, requirement=None, raw_config=False):
     inputs = config['profiles'][profile].get('inputs')
     index = {}
     if staged:
@@ -143,7 +185,8 @@ def source_snapshot(root, config, profile, staged=False, requirement=None):
     paths = input_paths(root, inputs)
     if staged:
         paths.update(input_paths(root, inputs, index))
-    paths.add(CONFIG)
+    if not raw_config:
+        paths.add(CONFIG)
     if requirement is not None:
         if not ID.fullmatch(requirement):
             raise ValueError('需求编号格式应为 REQ-0001')
@@ -170,7 +213,7 @@ def source_snapshot(root, config, profile, staged=False, requirement=None):
                 if mode not in (b'100644', b'100755'):
                     raise ValueError('暂存输入不是普通文件：' + name)
                 content = blobs[oid]
-                if name == CONFIG:
+                if name == CONFIG and not raw_config:
                     try:
                         content = json.dumps(effective_config(json.loads(content), profile), sort_keys=True).encode()
                     except (ValueError, KeyError, TypeError) as error:
@@ -181,7 +224,7 @@ def source_snapshot(root, config, profile, staged=False, requirement=None):
             continue
         elif path.is_file():
             content = (json.dumps(effective_config(config, profile), sort_keys=True).encode()
-                       if name == CONFIG else path.read_bytes())
+                       if name == CONFIG and not raw_config else path.read_bytes())
             files[name] = {'sha256': hashlib.sha256(content_for_snapshot(name, content)).hexdigest(),
                            'executable': bool(path.stat().st_mode & 0o111)}
         else:

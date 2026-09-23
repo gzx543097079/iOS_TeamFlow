@@ -96,17 +96,20 @@ def diagnose(project):
     add('Git 根目录', git_ready, '项目根必须是 Git 根')
     try:
         skill = safe(project, '.agents/skills/ios-team-flow')
-        version = (skill / 'references/VERSION').read_text().strip()
+        version = safe(project, '.agents/skills/ios-team-flow/references/VERSION').read_text().strip()
         validate_version(version)
-        entry_ready = ((skill / 'SKILL.md').is_file()
+        entry_ready = (safe(project, '.agents/skills/ios-team-flow/SKILL.md').is_file()
                        and safe(project, 'scripts/teamflow.py').read_text() == ENTRY
                        and BLOCK.strip() in safe(project, 'AGENTS.md').read_text())
     except (OSError, ValueError, TypeError):
         entry_ready = False
         version = '未知'
     add('Skill 与入口', entry_ready, '版本 ' + version)
-    add('项目验证', (project / '.agents/project-checks.json').is_file(),
-        '工程就绪后配置实际构建/测试命令')
+    try:
+        config_ready = safe(project, '.agents/project-checks.json').is_file()
+    except ValueError:
+        config_ready = False
+    add('项目验证', config_ready, '工程就绪后配置实际构建/测试命令')
     add('Xcode', bool(shutil.which('xcodebuild')), '只检查工具入口')
     report = {'project': str(project), 'checks': items,
               'needs_action': any(item['status'] == '需处理' for item in items)}

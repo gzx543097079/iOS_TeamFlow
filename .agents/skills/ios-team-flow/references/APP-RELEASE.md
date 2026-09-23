@@ -28,9 +28,11 @@
 实际动作使用项目既有 Xcode、CI 或发布工具。先核对目标 App、Bundle ID、版本、build、commit、环境、签名和账号；不得猜测目标。完成或失败后再记录真实证据：
 
 ```sh
-python3 scripts/teamflow.py release record upload-testflight --version 1.2.0 --build 123 --evidence "App Store Connect 已处理完成，构建可选"
+python3 scripts/teamflow.py release record upload-testflight --version 1.2.0 --build 123 \
+  --bundle-id com.example.app --environment production --commit <完整提交哈希> \
+  --outcome succeeded --evidence "App Store Connect 已处理完成，构建可选"
 ```
 
-记录生成到 `releases/App-1.2.0-123.md`，按 build 汇集跨需求的实际发布事件。只保存关键结果和可定位的平台或 CI 链接；已有记录足够时直接引用，不抄写长输出，也不预生成流水线。
+记录生成到 `releases/com.example.app-production-1.2.0-123.md`，按 App、环境和构建汇集跨需求事件。命令必须明确 Bundle ID、环境、完整 commit 和结果；同一记录拒绝替换构建身份。结果区分 `failed`（失败）、`processing`（平台处理中）和 `succeeded`（本次动作已完成），不能将处理中记为可分发；后续平台处理完成再追加真实结果。记录命令不执行平台动作，也不验证证据真实性。只保存关键结果和可定位的平台或 CI 链接；已有记录足够时直接引用，不抄写长输出，也不预生成流水线。
 
 重新构建会产生新的 build；旧 build 的安装、测试或审核结论不能自动沿用。审核通过不等于发布，上传成功不等于平台处理完成，GitHub Release 不等于 App Store 上线。

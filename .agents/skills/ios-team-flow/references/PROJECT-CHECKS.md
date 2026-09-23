@@ -45,3 +45,7 @@ python3 scripts/teamflow.py verify run --profile change --requirement REQ-0001
 完成命令读取结果并核对其需求绑定及当前输入。commit 前按 [GIT-ACTIONS](GIT-ACTIONS.md) 额外核对暂存快照，包含本次需求卡及所选有效配置；该核对不重新运行测试。
 
 工具测试不能代替真机、视觉、账号、购买或平台验证。人工证据应可定位，内容绑定与复用范围按 [WORKFLOW](WORKFLOW.md#实施与验收)；尚未确认的 AC 按主流程保留待验证。
+
+## 按需诊断与范围建议
+
+`verify suggest` 按实际改动展示各 profile 的路径覆盖及遗漏；建议不代表测试充分性。`doctor` 只读检查配置和输入是否有效；详见 [命令参考](COMMANDS.md)。命令是受信任的项目代码，并非文件系统或网络沙箱，涉及时遵循 [敏感信息与外部服务边界](SECURITY-BOUNDARIES.md)。

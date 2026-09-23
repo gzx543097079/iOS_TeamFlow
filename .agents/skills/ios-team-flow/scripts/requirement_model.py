@@ -72,6 +72,14 @@ def parse_card(path):
     return parse_requirement(path.read_text(), path.stem)
 
 
+def require_ready(card):
+    """草稿可以列出，但占位内容不能进入验收。"""
+    values = [card['scope'], card['excluded']] + [item['condition'] for item in card['ac']]
+    if any('待填写' in value or '填写可观察的输入、操作和预期结果' in value
+           or '〈' in value for value in values):
+        raise ValueError('需求仍含占位内容，请填写实际范围和 AC 后验收')
+
+
 def semantic_content(text, requirement):
     card = parse_requirement(text, requirement)
     payload = {key: card[key] for key in ('scope', 'excluded')}

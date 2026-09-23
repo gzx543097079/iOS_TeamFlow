@@ -1,6 +1,6 @@
 # iOS TeamFlow
 
-面向 Codex 驱动开发的中文 iOS 工作流。当前版本为 **3.2.0**。
+面向 Codex 驱动开发的中文 iOS 工作流。当前版本为 **3.3.0**。
 
 需求、实施、验证与显式交付的规则见 [WORKFLOW](.agents/skills/ios-team-flow/references/WORKFLOW.md)；[Skill 入口](.agents/skills/ios-team-flow/SKILL.md) 按任务加载工程专题。
 
@@ -19,6 +19,10 @@ python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
 ```sh
 python3 scripts/teamflow.py req create --title "登录失败提示优化"
 python3 scripts/teamflow.py req list
+# 以下为按需使用的只读辅助
+python3 scripts/teamflow.py doctor
+python3 scripts/teamflow.py verify suggest
+python3 scripts/teamflow.py req resume REQ-0001
 python3 scripts/teamflow.py req complete REQ-0001 --profile change
 # 核对实际证据后，确认指定条件并复用验证结果
 python3 scripts/teamflow.py req complete REQ-0001 --confirm-ac AC-01
@@ -26,11 +30,14 @@ python3 scripts/teamflow.py req complete REQ-0001 --confirm-ac AC-01
 
 `change` 是项目自行配置的 profile 名。需求跟踪见 [WORKFLOW](.agents/skills/ios-team-flow/references/WORKFLOW.md)，命令配置与输入绑定见 [PROJECT-CHECKS](.agents/skills/ios-team-flow/references/PROJECT-CHECKS.md)。
 
+参数和证据复用见 [命令参考](.agents/skills/ios-team-flow/references/COMMANDS.md)。旧人工证据缺少文件快照时须重新实际核对；App 发布记录现在必须指定 Bundle ID、环境、完整 commit 和执行结果。
+
 ## 资料与工具
 
 - [Git 动作](.agents/skills/ios-team-flow/references/GIT-ACTIONS.md) 与 [App 外部动作](.agents/skills/ios-team-flow/references/APP-RELEASE.md)。
 - [已有工程](.agents/skills/ios-team-flow/references/EXISTING-PROJECT.md)；大型项目可按需启用 [模块索引](.agents/skills/ios-team-flow/references/MODULE-CONTEXT.md)。
 - [本地化](.agents/skills/ios-team-flow/references/LOCALIZATION.md)、[架构](.agents/skills/ios-team-flow/references/ARCHITECTURE.md)、[日志组件](.agents/skills/ios-team-flow/references/LOGGING.md)。
+- [数据迁移与恢复](.agents/skills/ios-team-flow/references/DATA-MIGRATION.md)、[敏感信息与外部服务边界](.agents/skills/ios-team-flow/references/SECURITY-BOUNDARIES.md) 按涉及范围加载。
 - [源码验证与分发](.agents/skills/ios-team-flow/references/RELEASE.md)。Demo、测试和 ZIP 发布工具属于源码仓库，不进入独立 Skill 包。
 
 ## 源码仓库验证范围

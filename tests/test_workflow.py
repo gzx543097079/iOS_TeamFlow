@@ -11,6 +11,15 @@ import validate_workflow
 
 
 class WorkflowTests(unittest.TestCase):
+    def test_release_profile_cannot_drop_workflow_coverage(self):
+        config = {'profiles': {
+            'workflow': {'inputs': ['scripts'], 'checks': {'test': {'argv': ['python3', 'test.py']}}},
+            'workflow-release': {'inputs': ['docs'], 'checks': {'test': {'argv': ['python3', 'test.py']}}}}}
+        with self.assertRaisesRegex(ValueError, '相同输入'):
+            validate_workflow.validate_profile_overlap(config)
+        config['profiles']['workflow-release']['inputs'] = ['scripts']
+        validate_workflow.validate_profile_overlap(config)
+
     def test_repository_documents_and_distribution_manifest(self):
         validate_workflow.validate(ROOT)
         names = set(package_release.FILES)

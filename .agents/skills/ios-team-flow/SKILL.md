@@ -11,6 +11,9 @@ PROJECT_ROOT 是当前 Git 根及其目录树；只使用本项目内的 Skill�
 
 | 当前工作 | 资料 |
 | --- | --- |
+| 命令参数、诊断或恢复摘要 | [COMMANDS](references/COMMANDS.md) |
+| 数据格式或持久化迁移 | [DATA-MIGRATION](references/DATA-MIGRATION.md) |
+| 账号、网络、敏感数据或发布 | [SECURITY-BOUNDARIES](references/SECURITY-BOUNDARIES.md) |
 | 安装或接入诊断 | [INSTALL](references/INSTALL.md) |
 | 工作流源码分发 | [RELEASE](references/RELEASE.md) |
 | 新 App 启动 | [启动模板](references/templates/new-project.md) |
