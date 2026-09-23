@@ -23,8 +23,7 @@
     "workflow-tests": {
       "argv": [
         "python3",
-        "scripts/run_workflow_checks.py",
-        "--full"
+        "scripts/run_workflow_checks.py"
       ],
       "cwd": ".",
       "timeout_seconds": 900
@@ -58,8 +57,7 @@
       "AGENTS.md",
       "README.md",
       "scripts",
-      "tests",
-      "requirements"
+      "tests"
     ]
   },
   "inputs": [

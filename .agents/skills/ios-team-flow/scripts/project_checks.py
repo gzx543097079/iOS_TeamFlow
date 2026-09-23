@@ -119,7 +119,17 @@ def content_for_snapshot(name, content):
     return ('\n'.join(lines) + '\n').encode('utf-8')
 
 
-def source_snapshot(root, config, profile=None, staged=False):
+def effective_config(config, profile):
+    """仅绑定所选检查的执行语义，其他 profile 和 JSON 排版不影响证据。"""
+    selected = config['profiles'][profile]
+    return {'inputs': config.get('profile_inputs', {}).get(profile, config.get('inputs')),
+            'checks': [{'name': name, 'argv': config['checks'][name]['argv'],
+                        'cwd': config['checks'][name].get('cwd', '.'),
+                        'timeout_seconds': config['checks'][name].get('timeout_seconds', 900)}
+                       for name in selected]}
+
+
+def source_snapshot(root, config, profile=None, staged=False, requirement=None):
     overrides = config.get('profile_inputs', {})
     if not isinstance(overrides, dict) or any(k not in config['profiles'] for k in overrides):
         raise ValueError('profile_inputs 必须引用已配置的 profile')
@@ -138,13 +148,23 @@ def source_snapshot(root, config, profile=None, staged=False):
     paths = input_paths(root, inputs)
     if staged:
         paths.update(input_paths(root, inputs, index))
-    paths.add(CONFIG)  # profile、命令或输入范围变化也必须令旧证据失效。
+    paths.add(CONFIG)
+    if requirement is not None:
+        if not re.fullmatch(r'REQ-\d{4}', requirement):
+            raise ValueError('需求编号格式应为 REQ-0001')
+        card = 'requirements/' + requirement + '.md'
+        if not local_path(root, card).is_file():
+            raise ValueError('需求不存在：' + requirement)
+        paths.add(card)
     files = {}
     for name in sorted(paths):
         if excluded_input(name):
             continue
-        # 默认业务验证忽略需求管理记录；文档验证可通过 inputs 显式纳入。
-        if inputs is None and name.startswith('requirements/') and Path(name).suffix == '.md':
+        # 绑定需求时仅排除其他卡片；显式选择的稳定工程现状仍是验证输入。
+        if (requirement is not None and name.startswith('requirements/REQ-')
+                and name.endswith('.md') and name != card):
+            continue
+        if inputs is None and requirement is None and name.startswith('requirements/') and Path(name).suffix == '.md':
             continue
         path = local_path(root, name)
         if staged:
@@ -157,17 +177,24 @@ def source_snapshot(root, config, profile=None, staged=False):
                     raise ValueError('暂存输入不是普通文件：' + name)
                 content = subprocess.check_output(['git', '-C', str(root), 'cat-file', 'blob', oid.decode()],
                                                   stderr=subprocess.PIPE)
+                if name == CONFIG:
+                    try:
+                        content = json.dumps(effective_config(json.loads(content), profile), sort_keys=True).encode()
+                    except (ValueError, KeyError, TypeError) as error:
+                        raise ValueError('暂存配置缺少有效的所选 profile') from error
                 files[name] = {'sha256': hashlib.sha256(content_for_snapshot(name, content)).hexdigest(), 'executable': mode == b'100755'}
             continue
         if not path.exists():
             continue
         elif path.is_file():
-            files[name] = {'sha256': hashlib.sha256(content_for_snapshot(name, path.read_bytes())).hexdigest(),
+            content = (json.dumps(effective_config(config, profile), sort_keys=True).encode()
+                       if name == CONFIG else path.read_bytes())
+            files[name] = {'sha256': hashlib.sha256(content_for_snapshot(name, content)).hexdigest(),
                            'executable': bool(path.stat().st_mode & 0o111)}
         else:
             raise ValueError('输入不是普通文件（目录输入需展开，子模块需显式指定文件）：' + name)
     encoded = json.dumps(files, sort_keys=True, ensure_ascii=True).encode()
-    return {'algorithm': 'sha256-files-v3', 'fingerprint': hashlib.sha256(encoded).hexdigest(), 'files': files}
+    return {'algorithm': 'sha256-files-v4', 'fingerprint': hashlib.sha256(encoded).hexdigest(), 'files': files}
 
 
 def verify(root, result, staged=False):
@@ -181,28 +208,29 @@ def verify(root, result, staged=False):
     config = load_config(root)
     if report.get('profile') not in config['profiles']:
         raise ValueError('验证报告缺少有效 profile')
-    current = source_snapshot(root, config, report['profile'])
+    current = source_snapshot(root, config, report['profile'], requirement=report.get('requirement'))
     if report.get('source_before') != current or report.get('source_after') != current:
         raise ValueError('测试后源码或配置已变化，旧结果不能用于当前代码')
-    if staged and source_snapshot(root, config, report['profile'], staged=True) != current:
+    if staged and source_snapshot(root, config, report['profile'], staged=True,
+                                  requirement=report.get('requirement')) != current:
         raise ValueError('暂存内容与已测试工作区不一致；请暂存正确版本或测试暂存快照')
     print('验证结果与当前源码/配置' + ('及暂存区' if staged else '') + '一致：' + str(result))
     return report
 
 
-def run(root, profile):
+def run(root, profile, requirement=None):
     root = root.resolve()
     config = load_config(root)
     if profile not in config['profiles']:
         raise ValueError('未配置所选 profile：' + profile)
-    source_before = source_snapshot(root, config, profile)
+    source_before = source_snapshot(root, config, profile, requirement=requirement)
     directory = local_path(root, 'logs/project-checks')
     directory.mkdir(parents=True, exist_ok=True)
     run_dir = directory / (datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ-') + uuid.uuid4().hex[:8])
     run_dir.mkdir()
     head = subprocess.run(['git', '-C', str(root), 'rev-parse', 'HEAD'],
                           capture_output=True, text=True)
-    report = {'schema_version': 1, 'profile': profile,
+    report = {'schema_version': 1, 'profile': profile, 'requirement': requirement,
               'started_at': datetime.now(timezone.utc).isoformat(),
               'head': head.stdout.strip() if head.returncode == 0 else None,
               'scope': 'working-tree', 'source_before': source_before, 'results': [], 'status': '未验证'}
@@ -233,9 +261,9 @@ def run(root, profile):
         (run_dir / 'result.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
     report['status'] = '通过' if all(r['status'] == '通过' for r in report['results']) else '失败'
     try:
-        report['source_after'] = source_snapshot(root, load_config(root), profile)
+        report['source_after'] = source_snapshot(root, load_config(root), profile, requirement=requirement)
         report['source_unchanged'] = report['source_after'] == source_before
-    except (OSError, ValueError) as error:
+    except (OSError, ValueError, KeyError, TypeError) as error:
         report['source_unchanged'] = False
         report['source_error'] = str(error)
     if not report['source_unchanged']:
@@ -258,6 +286,7 @@ def main():
     verifier.add_argument('--staged', action='store_true', help='同时核对暂存对象；提交前必须使用')
     runner = sub.add_parser('run')
     runner.add_argument('--profile', required=True)
+    runner.add_argument('--requirement')
     args = parser.parse_args()
     try:
         root = args.project.resolve()
@@ -273,7 +302,7 @@ def main():
         elif args.command == 'list':
             print(json.dumps(load_config(root), ensure_ascii=False, indent=2))
         else:
-            _, passed = run(root, args.profile)
+            _, passed = run(root, args.profile, args.requirement)
             return 0 if passed else 1
     except (ValueError, OSError, TypeError, subprocess.CalledProcessError) as error:
         parser.exit(2, str(error) + '\n')

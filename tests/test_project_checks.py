@@ -31,6 +31,114 @@ class ProjectChecksTests(unittest.TestCase):
         self.assertEqual('a b;$(echo test)\n', (path.parent / 'build.log').read_text())
         self.assertEqual(0, json.loads(path.read_text())['results'][0]['exit_code'])
 
+    def test_only_selected_effective_configuration_invalidates_result(self):
+        self.config({'ok': {'argv': [sys.executable, '-c', 'pass']}})
+        config_path = self.root / checks.CONFIG
+        original = json.loads(config_path.read_text())
+        original['checks']['other'] = {'argv': [sys.executable, '-c', 'print(1)']}
+        original['profiles']['other'] = ['other']
+        config_path.write_text(json.dumps(original))
+        result, passed = checks.run(self.root, 'change')
+        self.assertTrue(passed)
+        relative = str(result.relative_to(self.root))
+        unrelated = json.loads(json.dumps(original))
+        unrelated['checks']['other']['argv'][-1] = 'print(2)'
+        unrelated['profile_inputs'] = {'other': ['unrelated']}
+        unrelated['checks']['ok'].update(cwd='.', timeout_seconds=900)
+        config_path.write_text(json.dumps(unrelated, indent=4))
+        checks.verify(self.root, relative)
+        variants = []
+        for field, value in [('argv', [sys.executable, '-c', 'print(3)']),
+                             ('timeout_seconds', 901), ('cwd', '.agents')]:
+            changed = json.loads(json.dumps(original))
+            changed['checks']['ok'][field] = value
+            variants.append(changed)
+        variants.append({**original, 'inputs': ['.agents']})
+        variants.append({**original, 'profiles': {**original['profiles'], 'change': ['other']}})
+        for changed in variants:
+            config_path.write_text(json.dumps(changed))
+            with self.assertRaises(ValueError):
+                checks.verify(self.root, relative)
+
+    def test_requirement_binding_ignores_other_cards_but_tracks_scope_and_ac(self):
+        self.config({'ok': {'argv': [sys.executable, '-c', 'pass']}})
+        directory = self.root / 'requirements'
+        directory.mkdir()
+        card = directory / 'REQ-0001.md'
+        initial = ('# REQ-0001\n<!-- teamflow:requirement:vnext -->\n'
+                   '- 状态：🔵 进行中\n- 范围：修复提示\n'
+                   '- ⚪ AC-01：显示结果\n\n## 验证\n- 验证证据：—\n')
+        card.write_text(initial)
+        result, passed = checks.run(self.root, 'change', 'REQ-0001')
+        self.assertTrue(passed)
+        relative = str(result.relative_to(self.root))
+        (directory / 'REQ-0002.md').write_text('其他需求')
+        card.write_text(initial.replace('🔵 进行中', '🟣 待用户验证')
+                       .replace('⚪ AC-01', '✅ AC-01').replace('证据：—', '证据：验证通过'))
+        checks.verify(self.root, relative)
+        for old, new in [('修复提示', '增加提示'), ('显示结果', '显示新结果')]:
+            card.write_text(initial.replace(old, new))
+            with self.assertRaises(ValueError):
+                checks.verify(self.root, relative)
+        card.unlink()
+        with self.assertRaises(ValueError):
+            checks.verify(self.root, relative)
+
+    def test_bound_requirement_preserves_explicit_project_context_input(self):
+        import subprocess
+        subprocess.run(['git', '-C', str(self.root), 'init', '-q'], check=True)
+        self.config({'ok': {'argv': [sys.executable, '-c', 'pass']}})
+        config_path = self.root / checks.CONFIG
+        config = json.loads(config_path.read_text())
+        config['inputs'] = ['source', 'requirements']
+        config_path.write_text(json.dumps(config))
+        directory = self.root / 'requirements'
+        directory.mkdir()
+        (directory / 'REQ-0001.md').write_text('<!-- teamflow:requirement:vnext -->\n- 范围：范围\n')
+        context = directory / 'PROJECT-CONTEXT.md'
+        context.write_text('工程配置入口')
+        result, _ = checks.run(self.root, 'change', 'REQ-0001')
+        relative = str(result.relative_to(self.root))
+        (directory / 'REQ-0002.md').write_text('无关需求')
+        checks.verify(self.root, relative)
+        context.write_text('新的工程入口')
+        with self.assertRaises(ValueError):
+            checks.verify(self.root, relative)
+
+    def test_staged_effective_config_and_bound_requirement(self):
+        import subprocess
+        def git(*args):
+            subprocess.run(['git', '-C', str(self.root), *args], check=True, capture_output=True)
+        git('init', '-q')
+        self.config({'ok': {'argv': [sys.executable, '-c', 'pass']}})
+        (self.root / 'requirements').mkdir()
+        card = self.root / 'requirements/REQ-0001.md'
+        card.write_text('<!-- teamflow:requirement:vnext -->\n- 范围：范围\n- ⚪ AC-01：结果\n')
+        git('add', '.')
+        result, _ = checks.run(self.root, 'change', 'REQ-0001')
+        relative = str(result.relative_to(self.root))
+        config_path = self.root / checks.CONFIG
+        config = json.loads(config_path.read_text())
+        config['profiles']['other'] = ['ok']
+        config_path.write_text(json.dumps(config, indent=2))
+        card.write_text(card.read_text().replace('⚪ AC-01', '✅ AC-01'))
+        checks.verify(self.root, relative, staged=True)
+        card.write_text(card.read_text().replace('结果', '新结果'))
+        result, _ = checks.run(self.root, 'change', 'REQ-0001')
+        relative = str(result.relative_to(self.root))
+        with self.assertRaisesRegex(ValueError, '暂存内容'):
+            checks.verify(self.root, relative, staged=True)
+        git('add', 'requirements')
+        checks.verify(self.root, relative, staged=True)
+        config['checks']['ok']['timeout_seconds'] = 901
+        config_path.write_text(json.dumps(config))
+        result, _ = checks.run(self.root, 'change', 'REQ-0001')
+        relative = str(result.relative_to(self.root))
+        with self.assertRaisesRegex(ValueError, '暂存内容'):
+            checks.verify(self.root, relative, staged=True)
+        git('add', '.agents')
+        checks.verify(self.root, relative, staged=True)
+
     def test_failure_returns_false(self):
         self.config({'fail': {'argv': [sys.executable, '-c', 'raise SystemExit(7)']}})
         path, passed = checks.run(self.root, 'change')

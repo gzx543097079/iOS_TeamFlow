@@ -94,7 +94,7 @@ def parse_card(path):
         raise ValueError('需求文件名格式无效：' + path.name)
     state = parse_state(field(text, '状态'))
     scope = field(text, '范围')
-    excluded = field(text, '不包含')
+    excluded = field(text, '不包含') if re.search(r'^- 不包含：', text, re.M) else ''
     if scope in ('待填写', '—') or excluded in ('待填写', '—'):
         raise ValueError('范围和不包含必须填写实际内容')
     ac = []
@@ -170,6 +170,8 @@ def replace_field(text, name, value):
 def set_state(root, requirement, state, reason=None):
     if state not in STATES:
         raise ValueError('未知状态：' + state)
+    if state in ('完成', '待用户验证'):
+        raise ValueError('完成或待用户验证必须通过 req complete 绑定证据')
     if state in ('待确认', '阻塞', '暂停', '取消') and not (reason and reason.strip()):
         raise ValueError(state + ' 必须填写原因或恢复条件')
     path = requirement_path(root, requirement)
@@ -201,11 +203,13 @@ def complete(root, requirement, result=None, evidence=None, wait_user=False):
     path = requirement_path(root, requirement)
     card = parse_card(path)
     pending = [item['id'] for item in card['ac'] if not item['done']]
-    if pending:
+    if pending and not wait_user:
         raise ValueError('仍有未完成 AC：' + ', '.join(pending))
     if result:
         with contextlib.redirect_stdout(io.StringIO()):
             report = checks_module().verify(root, result)
+        if report.get('requirement') != requirement:
+            raise ValueError('验证结果未绑定当前需求；请使用 verify run --requirement ' + requirement)
         proof = result + '（' + report['profile'] + '，通过）'
     else:
         proof = evidence.strip()
@@ -213,7 +217,7 @@ def complete(root, requirement, result=None, evidence=None, wait_user=False):
             raise ValueError('验证证据不能为空')
     target_state = '待用户验证' if wait_user else '完成'
     text = replace_field(card['text'], '状态', state_display(target_state))
-    text = replace_field(text, '验证状态', '🟣 待用户验证' if wait_user else '✅ 通过')
+    text = re.sub(r'^- 验证状态：.*\n?', '', text, flags=re.M)
     text = replace_field(text, '验证证据', proof)
     path.write_text(text)
     print(json.dumps({'requirement': requirement, 'state': state_display(target_state),
@@ -239,7 +243,9 @@ def git_check(root, requirement, result=None, evidence=None):
         raise ValueError('提交检查必须且只能提供 --result 或 --evidence')
     if result:
         with contextlib.redirect_stdout(io.StringIO()):
-            checks_module().verify(root, result, staged=True)
+            report = checks_module().verify(root, result, staged=True)
+        if report.get('requirement') != requirement:
+            raise ValueError('验证结果未绑定当前需求：' + requirement)
         proof = result
     else:
         proof = evidence.strip()
@@ -250,16 +256,6 @@ def git_check(root, requirement, result=None, evidence=None):
     print(json.dumps({'requirement': requirement, 'staged_files': names, 'validation': proof,
                       'semantic_review_required': True, 'release_sensitive_files': risky,
                       'commit_trailer': 'Requirement: ' + requirement}, ensure_ascii=False, indent=2))
-
-
-def release_prepare(operation, version, build, testflight_internal_only=False):
-    export_options = release_export_options(operation, testflight_internal_only)
-    print(json.dumps({'mode': 'read-only', 'operation': operation,
-                      'display_name': OPERATION_NAMES[operation], 'version': version, 'build': build,
-                      'external_write': False, 'export_options_overrides': export_options,
-                      'message': ('只准备并核对该动作；不得执行其他发布动作。'
-                                  '未明确要求时不启用 TestFlight Internal Only。')},
-                     ensure_ascii=False, indent=2))
 
 
 def release_export_options(operation, testflight_internal_only=False):
@@ -335,6 +331,7 @@ def main():
     verify_sub.add_parser('list')
     run = verify_sub.add_parser('run')
     run.add_argument('--profile', required=True)
+    run.add_argument('--requirement', help='绑定本次需求的范围和 AC，忽略其他需求')
 
     git_area = top.add_parser('git')
     git_sub = git_area.add_subparsers(dest='command', required=True)
@@ -345,11 +342,6 @@ def main():
 
     release = top.add_parser('release')
     release_sub = release.add_subparsers(dest='command', required=True)
-    prepare = release_sub.add_parser('prepare')
-    prepare.add_argument('operation', choices=OPERATIONS)
-    prepare.add_argument('--version', required=True)
-    prepare.add_argument('--build', required=True)
-    prepare.add_argument('--testflight-internal-only', action='store_true')
     record = release_sub.add_parser('record')
     record.add_argument('operation', choices=OPERATIONS)
     record.add_argument('--version', required=True)
@@ -387,12 +379,10 @@ def main():
             elif args.command == 'list':
                 print(json.dumps(checks.load_config(root), ensure_ascii=False, indent=2))
             else:
-                _, passed = checks.run(root, args.profile)
+                _, passed = checks.run(root, args.profile, args.requirement)
                 return 0 if passed else 1
         elif args.area == 'git':
             git_check(root, args.requirement, args.result, args.evidence)
-        elif args.command == 'prepare':
-            release_prepare(args.operation, args.version, args.build, args.testflight_internal_only)
         else:
             release_record(root, args.operation, args.version, args.build, args.evidence,
                            args.testflight_internal_only)

@@ -45,10 +45,7 @@ class ConsumerReleaseTests(unittest.TestCase):
         self.assertIn('REQ-0001', listing)
         self.assertIn('🔵 进行中', listing)
         self.assertIn('⚪ 0/1', listing)
-        prepared = json.loads(self.cli('release', 'prepare', 'submit-app-review',
-                                       '--version', '1.0.0', '--build', '1').stdout)
-        self.assertFalse(prepared['external_write'])
-        self.assertEqual({}, prepared['export_options_overrides'])
+        self.assertNotEqual(0, self.cli('release', 'prepare', ok=False).returncode)
         self.assertFalse((self.root / 'releases').exists())
         self.cli('release', 'record', 'archive', '--version', '1.0.0', '--build', '1',
                  '--evidence', 'archive 校验通过')
@@ -57,16 +54,15 @@ class ConsumerReleaseTests(unittest.TestCase):
         self.assertNotIn('提交 App Store 审核', record.read_text())
 
     def test_packaged_testflight_internal_only_is_opt_in(self):
-        ordinary = json.loads(self.cli('release', 'prepare', 'upload-testflight',
-                                       '--version', '1.0.0', '--build', '2').stdout)
-        self.assertEqual({}, ordinary['export_options_overrides'])
-        internal = json.loads(self.cli('release', 'prepare', 'upload-testflight',
+        self.cli('release', 'record', 'upload-testflight',
+                 '--version', '1.0.0', '--build', '1', '--evidence', '平台处理完成')
+        self.assertNotIn('Internal Only', (self.root / 'releases/App-1.0.0-1.md').read_text())
+        self.cli('release', 'record', 'upload-testflight',
                                        '--version', '1.0.0', '--build', '2',
-                                       '--testflight-internal-only').stdout)
-        self.assertEqual({'testFlightInternalTestingOnly': True},
-                         internal['export_options_overrides'])
-        rejected = self.cli('release', 'prepare', 'archive', '--version', '1.0.0',
-                            '--build', '2', '--testflight-internal-only', ok=False)
+                 '--evidence', '平台处理完成', '--testflight-internal-only')
+        self.assertIn('Internal Only', (self.root / 'releases/App-1.0.0-2.md').read_text())
+        rejected = self.cli('release', 'record', 'archive', '--version', '1.0.0',
+                            '--build', '2', '--evidence', '证据', '--testflight-internal-only', ok=False)
         self.assertNotEqual(0, rejected.returncode)
         self.assertIn('仅适用于上传 TestFlight', rejected.stderr)
 
@@ -74,6 +70,27 @@ class ConsumerReleaseTests(unittest.TestCase):
         legacy = ('delivery.py', 'review_gate.py', 'upgrade_skill.py', 'install_git_checks.py')
         for name in legacy:
             self.assertFalse((self.root / '.agents/skills/ios-team-flow/scripts' / name).exists())
+
+    def test_packaged_validation_and_manual_confirmation(self):
+        req = json.loads(self.cli('req', 'create', '--title', '人工确认').stdout)['requirement']
+        card = self.root / 'requirements' / (req + '.md')
+        card.write_text(card.read_text().replace('待填写本次要达到的结果', '显示提示'))
+        (self.root / 'source.txt').write_text('source')
+        config = {'schema_version': 1, 'inputs': ['source.txt'],
+                  'checks': {'unit': {'argv': [sys.executable, '-c', 'pass']}},
+                  'profiles': {'change': ['unit']}}
+        (self.root / '.agents/project-checks.json').write_text(json.dumps(config))
+        self.cli('verify', 'run', '--profile', 'change', '--requirement', req)
+        result = next((self.root / 'logs/project-checks').glob('*/result.json'))
+        relative = str(result.relative_to(self.root))
+        self.cli('req', 'complete', req, '--result', relative, '--wait-user')
+        status = json.loads(self.cli('req', 'status', req).stdout)
+        self.assertEqual('待用户验证', status['state_key'])
+        self.assertEqual(0, status['progress']['done'])
+        self.assertNotEqual(0, self.cli('req', 'state', req, '--state', '完成', ok=False).returncode)
+        card.write_text(card.read_text().replace('- ⚪ AC-01', '- ✅ AC-01'))
+        self.cli('req', 'complete', req, '--result', relative)
+        self.assertEqual('完成', json.loads(self.cli('req', 'status', req).stdout)['state_key'])
 
 
 if __name__ == '__main__':

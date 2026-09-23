@@ -23,17 +23,7 @@
 
 ## 准备与记录
 
-准备命令只输出边界，不写外部系统：
-
-```sh
-python3 scripts/teamflow.py release prepare upload-testflight --version 1.2.0 --build 123
-```
-
-只有明确要求仅内部测试时才添加：
-
-```sh
-python3 scripts/teamflow.py release prepare upload-testflight --version 1.2.0 --build 123 --testflight-internal-only
-```
+准备时直接读取实际工程、签名配置与平台状态，列出已核对事实和缺项，无需运行边界回显命令。TestFlight Internal Only 参数按上表处理。
 
 实际动作使用项目既有 Xcode、CI 或发布工具。先核对目标 App、Bundle ID、版本、build、commit、环境、签名和账号；不得猜测目标。完成或失败后再记录真实证据：
 
@@ -41,6 +31,6 @@ python3 scripts/teamflow.py release prepare upload-testflight --version 1.2.0 --
 python3 scripts/teamflow.py release record upload-testflight --version 1.2.0 --build 123 --evidence "App Store Connect 已处理完成，构建可选"
 ```
 
-记录生成到 `releases/App-1.2.0-123.md`，只追加实际执行动作，不预生成完整发布流水线。
+记录生成到 `releases/App-1.2.0-123.md`，按 build 汇集跨需求的实际发布事件。只保存关键结果和可定位的平台或 CI 链接；已有记录足够时直接引用，不抄写长输出，也不预生成流水线。
 
 重新构建会产生新的 build；旧 build 的安装、测试或审核结论不能自动沿用。审核通过不等于发布，上传成功不等于平台处理完成，GitHub Release 不等于 App Store 上线。

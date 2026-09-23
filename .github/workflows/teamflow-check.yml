@@ -17,14 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: 按改动检查规范与工具行为
-        env:
-          BASE_SHA: ${{ github.event.before }}
-        run: python3 scripts/run_workflow_checks.py --base "$BASE_SHA"
+      - name: 检查规范与工具行为
+        run: python3 scripts/run_workflow_checks.py
       - name: 验证可分发压缩包
         run: python3 scripts/package_release.py

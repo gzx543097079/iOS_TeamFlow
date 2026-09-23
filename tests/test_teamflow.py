@@ -80,14 +80,14 @@ class TeamFlowTests(unittest.TestCase):
 
     def test_complete_with_project_result_and_no_delivery_record(self):
         req = self.create(); card = self.fill(req)
-        result, passed = flow.checks_module().run(self.root, 'change')
+        result, passed = flow.checks_module().run(self.root, 'change', req)
         self.assertTrue(passed)
         relative = str(result.relative_to(self.root))
         with contextlib.redirect_stdout(io.StringIO()):
             flow.complete(self.root, req, result=relative)
         self.assertEqual('完成', flow.parse_card(card)['state'])
         self.assertIn('- 状态：✅ 完成', card.read_text())
-        self.assertIn('- 验证状态：✅ 通过', card.read_text())
+        self.assertNotIn('- 验证状态：', card.read_text())
         self.assertIn(relative, card.read_text())
         self.assertFalse((self.root / 'requirements/delivery').exists())
         self.assertFalse((self.root / 'logs/reviews').exists())
@@ -100,7 +100,7 @@ class TeamFlowTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, '未完成 AC'):
             flow.complete(self.root, req, evidence='人工核对')
         self.fill(req)
-        result, _ = flow.checks_module().run(self.root, 'change')
+        result, _ = flow.checks_module().run(self.root, 'change', req)
         (self.root / 'source.txt').write_text('changed')
         with self.assertRaisesRegex(ValueError, '源码或配置已变化'):
             flow.complete(self.root, req, result=str(result.relative_to(self.root)))
@@ -135,19 +135,40 @@ class TeamFlowTests(unittest.TestCase):
 
     def test_wait_user_completion_uses_colored_state(self):
         req = self.create(); card = self.fill(req)
+        card.write_text(card.read_text().replace('- ✅ AC-01', '- ⚪ AC-01'))
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
             flow.complete(self.root, req, evidence='人工验证入口已准备', wait_user=True)
         self.assertEqual('🟣 待用户验证', json.loads(output.getvalue())['state'])
         self.assertIn('- 状态：🟣 待用户验证', card.read_text())
-        self.assertIn('- 验证状态：🟣 待用户验证', card.read_text())
+        self.assertNotIn('- 验证状态：', card.read_text())
+        self.assertIn('- ⚪ AC-01', card.read_text())
+        with self.assertRaisesRegex(ValueError, '未完成 AC'):
+            flow.complete(self.root, req, evidence='尚未确认')
+        card.write_text(card.read_text().replace('- ⚪ AC-01', '- ✅ AC-01'))
+        flow.complete(self.root, req, evidence='用户已确认真机结果')
+        self.assertEqual('完成', flow.parse_card(card)['state'])
+
+    def test_terminal_states_cannot_bypass_evidence(self):
+        req = self.create()
+        for state in ('完成', '待用户验证'):
+            with self.assertRaisesRegex(ValueError, 'req complete'):
+                flow.set_state(self.root, req, state)
+
+    def test_result_must_bind_current_requirement(self):
+        req = self.create(); self.fill(req)
+        other = self.create(); self.fill(other)
+        for bound in (None, other):
+            result, _ = flow.checks_module().run(self.root, 'change', bound)
+            with self.assertRaisesRegex(ValueError, '未绑定当前需求'):
+                flow.complete(self.root, req, result=str(result.relative_to(self.root)))
 
     def test_git_check_is_explicit_and_uses_staged_object(self):
         req = self.create(); self.fill(req)
-        result, _ = flow.checks_module().run(self.root, 'change')
+        result, _ = flow.checks_module().run(self.root, 'change', req)
         with contextlib.redirect_stdout(io.StringIO()):
             flow.complete(self.root, req, result=str(result.relative_to(self.root)))
-        self.git('add', 'source.txt', '.agents/project-checks.json')
+        self.git('add', 'source.txt', '.agents/project-checks.json', 'requirements')
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
             flow.git_check(self.root, req, result=str(result.relative_to(self.root)))
@@ -157,14 +178,7 @@ class TeamFlowTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, '源码或配置已变化'):
             flow.git_check(self.root, req, result=str(result.relative_to(self.root)))
 
-    def test_release_prepare_is_read_only_and_record_is_one_action(self):
-        output = io.StringIO()
-        with contextlib.redirect_stdout(output):
-            flow.release_prepare('upload-testflight', '1.2.0', '123')
-        self.assertFalse((self.root / 'releases').exists())
-        prepared = json.loads(output.getvalue())
-        self.assertFalse(prepared['external_write'])
-        self.assertEqual({}, prepared['export_options_overrides'])
+    def test_release_record_is_one_action(self):
         with contextlib.redirect_stdout(io.StringIO()):
             flow.release_record(self.root, 'upload-testflight', '1.2.0', '123', '处理完成')
         record = self.root / 'releases/App-1.2.0-123.md'
@@ -173,14 +187,11 @@ class TeamFlowTests(unittest.TestCase):
         self.assertNotIn('提交 App Store 审核', record.read_text())
 
     def test_testflight_internal_only_requires_explicit_option(self):
-        output = io.StringIO()
-        with contextlib.redirect_stdout(output):
-            flow.release_prepare('upload-testflight', '1.2.0', '124', True)
-        prepared = json.loads(output.getvalue())
+        self.assertEqual({}, flow.release_export_options('upload-testflight'))
         self.assertEqual({'testFlightInternalTestingOnly': True},
-                         prepared['export_options_overrides'])
+                         flow.release_export_options('upload-testflight', True))
         with self.assertRaisesRegex(ValueError, '仅适用于上传 TestFlight'):
-            flow.release_prepare('archive', '1.2.0', '124', True)
+            flow.release_export_options('archive', True)
         with contextlib.redirect_stdout(io.StringIO()):
             flow.release_record(self.root, 'upload-testflight', '1.2.0', '124',
                                 '处理完成', True)

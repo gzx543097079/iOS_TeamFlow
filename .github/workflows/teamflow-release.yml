@@ -41,7 +41,7 @@ jobs:
           PY
       - name: 验证并打包
         run: |
-          python3 scripts/run_workflow_checks.py --full
+          python3 scripts/run_workflow_checks.py
           python3 scripts/package_release.py
       - uses: actions/upload-artifact@v4
         with:
