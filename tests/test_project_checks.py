@@ -33,6 +33,36 @@ class ProjectChecksTests(unittest.TestCase):
         self.assertEqual('a b;$(echo test)\n', (path.parent / 'build.log').read_text())
         self.assertEqual(0, json.loads(path.read_text())['results'][0]['exit_code'])
 
+    def test_compact_report_rejects_missing_or_mismatched_end_fingerprint(self):
+        self.config({'ok': {'argv': [sys.executable, '-c', 'pass']}})
+        path, passed = checks.run(self.root, 'change')
+        self.assertTrue(passed)
+        original = json.loads(path.read_text())
+        self.assertEqual(original['source']['fingerprint'], original['end_fingerprint'])
+        self.assertNotIn('source_changes', original)
+        self.assertNotIn('source_before', original)
+        self.assertNotIn('source_after', original)
+        for end in (None, 'incorrect'):
+            path.write_text(json.dumps({**original, 'end_fingerprint': end}))
+            with self.assertRaises(ValueError):
+                checks.verify(self.root, str(path.relative_to(self.root)))
+
+    def test_changed_report_records_added_removed_and_modified_files(self):
+        import subprocess
+        subprocess.run(['git', '-C', str(self.root), 'init', '-q'], check=True)
+        source = self.root / 'source'; source.unlink(); source.mkdir()
+        (source / 'removed').write_text('old')
+        (source / 'modified').write_text('old')
+        self.config({'mutate': {'argv': [sys.executable, '-c',
+            "from pathlib import Path; Path('source/removed').unlink(); "
+            "Path('source/modified').write_text('new'); Path('source/added').write_text('new')"]}})
+        path, passed = checks.run(self.root, 'change')
+        self.assertFalse(passed)
+        changes = json.loads(path.read_text())['source_changes']
+        self.assertEqual(['source/removed'], changes['removed'])
+        self.assertEqual(['source/added'], list(changes['added']))
+        self.assertEqual(['source/modified'], list(changes['modified']))
+
     def test_only_selected_effective_configuration_invalidates_result(self):
         self.config({'ok': {'argv': [sys.executable, '-c', 'pass']}})
         config_path = self.root / checks.CONFIG
@@ -208,7 +238,11 @@ class ProjectChecksTests(unittest.TestCase):
         path, passed = checks.run(self.root, 'change')
         self.assertFalse(passed)
         self.assertEqual(0, json.loads(path.read_text())['results'][0]['exit_code'])
-        self.assertFalse(json.loads(path.read_text())['source_unchanged'])
+        report = json.loads(path.read_text())
+        self.assertNotEqual(report['source']['fingerprint'], report['end_fingerprint'])
+        self.assertEqual(['source'], list(report['source_changes']['modified']))
+        with self.assertRaises(ValueError):
+            checks.verify(self.root, str(path.relative_to(self.root)))
 
     def test_requirement_snapshot_ignores_colored_status_and_ac_progress(self):
         pending = '''# REQ-0001

@@ -209,13 +209,14 @@ def verify(root, result, staged=False):
     report = json.loads(result.read_text())
     if not isinstance(report, dict):
         raise ValueError('验证报告必须为 JSON 对象')
-    if report.get('status') != '通过' or not report.get('source_unchanged') or not report.get('completed_at'):
+    if (report.get('schema_version') != 2 or report.get('status') != '通过'
+            or not report.get('completed_at') or not report.get('end_fingerprint')):
         raise ValueError('测试未通过或没有源码绑定证据；请重新执行')
     config = load_config(root)
     if report.get('profile') not in config['profiles']:
         raise ValueError('验证报告缺少有效 profile')
     current = source_snapshot(root, config, report['profile'], requirement=report.get('requirement'))
-    if report.get('source_before') != current or report.get('source_after') != current:
+    if report.get('source') != current or report['end_fingerprint'] != current['fingerprint']:
         raise ValueError('测试后源码或配置已变化，旧结果不能用于当前代码')
     if staged and source_snapshot(root, config, report['profile'], staged=True,
                                   requirement=report.get('requirement')) != current:
@@ -236,10 +237,10 @@ def run(root, profile, requirement=None):
     run_dir.mkdir()
     head = subprocess.run(['git', '-C', str(root), 'rev-parse', 'HEAD'],
                           capture_output=True, text=True)
-    report = {'schema_version': 1, 'profile': profile, 'requirement': requirement,
+    report = {'schema_version': 2, 'profile': profile, 'requirement': requirement,
               'started_at': datetime.now(timezone.utc).isoformat(),
               'head': head.stdout.strip() if head.returncode == 0 else None,
-              'scope': 'working-tree', 'source_before': source_before, 'results': [], 'status': '未验证'}
+              'scope': 'working-tree', 'source': source_before, 'results': [], 'status': '未验证'}
     # 配置和命令属于团队明确选定的可执行代码；不使用 shell，不代入需求中的任意文本。
     for name, check in config['profiles'][profile]['checks'].items():
         start = time.monotonic()
@@ -265,13 +266,22 @@ def run(root, profile, requirement=None):
         # 每个所选检查都是本次必跑项；失败后仍收集其余检查结果。
         (run_dir / 'result.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
     report['status'] = '通过' if all(r['status'] == '通过' for r in report['results']) else '失败'
+    unchanged = False
     try:
-        report['source_after'] = source_snapshot(root, load_config(root), profile, requirement=requirement)
-        report['source_unchanged'] = report['source_after'] == source_before
+        source_after = source_snapshot(root, load_config(root), profile, requirement=requirement)
+        report['end_fingerprint'] = source_after['fingerprint']
+        unchanged = source_after == source_before
+        if not unchanged:
+            before, after = source_before['files'], source_after['files']
+            report['source_changes'] = {
+                'added': {n: after[n] for n in sorted(after.keys() - before.keys())},
+                'removed': sorted(before.keys() - after.keys()),
+                'modified': {n: after[n] for n in sorted(before.keys() & after.keys())
+                             if before[n] != after[n]},
+            }
     except (OSError, ValueError, KeyError, TypeError) as error:
-        report['source_unchanged'] = False
         report['source_error'] = str(error)
-    if not report['source_unchanged']:
+    if not unchanged:
         report['status'] = '输入已变化，需重测'
     report['completed_at'] = datetime.now(timezone.utc).isoformat()
     target = run_dir / 'result.json'
