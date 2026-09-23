@@ -221,8 +221,9 @@ def complete(root, requirement, result=None, evidence=None, wait_user=False, pro
         target, passed = checks_module().run(root, profile, requirement)
         if not passed:
             raise ValueError('验证未通过，需求状态保持不变')
-        result = str(target.relative_to(root.resolve()))
-    proof = validation_proof(root, card, result, evidence)
+        proof = {'kind': 'result', 'path': str(target.relative_to(root.resolve()))}
+    else:
+        proof = validation_proof(root, card, result, evidence)
     card = parse_card(path)
     pending = [item['id'] for item in card['ac'] if not item['done']]
     target_state = '待用户验证' if wait_user else ('进行中' if pending else '完成')

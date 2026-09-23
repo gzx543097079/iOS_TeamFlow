@@ -6,6 +6,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -212,6 +213,15 @@ class TeamFlowTests(unittest.TestCase):
         flow.complete(self.root, req)
         self.assertEqual('完成', flow.parse_card(card)['state'])
         self.assertEqual(1, len(list((self.root / 'logs/project-checks').glob('*/result.json'))))
+
+    def test_inline_validation_uses_only_before_and_after_snapshots(self):
+        req = self.create(); self.fill(req)
+        checks = flow.checks_module()
+        with patch.object(checks, 'source_snapshot', wraps=checks.source_snapshot) as snapshot:
+            flow.complete(self.root, req, profile='change')
+            self.assertEqual(2, snapshot.call_count)
+            flow.complete(self.root, req)
+            self.assertEqual(3, snapshot.call_count)
 
     def test_failed_profile_does_not_complete_or_replace_evidence(self):
         req = self.create(); card = self.fill(req)

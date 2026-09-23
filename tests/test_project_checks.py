@@ -3,6 +3,7 @@ import json
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -361,6 +362,24 @@ class ProjectChecksTests(unittest.TestCase):
         self.assertEqual(deleted, checks.source_snapshot(self.root, config, 'change', staged=True))
         git('commit', '-qm', 'delete')
         self.assertEqual(deleted, checks.source_snapshot(self.root, config, 'change'))
+
+    def test_staged_batch_preserves_binary_contents_and_uses_one_process(self):
+        import subprocess
+        subprocess.run(['git', '-C', str(self.root), 'init', '-q'], check=True)
+        source = self.root / 'source'; source.unlink(); source.mkdir()
+        for name, data in [('含空格 file.bin', b'\x00\xff\n12 blob 3\nabc'), ('empty', b''),
+                           ('duplicate', b'\x00\xff\n12 blob 3\nabc')]:
+            (source / name).write_bytes(data)
+        self.config({'ok': {'argv': [sys.executable, '-c', 'pass']}})
+        subprocess.run(['git', '-C', str(self.root), 'add', '.'], check=True)
+        config = checks.load_config(self.root)
+        expected = checks.source_snapshot(self.root, config, 'change')
+        with patch.object(checks.subprocess, 'run', wraps=subprocess.run) as runner:
+            actual = checks.source_snapshot(self.root, config, 'change', staged=True)
+        self.assertEqual(expected, actual)
+        batches = [c for c in runner.call_args_list if 'cat-file' in c.args[0]]
+        self.assertEqual(1, len(batches))
+        self.assertIn('--batch', batches[0].args[0])
 
     def test_cli_original_output_failure_and_complete_logs(self):
         import subprocess

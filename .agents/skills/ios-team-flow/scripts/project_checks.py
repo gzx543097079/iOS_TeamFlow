@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """按项目配置执行构建/测试，保存真实退出结果；不猜测 Scheme 或工具链。"""
 import hashlib
+import io
 import json
 import os
 import re
@@ -115,6 +116,30 @@ def effective_config(config, profile):
                        for name, check in settings['checks'].items()]}
 
 
+def read_blobs(root, object_ids):
+    """一次 Git 调用读取所选对象；按字节长度解析，支持任意二进制内容。"""
+    object_ids = list(dict.fromkeys(object_ids))
+    if not object_ids:
+        return {}
+    output = subprocess.run(['git', '-C', str(root), 'cat-file', '--batch'],
+                            input=b'\n'.join(object_ids) + b'\n',
+                            check=True, capture_output=True).stdout
+    stream = io.BytesIO(output)
+    blobs = {}
+    for oid in object_ids:
+        header = stream.readline().split()
+        if len(header) != 3 or header[:2] != [oid, b'blob']:
+            raise ValueError('暂存对象不是有效 blob：' + oid.decode())
+        size = int(header[2])
+        content = stream.read(size)
+        if len(content) != size or stream.read(1) != b'\n':
+            raise ValueError('暂存对象内容不完整：' + oid.decode())
+        blobs[oid] = content
+    if stream.read():
+        raise ValueError('暂存对象响应包含额外数据')
+    return blobs
+
+
 def source_snapshot(root, config, profile, staged=False, requirement=None):
     inputs = config['profiles'][profile].get('inputs')
     index = {}
@@ -139,16 +164,15 @@ def source_snapshot(root, config, profile, staged=False, requirement=None):
         if not local_path(root, card).is_file():
             raise ValueError('需求不存在：' + requirement)
         paths.add(card)
+    paths = {name for name in paths if not excluded_input(name)
+             and not (requirement is not None and name.startswith('requirements/REQ-')
+                      and name.endswith('.md') and name != card)
+             and not (inputs is None and requirement is None
+                      and name.startswith('requirements/') and Path(name).suffix == '.md')}
+    blobs = read_blobs(root, [index[name][1] for name in sorted(paths & index.keys())
+                             if index[name][0] in (b'100644', b'100755')]) if staged else {}
     files = {}
     for name in sorted(paths):
-        if excluded_input(name):
-            continue
-        # 绑定需求时仅排除其他卡片；显式选择的稳定工程现状仍是验证输入。
-        if (requirement is not None and name.startswith('requirements/REQ-')
-                and name.endswith('.md') and name != card):
-            continue
-        if inputs is None and requirement is None and name.startswith('requirements/') and Path(name).suffix == '.md':
-            continue
         path = local_path(root, name)
         if staged:
             entry = index.get(name)
@@ -158,8 +182,7 @@ def source_snapshot(root, config, profile, staged=False, requirement=None):
                 mode, oid = entry
                 if mode not in (b'100644', b'100755'):
                     raise ValueError('暂存输入不是普通文件：' + name)
-                content = subprocess.check_output(['git', '-C', str(root), 'cat-file', 'blob', oid.decode()],
-                                                  stderr=subprocess.PIPE)
+                content = blobs[oid]
                 if name == CONFIG:
                     try:
                         content = json.dumps(effective_config(json.loads(content), profile), sort_keys=True).encode()
