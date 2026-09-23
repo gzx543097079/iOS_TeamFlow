@@ -33,9 +33,8 @@ class TeamFlowTests(unittest.TestCase):
                               capture_output=True, text=True).stdout.strip()
 
     def configure_checks(self):
-        config = {'schema_version': 1, 'inputs': ['source.txt'],
-                  'checks': {'ok': {'argv': [sys.executable, '-c', 'pass']}},
-                  'profiles': {'change': ['ok']}}
+        config = {'schema_version': 2, 'profiles': {'change': {'inputs': ['source.txt'],
+                  'checks': {'ok': {'argv': [sys.executable, '-c', 'pass']}}}}}
         (self.root / '.agents/project-checks.json').write_text(json.dumps(config))
 
     def create(self, title='需求', **kwargs):

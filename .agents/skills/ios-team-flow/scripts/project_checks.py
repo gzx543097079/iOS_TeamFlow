@@ -17,29 +17,27 @@ CONFIG = '.agents/project-checks.json'
 
 def load_config(root):
     config = json.loads(local_path(root, CONFIG).read_text())
-    if not isinstance(config, dict) or config.get('schema_version') != 1:
-        raise ValueError('配置 schema_version 必须为 1')
-    checks, profiles = config.get('checks'), config.get('profiles')
-    if not isinstance(checks, dict) or not isinstance(profiles, dict):
-        raise ValueError('checks 和 profiles 必须为对象')
-    for name, check in checks.items():
-        if not re.fullmatch(r'[a-zA-Z0-9_-]+', name) or not isinstance(check, dict):
-            raise ValueError('检查名称或配置无效')
-        argv = check.get('argv')
-        if (not isinstance(argv, list) or not argv
-                or any(not isinstance(arg, str) or not arg or '\0' in arg for arg in argv)):
-            raise ValueError(name + ' 的 argv 必须为非空字符串数组')
-        timeout = check.get('timeout_seconds', 900)
-        if type(timeout) is not int or not 1 <= timeout <= 86400:
-            raise ValueError(name + ' 的 timeout_seconds 必须为 1–86400')
-        cwd = local_path(root, check.get('cwd', '.'))
-        if not cwd.is_dir():
-            raise ValueError(name + ' 的工作目录不存在')
-    for name, selected in profiles.items():
-        if (not isinstance(selected, list) or not selected
-                or any(not isinstance(n, str) or n not in checks for n in selected)
-                or len(selected) != len(set(selected))):
-            raise ValueError('profile 必须包含不重复的有效检查：' + name)
+    if not isinstance(config, dict) or config.get('schema_version') != 2:
+        raise ValueError('配置 schema_version 必须为 2')
+    profiles = config.get('profiles')
+    if not isinstance(profiles, dict):
+        raise ValueError('profiles 必须为对象')
+    for profile, settings in profiles.items():
+        if not isinstance(settings, dict) or not isinstance(settings.get('checks'), dict) or not settings['checks']:
+            raise ValueError('profile 必须包含非空 checks 对象：' + profile)
+        for name, check in settings['checks'].items():
+            if not re.fullmatch(r'[a-zA-Z0-9_-]+', name) or not isinstance(check, dict):
+                raise ValueError('检查名称或配置无效')
+            argv = check.get('argv')
+            if (not isinstance(argv, list) or not argv
+                    or any(not isinstance(arg, str) or not arg or '\0' in arg for arg in argv)):
+                raise ValueError(name + ' 的 argv 必须为非空字符串数组')
+            timeout = check.get('timeout_seconds', 900)
+            if type(timeout) is not int or not 1 <= timeout <= 86400:
+                raise ValueError(name + ' 的 timeout_seconds 必须为 1–86400')
+            cwd = local_path(root, check.get('cwd', '.'))
+            if not cwd.is_dir():
+                raise ValueError(name + ' 的工作目录不存在')
     return config
 
 
@@ -109,19 +107,16 @@ def content_for_snapshot(name, content):
 
 def effective_config(config, profile):
     """仅绑定所选检查的执行语义，其他 profile 和 JSON 排版不影响证据。"""
-    selected = config['profiles'][profile]
-    return {'inputs': config.get('profile_inputs', {}).get(profile, config.get('inputs')),
-            'checks': [{'name': name, 'argv': config['checks'][name]['argv'],
-                        'cwd': config['checks'][name].get('cwd', '.'),
-                        'timeout_seconds': config['checks'][name].get('timeout_seconds', 900)}
-                       for name in selected]}
+    settings = config['profiles'][profile]
+    return {'inputs': settings.get('inputs'),
+            'checks': [{'name': name, 'argv': check['argv'],
+                        'cwd': check.get('cwd', '.'),
+                        'timeout_seconds': check.get('timeout_seconds', 900)}
+                       for name, check in settings['checks'].items()]}
 
 
-def source_snapshot(root, config, profile=None, staged=False, requirement=None):
-    overrides = config.get('profile_inputs', {})
-    if not isinstance(overrides, dict) or any(k not in config['profiles'] for k in overrides):
-        raise ValueError('profile_inputs 必须引用已配置的 profile')
-    inputs = overrides.get(profile, config.get('inputs'))
+def source_snapshot(root, config, profile, staged=False, requirement=None):
+    inputs = config['profiles'][profile].get('inputs')
     index = {}
     if staged:
         raw = subprocess.check_output(['git', '-C', str(root), 'ls-files', '--stage', '-z'],
@@ -223,8 +218,7 @@ def run(root, profile, requirement=None):
               'head': head.stdout.strip() if head.returncode == 0 else None,
               'scope': 'working-tree', 'source_before': source_before, 'results': [], 'status': '未验证'}
     # 配置和命令属于团队明确选定的可执行代码；不使用 shell，不代入需求中的任意文本。
-    for name in config['profiles'][profile]:
-        check = config['checks'][name]
+    for name, check in config['profiles'][profile]['checks'].items():
         start = time.monotonic()
         result = {'name': name, 'argv': check['argv'], 'cwd': check.get('cwd', '.'),
                   'log': name + '.log', 'status': '未验证', 'exit_code': None}

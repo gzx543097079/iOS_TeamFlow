@@ -371,7 +371,7 @@ def main():
                 path = checks.local_path(root, checks.CONFIG)
                 path.parent.mkdir(parents=True, exist_ok=True)
                 with path.open('x') as stream:
-                    json.dump({'schema_version': 1, 'checks': {}, 'profiles': {}}, stream, indent=2)
+                    json.dump({'schema_version': 2, 'profiles': {}}, stream, indent=2)
                     stream.write('\n')
                 print('已创建空验证配置：' + str(path))
             elif args.command == 'list':

@@ -12,7 +12,23 @@ python3 scripts/teamflow.py verify init
 python3 scripts/teamflow.py verify run --profile change --requirement REQ-0001
 ```
 
-配置由 `checks`、`profiles`、可选 `inputs` 和 `profile_inputs` 组成。检查使用 argv 数组，无 shell 展开；所选 profile 的每项均为必跑。测试已包含构建时不重复 build。
+配置只维护 `profiles`：每项就近定义 `checks` 和可选 `inputs`，省略输入时使用 Git 可见文件。检查使用 argv 数组，无 shell 展开；所选 profile 的每项均为必跑。测试已包含构建时不重复 build。
+
+```json
+{
+  "schema_version": 2,
+  "profiles": {
+    "change": {
+      "inputs": ["App", "scripts/test_app.py"],
+      "checks": {
+        "tests": {"argv": ["python3", "scripts/test_app.py"], "timeout_seconds": 900}
+      }
+    }
+  }
+}
+```
+
+示例路径须替换为项目实际文件与命令；命令复用可放在项目脚本中。
 
 收尾前确认本次受验证输入稳定、用户改动已隔离，然后运行匹配范围的 profile。失败后修复并重跑相关验证，不限制验证次数。
 
@@ -20,7 +36,7 @@ python3 scripts/teamflow.py verify run --profile change --requirement REQ-0001
 
 结果位于 `logs/project-checks/<运行编号>/result.json`，包含命令、退出码、时长、原始日志及输入指纹。失败、超时、工具缺失或运行期间输入变化均不算通过。
 
-指纹绑定所选 profile 的命令、工作目录、超时、输入范围，以及相关源码、资源、锁文件和执行脚本。其他 profile 配置及 JSON 排版变化不影响当前结果；共享检查变化会影响所有使用它的 profile。
+指纹绑定所选 profile 的命令、工作目录、超时、输入范围，以及相关源码、资源、锁文件和执行脚本。其他 profile 配置及 JSON 排版变化不影响当前结果；每个 profile 独立保存命令及输入。
 
 `--requirement` 额外绑定本次需求，忽略其他需求记录。需求范围与 AC 条件变化令证据失效；状态、AC 完成图标、验证证据和异常记录变化不影响它。不指定需求可执行独立工程检查，但该结果不能直接用于 `req complete`。配置输入应指向实际工程，避免纳入全部历史资料。
 

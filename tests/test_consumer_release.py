@@ -76,9 +76,8 @@ class ConsumerReleaseTests(unittest.TestCase):
         card = self.root / 'requirements' / (req + '.md')
         card.write_text(card.read_text().replace('待填写本次要达到的结果', '显示提示'))
         (self.root / 'source.txt').write_text('source')
-        config = {'schema_version': 1, 'inputs': ['source.txt'],
-                  'checks': {'unit': {'argv': [sys.executable, '-c', 'pass']}},
-                  'profiles': {'change': ['unit']}}
+        config = {'schema_version': 2, 'profiles': {'change': {'inputs': ['source.txt'],
+                  'checks': {'unit': {'argv': [sys.executable, '-c', 'pass']}}}}}
         (self.root / '.agents/project-checks.json').write_text(json.dumps(config))
         self.cli('req', 'complete', req, '--profile', 'change', '--wait-user')
         status = json.loads(self.cli('req', 'status', req).stdout)

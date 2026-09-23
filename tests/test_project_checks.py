@@ -20,9 +20,9 @@ class ProjectChecksTests(unittest.TestCase):
         (self.root / '.agents').mkdir()
         (self.root / 'source').write_text('fixture source')
 
-    def config(self, commands, selected=None):
-        data = {'schema_version': 1, 'inputs': ['source'], 'checks': commands,
-                'profiles': {'change': list(commands) if selected is None else selected}}
+    def config(self, commands):
+        data = {'schema_version': 2, 'profiles': {'change': {
+            'inputs': ['source'], 'checks': commands}}}
         (self.root / checks.CONFIG).write_text(json.dumps(data))
 
     def test_success_and_literal_arguments(self):
@@ -36,26 +36,27 @@ class ProjectChecksTests(unittest.TestCase):
         self.config({'ok': {'argv': [sys.executable, '-c', 'pass']}})
         config_path = self.root / checks.CONFIG
         original = json.loads(config_path.read_text())
-        original['checks']['other'] = {'argv': [sys.executable, '-c', 'print(1)']}
-        original['profiles']['other'] = ['other']
+        original['profiles']['other'] = {'checks': {'other': {'argv': [sys.executable, '-c', 'print(1)']}}}
         config_path.write_text(json.dumps(original))
         result, passed = checks.run(self.root, 'change')
         self.assertTrue(passed)
         relative = str(result.relative_to(self.root))
         unrelated = json.loads(json.dumps(original))
-        unrelated['checks']['other']['argv'][-1] = 'print(2)'
-        unrelated['profile_inputs'] = {'other': ['unrelated']}
-        unrelated['checks']['ok'].update(cwd='.', timeout_seconds=900)
+        unrelated['profiles']['other']['checks']['other']['argv'][-1] = 'print(2)'
+        unrelated['profiles']['other']['inputs'] = ['unrelated']
+        unrelated['profiles']['change']['checks']['ok'].update(cwd='.', timeout_seconds=900)
         config_path.write_text(json.dumps(unrelated, indent=4))
         checks.verify(self.root, relative)
         variants = []
         for field, value in [('argv', [sys.executable, '-c', 'print(3)']),
                              ('timeout_seconds', 901), ('cwd', '.agents')]:
             changed = json.loads(json.dumps(original))
-            changed['checks']['ok'][field] = value
+            changed['profiles']['change']['checks']['ok'][field] = value
             variants.append(changed)
-        variants.append({**original, 'inputs': ['.agents']})
-        variants.append({**original, 'profiles': {**original['profiles'], 'change': ['other']}})
+        for field, value in [('inputs', ['.agents']), ('checks', original['profiles']['other']['checks'])]:
+            changed = json.loads(json.dumps(original))
+            changed['profiles']['change'][field] = value
+            variants.append(changed)
         for changed in variants:
             config_path.write_text(json.dumps(changed))
             with self.assertRaises(ValueError):
@@ -91,7 +92,7 @@ class ProjectChecksTests(unittest.TestCase):
         self.config({'ok': {'argv': [sys.executable, '-c', 'pass']}})
         config_path = self.root / checks.CONFIG
         config = json.loads(config_path.read_text())
-        config['inputs'] = ['source', 'requirements']
+        config['profiles']['change']['inputs'] = ['source', 'requirements']
         config_path.write_text(json.dumps(config))
         directory = self.root / 'requirements'
         directory.mkdir()
@@ -120,7 +121,7 @@ class ProjectChecksTests(unittest.TestCase):
         relative = str(result.relative_to(self.root))
         config_path = self.root / checks.CONFIG
         config = json.loads(config_path.read_text())
-        config['profiles']['other'] = ['ok']
+        config['profiles']['other'] = {'checks': {'other': {'argv': [sys.executable, '-c', 'pass']}}}
         config_path.write_text(json.dumps(config, indent=2))
         card.write_text(card.read_text().replace('⚪ AC-01', '✅ AC-01'))
         checks.verify(self.root, relative, staged=True)
@@ -131,7 +132,7 @@ class ProjectChecksTests(unittest.TestCase):
             checks.verify(self.root, relative, staged=True)
         git('add', 'requirements')
         checks.verify(self.root, relative, staged=True)
-        config['checks']['ok']['timeout_seconds'] = 901
+        config['profiles']['change']['checks']['ok']['timeout_seconds'] = 901
         config_path.write_text(json.dumps(config))
         result, _ = checks.run(self.root, 'change', 'REQ-0001')
         relative = str(result.relative_to(self.root))
@@ -147,16 +148,18 @@ class ProjectChecksTests(unittest.TestCase):
         self.assertEqual('失败', json.loads(path.read_text())['status'])
 
     def test_empty_unknown_and_escape_rejected_before_execution(self):
-        for commands, selected in [({}, []), ({'ok': {'argv': ['echo']}}, ['unknown']),
-                                   ({'escape': {'argv': ['echo'], 'cwd': '../'}}, ['escape'])]:
-            self.config(commands, selected)
+        for commands in ({}, {'escape': {'argv': ['echo'], 'cwd': '../'}}, {'invalid': {}}):
+            self.config(commands)
             with self.assertRaises(ValueError):
                 checks.run(self.root, 'change')
         self.assertFalse((self.root / 'logs').exists())
 
-    def test_unselected_command_not_executed_and_profiles_required(self):
-        self.config({'ok': {'argv': [sys.executable, '-c', 'pass']},
-                     'bad': {'argv': [sys.executable, '-c', 'raise SystemExit(8)']}}, ['ok'])
+    def test_other_profile_not_executed_and_profiles_required(self):
+        self.config({'ok': {'argv': [sys.executable, '-c', 'pass']}})
+        target = self.root / checks.CONFIG
+        config = json.loads(target.read_text())
+        config['profiles']['other'] = {'checks': {'bad': {'argv': [sys.executable, '-c', 'raise SystemExit(8)']}}}
+        target.write_text(json.dumps(config))
         with self.assertRaises(ValueError):
             checks.run(self.root, 'absent')
         path, passed = checks.run(self.root, 'change')
@@ -233,7 +236,7 @@ class ProjectChecksTests(unittest.TestCase):
         self.config({'ok': {'argv': [sys.executable, '-c', 'pass']}})
         config = self.root / checks.CONFIG
         data = json.loads(config.read_text())
-        del data['inputs']
+        del data['profiles']['change']['inputs']
         config.write_text(json.dumps(data))
         (self.root / 'source.swift').write_text('source')
         (self.root / '.gitignore').write_text('build/\n')
@@ -261,7 +264,7 @@ class ProjectChecksTests(unittest.TestCase):
         self.config({'ok': {'argv': [sys.executable, '-c', 'pass']}})
         config_path = self.root / checks.CONFIG
         config = json.loads(config_path.read_text())
-        config['inputs'] = ['./source/']
+        config['profiles']['change']['inputs'] = ['./source/']
         config_path.write_text(json.dumps(config))
         source = self.root / 'source'
         source.unlink()
@@ -301,9 +304,9 @@ class ProjectChecksTests(unittest.TestCase):
         self.config({'ok': {'argv': [sys.executable, '-c', 'pass']}})
         config_path = self.root / checks.CONFIG
         config = json.loads(config_path.read_text())
-        del config['inputs']
-        config['profiles']['docs'] = ['ok']
-        config['profile_inputs'] = {'docs': ['requirements']}
+        del config['profiles']['change']['inputs']
+        config['profiles']['docs'] = {'inputs': ['requirements'],
+                                      'checks': config['profiles']['change']['checks']}
         config_path.write_text(json.dumps(config))
         (self.root / 'requirements').mkdir()
         card = self.root / 'requirements/REQ-20260911-120000001Z-abcdef01.md'
@@ -323,7 +326,7 @@ class ProjectChecksTests(unittest.TestCase):
         git('init', '-q')
         self.config({'ok': {'argv': [sys.executable, '-c', 'pass']}})
         path = self.root / checks.CONFIG
-        config = json.loads(path.read_text()); del config['inputs']; path.write_text(json.dumps(config))
+        config = json.loads(path.read_text()); del config['profiles']['change']['inputs']; path.write_text(json.dumps(config))
         source = self.root / 'removed.swift'; source.write_text('old')
         git('add', '.')
         source.unlink()
@@ -349,7 +352,8 @@ class ProjectChecksTests(unittest.TestCase):
             if name == 'empty':
                 (self.root / name).mkdir()
             with self.assertRaisesRegex(ValueError, '无有效文件'):
-                checks.source_snapshot(self.root, {**config, 'inputs': [name]}, 'change')
+                checks.source_snapshot(self.root, {'profiles': {'change': {
+                    **config['profiles']['change'], 'inputs': [name]}}}, 'change')
         git('add', '.'); git('commit', '-qm', 'initial')
         (self.root / 'source').unlink()
         deleted = checks.source_snapshot(self.root, config, 'change')

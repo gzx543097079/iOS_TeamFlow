@@ -1,66 +1,62 @@
 {
-  "schema_version": 1,
-  "checks": {
+  "schema_version": 2,
+  "profiles": {
     "ios-demo": {
-      "argv": [
-        "python3",
+      "inputs": [
+        "App/TeamFlowDemo",
         "scripts/test_demo.py"
       ],
-      "cwd": ".",
-      "timeout_seconds": 900
+      "checks": {
+        "ios-demo": {
+          "argv": [
+            "python3",
+            "scripts/test_demo.py"
+          ],
+          "cwd": ".",
+          "timeout_seconds": 900
+        },
+        "ios-demo-release": {
+          "argv": [
+            "python3",
+            "scripts/test_demo.py",
+            "--configuration",
+            "Release",
+            "--unit-tests-only"
+          ],
+          "cwd": ".",
+          "timeout_seconds": 900
+        }
+      }
     },
-    "ios-demo-release": {
-      "argv": [
-        "python3",
-        "scripts/test_demo.py",
-        "--configuration",
-        "Release",
-        "--unit-tests-only"
+    "workflow": {
+      "inputs": [
+        ".agents/skills/ios-team-flow",
+        ".agents/project-modules.json",
+        ".github",
+        ".gitignore",
+        "AGENTS.md",
+        "README.md",
+        "scripts",
+        "tests"
       ],
-      "cwd": ".",
-      "timeout_seconds": 900
-    },
-    "workflow-tests": {
-      "argv": [
-        "python3",
-        "scripts/run_workflow_checks.py"
-      ],
-      "cwd": ".",
-      "timeout_seconds": 900
-    },
-    "workflow-package": {
-      "argv": [
-        "python3",
-        "scripts/package_release.py"
-      ],
-      "cwd": ".",
-      "timeout_seconds": 300
+      "checks": {
+        "workflow-tests": {
+          "argv": [
+            "python3",
+            "scripts/run_workflow_checks.py"
+          ],
+          "cwd": ".",
+          "timeout_seconds": 900
+        },
+        "workflow-package": {
+          "argv": [
+            "python3",
+            "scripts/package_release.py"
+          ],
+          "cwd": ".",
+          "timeout_seconds": 300
+        }
+      }
     }
-  },
-  "profiles": {
-    "ios-demo": [
-      "ios-demo",
-      "ios-demo-release"
-    ],
-    "workflow": [
-      "workflow-tests",
-      "workflow-package"
-    ]
-  },
-  "profile_inputs": {
-    "workflow": [
-      ".agents/skills/ios-team-flow",
-      ".agents/project-modules.json",
-      ".github",
-      ".gitignore",
-      "AGENTS.md",
-      "README.md",
-      "scripts",
-      "tests"
-    ]
-  },
-  "inputs": [
-    "App/TeamFlowDemo",
-    "scripts/test_demo.py"
-  ]
+  }
 }
