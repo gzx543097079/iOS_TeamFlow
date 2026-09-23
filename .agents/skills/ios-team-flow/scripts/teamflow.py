@@ -131,9 +131,12 @@ def create(root, title, queued=False, bug=False):
     for number in range(max(numbers, default=0) + 1, 10000):
         requirement = f'REQ-{number:04d}'
         target = directory / (requirement + '.md')
-        template_name = 'bug-fix.md' if bug else 'requirement.md'
-        template = Path(__file__).resolve().parents[1] / 'references/templates' / template_name
+        template = Path(__file__).resolve().parents[1] / 'references/templates/requirement.md'
         content = template.read_text().replace('REQ-0000', requirement).replace('〈需求标题〉', title.strip())
+        scope = '待填写缺陷现象、触发条件和预期修复结果' if bug else '待填写本次要达到的结果'
+        conditions = ('- ⚪ AC-01：原失败场景已恢复\n- ⚪ AC-02：受影响的关联路径没有回归'
+                      if bug else '- ⚪ AC-01：填写可观察的输入、操作和预期结果')
+        content = content.replace('〈范围提示〉', scope).replace('〈验收条件〉', conditions)
         if queued:
             content = content.replace('- 状态：' + state_display('进行中'),
                                       '- 状态：' + state_display('待处理'), 1)

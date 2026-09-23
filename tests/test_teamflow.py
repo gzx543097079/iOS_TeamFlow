@@ -61,6 +61,15 @@ class TeamFlowTests(unittest.TestCase):
         self.assertEqual('⚪ 0/1', flow.parse_card(directory / 'REQ-0002.md')['progress']['display'])
         self.assertEqual([first, second], [item['requirement'] for item in flow.cards(self.root)])
 
+    def test_bug_uses_shared_card_with_failure_and_regression_conditions(self):
+        req = self.create('缺陷', bug=True, queued=True)
+        card = flow.parse_card(self.root / 'requirements' / (req + '.md'))
+        self.assertEqual('待处理', card['state'])
+        self.assertEqual(['原失败场景已恢复', '受影响的关联路径没有回归'],
+                         [item['condition'] for item in card['ac']])
+        self.assertIn('触发条件', card['scope'])
+        self.assertNotIn('〈验收条件〉', card['text'])
+
     def test_new_format_only_and_sparse_state_reason(self):
         req = self.create()
         card = self.fill(req)
