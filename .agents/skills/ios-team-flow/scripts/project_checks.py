@@ -44,7 +44,7 @@ def load_config(root):
 
 
 # 自动生成的证据不参与源码指纹，避免报告写入令自身失效。
-EVIDENCE_DIRS = ('logs/project-checks/', '.agents/teamflow-backups/', 'releases/')
+EVIDENCE_DIRS = ('logs/project-checks/', 'releases/')
 
 
 def excluded_input(name):
