@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""把 vNext TeamFlow 接入一个新项目；不迁移或兼容旧版接入。"""
+"""把 TeamFlow 接入项目并诊断实际文件。"""
 import argparse
 import base64
 import json
@@ -66,23 +66,16 @@ def plan(project, skill):
         raise ValueError('请先把完整 Skill 放到当前项目 .agents/skills/ios-team-flow')
     version = (skill / 'references/VERSION').read_text().strip()
     version_tuple(version)
-    manifest_path = safe(project, '.agents/teamflow.json')
-    if manifest_path.exists():
-        manifest = json.loads(manifest_path.read_text())
-        if manifest.get('schema_version') != 2:
-            raise ValueError('检测到旧版接入；vNext 不提供兼容升级，请在新项目或清理旧入口后接入')
     agents = safe(project, 'AGENTS.md')
     entry = safe(project, 'scripts/teamflow.py')
-    for path in (agents, entry, manifest_path, safe(project, 'requirements')):
-        if path.exists() and path not in (agents, entry, manifest_path) and not path.is_dir():
+    for path in (agents, entry, safe(project, 'requirements')):
+        if path.exists() and path not in (agents, entry) and not path.is_dir():
             raise ValueError('接入目标类型不正确：' + str(path.relative_to(project)))
     current = agents.read_text() if agents.exists() else ''
     return {
         'AGENTS.md': agents_content(current).encode(),
         'scripts/teamflow.py': ENTRY.encode(),
-        '.agents/teamflow.json': (json.dumps({'schema_version': 2, 'skill': 'ios-team-flow',
-                                              'version': version, 'instruction_file': 'AGENTS.md'},
-                                             ensure_ascii=False, indent=2) + '\n').encode(),
+
     }
 
 
@@ -96,7 +89,7 @@ def setup(project, skill, dry_run=False):
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(data)
     safe(project, 'requirements').mkdir(exist_ok=True)
-    print('项目已接入 ios-team-flow vNext：' + str(project))
+    print('项目已接入 ios-team-flow：' + str(project))
 
 
 def diagnose(project):
@@ -112,10 +105,12 @@ def diagnose(project):
         git_ready = False
     add('Git 根目录', git_ready, '项目根必须是 Git 根')
     try:
-        manifest = json.loads((project / '.agents/teamflow.json').read_text())
-        version = (project / '.agents/skills/ios-team-flow/references/VERSION').read_text().strip()
-        entry_ready = (manifest.get('schema_version') == 2 and manifest.get('version') == version
-                       and (project / 'scripts/teamflow.py').is_file())
+        skill = safe(project, '.agents/skills/ios-team-flow')
+        version = (skill / 'references/VERSION').read_text().strip()
+        version_tuple(version)
+        entry_ready = ((skill / 'SKILL.md').is_file()
+                       and safe(project, 'scripts/teamflow.py').read_text() == ENTRY
+                       and BLOCK.strip() in safe(project, 'AGENTS.md').read_text())
     except (OSError, ValueError, TypeError):
         entry_ready = False
         version = '未知'

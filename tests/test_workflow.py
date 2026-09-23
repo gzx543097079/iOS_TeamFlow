@@ -46,9 +46,17 @@ class WorkflowTests(unittest.TestCase):
                 [sys.executable, str(project / 'scripts/teamflow.py'), '--help'],
                 capture_output=True, text=True)
             self.assertEqual(0, help_result.returncode, help_result.stderr)
-            (project / '.agents/teamflow.json').write_text('{"schema_version": 1}')
-            rejected = subprocess.run(command, capture_output=True, text=True)
-            self.assertNotEqual(0, rejected.returncode)
+            self.assertFalse((project / '.agents/teamflow.json').exists())
+            entry = project / 'scripts/teamflow.py'
+            entry.write_text('# broken entry\n')
+            report = subprocess.run(command + ['--doctor'], capture_output=True, text=True)
+            import json
+            item = next(i for i in json.loads(report.stdout)['checks'] if i['item'] == 'Skill 与入口')
+            self.assertEqual('需处理', item['status'])
+            subprocess.run(command, check=True, capture_output=True)
+            report = subprocess.run(command + ['--doctor'], capture_output=True, text=True)
+            item = next(i for i in json.loads(report.stdout)['checks'] if i['item'] == 'Skill 与入口')
+            self.assertEqual('就绪', item['status'])
 
 
 if __name__ == '__main__':

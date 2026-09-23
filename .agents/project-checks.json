@@ -51,7 +51,6 @@
     "workflow": [
       ".agents/skills/ios-team-flow",
       ".agents/project-modules.json",
-      ".agents/teamflow.json",
       ".github",
       ".gitignore",
       "AGENTS.md",
