@@ -1,6 +1,6 @@
 # iOS TeamFlow
 
-面向 Codex 驱动开发的中文 iOS 工作流。当前版本为 **3.3.0**。
+面向 Codex 驱动开发的中文 iOS 工作流。当前版本为 **3.3.1**。
 
 需求、实施、验证与显式交付的规则见 [WORKFLOW](.agents/skills/ios-team-flow/references/WORKFLOW.md)；[Skill 入口](.agents/skills/ios-team-flow/SKILL.md) 按任务加载工程专题。
 
