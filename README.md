@@ -6,13 +6,40 @@
 
 ## 安装
 
-需要 Python 3.10+、Git；业务 App 构建还需要相应 Xcode 环境。将完整 `ios-team-flow` 放入项目的 `.agents/skills/`，在 Git 根执行：
+需要 Python 3.10+、Git；业务 App 构建还需要相应 Xcode 环境。
+
+新项目只有空目录时，先创建并进入自己的项目根目录：
 
 ```sh
+mkdir -p ~/Desktop/MyGit/MyApp
+cd ~/Desktop/MyGit/MyApp
+mkdir -p .agents/skills
+```
+
+先运行 `git rev-parse --show-toplevel` 核对是否已属于 Git 仓库；只有不属于任何仓库时才运行 `git init`。如果显示的是上级仓库根，改在该仓库根接入，或另选仓库外的目录，不创建嵌套仓库。已有 Git 项目直接进入其根目录，仅执行 `mkdir -p .agents/skills`。
+
+从 [v3.3.3 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v3.3.3) 下载独立 Skill 包 `ios-team-flow-skill-v3.3.3.zip`。例如下载到 `~/Downloads` 后，在项目根解压并接入：
+
+```sh
+unzip ~/Downloads/ios-team-flow-skill-v3.3.3.zip -d .agents/skills
 python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
 ```
 
-接入生成项目入口和配置，详情见 [INSTALL](.agents/skills/ios-team-flow/references/INSTALL.md)。
+确认最终路径是 `.agents/skills/ios-team-flow/SKILL.md`，不要只复制 `SKILL.md`，也不要多套一层同名目录。已有同名 Skill 时先按 [安装说明](.agents/skills/ios-team-flow/references/INSTALL.md) 核对差异和定制，再升级；已接入的团队项目无需重复安装。
+
+接入后可只读检查入口：
+
+```sh
+python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project . --doctor
+```
+
+创建业务工程后，如尚无 `.agents/project-checks.json`，按实际构建与测试命令配置验证：
+
+```sh
+python3 scripts/teamflow.py verify init
+```
+
+`verify init` 只生成待填写的 `.agents/project-checks.json`；按 [项目构建与测试](.agents/skills/ios-team-flow/references/PROJECT-CHECKS.md) 填入真实检查命令，再运行对应 profile。接入脚本生成项目入口和需求目录，不创建业务 App。详情见 [INSTALL](.agents/skills/ios-team-flow/references/INSTALL.md)。
 
 ## 常用命令
 
