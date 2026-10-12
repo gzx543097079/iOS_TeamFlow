@@ -1,0 +1,286 @@
+test_list_does_not_follow_symlink (test_boundaries.BoundaryTests) ... 已跳过异常需求卡 REQ-0001.md：路径不能含符号链接：requirements/REQ-0001.md
+ok
+test_manual_cannot_replace_configured_code_checks (test_boundaries.BoundaryTests) ... ok
+test_manual_directory_addition_and_partial_staging_invalidate (test_boundaries.BoundaryTests) ... ok
+test_manual_scope_reuse_and_uncovered_document (test_boundaries.BoundaryTests) ... ok
+test_manual_source_change_and_staged_code_rejected (test_boundaries.BoundaryTests) ... ok
+test_placeholder_and_stopped_card_rejected (test_boundaries.BoundaryTests) ... ok
+test_release_identity_and_symlink (test_boundaries.BoundaryTests) ... ok
+test_release_requires_identity_and_preserves_failed_events (test_boundaries.BoundaryTests) ... ok
+test_uncovered_deleted_code_rejected (test_boundaries.BoundaryTests) ... ok
+test_uncovered_staged_code_rejected (test_boundaries.BoundaryTests) ... ok
+test_packaged_manual_proof_rejects_changed_conditions (test_consumer_release.ConsumerReleaseTests) ... ok
+test_packaged_readonly_helpers (test_consumer_release.ConsumerReleaseTests) ... ok
+test_packaged_requirement_and_explicit_release_boundaries (test_consumer_release.ConsumerReleaseTests) ... ok
+test_packaged_testflight_internal_only_is_opt_in (test_consumer_release.ConsumerReleaseTests) ... ok
+test_packaged_validation_and_manual_confirmation (test_consumer_release.ConsumerReleaseTests) ... ok
+test_doctor_reports_placeholders_bad_config_and_symlink (test_diagnostics.DiagnosticsTests) ... ok
+test_resume_is_read_only_and_checks_stale_evidence (test_diagnostics.DiagnosticsTests) ... ok
+test_suggestion_reports_uncovered_without_running (test_diagnostics.DiagnosticsTests) ... ok
+test_conflict_is_preflighted_before_any_copy (test_logging_install.LoggingInstallTests) ... ok
+test_language_selection_and_idempotence_from_zip (test_logging_install.LoggingInstallTests) ... ok
+test_paths_and_external_tool_rejected (test_logging_install.LoggingInstallTests) ... ok
+test_deleted_module_path_invalidates_index_and_reports_deletion (test_module_context.ModuleContextTests) ... ok
+test_record_and_query_unchanged_module (test_module_context.ModuleContextTests) ... ok
+test_record_rejects_unsafe_or_dirty_paths (test_module_context.ModuleContextTests) ... ok
+test_refresh_requires_explicit_confirmation_and_clean_paths (test_module_context.ModuleContextTests) ... ok
+test_reports_committed_staged_unstaged_untracked_and_cross_cutting (test_module_context.ModuleContextTests) ... ok
+test_unmatched_query_and_invalid_baseline_expand_scope (test_module_context.ModuleContextTests) ... ok
+test_bound_requirement_preserves_explicit_project_context_input (test_project_checks.ProjectChecksTests) ... ok
+test_changed_report_records_added_removed_and_modified_files (test_project_checks.ProjectChecksTests) ... ok
+test_cli_original_output_failure_and_complete_logs (test_project_checks.ProjectChecksTests) ... ok
+test_compact_report_rejects_missing_or_mismatched_end_fingerprint (test_project_checks.ProjectChecksTests) ... ok
+test_default_deletion_then_staging_preserves_verified_snapshot (test_project_checks.ProjectChecksTests) ... ok
+test_empty_unknown_and_escape_rejected_before_execution (test_project_checks.ProjectChecksTests) ... ok
+test_failure_returns_false (test_project_checks.ProjectChecksTests) ... ok
+test_git_default_tracks_new_files_but_ignores_generated_evidence (test_project_checks.ProjectChecksTests) ... ok
+test_input_change_during_successful_command_is_not_pass (test_project_checks.ProjectChecksTests) ... ok
+test_invalid_input_rejected_and_tracked_deletion_allowed (test_project_checks.ProjectChecksTests) ... ok
+test_only_selected_effective_configuration_invalidates_result (test_project_checks.ProjectChecksTests) ... ok
+test_other_profile_not_executed_and_profiles_required (test_project_checks.ProjectChecksTests) ... ok
+test_requirement_binding_ignores_other_cards_but_tracks_scope_and_ac (test_project_checks.ProjectChecksTests) ... ok
+test_requirement_semantics_ignore_display_but_track_scope_exclusions_and_conditions (test_project_checks.ProjectChecksTests) ... {"requirement": "REQ-0001", "state": "✅ 完成", "state_key": "完成", "pending_ac": [], "pending_conditions": [], "message": "需求已完成，全部 AC 已确认且证据有效。", "next_step": null, "evidence": {"kind": "manual", "text": "核对文档", "inputs": ["docs"], "source_fingerprint": "9de0500760fab3ea04902cb098f1d5fa7a8e9014c1bbf28dd7ba5e3a7ece4a2b", "requirement": "REQ-0001", "requirement_fingerprint": "9e2531b8f4b4a8c830ccf61cf43477a685b9d142f73a25e1a1296748c19e9366"}}
+{"requirement": "REQ-0001", "state": "✅ 完成", "state_key": "完成", "pending_ac": [], "pending_conditions": [], "message": "需求已完成，全部 AC 已确认且证据有效。", "next_step": null, "evidence": {"kind": "manual", "text": "重新核对", "inputs": ["docs"], "source_fingerprint": "acf05e01a0d3f19b1b87b22b1c826a6f1540adef75cac461b90658c251fe3b54", "requirement": "REQ-0001", "requirement_fingerprint": "9e2531b8f4b4a8c830ccf61cf43477a685b9d142f73a25e1a1296748c19e9366"}}
+{"requirement": "REQ-0001", "state": "✅ 完成", "state_key": "完成", "pending_ac": [], "pending_conditions": [], "message": "需求已完成，全部 AC 已确认且证据有效。", "next_step": null, "evidence": {"kind": "manual", "text": "已核对文档", "inputs": ["review.md"], "source_fingerprint": "3e630e5e305382984c558cc7c38ec8674be05e40a60e7a0b1a21741643dac6e1", "requirement": "REQ-0001", "requirement_fingerprint": "9e2531b8f4b4a8c830ccf61cf43477a685b9d142f73a25e1a1296748c19e9366"}}
+{"requirement": "REQ-0001", "state": "✅ 完成", "state_key": "完成", "pending_ac": [], "pending_conditions": [], "message": "需求已完成，全部 AC 已确认且证据有效。", "next_step": null, "evidence": {"kind": "manual", "text": "已核对文档", "inputs": ["review.md"], "source_fingerprint": "3e630e5e305382984c558cc7c38ec8674be05e40a60e7a0b1a21741643dac6e1", "requirement": "REQ-0001", "requirement_fingerprint": "9e2531b8f4b4a8c830ccf61cf43477a685b9d142f73a25e1a1296748c19e9366"}}
+{
+  "requirement": "REQ-0001",
+  "staged_files": [
+    "requirements/REQ-0001.md",
+    "review.md"
+  ],
+  "validation": {
+    "kind": "manual",
+    "text": "已核对文档",
+    "inputs": [
+      "review.md"
+    ],
+    "source_fingerprint": "3e630e5e305382984c558cc7c38ec8674be05e40a60e7a0b1a21741643dac6e1",
+    "requirement": "REQ-0001",
+    "requirement_fingerprint": "9e2531b8f4b4a8c830ccf61cf43477a685b9d142f73a25e1a1296748c19e9366"
+  },
+  "covered_files": [
+    "requirements/REQ-0001.md",
+    "review.md"
+  ],
+  "uncovered_files": [],
+  "release_sensitive_files": [],
+  "commit_trailer": "Requirement: REQ-0001"
+}
+{"requirement": "REQ-0001", "state": "✅ 完成", "state_key": "完成", "pending_ac": [], "pending_conditions": [], "message": "需求已完成，全部 AC 已确认且证据有效。", "next_step": null, "evidence": {"kind": "manual", "text": "实际核对", "inputs": ["."], "source_fingerprint": "bf59e57e6bbc403fdfd02365c5ef08b40ad897e96ead4c2b02d60ef76046906b", "requirement": "REQ-0001", "requirement_fingerprint": "9e2531b8f4b4a8c830ccf61cf43477a685b9d142f73a25e1a1296748c19e9366"}}
+{"requirement": "REQ-0001", "state": "🟠 暂停", "state_key": "暂停"}
+{"requirement": "REQ-0001", "state": "⚫ 取消", "state_key": "取消"}
+{"record": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp63vg3lxk/releases/com.example.one-production-1.0-1.md", "operation": "upload-testflight"}
+{"record": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp63vg3lxk/releases/com.example.two-production-1.0-1.md", "operation": "upload-testflight"}
+{"record": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpbk15pwth/releases/com.example.app-production-1.0-1.md", "operation": "upload-testflight"}
+{"record": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpbk15pwth/releases/com.example.app-production-1.0-1.md", "operation": "upload-testflight"}
+{"record": "/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpbk15pwth/releases/com.example.app-production-1.0-1.md", "operation": "upload-testflight"}
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp8eqg_yy3/logs/project-checks/20261012T023208Z-0f168b67/result.json
+{"requirement": "REQ-0001", "state": "✅ 完成", "state_key": "完成", "pending_ac": [], "pending_conditions": [], "message": "需求已完成，全部 AC 已确认且证据有效。", "next_step": null, "evidence": {"kind": "result", "path": "logs/project-checks/20261012T023208Z-0f168b67/result.json"}}
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpcfu6kn7h/logs/project-checks/20261012T023208Z-ae6c449a/result.json
+{"requirement": "REQ-0001", "state": "✅ 完成", "state_key": "完成", "pending_ac": [], "pending_conditions": [], "message": "需求已完成，全部 AC 已确认且证据有效。", "next_step": null, "evidence": {"kind": "result", "path": "logs/project-checks/20261012T023208Z-ae6c449a/result.json"}}
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpu6jnet_c/logs/project-checks/20261012T023209Z-bf6672cb/result.json
+{"requirement": "REQ-0001", "state": "✅ 完成", "state_key": "完成", "pending_ac": [], "pending_conditions": [], "message": "需求已完成，全部 AC 已确认且证据有效。", "next_step": null, "evidence": {"kind": "result", "path": "logs/project-checks/20261012T023209Z-bf6672cb/result.json"}}
+{"requirement": "REQ-0001", "state": "🟠 暂停", "state_key": "暂停"}
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpp88iwouv/logs/project-checks/20261012T023211Z-018b5389/result.json
+验证结果与当前源码/配置一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpp88iwouv/logs/project-checks/20261012T023211Z-018b5389/result.json
+mutate：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmph0c7_jx5/logs/project-checks/20261012T023211Z-73e02e4d/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpsa88a_gw/logs/project-checks/20261012T023213Z-0a225fd4/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpz7_al5f_/logs/project-checks/20261012T023213Z-a6254ba5/result.json
+验证结果与当前源码/配置及暂存区一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpz7_al5f_/logs/project-checks/20261012T023213Z-a6254ba5/result.json
+fail：失败
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp0_twdwce/logs/project-checks/20261012T023213Z-e93db65c/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp_84zu88_/logs/project-checks/20261012T023213Z-8fea438c/result.json
+验证结果与当前源码/配置一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp_84zu88_/logs/project-checks/20261012T023213Z-8fea438c/result.json
+验证结果与当前源码/配置一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp_84zu88_/logs/project-checks/20261012T023213Z-8fea438c/result.json
+mutate：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp6bsu6ljq/logs/project-checks/20261012T023213Z-c56f60f9/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpagxx5pob/logs/project-checks/20261012T023213Z-7b7a468c/result.json
+验证结果与当前源码/配置一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpagxx5pob/logs/project-checks/20261012T023213Z-7b7a468c/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpgjnhax_1/logs/project-checks/20261012T023213Z-5ceda781/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpyvpmg8dd/logs/project-checks/20261012T023213Z-f59cb68b/result.json
+验证结果与当前源码/配置一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpyvpmg8dd/logs/project-checks/20261012T023213Z-f59cb68b/result.json
+ok：通过
+ok
+test_requirement_snapshot_ignores_colored_status_and_ac_progress (test_project_checks.ProjectChecksTests) ... ok
+test_requirement_updates_skip_default_but_invalidate_document_profile (test_project_checks.ProjectChecksTests) ... ok
+test_source_edit_add_delete_and_config_change_invalidate (test_project_checks.ProjectChecksTests) ... ok
+test_staged_batch_preserves_binary_contents_and_uses_one_process (test_project_checks.ProjectChecksTests) ... ok
+test_staged_effective_config_and_bound_requirement (test_project_checks.ProjectChecksTests) ... ok
+test_staged_verification_rejects_old_missing_deleted_and_mode_inputs (test_project_checks.ProjectChecksTests) ... ok
+test_success_and_literal_arguments (test_project_checks.ProjectChecksTests) ... ok
+test_symlink_log_directory_rejected (test_project_checks.ProjectChecksTests) ... ok
+test_ac_uses_progress_icon_without_checkbox (test_teamflow.TeamFlowTests) ... ok
+test_bug_uses_shared_card_with_failure_and_regression_conditions (test_teamflow.TeamFlowTests) ... ok
+test_colored_state_and_progress_are_required_and_listed (test_teamflow.TeamFlowTests) ... ok
+test_complete_preserves_literal_evidence_and_accepts_field_spacing (test_teamflow.TeamFlowTests) ... ok
+test_complete_preserves_pending_ac_and_rejects_stale_result (test_teamflow.TeamFlowTests) ... ok
+test_complete_with_project_result (test_teamflow.TeamFlowTests) ... ok
+test_confirm_ac_rejects_invalid_requests_without_mutating_card (test_teamflow.TeamFlowTests) ... ok
+test_confirm_ac_with_profile_preserves_condition_and_valid_proof (test_teamflow.TeamFlowTests) ... ok
+test_confirm_selected_ac_reuses_result_and_preserves_pending (test_teamflow.TeamFlowTests) ... 验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmplw7q980u/logs/project-checks/20261012T023214Z-2dfa5177/result.json
+验证结果与当前源码/配置一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmplw7q980u/logs/project-checks/20261012T023214Z-2dfa5177/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpquhwhwh_/logs/project-checks/20261012T023214Z-e5c15d9e/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpquhwhwh_/logs/project-checks/20261012T023214Z-9929143d/result.json
+验证结果与当前源码/配置一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpquhwhwh_/logs/project-checks/20261012T023214Z-e5c15d9e/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpd2s5zd4f/logs/project-checks/20261012T023214Z-d00562f6/result.json
+验证结果与当前源码/配置一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpd2s5zd4f/logs/project-checks/20261012T023214Z-d00562f6/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpa6t93mnq/logs/project-checks/20261012T023214Z-3b0c3d92/result.json
+验证结果与当前源码/配置及暂存区一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpa6t93mnq/logs/project-checks/20261012T023214Z-3b0c3d92/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpa6t93mnq/logs/project-checks/20261012T023214Z-b08755ce/result.json
+验证结果与当前源码/配置及暂存区一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpa6t93mnq/logs/project-checks/20261012T023214Z-b08755ce/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpa6t93mnq/logs/project-checks/20261012T023214Z-69040dcb/result.json
+验证结果与当前源码/配置及暂存区一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpa6t93mnq/logs/project-checks/20261012T023214Z-69040dcb/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpsha2ltwc/logs/project-checks/20261012T023214Z-34d57a4e/result.json
+验证结果与当前源码/配置一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpsha2ltwc/logs/project-checks/20261012T023214Z-34d57a4e/result.json
+验证结果与当前源码/配置及暂存区一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpsha2ltwc/logs/project-checks/20261012T023214Z-34d57a4e/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpsha2ltwc/logs/project-checks/20261012T023215Z-b5745642/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpsha2ltwc/logs/project-checks/20261012T023215Z-cd138a5d/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpsha2ltwc/logs/project-checks/20261012T023215Z-b7cd1333/result.json
+验证结果与当前源码/配置及暂存区一致：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpsha2ltwc/logs/project-checks/20261012T023215Z-b7cd1333/result.json
+build：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpmsdgg_1e/logs/project-checks/20261012T023215Z-a90d5d6e/result.json
+{"requirement": "REQ-0001", "state": "✅ 完成", "state_key": "完成", "pending_ac": [], "pending_conditions": [], "message": "需求已完成，全部 AC 已确认且证据有效。", "next_step": null, "evidence": {"kind": "manual", "text": "核对路径 App\\new，命令含字面量 \\1", "inputs": ["."], "source_fingerprint": "bf59e57e6bbc403fdfd02365c5ef08b40ad897e96ead4c2b02d60ef76046906b", "requirement": "REQ-0001", "requirement_fingerprint": "9e2531b8f4b4a8c830ccf61cf43477a685b9d142f73a25e1a1296748c19e9366"}}
+{"requirement": "REQ-0001", "state": "🔵 进行中", "state_key": "进行中", "pending_ac": ["AC-01"], "pending_conditions": [{"id": "AC-01", "condition": "显示提示"}], "message": "验证证据已绑定，需求尚未完成；请核对剩余 AC。", "next_step": "核对实际证据后，在项目根执行 python3 scripts/teamflow.py req complete REQ-0001 --confirm-ac AC-编号（可重复传入，仅指定已实际确认的条件）；输入未变化时复用证据，无需重跑测试。", "evidence": {"kind": "manual", "text": "人工核对", "inputs": ["."], "source_fingerprint": "377f6d98e0eeb525d4dfa799ea460d1fa2cec4d8791b99b9101d608a55d04945", "requirement": "REQ-0001", "requirement_fingerprint": "88a0bc87cde8ae3b1048a2745d987b6be37730ce96b5a0618f8e62fda8ab172f"}}
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpk4yyjl8w/logs/project-checks/20261012T023215Z-625f0557/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpq8ql0bqk/logs/project-checks/20261012T023215Z-d5b61750/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp4_zyxgcp/logs/project-checks/20261012T023215Z-f2f59f93/result.json
+{"requirement": "REQ-0001", "state": "🔵 进行中", "state_key": "进行中", "pending_ac": ["AC-01"], "pending_conditions": [{"id": "AC-01", "condition": "错误时显示提示"}], "message": "验证证据已绑定，需求尚未完成；请核对剩余 AC。", "next_step": "核对实际证据后，在项目根执行 python3 scripts/teamflow.py req complete REQ-0001 --confirm-ac AC-编号（可重复传入，仅指定已实际确认的条件）；输入未变化时复用证据，无需重跑测试。", "evidence": {"kind": "result", "path": "logs/project-checks/20261012T023215Z-f2f59f93/result.json"}}
+ok：失败
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp4_zyxgcp/logs/project-checks/20261012T023216Z-a8f5d6ba/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpk6m6q2dk/logs/project-checks/20261012T023216Z-233b0c9d/result.json
+{"requirement": "REQ-0001", "state": "✅ 完成", "state_key": "完成", "pending_ac": [], "pending_conditions": [], "message": "需求已完成，全部 AC 已确认且证据有效。", "next_step": null, "evidence": {"kind": "result", "path": "logs/project-checks/20261012T023216Z-233b0c9d/result.json"}}
+{"requirement": "REQ-0001", "state": "✅ 完成", "state_key": "完成", "pending_ac": [], "pending_conditions": [], "message": "需求已完成，全部 AC 已确认且证据有效。", "next_step": null, "evidence": {"kind": "result", "path": "logs/project-checks/20261012T023216Z-233b0c9d/result.json"}}
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpqifloau7/logs/project-checks/20261012T023216Z-c20422e1/result.json
+{"requirement": "REQ-0001", "state": "🔵 进行中", "state_key": "进行中", "pending_ac": ["AC-01", "AC-02"], "pending_conditions": [{"id": "AC-01", "condition": "错误时显示提示"}, {"id": "AC-02", "condition": "用户确认实际展示"}], "message": "验证证据已绑定，需求尚未完成；请核对剩余 AC。", "next_step": "核对实际证据后，在项目根执行 python3 scripts/teamflow.py req complete REQ-0001 --confirm-ac AC-编号（可重复传入，仅指定已实际确认的条件）；输入未变化时复用证据，无需重跑测试。", "evidence": {"kind": "result", "path": "logs/project-checks/20261012T023216Z-c20422e1/result.json"}}
+ok
+test_create_uses_readable_sequence (test_teamflow.TeamFlowTests) ... ok
+test_failed_profile_does_not_complete_or_replace_evidence (test_teamflow.TeamFlowTests) ... ok
+test_git_check_is_explicit_and_uses_staged_object (test_teamflow.TeamFlowTests) ... ok
+test_inline_validation_uses_only_before_and_after_snapshots (test_teamflow.TeamFlowTests) ... ok
+test_manual_proof_rejects_semantic_changes_without_writing (test_teamflow.TeamFlowTests) ... ok
+test_manual_proof_requires_complete_binding (test_teamflow.TeamFlowTests) ... ok
+test_manual_proof_reuses_metadata_edits_but_not_another_requirement (test_teamflow.TeamFlowTests) ... ok
+test_pending_ac_can_validate_and_commit_without_completing (test_teamflow.TeamFlowTests) ... ok
+test_profile_completion_reuses_proof_and_rejects_changes (test_teamflow.TeamFlowTests) ... ok
+test_release_record_is_one_action (test_teamflow.TeamFlowTests) ... ok
+test_result_must_bind_current_requirement (test_teamflow.TeamFlowTests) ... ok
+test_sparse_state_reason (test_teamflow.TeamFlowTests) ... ok
+test_terminal_states_cannot_bypass_evidence (test_teamflow.TeamFlowTests) ... ok
+test_testflight_internal_only_requires_explicit_option (test_teamflow.TeamFlowTests) ... ok
+test_wait_user_completion_uses_colored_state (test_teamflow.TeamFlowTests) ... {"requirement": "REQ-0001", "state": "🟣 待用户验证", "state_key": "待用户验证", "pending_ac": ["AC-02"], "pending_conditions": [{"id": "AC-02", "condition": "用户确认实际展示"}], "message": "验证证据已绑定，需求尚未完成；等待用户实际确认。", "next_step": "核对实际证据后，在项目根执行 python3 scripts/teamflow.py req complete REQ-0001 --confirm-ac AC-编号（可重复传入，仅指定已实际确认的条件）；输入未变化时复用证据，无需重跑测试。", "evidence": {"kind": "result", "path": "logs/project-checks/20261012T023216Z-c20422e1/result.json"}}
+ok：失败
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp8afnes5j/logs/project-checks/20261012T023216Z-25764dc8/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpo3r_fwww/logs/project-checks/20261012T023216Z-81694bdb/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmptixg5sat/logs/project-checks/20261012T023216Z-7e232db9/result.json
+{"requirement": "REQ-0001", "state": "✅ 完成", "state_key": "完成", "pending_ac": [], "pending_conditions": [], "message": "需求已完成，全部 AC 已确认且证据有效。", "next_step": null, "evidence": {"kind": "result", "path": "logs/project-checks/20261012T023216Z-7e232db9/result.json"}}
+{"requirement": "REQ-0001", "state": "✅ 完成", "state_key": "完成", "pending_ac": [], "pending_conditions": [], "message": "需求已完成，全部 AC 已确认且证据有效。", "next_step": null, "evidence": {"kind": "result", "path": "logs/project-checks/20261012T023216Z-7e232db9/result.json"}}
+{"requirement": "REQ-0001", "state": "✅ 完成", "state_key": "完成", "pending_ac": [], "pending_conditions": [], "message": "需求已完成，全部 AC 已确认且证据有效。", "next_step": null, "evidence": {"kind": "manual", "text": "实际展示核对记录", "inputs": ["."], "source_fingerprint": "77e56f8297703e4cffdc3a718b770632ff276344ad9ac794225ed9e3abb9964d", "requirement": "REQ-0001", "requirement_fingerprint": "ce687e93577731c4a442fe377161913ae6b5b4345e60148c9c2a3f5d3d2f22f1"}}
+{"requirement": "REQ-0001", "state": "✅ 完成", "state_key": "完成", "pending_ac": [], "pending_conditions": [], "message": "需求已完成，全部 AC 已确认且证据有效。", "next_step": null, "evidence": {"kind": "manual", "text": "按新范围重新核对", "inputs": ["."], "source_fingerprint": "4b771b799ea119eb3fed132cf72b5087b9e8cff8152d90949c0ffeec4baa9a34", "requirement": "REQ-0001", "requirement_fingerprint": "784cd439e41847b2ed2ecfcd1a2119510919898fb1c1bb702704075b8c474ed2"}}
+{"requirement": "REQ-0001", "state": "✅ 完成", "state_key": "完成", "pending_ac": [], "pending_conditions": [], "message": "需求已完成，全部 AC 已确认且证据有效。", "next_step": null, "evidence": {"kind": "manual", "text": "按新范围重新核对", "inputs": ["."], "source_fingerprint": "4b771b799ea119eb3fed132cf72b5087b9e8cff8152d90949c0ffeec4baa9a34", "requirement": "REQ-0001", "requirement_fingerprint": "784cd439e41847b2ed2ecfcd1a2119510919898fb1c1bb702704075b8c474ed2"}}
+{"requirement": "REQ-0001", "state": "✅ 完成", "state_key": "完成", "pending_ac": [], "pending_conditions": [], "message": "需求已完成，全部 AC 已确认且证据有效。", "next_step": null, "evidence": {"kind": "manual", "text": "实际展示核对记录", "inputs": ["."], "source_fingerprint": "bf59e57e6bbc403fdfd02365c5ef08b40ad897e96ead4c2b02d60ef76046906b", "requirement": "REQ-0001", "requirement_fingerprint": "9e2531b8f4b4a8c830ccf61cf43477a685b9d142f73a25e1a1296748c19e9366"}}
+{"requirement": "REQ-0001", "state": "🟣 待用户验证", "state_key": "待用户验证", "pending_ac": ["AC-01"], "pending_conditions": [{"id": "AC-01", "condition": "错误时显示提示"}], "message": "验证证据已绑定，需求尚未完成；等待用户实际确认。", "next_step": "核对实际证据后，在项目根执行 python3 scripts/teamflow.py req complete REQ-0001 --confirm-ac AC-编号（可重复传入，仅指定已实际确认的条件）；输入未变化时复用证据，无需重跑测试。", "evidence": {"kind": "manual", "text": "实际展示核对记录", "inputs": ["."], "source_fingerprint": "bf59e57e6bbc403fdfd02365c5ef08b40ad897e96ead4c2b02d60ef76046906b", "requirement": "REQ-0001", "requirement_fingerprint": "9e2531b8f4b4a8c830ccf61cf43477a685b9d142f73a25e1a1296748c19e9366"}}
+{"requirement": "REQ-0001", "state": "✅ 完成", "state_key": "完成", "pending_ac": [], "pending_conditions": [], "message": "需求已完成，全部 AC 已确认且证据有效。", "next_step": null, "evidence": {"kind": "manual", "text": "实际展示核对记录", "inputs": ["."], "source_fingerprint": "bf59e57e6bbc403fdfd02365c5ef08b40ad897e96ead4c2b02d60ef76046906b", "requirement": "REQ-0001", "requirement_fingerprint": "9e2531b8f4b4a8c830ccf61cf43477a685b9d142f73a25e1a1296748c19e9366"}}
+{
+  "requirement": "REQ-0001",
+  "staged_files": [
+    ".agents/project-checks.json",
+    "logs/project-checks/20261012T023217Z-4e98c2a6/ok.log",
+    "logs/project-checks/20261012T023217Z-4e98c2a6/result.json",
+    "requirements/REQ-0001.md",
+    "source.txt"
+  ],
+  "validation": {
+    "kind": "result",
+    "path": "logs/project-checks/20261012T023217Z-4e98c2a6/result.json"
+  },
+  "covered_files": [
+    ".agents/project-checks.json",
+    "logs/project-checks/20261012T023217Z-4e98c2a6/ok.log",
+    "logs/project-checks/20261012T023217Z-4e98c2a6/result.json",
+    "requirements/REQ-0001.md",
+    "source.txt"
+  ],
+  "uncovered_files": [],
+  "release_sensitive_files": [],
+  "commit_trailer": "Requirement: REQ-0001"
+}
+{"requirement": "REQ-0001", "state": "✅ 完成", "state_key": "完成", "pending_ac": [], "pending_conditions": [], "message": "需求已完成，全部 AC 已确认且证据有效。", "next_step": null, "evidence": {"kind": "result", "path": "logs/project-checks/20261012T023217Z-4e98c2a6/result.json"}}
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpyklsowbk/logs/project-checks/20261012T023217Z-ed927351/result.json
+{"requirement": "REQ-0001", "state": "✅ 完成", "state_key": "完成", "pending_ac": [], "pending_conditions": [], "message": "需求已完成，全部 AC 已确认且证据有效。", "next_step": null, "evidence": {"kind": "result", "path": "logs/project-checks/20261012T023217Z-ed927351/result.json"}}
+{"requirement": "REQ-0001", "state": "✅ 完成", "state_key": "完成", "pending_ac": [], "pending_conditions": [], "message": "需求已完成，全部 AC 已确认且证据有效。", "next_step": null, "evidence": {"kind": "result", "path": "logs/project-checks/20261012T023217Z-ed927351/result.json"}}
+{
+  "requirement": "REQ-0001",
+  "staged_files": [
+    ".agents/project-checks.json",
+    "logs/project-checks/20261012T023217Z-ed927351/ok.log",
+    "logs/project-checks/20261012T023217Z-ed927351/result.json",
+    "requirements/REQ-0001.md",
+    "source.txt"
+  ],
+  "validation": {
+    "kind": "result",
+    "path": "logs/project-checks/20261012T023217Z-ed927351/result.json"
+  },
+  "covered_files": [
+    ".agents/project-checks.json",
+    "logs/project-checks/20261012T023217Z-ed927351/ok.log",
+    "logs/project-checks/20261012T023217Z-ed927351/result.json",
+    "requirements/REQ-0001.md",
+    "source.txt"
+  ],
+  "uncovered_files": [],
+  "release_sensitive_files": [],
+  "commit_trailer": "Requirement: REQ-0001"
+}
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp8yvrkzm7/logs/project-checks/20261012T023217Z-fec213d3/result.json
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmp8yvrkzm7/logs/project-checks/20261012T023217Z-7b3ce994/result.json
+ok
+test_wait_user_does_not_delay_fully_confirmed_completion (test_teamflow.TeamFlowTests) ... ok
+test_discovery_loads_real_tests (test_workflow.WorkflowTests) ... ok
+test_release_profile_cannot_drop_workflow_coverage (test_workflow.WorkflowTests) ... ok
+test_repository_documents_and_distribution_manifest (test_workflow.WorkflowTests) ... ok
+test_setup_preserves_project_instructions_and_is_repeatable (test_workflow.WorkflowTests) ... ok
+
+----------------------------------------------------------------------
+Ran 78 tests in 11.061s
+
+OK
+{"requirement": "REQ-0001", "state": "🟣 待用户验证", "state_key": "待用户验证", "pending_ac": ["AC-01"], "pending_conditions": [{"id": "AC-01", "condition": "错误时显示提示"}], "message": "验证证据已绑定，需求尚未完成；等待用户实际确认。", "next_step": "核对实际证据后，在项目根执行 python3 scripts/teamflow.py req complete REQ-0001 --confirm-ac AC-编号（可重复传入，仅指定已实际确认的条件）；输入未变化时复用证据，无需重跑测试。", "evidence": {"kind": "manual", "text": "尚未确认", "inputs": ["."], "source_fingerprint": "bf59e57e6bbc403fdfd02365c5ef08b40ad897e96ead4c2b02d60ef76046906b", "requirement": "REQ-0001", "requirement_fingerprint": "9e2531b8f4b4a8c830ccf61cf43477a685b9d142f73a25e1a1296748c19e9366"}}
+{"requirement": "REQ-0001", "state": "✅ 完成", "state_key": "完成", "pending_ac": [], "pending_conditions": [], "message": "需求已完成，全部 AC 已确认且证据有效。", "next_step": null, "evidence": {"kind": "manual", "text": "用户已确认真机结果", "inputs": ["."], "source_fingerprint": "bf59e57e6bbc403fdfd02365c5ef08b40ad897e96ead4c2b02d60ef76046906b", "requirement": "REQ-0001", "requirement_fingerprint": "9e2531b8f4b4a8c830ccf61cf43477a685b9d142f73a25e1a1296748c19e9366"}}
+ok：通过
+验证证据：/private/var/folders/w1/jbs8jsl92r72n4y7b23jx5b80000gn/T/tmpvf8cfpns/logs/project-checks/20261012T023217Z-83c22c32/result.json
+{"requirement": "REQ-0001", "state": "🟣 待用户验证", "state_key": "待用户验证", "pending_ac": ["AC-01"], "pending_conditions": [{"id": "AC-01", "condition": "错误时显示提示"}], "message": "验证证据已绑定，需求尚未完成；等待用户实际确认。", "next_step": "核对实际证据后，在项目根执行 python3 scripts/teamflow.py req complete REQ-0001 --confirm-ac AC-编号（可重复传入，仅指定已实际确认的条件）；输入未变化时复用证据，无需重跑测试。", "evidence": {"kind": "result", "path": "logs/project-checks/20261012T023217Z-83c22c32/result.json"}}
+{"requirement": "REQ-0001", "state": "✅ 完成", "state_key": "完成", "pending_ac": [], "pending_conditions": [], "message": "需求已完成，全部 AC 已确认且证据有效。", "next_step": null, "evidence": {"kind": "result", "path": "logs/project-checks/20261012T023217Z-83c22c32/result.json"}}
+工作流入口、版本、文件清单和内部链接检查通过

@@ -1,5 +1,12 @@
 # 版本记录
 
+## 3.3.3
+
+- App 发布准备增加目标 build 的隐私清单核对，覆盖 App、第三方 SDK、必需原因 API 和 App Store Connect 隐私信息。
+- 有广告时按实际网络与归因方案检查 `Info.plist` 的 `SKAdNetworkItems`；AdMob App ID 与 ATT 文案按接入条件分别核对。
+- 面向欧洲地区时核对适用的 GDPR 同意流程、拒绝与撤回路径及广告请求行为；AdMob 投放另核对 CMP 与 TCF 接入。
+- 同步 App 发布动作模板；本版为工作流规则更新，不代表任何业务 App 已通过发布检查。
+
 ## 3.3.2
 
 - 补齐按业务职责划分模块、显式依赖、公开接口和状态所有权规则，无论项目大小默认保持现有 Target/工程结构，未获用户明确要求不拆 Target/Package。
