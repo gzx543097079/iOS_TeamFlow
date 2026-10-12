@@ -25,6 +25,16 @@
 
 准备时直接读取实际工程、签名配置与平台状态，列出已核对事实和缺项，无需运行边界回显命令。TestFlight Internal Only 参数按上表处理。
 
+### 隐私与广告检查
+
+检查对象是本次目标 build 的有效配置和最终产物，不只看仓库里是否存在同名文件。记录检查结论与可定位依据；适用项未确认时列为缺项，不宣称发布准备完成。
+
+1. **隐私清单**：检查 App 与所集成第三方 SDK 在最终产物中的 `PrivacyInfo.xcprivacy` 是否存在于适用位置、格式有效，数据收集、跟踪及必需原因 API 声明是否符合实际行为；核对 Xcode 汇总隐私报告及 App Store Connect 的 App 隐私信息。没有适用声明时说明判断依据，不为凑清单添加虚假条目。
+2. **广告配置**：先确认是否展示广告、广告网络与归因方案。有使用 SKAdNetwork 归因的广告时，核对有效 `Info.plist` 中的 `SKAdNetworkItems`，其每项 `SKAdNetworkIdentifier` 与实际广告网络提供的 ID 一致；使用 AdMob 时另核对 `GADApplicationIdentifier` 为本 App 的 AdMob App ID。若请求 ATT 授权或访问 IDFA，再核对 `NSUserTrackingUsageDescription`、授权请求时机及用户拒绝后的行为。不要把 ATT 文案当作所有广告 App 的必填项。
+3. **欧洲地区同意机制**：目标分发/服务地区包含欧洲经济区（EEA）或英国时，按实际数据处理和广告用途确认适用的 GDPR/英国 GDPR 告知与同意机制已接入；核对用户可拒绝、撤回或重新选择，且同意状态在相关 SDK 初始化、数据处理和广告请求前得到正确应用。使用 AdMob 在 EEA、英国或瑞士投放广告时，另核对符合 Google 要求的认证 CMP 与 TCF 接入及当地实际流程。仅有“GDPR 弹窗”或 SDK 依赖并不能证明流程生效；地区、账号配置和真实设备行为须分别核对。
+
+依据：[Apple 隐私清单](https://developer.apple.com/documentation/bundleresources/adding-a-privacy-manifest-to-your-app-or-third-party-sdk)、[Apple SKAdNetworkItems](https://developer.apple.com/documentation/bundleresources/information-property-list/skadnetworkitems)、[Apple ATT 文案](https://developer.apple.com/documentation/bundleresources/information-property-list/nsusertrackingusagedescription)、[Google Mobile Ads iOS 配置](https://developers.google.com/admob/ios/quick-start)、[Google 欧洲地区 CMP 要求](https://support.google.com/admob/answer/13554020)。
+
 实际动作使用项目既有 Xcode、CI 或发布工具。先核对目标 App、Bundle ID、版本、build、commit、环境、签名和账号；不得猜测目标。完成或失败后再记录真实证据：
 
 ```sh
