@@ -99,9 +99,12 @@ class ConsumerReleaseTests(unittest.TestCase):
         req = json.loads(self.cli('req', 'create', '--title', '恢复').stdout)['requirement']
         summary = json.loads(self.cli('req', 'resume', req).stdout)
         self.assertTrue(summary['problems'])
-        doctor = self.cli('doctor', ok=False)
+        doctor = self.cli('doctor', '--json', ok=False)
         self.assertEqual(1, doctor.returncode)
         self.assertTrue(json.loads(doctor.stdout)['needs_action'])
+        brief = self.cli('doctor', ok=False)
+        self.assertEqual(1, brief.returncode)
+        self.assertIn('结论：需处理', brief.stdout)
         (self.root / 'sample.txt').write_text('sample')
         config = {'schema_version': 2, 'profiles': {'change': {'inputs': ['sample.txt'],
                   'checks': {'unit': {'argv': [sys.executable, '-c', 'pass']}}}}}

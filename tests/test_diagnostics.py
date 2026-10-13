@@ -37,6 +37,16 @@ class DiagnosticsTests(unittest.TestCase):
         flow.set_state(self.root, req, '暂停', '等待用户')
         self.assertIn('不得自动继续', diagnostics.resume(self.root, req)['next_step'])
 
+    def test_doctor_treats_stale_finished_evidence_as_history(self):
+        req = self.create(); self.fill(req)
+        flow.complete(self.root, req, profile='change')
+        (self.root / 'source.txt').write_text('changed')
+        report = diagnostics.doctor(self.root)
+        item = next(i for i in report['checks'] if i['item'] == req)
+        self.assertEqual('历史', item['status'])
+        self.assertFalse(any(i['status'] == '需处理' and i['item'].startswith('REQ-') for i in report['checks']))
+        self.assertIn('[历史] 已完成需求证据失效 1 张', diagnostics.format_report(report))
+
     def test_doctor_reports_placeholders_bad_config_and_symlink(self):
         req = self.create()
         (self.root / '.agents/project-checks.json').write_text('{}')

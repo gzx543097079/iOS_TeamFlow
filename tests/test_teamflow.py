@@ -256,6 +256,21 @@ class TeamFlowTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, '源码或配置已变化'):
             flow.git_check(self.root, req, result=str(result.relative_to(self.root)))
 
+    def test_git_check_allows_only_deleted_logs_outside_profile(self):
+        req = self.create(); self.fill(req)
+        old_log = self.root / 'logs/old/run.txt'
+        old_log.parent.mkdir(parents=True); old_log.write_text('old')
+        self.git('add', '-f', 'logs/old/run.txt'); self.git('commit', '-q', '-m', 'old log')
+        flow.complete(self.root, req, profile='change')
+        self.git('rm', '-q', '--cached', 'logs/old/run.txt')
+        self.git('add', 'source.txt', '.agents/project-checks.json', 'requirements')
+        with contextlib.redirect_stdout(io.StringIO()):
+            flow.git_check(self.root, req)
+        (self.root / 'logs/new.txt').write_text('new')
+        self.git('add', '-f', 'logs/new.txt')
+        with self.assertRaisesRegex(ValueError, 'logs/new.txt'):
+            flow.git_check(self.root, req)
+
     def test_profile_completion_reuses_proof_and_rejects_changes(self):
         req = self.create(); card = self.fill(req)
         flow.complete(self.root, req, profile='change')

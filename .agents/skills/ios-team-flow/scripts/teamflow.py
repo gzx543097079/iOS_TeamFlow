@@ -273,6 +273,10 @@ def git_check(root, requirement, result=None, evidence=None, evidence_inputs=Non
         inputs, generated = proof['inputs'], set()
     covered = checks.input_paths(root, inputs, set(names))
     covered.update({'requirements/' + requirement + '.md', checks.CONFIG} | generated)
+    # 移出 Git 的历史日志不改变源码；新增或修改日志仍须由 profile 覆盖。
+    deleted = subprocess.check_output(['git', '-C', str(root), 'diff', '--cached', '--name-only',
+                                       '--diff-filter=D', '-z']).decode().split('\0')
+    covered.update(name for name in deleted if name.startswith('logs/'))
     uncovered = sorted(set(names) - covered)
     if uncovered:
         raise ValueError('验证未覆盖暂存文件：' + '、'.join(uncovered) + '；请配置覆盖本次提交的 profile')
@@ -332,7 +336,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--project', type=Path, default=Path('.'))
     top = parser.add_subparsers(dest='area', required=True)
-    top.add_parser('doctor', help='只读核对接入、配置、需求证据和可选模块索引')
+    diagnosis = top.add_parser('doctor', help='只读核对接入、配置、需求证据和可选模块索引')
+    diagnosis.add_argument('--json', action='store_true', help='输出完整结构化报告')
 
     req = top.add_parser('req')
     req_sub = req.add_subparsers(dest='command', required=True)
@@ -395,9 +400,9 @@ def main():
     root = args.project.resolve()
     try:
         if args.area == 'doctor':
-            from diagnostics import doctor
+            from diagnostics import doctor, format_report
             report = doctor(root)
-            print(json.dumps(report, ensure_ascii=False, indent=2))
+            print(json.dumps(report, ensure_ascii=False, indent=2) if args.json else format_report(report))
             return 1 if report['needs_action'] else 0
         elif args.area == 'req':
             if args.command == 'create':

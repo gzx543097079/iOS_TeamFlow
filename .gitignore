@@ -17,3 +17,4 @@ xcuserdata/
 /App/TeamFlowDemo/Pods/
 
 /.teamflow-tmp/
+/logs/project-checks/

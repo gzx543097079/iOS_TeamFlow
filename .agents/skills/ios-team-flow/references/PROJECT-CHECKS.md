@@ -42,7 +42,7 @@ python3 scripts/teamflow.py verify run --profile change --requirement REQ-0001
 
 ## 证据范围
 
-结果位于 `logs/project-checks/<运行编号>/result.json`，包含命令、退出码、时长、原始日志、一份完整输入快照及结束指纹。仅输入变化时附带新增、删除和修改的差异，不重复保存整份快照。失败、超时、工具缺失或运行期间输入变化均不算通过。
+结果位于 `logs/project-checks/<运行编号>/result.json`，属于本地证据，加入 `.gitignore` 不提交；包含命令、退出码、时长、原始日志、一份完整输入快照及结束指纹。仅输入变化时附带新增、删除和修改的差异，不重复保存整份快照。失败、超时、工具缺失或运行期间输入变化均不算通过。
 
 指纹绑定所选 profile 的命令、工作目录、超时、输入范围，以及相关源码、资源、锁文件和执行脚本。其他 profile 配置及 JSON 排版变化不影响当前结果；每个 profile 独立保存命令及输入。
 
