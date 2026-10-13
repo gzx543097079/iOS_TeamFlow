@@ -14,11 +14,11 @@ ios-demo profile 同时执行 Debug 的单元/UI 测试和 Release 的单元测�
 
 需要完整 Xcode 与可用的 iPhone 模拟器。脚本优先使用环境变量 DEVELOPER_DIR，未设置时使用 /Applications/Xcode.app；只影响当前进程，不切换全局开发目录。默认从最新可用 iOS runtime 选择 iPhone，避免复用与当前 Xcode 测试框架不兼容的旧模拟器；也可通过 TEAMFLOW_SIMULATOR_ID 指定设备 UDID。不可用、超时、构建或测试失败均返回非零结果。
 
-首次在 App/TeamFlowDemo 执行 `pod install`，随后打开 TeamFlowDemo.xcworkspace（包含 Pods）。已提交工程无需 XcodeGen 即可安装依赖并构建。修改 project.yml 后用 XcodeGen 2.46.0 重新生成：
+首次在 examples/TeamFlowDemo 执行 `pod install`，随后打开 TeamFlowDemo.xcworkspace（包含 Pods）。已提交工程无需 XcodeGen 即可安装依赖并构建。修改 project.yml 后用 XcodeGen 2.46.0 重新生成：
 
 ```sh
-xcodegen generate --spec App/TeamFlowDemo/project.yml
-pod install --project-directory=App/TeamFlowDemo
+xcodegen generate --spec examples/TeamFlowDemo/project.yml
+pod install --project-directory=examples/TeamFlowDemo
 ```
 
 在仓库根目录执行该命令。工程关闭代码签名用于模拟器；真机测试需另行配置团队与签名。
@@ -32,7 +32,7 @@ pod install --project-directory=App/TeamFlowDemo
 | 页面释放 | 导航容器释放后页面无残留强引用 |
 | UI 主路径 | 启动、分类、详情、加购/移除、设置/语言/主题、无 Tab Bar |
 
-要演练完整开发流程，在当前仓库提出针对该 App 的明确小需求：例如“增加一件本地演示商品”，要求创建需求卡、运行 ios-demo、审查本次差异并关联证据。可在本地临时分支制造文案与模型不一致，再由 Codex 定位和修复；不要把故意失败代码合入正常分支。测试通过不会自动生成语义 review，也不等于团队验收。
+要演练完整开发流程，在当前仓库提出针对该 App 的明确小需求：例如“增加一件本地演示商品”，要求创建需求卡、运行 ios-demo、审查本次差异并关联证据。可在本地临时分支制造文案与模型不一致，再由 Agent 定位和修复；不要把故意失败代码合入正常分支。测试通过不会自动生成语义 review，也不等于团队验收。
 
 实际构建日志和结果由 project_checks 写入根 logs/project-checks；xcresult 与产物位于忽略的 DerivedData。工程约定见 [项目现状](../../requirements/PROJECT-CONTEXT.md)。默认不测试超大字号。
 

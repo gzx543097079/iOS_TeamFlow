@@ -39,9 +39,9 @@ try:
         compatible = [device for version, device in devices if version == latest]
         selected = next((device for device in compatible if device['state'] == 'Booted'), compatible[0])
     print('测试模拟器：' + selected['name'] + ' ' + selected['udid'], flush=True)
-    workspace = root / 'App/TeamFlowDemo/TeamFlowDemo.xcworkspace'
-    if not (root / 'App/TeamFlowDemo/Pods/Manifest.lock').exists():
-        raise ValueError('请先在 App/TeamFlowDemo 执行 pod install，再运行测试')
+    workspace = root / 'examples/TeamFlowDemo/TeamFlowDemo.xcworkspace'
+    if not (root / 'examples/TeamFlowDemo/Pods/Manifest.lock').exists():
+        raise ValueError('请先在 examples/TeamFlowDemo 执行 pod install，再运行测试')
     command = ['xcodebuild', 'test', '-workspace', str(workspace),
                '-scheme', 'TeamFlowDemo', '-configuration', args.configuration, '-destination', 'platform=iOS Simulator,id=' + selected['udid'],
                '-derivedDataPath', str(root / 'DerivedData/TeamFlowDemo'),
