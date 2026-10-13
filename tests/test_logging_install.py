@@ -22,8 +22,8 @@ class LoggingInstallTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         with zipfile.ZipFile(self.archive) as archive:
-            archive.extractall(self.root / '.agents/skills')
-        self.script = self.root / '.agents/skills/ios-team-flow/scripts/teamflow.py'
+            archive.extractall(self.root / '.agents')
+        self.script = self.root / '.agents/teamflow-core/scripts/teamflow.py'
 
     def run_install(self, language='mixed', destination='App/Sources/Logging'):
         return subprocess.run([sys.executable, str(self.script), '--project', str(self.root), 'logging', 'install',

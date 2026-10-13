@@ -6,7 +6,7 @@
 "settings.language.option.english" = "English";
 "settings.language.option.simplifiedChinese" = "简体中文";
 "settings.about.appName" = "TeamFlow Demo";
-"settings.about.description" = "A local shopping demo built with the iOS TeamFlow workflow. Products and prices are examples; no real purchases are available.";
+"settings.about.description" = "A local shopping demo built with the TeamFlow workflow. Products and prices are examples; no real purchases are available.";
 "settings.about.version" = "Version %1$@ (%2$@)";
 "settings.appearance.title" = "Appearance";
 "settings.appearance.option.system" = "Follow System";

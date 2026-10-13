@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-TOOL = ROOT / '.agents/skills/ios-team-flow/scripts/teamflow.py'
+TOOL = ROOT / '.agents/teamflow-core/scripts/teamflow.py'
 
 
 class ModuleContextTests(unittest.TestCase):

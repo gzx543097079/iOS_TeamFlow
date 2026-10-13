@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""iOS 工作流唯一命令入口：接入、需求、验证、提交前核对、模块索引与日志组件。"""
+"""TeamFlow 共用命令入口：接入、需求、验证、提交前核对与模块索引。"""
 import argparse
 import difflib
 import hashlib
@@ -445,9 +445,11 @@ def main():
     check.add_argument('--evidence-input', action='append')
 
     installer = top.add_parser('setup', help='接入或更新项目入口；可直接从 Skill 目录运行')
+    installer.add_argument('--mode', choices=['ios', 'godot-ios'],
+                           help='安装 iOS 原生或 Godot + iOS；省略时沿用已有选择，首次默认 ios')
     installer.add_argument('--plan', action='store_true', help='只输出待修改内容的 diff')
     installer.add_argument('--claude-skill-link', action='store_true',
-                           help='创建 .claude/skills/ios-team-flow 软链接，供 Claude Code 识别为原生 Skill')
+                           help='为选中的安装模式创建 Claude Code Skill 软链接')
 
     module = top.add_parser('module', help='大型项目模块索引')
     module_sub = module.add_subparsers(dest='command', required=True)
@@ -527,7 +529,7 @@ def main():
         elif args.area == 'setup':
             import setup_project
             skill = Path(__file__).resolve().parents[1]
-            planned = setup_project.setup(root, skill, args.plan, args.claude_skill_link)
+            planned = setup_project.setup(root, skill, args.plan, args.claude_skill_link, args.mode)
             if args.plan:
                 for name, data in planned.items():
                     current = safe(root, name)
@@ -536,7 +538,8 @@ def main():
                                                        data.decode().splitlines(keepends=True),
                                                        fromfile=name, tofile=name)), end='')
             else:
-                print('已接入 ios-team-flow：' + str(root))
+                mode = setup_project.install_mode(root)
+                print('已接入 ' + ('Godot + iOS' if mode == 'godot-ios' else 'iOS 原生') + '：' + str(root))
         elif args.area == 'module':
             import module_context
             module_root = module_context.project_root(root)
@@ -554,6 +557,11 @@ def main():
                 if args.command == 'validate' and any(m['status'] == 'invalid' for m in report['modules']):
                     return 1
         else:
+            import sys
+            platform_scripts = safe(root, '.agents/skills/iOS/scripts')
+            if not (platform_scripts / 'install_logging.py').is_file():
+                raise ValueError('缺少 iOS 日志组件安装工具')
+            sys.path.insert(0, str(platform_scripts))
             import install_logging
             result = install_logging.install(root, args.destination, args.language)
             print(json.dumps(result, ensure_ascii=False, indent=2) if args.json else

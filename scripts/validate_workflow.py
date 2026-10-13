@@ -3,7 +3,7 @@
 import re
 import json
 from pathlib import Path
-from package_release import FILES, SKILL
+from package_release import FILES, SKILL, GODOT_SKILL, CORE
 
 
 def validate_profile_overlap(config):
@@ -31,14 +31,16 @@ def validate(root):
                 parent = root / 'requirements' if name.endswith('/templates/requirement.md') else path.parent
                 if not (parent / target).resolve().exists():
                     errors.append(f'{name} 的链接不存在：{target}')
-    skill = root / '.agents/skills/ios-team-flow/SKILL.md'
-    if skill.exists() and not re.match(r'---\nname: ios-team-flow\ndescription: [^\n]+\n---\n', skill.read_text()):
-        errors.append('Skill 元数据不完整')
+    for directory in (SKILL, GODOT_SKILL):
+        skill = root / directory / 'SKILL.md'
+        name = Path(directory).name.lower()
+        if skill.exists() and not re.match(r'---\nname: ' + name + r'\ndescription: [^\n]+\n---\n', skill.read_text()):
+            errors.append(name + ' Skill 元数据不完整')
     if len((root / 'AGENTS.md').read_bytes()) >= 32768:
         errors.append('AGENTS.md 超出默认 32 KiB 预算')
-    if not re.fullmatch(r'\d+\.\d+\.\d+', (root / SKILL / 'references/VERSION').read_text().strip()):
+    if not re.fullmatch(r'\d+\.\d+\.\d+', (root / CORE / 'references/VERSION').read_text().strip()):
         errors.append('版本格式错误')
-    version = (root / SKILL / 'references/VERSION').read_text().strip()
+    version = (root / CORE / 'references/VERSION').read_text().strip()
     readme = (root / 'README.md').read_text()
     if '当前版本为 **' + version + '**' not in readme:
         errors.append('README 当前版本与 VERSION 不一致')

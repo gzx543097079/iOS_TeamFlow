@@ -1,0 +1,34 @@
+# Godot 验证与证据
+
+沿用[共用验证和证据机制](../../../teamflow-core/references/CHECKS.md)。profile 名称由项目配置决定；不增加独立状态表。
+
+## 检查选择
+
+| 变化 | 验证 |
+| --- | --- |
+| 脚本、场景和资源 | 资源导入／加载 + 受影响的逻辑或场景测试 |
+| 输入、UI、渲染、动画和声音 | 上述检查 + 有画面的实际运行及受影响操作 |
+| 性能或加载 | 指定设备、构建模式、场景、时长和目标，记录帧时间／内存等实际结果 |
+| 导出预设或原生插件 | Godot 检查 + iOS 导出与 Xcode 构建 + 适用真机场景 |
+| 发布 | 目标最终产物核对、必要设备验证及明确外部动作 |
+
+`--headless --editor --import` 只证明导入检查，不能当作玩法、视觉或 iOS 验收。测试脚本由项目维护，失败须显式 `quit(1)`；捕获引擎错误，即使进程退出 0 也不能标通过。退出超时按失败处理，不无限等待。
+
+## 可复用检查入口
+
+[verify_godot.py](../scripts/verify_godot.py) 接受实际游戏根与项目测试脚本，执行导入和测试。默认查找 PATH 中 godot／godot4 或 macOS 既有 Godot 安装；可传 `--godot` 指定已有可执行文件。不安装引擎或插件。
+
+```sh
+python3 .agents/skills/Godot/scripts/verify_godot.py \
+  --project game --test-script tests/run_tests.gd
+```
+
+测试脚本相对游戏资源根，必须存在；只有明确选择 `--import-only` 才单独检查导入。日志写入游戏根 `.godot/teamflow-checks/`；这类缓存不提交，TeamFlow profile 的完整输出另由核心保存。工具不伪造不存在的项目测试。
+
+需要复现固定引擎版本时传 `--expect-version 4.7.2`（替换为项目实际版本）；版本不匹配即失败。每个阶段默认最多 120 秒，可用 `--timeout` 按实际项目调整。
+
+[配置示例](../assets/project-checks.example.json) 假定游戏位于 `game/`，并已有 `game/tests/run_tests.gd`。先按实际结构修改，再合并进已有 `.agents/project-checks.json`；不覆盖原 profile。输入必须覆盖脚本、场景、资源、导入配置、导出预设和原生插件的实际源码。将 `.godot/` 加入项目 `.gitignore`，保留持久 UID 与源资源。
+
+iOS 构建 profile 必须运行真实导出和构建脚本，可通过 `extends` 包含游戏检查；尚未配置就记未验证，不能用空命令代替。混合原生／Godot 改动使用覆盖两部分的组合 profile。人工视觉、设备或平台条件保持未勾选，等待真实证据后确认。
+
+依据：[官方命令行参考](https://docs.godotengine.org/en/stable/tutorials/editor/command_line_tutorial.html)。

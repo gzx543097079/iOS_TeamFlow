@@ -8,7 +8,7 @@
 
 | 稳定信息 | 实际值或入口 |
 | --- | --- |
-| 工程/Workspace/生成配置、目标 App/Target/Scheme | 待核实 |
+| 工程入口、生成配置、目标应用／游戏及构建入口 | 待核实 |
 | 语言、UI 框架、架构及相关目录 | 待核实 |
 | 最低系统、工具链、依赖与锁文件入口 | 待核实 |
 | 环境/签名/权限/资源的配置入口（不抄动态值） | 按需填写 |
@@ -19,7 +19,7 @@
 
 ## 模块路由（项目较大时按需建立）
 
-仅在启用模块索引时保留此节：链接 `.agents/project-modules.json` 及已有架构资料，不复制模块字段、动态结果或实现摘要。建立、检查与更新遵循 `.agents/skills/ios-team-flow/references/MODULE-CONTEXT.md`。
+仅在启用模块索引时保留此节：链接 `.agents/project-modules.json` 及已有架构资料，不复制模块字段、动态结果或实现摘要。建立、检查与更新遵循 `.agents/teamflow-core/references/MODULE-CONTEXT.md`。
 
 ## 已知限制（有实际发现才填写）
 

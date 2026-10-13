@@ -1,0 +1,15 @@
+{
+  "schema_version": 2,
+  "profiles": {
+    "godot-check": {
+      "inputs": ["game", ".agents/skills/Godot/scripts/verify_godot.py"],
+      "checks": {
+        "game-tests": {
+          "argv": ["python3", ".agents/skills/Godot/scripts/verify_godot.py", "--project", "game", "--test-script", "tests/run_tests.gd"],
+          "cwd": ".",
+          "timeout_seconds": 300
+        }
+      }
+    }
+  }
+}

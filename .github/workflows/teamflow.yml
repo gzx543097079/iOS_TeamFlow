@@ -27,7 +27,7 @@ jobs:
           if [ "$REF_TYPE" = tag ] || [ "$EVENT" = workflow_dispatch ] || [ -z "$BASE" ] \
              || [ "$BASE" = 0000000000000000000000000000000000000000 ]; then
             echo native=true >> "$GITHUB_OUTPUT"
-          elif git diff --name-only "$BASE" HEAD | grep -qE '^(examples/|scripts/(test_demo|check_logging)\.py$|\.agents/skills/ios-team-flow/(assets/logging/|scripts/install_logging\.py$)|\.github/workflows/)'; then
+          elif git diff --name-only "$BASE" HEAD | grep -qE '^(examples/|scripts/(test_demo|check_logging)\.py$|\.agents/skills/iOS/(assets/logging/|scripts/install_logging\.py$)|\.github/workflows/)'; then
             echo native=true >> "$GITHUB_OUTPUT"
           else
             echo native=false >> "$GITHUB_OUTPUT"
@@ -85,7 +85,7 @@ jobs:
           python-version: '3.12'
       - name: 核对标签与版本
         run: |
-          version=$(cat .agents/skills/ios-team-flow/references/VERSION)
+          version=$(cat .agents/teamflow-core/references/VERSION)
           [ "$RELEASE_TAG" = "teamflow-v$version" ] || { echo "Release 标签必须与 VERSION 一致"; exit 1; }
       - name: 打包
         run: python3 scripts/package_release.py

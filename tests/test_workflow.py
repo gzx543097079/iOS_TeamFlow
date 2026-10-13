@@ -22,7 +22,7 @@ class WorkflowTests(unittest.TestCase):
         validate_workflow.validate(ROOT)
         names = set(package_release.FILES)
         self.assertIn('scripts/teamflow.py', names)
-        self.assertIn(package_release.SKILL + '/scripts/teamflow.py', names)
+        self.assertIn(package_release.CORE + '/scripts/teamflow.py', names)
 
     def test_discovery_loads_real_tests(self):
         loader = unittest.TestLoader()
@@ -36,9 +36,12 @@ class WorkflowTests(unittest.TestCase):
         import shutil
         with tempfile.TemporaryDirectory() as directory:
             project = Path(directory)
-            skill = project / '.agents/skills/ios-team-flow'
+            skill = project / package_release.CORE
             skill.parent.mkdir(parents=True)
-            shutil.copytree(ROOT / package_release.SKILL, skill)
+            shutil.copytree(ROOT / package_release.CORE, skill)
+            native = project / package_release.SKILL
+            native.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(ROOT / package_release.SKILL, native)
             (project / 'AGENTS.md').write_text('# 自有约束\n保留项目约定。\n')
             subprocess.run(['git', '-C', str(project), 'init', '-q'], check=True)
             command = [sys.executable, str(skill / 'scripts/teamflow.py'), '--project', str(project), 'setup']
@@ -58,7 +61,7 @@ class WorkflowTests(unittest.TestCase):
             self.assertEqual('', unchanged.stdout)
             content = (project / 'AGENTS.md').read_text()
             self.assertIn('保留项目约定。', content)
-            self.assertEqual(1, content.count('<!-- ios-team-flow:start -->'))
+            self.assertEqual(1, content.count('<!-- teamflow:start -->'))
             self.assertIn('SKILL.md', content)
             self.assertEqual(1, (project / '.gitignore').read_text().count('/logs/project-checks/'))
             self.assertTrue((project / 'requirements').is_dir())
@@ -77,9 +80,9 @@ class WorkflowTests(unittest.TestCase):
 
             linked = subprocess.run(command + ['--claude-skill-link'], capture_output=True, text=True)
             self.assertEqual(0, linked.returncode, linked.stderr)
-            link = project / '.claude/skills/ios-team-flow'
+            link = project / '.claude/skills/ios'
             self.assertTrue(link.is_symlink())
-            self.assertEqual(skill.resolve(), link.resolve())
+            self.assertEqual(native.resolve(), link.resolve())
             self.assertTrue((link / 'SKILL.md').is_file())
             subprocess.run(command + ['--claude-skill-link'], check=True, capture_output=True)
             os.unlink(link); link.mkdir()

@@ -4,32 +4,48 @@ import hashlib
 import re
 import zipfile
 from pathlib import Path
-SKILL = '.agents/skills/ios-team-flow'
+SKILL = '.agents/skills/iOS'
+CORE = '.agents/teamflow-core'
+CORE_FILES = tuple(CORE + '/' + name for name in (
+    'scripts/diagnostics.py', 'scripts/teamflow_common.py', 'scripts/requirement_model.py',
+    'scripts/module_context.py', 'scripts/teamflow.py', 'scripts/project_checks.py', 'scripts/setup_project.py',
+    'references/WORKFLOW.md', 'references/CHECKS.md', 'references/BOUNDARIES.md', 'references/INSTALL.md',
+    'references/MODULE-CONTEXT.md', 'references/VERSION', 'references/ARCHITECTURE.md', 'references/LOCALIZATION.md',
+    'references/templates/requirement.md', 'references/templates/project-context.md', 'references/standards/comments.md',
+))
+GODOT_SKILL = '.agents/skills/Godot'
+GODOT_FILES = tuple(GODOT_SKILL + '/' + name for name in (
+    'SKILL.md', 'references/ENGINE.md', 'references/GDSCRIPT.md',
+    'references/CHECKS.md', 'references/IOS.md',
+    'scripts/verify_godot.py', 'assets/project-checks.example.json',
+))
 REFERENCES = (
-    'WORKFLOW.md', 'CHECKS.md', 'BOUNDARIES.md', 'APP-RELEASE.md', 'INSTALL.md', 'APP-LIFECYCLE.md',
-    'LOGGING.md', 'EXISTING-PROJECT.md', 'MODULE-CONTEXT.md', 'ARCHITECTURE.md', 'LOCALIZATION.md',
-    'VERSION',
-    'standards/ui.md', 'standards/comments.md', 'standards/objective-c.md', 'standards/swift.md', 'standards/swiftui.md',
-    'templates/new-project.md', 'templates/feature.md', 'templates/requirement.md', 'templates/app-release.md',
-    'templates/project-context.md',
+    'APP-RELEASE.md', 'APP-LIFECYCLE.md', 'LOGGING.md', 'EXISTING-PROJECT.md', 'ARCHITECTURE.md', 'LOCALIZATION.md',
+    'standards/ui.md', 'standards/objective-c.md', 'standards/swift.md', 'standards/swiftui.md',
+    'templates/new-project.md', 'templates/feature.md', 'templates/app-release.md',
 )
 # 仅打包明确登记的通用文件，不打包项目接入记录、需求或日志。
 FILES = (
-    'tests/test_boundaries.py', 'tests/test_diagnostics.py', SKILL + '/scripts/diagnostics.py',
+    'tests/test_boundaries.py', 'tests/test_diagnostics.py',
     'AGENTS.md', 'README.md', 'CHANGELOG.md', 'docs/RELEASE.md', '.gitignore',
     '.github/workflows/teamflow.yml',
     'scripts/check_logging.py', 'tests/test_logging_install.py',
     'scripts/teamflow.py', 'scripts/package_release.py', 'scripts/validate_workflow.py', 'scripts/run_workflow_checks.py',
     'tests/release_fixture.py', 'tests/test_consumer_release.py', 'tests/test_workflow.py', 'tests/test_project_checks.py', 'tests/test_teamflow.py', 'tests/test_module_context.py', SKILL + '/SKILL.md',
     SKILL + '/assets/logging/TFLogger.swift', SKILL + '/assets/logging/TFLogger.h', SKILL + '/assets/logging/TFLogger.m',
-    SKILL + '/scripts/install_logging.py', SKILL + '/scripts/teamflow_common.py', SKILL + '/scripts/requirement_model.py',
-    SKILL + '/scripts/module_context.py', SKILL + '/scripts/teamflow.py', SKILL + '/scripts/project_checks.py', SKILL + '/scripts/setup_project.py',
-) + tuple(SKILL + '/references/' + name for name in REFERENCES)
+    SKILL + '/scripts/install_logging.py',
+) + tuple(SKILL + '/references/' + name for name in REFERENCES) + CORE_FILES + GODOT_FILES + (
+    'docs/GODOT.md', 'tests/test_godot_extension.py',
+    'examples/TeamFlowGame/project.godot', 'examples/TeamFlowGame/main.tscn',
+    'examples/TeamFlowGame/main.gd', 'examples/TeamFlowGame/tests/run_tests.gd',
+    'examples/TeamFlowGame/main.gd.uid', 'examples/TeamFlowGame/tests/run_tests.gd.uid',
+    'examples/TeamFlowGame/.gitignore', 'examples/TeamFlowGame/README.md',
+)
 
 
 def write_package(root, prefix, entries):
     root = root.resolve()
-    version = (root / SKILL / 'references/VERSION').read_text().strip()
+    version = (root / CORE / 'references/VERSION').read_text().strip()
     if not re.fullmatch(r'\d+\.\d+\.\d+', version):
         raise ValueError('VERSION 必须为 X.Y.Z')
     for name in entries:
@@ -55,15 +71,23 @@ def write_package(root, prefix, entries):
 
 
 def package(root):
-    return write_package(root, 'iOS-TeamFlow-v', {name: name for name in FILES})
+    return write_package(root, 'TeamFlow-v', {name: name for name in FILES})
 
 
 def package_skill(root):
-    return write_package(root, 'ios-team-flow-skill-v', {
-        name: 'ios-team-flow/' + name[len(SKILL) + 1:]
-        for name in FILES if name.startswith(SKILL + '/')})
+    return write_package(root, 'teamflow-ios-v', {
+        name: name[len('.agents/'):]
+        for name in FILES if name.startswith((CORE + '/', SKILL + '/'))})
+
+
+def package_godot(root):
+    """扩展包自带同版核心；跨 Skill 引用在解压后仍然有效。"""
+    return write_package(root, 'teamflow-godot-v', {
+        name: name[len('.agents/'):]
+        for name in FILES if name.startswith((CORE + '/', SKILL + '/', GODOT_SKILL + '/'))})
 
 
 if __name__ == '__main__':
     package(Path(__file__).resolve().parents[1])
     package_skill(Path(__file__).resolve().parents[1])
+    package_godot(Path(__file__).resolve().parents[1])

@@ -30,7 +30,7 @@
     },
     "workflow": {
       "inputs": [
-        ".agents/skills/ios-team-flow",
+        ".agents/skills",
         ".github",
         ".gitignore",
         "AGENTS.md",
@@ -43,7 +43,12 @@
         "tests",
         ".agents/project-modules.json",
         "CHANGELOG.md",
-        "docs"
+        "docs",
+        "examples/TeamFlowGame",
+        ".agents/teamflow-core",
+        "examples/TeamFlowDemo/README.md",
+        "examples/TeamFlowDemo/Resources/zh-Hans.lproj/Localizable.strings",
+        "examples/TeamFlowDemo/Resources/en.lproj/Localizable.strings"
       ],
       "checks": {
         "workflow-tests": {
@@ -60,12 +65,14 @@
       "inputs": [
         "AGENTS.md",
         "README.md",
-        ".agents/skills/ios-team-flow/SKILL.md",
-        ".agents/skills/ios-team-flow/references",
+        ".agents/skills/iOS/SKILL.md",
+        ".agents/skills/iOS/references",
         "scripts/validate_workflow.py",
         "scripts/package_release.py",
         "CHANGELOG.md",
-        "docs"
+        "docs",
+        ".agents/skills/Godot",
+        ".agents/teamflow-core"
       ],
       "checks": {
         "workflow-docs": {
@@ -88,6 +95,35 @@
           ],
           "cwd": ".",
           "timeout_seconds": 300
+        }
+      }
+    },
+    "workflow-godot-review": {
+      "extends": "workflow-release",
+      "checks": {
+        "godot-example": {
+          "argv": [
+            "python3",
+            ".agents/skills/Godot/scripts/verify_godot.py",
+            "--project",
+            "examples/TeamFlowGame",
+            "--test-script",
+            "tests/run_tests.gd",
+            "--expect-version",
+            "4.7.2"
+          ],
+          "cwd": ".",
+          "timeout_seconds": 300
+        },
+        "demo-strings": {
+          "argv": [
+            "plutil",
+            "-lint",
+            "examples/TeamFlowDemo/Resources/zh-Hans.lproj/Localizable.strings",
+            "examples/TeamFlowDemo/Resources/en.lproj/Localizable.strings"
+          ],
+          "cwd": ".",
+          "timeout_seconds": 60
         }
       }
     }

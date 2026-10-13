@@ -1,5 +1,14 @@
 # 版本记录
 
+## 5.0.0
+
+- 调整安装路径、Skill 名称和安装包结构；升级需迁移共用核心并重新接入，保留 4.x 需求卡和项目验证配置。
+- 共用流程、工具、版本和模板抽到 `.agents/teamflow-core/`，原生与游戏 Skill 分别依赖；安装包解压目标统一为 `.agents/`。
+- 增加 Godot 4.x + GDScript Skill，复用唯一 TeamFlow 核心，区分游戏工程与 iOS 原生／发布规则。
+- setup 用 `--mode ios` 或 `--mode godot-ios` 区分原生与游戏安装，重复接入沿用已有选择；Claude 可选链接按模式同步。
+- 增加带核心依赖的 Godot 分发包、检查入口、配置示例和最小场景行为演练。
+- 验证覆盖工具回归及 Godot 场景；iOS 导出、真机与 App 发布尚未验证。
+
 ## 4.0.1
 
 - `req status` 吸收原 `req resume` 的证据有效性、问题与下一步，删除 `req resume`。

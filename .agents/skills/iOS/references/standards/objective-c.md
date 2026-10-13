@@ -14,6 +14,6 @@
 - App 用户可见文本通过 `NSLocalizedString` 或项目现有封装读取，并按 [多语言文本生成规则](../LOCALIZATION.md) 使用层级可伸缩的点分键；不在 `.h/.m/.mm` 中直接写最终展示文案。
 - 变更验证：使用工程现有 clang-format 配置检查改动文件；运行相关构建和测试，涉及所有权时用 Xcode Analyze、Memory Graph / Instruments 补证据。没有工具记录未验证，不声称零泄漏。
 
-- 新生成和本次修改的代码按 [中文注释规范](comments.md) 补充职责、接口契约与关键逻辑说明。
+- 新生成和本次修改的代码按 [中文注释规范](../../../../teamflow-core/references/standards/comments.md) 补充职责、接口契约与关键逻辑说明。
 
 - 新工程自动接入 [分级日志](../LOGGING.md)，Debug 默认全量、Release 关闭；新增日志使用对应原生入口，消息不得含敏感数据或业务必需副作用。

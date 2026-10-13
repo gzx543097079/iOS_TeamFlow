@@ -1,0 +1,18 @@
+; TeamFlow 的最小场景验证样例，不包含 iOS 导出配置或真实账号。
+config_version=5
+
+[application]
+config/name="TeamFlowGame"
+run/main_scene="res://main.tscn"
+
+[display]
+window/size/viewport_width=480
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+
+[debug]
+file_logging/enable_file_logging=false

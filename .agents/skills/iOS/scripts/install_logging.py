@@ -12,7 +12,7 @@ def install(project, destination, language):
     """预检全部目标，保留既有定制；重复安装相同内容不会重写文件。"""
     root = project.resolve()
     skill = Path(__file__).resolve().parents[1]
-    if skill != root / '.agents/skills/ios-team-flow':
+    if skill != root / '.agents/skills/iOS':
         raise ValueError('请使用当前项目内的日志安装工具')
     relative = Path(destination)
     if (relative.is_absolute() or '..' in relative.parts or not relative.parts

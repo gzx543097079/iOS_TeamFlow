@@ -7,7 +7,7 @@
 在仓库根目录执行：
 
 ```sh
-python3 .agents/skills/ios-team-flow/scripts/project_checks.py --project . run --profile ios-demo
+python3 scripts/teamflow.py verify run --profile ios-demo
 ```
 
 ios-demo profile 同时执行 Debug 的单元/UI 测试和 Release 的单元测试；日志消息求值测试分别验证 Debug 执行、Release 不执行。源码通过项目内 TFLog 接入，五等级仅 Debug 输出，生产调用不含测试开关。

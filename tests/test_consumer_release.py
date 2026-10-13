@@ -21,9 +21,9 @@ class ConsumerReleaseTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         with zipfile.ZipFile(self.archive) as archive:
-            archive.extractall(self.root / '.agents/skills')
+            archive.extractall(self.root / '.agents')
         subprocess.run(['git', '-C', str(self.root), 'init', '-q'], check=True)
-        setup = self.root / '.agents/skills/ios-team-flow/scripts/teamflow.py'
+        setup = self.root / '.agents/teamflow-core/scripts/teamflow.py'
         result = subprocess.run([sys.executable, str(setup), '--project', str(self.root), 'setup'],
                                 capture_output=True, text=True)
         self.assertEqual(0, result.returncode, result.stderr)

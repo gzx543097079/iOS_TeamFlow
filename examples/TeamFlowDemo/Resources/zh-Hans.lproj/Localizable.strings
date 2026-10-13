@@ -6,7 +6,7 @@
 "settings.language.option.english" = "English";
 "settings.language.option.simplifiedChinese" = "简体中文";
 "settings.about.appName" = "TeamFlow Demo";
-"settings.about.description" = "使用 iOS TeamFlow 工作流构建的本地商城演示。商品与价格为示例，不提供真实购买。";
+"settings.about.description" = "使用 TeamFlow 工作流构建的本地商城演示。商品与价格为示例，不提供真实购买。";
 "settings.about.version" = "版本 %1$@（%2$@）";
 "settings.appearance.title" = "外观模式";
 "settings.appearance.option.system" = "跟随系统";

@@ -7,7 +7,7 @@ import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
-ASSETS = ROOT / '.agents/skills/ios-team-flow/assets/logging'
+ASSETS = ROOT / '.agents/skills/iOS/assets/logging'
 SWIFT_MAIN = r'''
 var calls = 0
 // 副作用仅用于验证 Release 的延迟求值边界。
