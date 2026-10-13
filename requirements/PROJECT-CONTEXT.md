@@ -1,7 +1,7 @@
 # Demo 工程现状
 
-- 对象：App/TeamFlowDemo，内部本地演练 App，不连接交易服务。
-- 来源：App/TeamFlowDemo/README.md、project.yml、Sources、共享 Scheme；2026-09-14 核对。
+- 对象：examples/TeamFlowDemo，内部本地演练 App，不连接交易服务。
+- 来源：examples/TeamFlowDemo/README.md、project.yml、Sources、共享 Scheme；2026-09-14 核对。
 - Swift + UIKit，iOS 14，导航栈无 Tab，系统语义颜色；XcodeGen 2.46.0 配置与 .xcodeproj 一起维护。
 - 日志：Sources/Shared/Logging/TFLogger.swift，Debug 全量，Release 不输出；自动布局通过 CocoaPods 接入 Masonry 1.1.0，Podfile.lock 固定版本；pod install 后打开 TeamFlowDemo.xcworkspace，桥接头供 Swift 使用。
 - 验证入口：.agents/project-checks.json 的 ios-demo（Debug 单元/UI、Release 单元），scripts/test_demo.py 按实际可用模拟器执行。
