@@ -1,6 +1,6 @@
 # iOS TeamFlow
 
-面向 Codex 驱动开发的中文 iOS 工作流。当前版本为 **3.3.4**。
+面向 Codex 驱动开发的中文 iOS 工作流。当前版本为 **3.3.5**。
 
 需求、实施、验证与显式交付的规则见 [WORKFLOW](.agents/skills/ios-team-flow/references/WORKFLOW.md)；[Skill 入口](.agents/skills/ios-team-flow/SKILL.md) 按任务加载工程专题。
 
@@ -18,10 +18,10 @@ mkdir -p .agents/skills
 
 先运行 `git rev-parse --show-toplevel` 核对是否已属于 Git 仓库；只有不属于任何仓库时才运行 `git init`。如果显示的是上级仓库根，改在该仓库根接入，或另选仓库外的目录，不创建嵌套仓库。已有 Git 项目直接进入其根目录，仅执行 `mkdir -p .agents/skills`。
 
-从 [v3.3.4 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v3.3.4) 下载独立 Skill 包 `ios-team-flow-skill-v3.3.4.zip`。例如下载到 `~/Downloads` 后，在项目根解压并接入：
+从 [v3.3.5 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v3.3.5) 下载独立 Skill 包 `ios-team-flow-skill-v3.3.5.zip`。例如下载到 `~/Downloads` 后，在项目根解压并接入：
 
 ```sh
-unzip ~/Downloads/ios-team-flow-skill-v3.3.4.zip -d .agents/skills
+unzip ~/Downloads/ios-team-flow-skill-v3.3.5.zip -d .agents/skills
 python3 .agents/skills/ios-team-flow/scripts/setup_project.py --project .
 ```
 
