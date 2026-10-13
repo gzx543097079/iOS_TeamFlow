@@ -14,7 +14,6 @@ xcuserdata/
 *.p8
 *.mobileprovision
 
-/App/TeamFlowDemo/Pods/
+/examples/TeamFlowDemo/Pods/
 
-/.teamflow-tmp/
 /logs/project-checks/

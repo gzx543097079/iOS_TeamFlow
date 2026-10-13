@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
-"""把 TeamFlow 接入项目并诊断实际文件。"""
-import argparse
-import difflib
-import json
+"""把 TeamFlow 接入项目并诊断实际文件；由 teamflow setup / doctor 调用。"""
+import os
 import re
 import shutil
 import subprocess
-import sys
 from pathlib import Path
 from teamflow_common import local_path as safe
 
@@ -15,13 +12,12 @@ END = '<!-- ios-team-flow:end -->'
 BLOCK = '''<!-- ios-team-flow:start -->
 ## iOS 工作流
 
-读取项目内 `.agents/skills/ios-team-flow/SKILL.md`，由其路由主流程与专题。
-项目空间是项目根及其目录树；处理空间外对象前，说明范围和操作并取得用户本次明确允许。
-开发工具使用官方或既有包管理器默认位置；无法直接默认安装时停止，说明原因及安装、验证命令。
-使用 `python3 scripts/teamflow.py`。主流程与状态以 Skill 的 `references/WORKFLOW.md` 为唯一规则来源。
-验证强度与截图范围按主流程、项目检查及 UI 专题执行。
+读取并遵循 `.agents/skills/ios-team-flow/SKILL.md`；命令使用 `python3 scripts/teamflow.py`。
 <!-- ios-team-flow:end -->
 '''
+IGNORE = '/logs/project-checks/'
+CLAUDE_LINK = '.claude/skills/ios-team-flow'
+CLAUDE_TARGET = '../../.agents/skills/ios-team-flow'
 ENTRY = '''#!/usr/bin/env python3
 """从项目内 Skill 加载 TeamFlow 唯一实现。"""
 import runpy
@@ -63,16 +59,31 @@ def plan(project, skill):
         if path.exists() and path not in (agents, entry) and not path.is_dir():
             raise ValueError('接入目标类型不正确：' + str(path.relative_to(project)))
     current = agents.read_text() if agents.exists() else ''
-    return {
+    ignore = safe(project, '.gitignore')
+    ignored = ignore.read_text() if ignore.exists() else ''
+    planned = {
         'AGENTS.md': agents_content(current).encode(),
         'scripts/teamflow.py': ENTRY.encode(),
-
     }
+    # 验证日志只作本地证据，需求卡保存可复核的指纹摘要。
+    if IGNORE not in ignored.split('\n'):
+        planned['.gitignore'] = (ignored + ('' if not ignored or ignored.endswith('\n') else '\n')
+                                 + IGNORE + '\n').encode()
+    return planned
 
 
-def setup(project, skill, dry_run=False):
+def claude_link_ready(project):
+    link = project / CLAUDE_LINK
+    return link.is_symlink() and os.readlink(link) == CLAUDE_TARGET
+
+
+def setup(project, skill, dry_run=False, claude_link=False):
+    """返回计划写入的文件；claude_link 额外让 Claude Code 把 Skill 识别为原生 Skill。"""
     project = project.expanduser().resolve()
     planned = plan(project, skill)
+    link = project / CLAUDE_LINK
+    if claude_link and not claude_link_ready(project) and (link.exists() or link.is_symlink()):
+        raise ValueError(CLAUDE_LINK + ' 已存在且不是指向本项目 Skill 的软链接')
     if dry_run:
         return planned
     for name, data in planned.items():
@@ -80,7 +91,10 @@ def setup(project, skill, dry_run=False):
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(data)
     safe(project, 'requirements').mkdir(exist_ok=True)
-    print('项目已接入 ios-team-flow：' + str(project))
+    if claude_link and not claude_link_ready(project):
+        safe(project, '.claude/skills').mkdir(parents=True, exist_ok=True)
+        link.symlink_to(CLAUDE_TARGET, target_is_directory=True)
+    return planned
 
 
 def diagnose(project):
@@ -111,37 +125,5 @@ def diagnose(project):
         config_ready = False
     add('项目验证', config_ready, '工程就绪后配置实际构建/测试命令')
     add('Xcode', bool(shutil.which('xcodebuild')), '只检查工具入口')
-    report = {'project': str(project), 'checks': items,
-              'needs_action': any(item['status'] == '需处理' for item in items)}
-    print(json.dumps(report, ensure_ascii=False, indent=2))
-    return report
-
-
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--project', required=True, type=Path)
-    parser.add_argument('--plan', action='store_true')
-    parser.add_argument('--doctor', action='store_true')
-    args = parser.parse_args()
-    try:
-        if args.doctor:
-            if args.plan:
-                raise ValueError('--doctor 与 --plan 不能组合')
-            diagnose(args.project)
-        else:
-            planned = setup(args.project, Path(__file__).resolve().parents[1], args.plan)
-            if args.plan:
-                for name, data in planned.items():
-                    target = safe(args.project.resolve(), name)
-                    current = target.read_text() if target.exists() else ''
-                    sys.stdout.writelines(difflib.unified_diff(
-                        current.splitlines(keepends=True), data.decode('utf-8').splitlines(keepends=True),
-                        fromfile=name, tofile=name))
-            else:
-                diagnose(args.project)
-    except (ValueError, OSError, KeyError, TypeError, subprocess.CalledProcessError) as error:
-        parser.exit(1, str(error) + '\n')
-
-
-if __name__ == '__main__':
-    main()
+    return {'project': str(project), 'checks': items,
+            'needs_action': any(item['status'] == '需处理' for item in items)}

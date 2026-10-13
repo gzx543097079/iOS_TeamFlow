@@ -4,9 +4,9 @@
 
 ## 新工程自动接入
 
-新产品仍先确认启动范围；确认后生成工程时，Codex 将以下步骤与工程生成一并完成，无需再次询问是否添加日志。仅安装工作流的 setup_project 不生成 App 或提前复制业务组件。
+新产品仍先确认启动范围；确认后生成工程时，Agent 将以下步骤与工程生成一并完成，无需再次询问是否添加日志。仅接入工作流的 `teamflow setup` 不生成 App 或提前复制业务组件。
 
-1. 从当前工程语言选择 swift / objc / mixed，确定真实业务源码目录；从项目根调用 `python3 .agents/skills/ios-team-flow/scripts/install_logging.py --language swift --destination App/MyApp/Sources/Support/Logging`，将示例路径和语言替换为实际值。源码来自 Skill 的 assets/logging，不依赖个人安装。相同内容重复执行不重写；不同内容拒绝覆盖，先比较并合并。
+1. 从当前工程语言选择 swift / objc / mixed，确定真实业务源码目录；从项目根调用 `python3 scripts/teamflow.py logging install --language swift --destination App/MyApp/Sources/Support/Logging`，将示例路径和语言替换为实际值。源码来自 Skill 的 assets/logging，不依赖个人安装。相同内容重复执行不重写；不同内容拒绝覆盖，先比较并合并。
 2. 将返回的 .swift/.m 文件自动加入目标的 Compile Sources，.h 加入工程可见文件；使用 XcodeGen 时纳入目标 sources，SwiftPM 放入实际 target 源目录或 sources 列表，直接生成 .xcodeproj 时建立文件引用和 Sources Build Phase。禁止只复制文件就宣布接入完成。多个 Target 按实际调用范围分别加入，不能同时重复编译同一份实现。
 3. 配置实际 Debug：Swift Active Compilation Conditions 含 DEBUG，OC Preprocessor Macros 含 DEBUG=1；Release 及用于分发的自定义配置均移除 DEBUG（OC 可设 DEBUG=0），保留其他继承配置。仅设置 -O 优化不会关闭 DEBUG。混编要分别核对两套条件；SwiftPM 用构建系统对应条件，不混用 Xcode 字段。
 4. 新生成业务代码使用 TFLog / TFL 宏。至少加入一个有实际意义的 Debug 调用；核对 Debug 和 Release 构建设置，实际构建/运行验证输出与目标成员关系。验证写入项目的检查配置和需求 AC，工具缺失时保留未验证，不用文件存在证明接入。

@@ -19,7 +19,7 @@
 
 ## 模块路由（项目较大时按需建立）
 
-仅在启用模块索引时保留此节：链接 `.agents/project-modules.json` 及已有架构资料，不复制模块字段、基准、动态结果或实现摘要。建立、检查与更新遵循 `.agents/skills/ios-team-flow/references/MODULE-CONTEXT.md`。
+仅在启用模块索引时保留此节：链接 `.agents/project-modules.json` 及已有架构资料，不复制模块字段、动态结果或实现摘要。建立、检查与更新遵循 `.agents/skills/ios-team-flow/references/MODULE-CONTEXT.md`。
 
 ## 已知限制（有实际发现才填写）
 

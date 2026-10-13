@@ -1,0 +1,97 @@
+name: TeamFlow
+on:
+  push:
+    branches: [main]
+    tags: ['teamflow-v*']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      native: ${{ steps.detect.outputs.native }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: detect
+        name: 判断是否需要 macOS 原生检查
+        env:
+          EVENT: ${{ github.event_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [ "$REF_TYPE" = tag ] || [ "$EVENT" = workflow_dispatch ] || [ -z "$BASE" ] \
+             || [ "$BASE" = 0000000000000000000000000000000000000000 ]; then
+            echo native=true >> "$GITHUB_OUTPUT"
+          elif git diff --name-only "$BASE" HEAD | grep -qE '^(examples/|scripts/(test_demo|check_logging)\.py$|\.agents/skills/ios-team-flow/(assets/logging/|scripts/install_logging\.py$)|\.github/workflows/)'; then
+            echo native=true >> "$GITHUB_OUTPUT"
+          else
+            echo native=false >> "$GITHUB_OUTPUT"
+          fi
+
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: 检查规范与工具行为
+        run: python3 scripts/run_workflow_checks.py
+      - name: 验证可分发压缩包
+        run: python3 scripts/package_release.py
+
+  native:
+    needs: changes
+    if: needs.changes.outputs.native == 'true'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: 原生日志组件
+        run: python3 scripts/check_logging.py
+      - name: Demo 测试
+        run: |
+          pod install --project-directory=examples/TeamFlowDemo
+          python3 scripts/test_demo.py
+          python3 scripts/test_demo.py --configuration Release --unit-tests-only
+
+  release:
+    needs: [checks, native]
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ github.ref_name }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: 核对标签与版本
+        run: |
+          version=$(cat .agents/skills/ios-team-flow/references/VERSION)
+          [ "$RELEASE_TAG" = "teamflow-v$version" ] || { echo "Release 标签必须与 VERSION 一致"; exit 1; }
+      - name: 打包
+        run: python3 scripts/package_release.py
+      - name: 验证通过后创建公开 Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$RELEASE_TAG" dist/*.zip dist/*.sha256 \
+            --verify-tag --title "$RELEASE_TAG" --generate-notes

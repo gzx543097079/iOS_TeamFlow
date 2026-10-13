@@ -14,4 +14,4 @@
 
 TestFlight Internal Only 需要单独明确授权。普通 TestFlight 上传默认省略 `testFlightInternalTestingOnly`；不能根据“内部测试员”或“内部测试组”自行推断启用。
 
-本模板只提示需要核对的事实；使用 `release record` 时由工具生成唯一记录，不另填模板副本。
+本模板只提示需要核对的事实；动作结果记在当前需求卡“决策与异常”，不另填模板副本。

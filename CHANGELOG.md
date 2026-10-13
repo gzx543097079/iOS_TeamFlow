@@ -1,5 +1,24 @@
 # 版本记录
 
+## 4.0.0（不兼容 3.x）
+
+- 需求卡改为头部元数据 + 自由 Markdown 正文，去掉 vnext 标记；AC 使用 `- [ ]` / `- [x]` 任务列表，工具只读写头部字段。
+- 需求编号改为 `REQ-YYYYMMDD-xxxx`，多分支并行创建不冲突。
+- 完成时把证据摘要（profile、结果、输入指纹、需求指纹、HEAD、时间）写入卡片；验证日志只留本地，`setup` 自动忽略，`git check` 拒绝暂存日志并接受移除历史日志。
+- 状态精简为进行中、待用户验证、阻塞、完成、取消；待确认、外部条件与暂停合并为阻塞类型，排队以 `queued` 标记表示。
+- `req`、`git check`、`verify`、`doctor` 默认输出简短摘要，`--json` 输出完整结构；已完成需求仅证据失效时列为历史提示。
+- 移除接入诊断中的 Python 版本要求。
+- 接入、模块索引与日志安装并入 `teamflow setup`、`teamflow module`、`teamflow logging`，不再单独调用各脚本；`setup --claude-skill-link` 可选创建 Claude Code 原生 Skill 软链接。
+- profile 支持 `extends`；`req complete` 证据缺失或失效时自动选择覆盖全部改动的最小 profile。
+- 移除 `release record` 命令与 `releases/` 记录，App 外部动作结果记在需求卡。
+- 模块索引去掉 baseline 与 `refresh`，改为与基线分支分叉点及工作区比较；`doctor` 只在索引失效时提示。
+- 文档改为 Agent 中立表述；AGENTS 托管块只保留入口和命令，规则统一由 SKILL 路由。
+- 专题按用途合并：主流程吸收 Bug 修复与流程改进；Git 动作、安全边界与代表性场景合并为 BOUNDARIES；项目检查与命令参考合并为 CHECKS 并重写证据说明；数据迁移并入 ARCHITECTURE。SKILL 路由表从 17 行减为 10 行。
+- 分发说明移至 `docs/RELEASE.md`、版本记录移至仓库根 `CHANGELOG.md`，不再进入 Skill 包。
+- 三个 GitHub 工作流合并为 `teamflow.yml`，新增 PR 触发；macOS 原生日志与 Demo 测试仅在相关路径变化或发布标签时运行。
+- Demo 移至 `examples/TeamFlowDemo`。
+- 删除废弃文件：未被路由的 SOURCES 参考、3.x 临时复现目录及其忽略规则。
+
 ## 3.3.5
 
 - 主流程按改动范围与风险选择验证强度，同一需求内的局部低风险改动集中实施、最后统一快速检查，并复用有效证据。

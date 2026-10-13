@@ -13,6 +13,15 @@ checks = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(checks)
 
 
+R1, R2 = 'REQ-20260101-0001', 'REQ-20260101-0002'
+
+
+def card(scope, acs, excluded='无', state='进行中', title='标题', requirement=R1):
+    lines = ''.join(f'- [{"x" if done else " "}] {name}：{text}\n' for name, text, done in acs)
+    return (f'---\nid: {requirement}\nstate: {state}\n---\n\n# {title}\n\n## 范围\n\n{scope}\n\n'
+            f'## 不包含\n\n{excluded}\n\n## 验收条件\n\n{lines}')
+
+
 class ProjectChecksTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -97,42 +106,38 @@ class ProjectChecksTests(unittest.TestCase):
         self.config({'ok': {'argv': [sys.executable, '-c', 'pass']}})
         directory = self.root / 'requirements'
         directory.mkdir()
-        card = directory / 'REQ-0001.md'
-        initial = ('# REQ-0001\n<!-- teamflow:requirement:vnext -->\n'
-                   '- 状态：🔵 进行中\n- 范围：修复提示\n'
-                   '- ⚪ AC-01：显示结果\n\n## 验证\n- 验证证据：—\n')
-        card.write_text(initial)
-        result, passed = checks.run(self.root, 'change', 'REQ-0001')
+        path = directory / (R1 + '.md')
+        initial = card('修复提示', [('AC-01', '显示结果', False)])
+        path.write_text(initial)
+        result, passed = checks.run(self.root, 'change', R1)
         self.assertTrue(passed)
         relative = str(result.relative_to(self.root))
-        (directory / 'REQ-0002.md').write_text('其他需求')
-        card.write_text(initial.replace('🔵 进行中', '🟣 待用户验证')
-                       .replace('⚪ AC-01', '✅ AC-01').replace('证据：—', '证据：验证通过'))
+        (directory / (R2 + '.md')).write_text('其他需求')
+        path.write_text(card('修复提示', [('AC-01', '显示结果', True)], state='待用户验证')
+                        .replace('state: 待用户验证', 'state: 待用户验证\nevidence:\n  kind: result'))
         checks.verify(self.root, relative)
         for old, new in [('修复提示', '增加提示'), ('显示结果', '显示新结果')]:
-            card.write_text(initial.replace(old, new))
+            path.write_text(initial.replace(old, new))
             with self.assertRaises(ValueError):
                 checks.verify(self.root, relative)
-        card.unlink()
+        path.unlink()
         with self.assertRaises(ValueError):
             checks.verify(self.root, relative)
 
     def test_requirement_semantics_ignore_display_but_track_scope_exclusions_and_conditions(self):
         self.config({'ok': {'argv': [sys.executable, '-c', 'pass']}})
         directory = self.root / 'requirements'; directory.mkdir()
-        card = directory / 'REQ-0001.md'
-        original = ('# 原标题\n<!-- teamflow:requirement:vnext -->\n'
-                    '- 状态：🔵 进行中\n- 范围：显示结果\n- 不包含：支付\n'
-                    '- ⚪ AC-01：文字正确\n- ⚪ AC-02：点击有效\n')
-        card.write_text(original)
-        result, _ = checks.run(self.root, 'change', 'REQ-0001')
+        path = directory / (R1 + '.md')
+        original = card('显示结果', [('AC-01', '文字正确', False), ('AC-02', '点击有效', False)], excluded='支付')
+        path.write_text(original)
+        result, _ = checks.run(self.root, 'change', R1)
         relative = str(result.relative_to(self.root))
-        display = original.replace('原标题', '新标题').replace('- 范围：显示结果', '  - 范围：  显示结果  ')
-        display = display.replace('- ⚪ AC-01：文字正确', '  - ✅ AC-01：  文字正确  ')
-        card.write_text(display + '\n## 决策与异常\n说明\n')
+        display = original.replace('标题', '新标题').replace('\n显示结果\n', '\n  显示结果  \n')
+        display = display.replace('- [ ] AC-01：文字正确', '  - [x] AC-01：  文字正确  ')
+        path.write_text(display + '\n## 决策与异常\n说明\n')
         checks.verify(self.root, relative)
         for old, new in [('显示结果', '隐藏结果'), ('支付', '登录'), ('点击有效', '点击无效')]:
-            card.write_text(original.replace(old, new))
+            path.write_text(original.replace(old, new))
             with self.assertRaisesRegex(ValueError, '源码或配置已变化'):
                 checks.verify(self.root, relative)
 
@@ -146,12 +151,12 @@ class ProjectChecksTests(unittest.TestCase):
         config_path.write_text(json.dumps(config))
         directory = self.root / 'requirements'
         directory.mkdir()
-        (directory / 'REQ-0001.md').write_text('<!-- teamflow:requirement:vnext -->\n- 状态：🔵 进行中\n- 范围：范围\n- ⚪ AC-01：结果\n')
+        (directory / (R1 + '.md')).write_text(card('范围', [('AC-01', '结果', False)]))
         context = directory / 'PROJECT-CONTEXT.md'
         context.write_text('工程配置入口')
-        result, _ = checks.run(self.root, 'change', 'REQ-0001')
+        result, _ = checks.run(self.root, 'change', R1)
         relative = str(result.relative_to(self.root))
-        (directory / 'REQ-0002.md').write_text('无关需求')
+        (directory / (R2 + '.md')).write_text('无关需求')
         checks.verify(self.root, relative)
         context.write_text('新的工程入口')
         with self.assertRaises(ValueError):
@@ -164,19 +169,19 @@ class ProjectChecksTests(unittest.TestCase):
         git('init', '-q')
         self.config({'ok': {'argv': [sys.executable, '-c', 'pass']}})
         (self.root / 'requirements').mkdir()
-        card = self.root / 'requirements/REQ-0001.md'
-        card.write_text('<!-- teamflow:requirement:vnext -->\n- 状态：🔵 进行中\n- 范围：范围\n- ⚪ AC-01：结果\n')
+        path = self.root / 'requirements' / (R1 + '.md')
+        path.write_text(card('范围', [('AC-01', '结果', False)]))
         git('add', '.')
-        result, _ = checks.run(self.root, 'change', 'REQ-0001')
+        result, _ = checks.run(self.root, 'change', R1)
         relative = str(result.relative_to(self.root))
         config_path = self.root / checks.CONFIG
         config = json.loads(config_path.read_text())
         config['profiles']['other'] = {'checks': {'other': {'argv': [sys.executable, '-c', 'pass']}}}
         config_path.write_text(json.dumps(config, indent=2))
-        card.write_text(card.read_text().replace('⚪ AC-01', '✅ AC-01'))
+        path.write_text(path.read_text().replace('- [ ] AC-01', '- [x] AC-01'))
         checks.verify(self.root, relative, staged=True)
-        card.write_text(card.read_text().replace('结果', '新结果'))
-        result, _ = checks.run(self.root, 'change', 'REQ-0001')
+        path.write_text(path.read_text().replace('结果', '新结果'))
+        result, _ = checks.run(self.root, 'change', R1)
         relative = str(result.relative_to(self.root))
         with self.assertRaisesRegex(ValueError, '暂存内容'):
             checks.verify(self.root, relative, staged=True)
@@ -184,7 +189,7 @@ class ProjectChecksTests(unittest.TestCase):
         checks.verify(self.root, relative, staged=True)
         config['profiles']['change']['checks']['ok']['timeout_seconds'] = 901
         config_path.write_text(json.dumps(config))
-        result, _ = checks.run(self.root, 'change', 'REQ-0001')
+        result, _ = checks.run(self.root, 'change', R1)
         relative = str(result.relative_to(self.root))
         with self.assertRaisesRegex(ValueError, '暂存内容'):
             checks.verify(self.root, relative, staged=True)
@@ -263,25 +268,13 @@ class ProjectChecksTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             checks.verify(self.root, str(path.relative_to(self.root)))
 
-    def test_requirement_snapshot_ignores_colored_status_and_ac_progress(self):
-        pending = '''# REQ-0001
-<!-- teamflow:requirement:vnext -->
-
-- 状态：🔵 进行中
-- 范围：显示提示
-- ⚪ AC-01：显示结果
-
-## 验证
-
-- 验证状态：⚪ 未验证
-'''.encode()
-        completed = pending.replace('🔵 进行中'.encode(), '✅ 完成'.encode())
-        completed = completed.replace('- ⚪ AC-01'.encode(), '- ✅ AC-01'.encode())
-        self.assertEqual(checks.content_for_snapshot('requirements/REQ-0001.md', pending),
-                         checks.content_for_snapshot('requirements/REQ-0001.md', completed))
+    def test_requirement_snapshot_ignores_status_and_ac_progress(self):
+        name = 'requirements/' + R1 + '.md'
+        pending = card('显示提示', [('AC-01', '显示结果', False)]).encode()
+        completed = card('显示提示', [('AC-01', '显示结果', True)], state='完成').encode()
+        self.assertEqual(checks.content_for_snapshot(name, pending), checks.content_for_snapshot(name, completed))
         changed = completed.replace('显示结果'.encode(), '显示新结果'.encode())
-        self.assertNotEqual(checks.content_for_snapshot('requirements/REQ-0001.md', pending),
-                            checks.content_for_snapshot('requirements/REQ-0001.md', changed))
+        self.assertNotEqual(checks.content_for_snapshot(name, pending), checks.content_for_snapshot(name, changed))
 
     def test_git_default_tracks_new_files_but_ignores_generated_evidence(self):
         import subprocess
@@ -435,30 +428,28 @@ class ProjectChecksTests(unittest.TestCase):
         self.assertEqual(1, len(batches))
         self.assertIn('--batch', batches[0].args[0])
 
-    def test_cli_original_output_failure_and_complete_logs(self):
+    def test_cli_brief_output_failure_and_complete_logs(self):
         import subprocess
         command = [sys.executable, str(ROOT / 'scripts/teamflow.py'),
                    '--project', str(self.root), 'verify', 'run', '--profile', 'change']
+        latest = lambda: max((self.root / 'logs/project-checks').glob('*/result.json'), key=lambda p: p.stat().st_mtime_ns)
         self.config({'ok': {'argv': [sys.executable, '-c', 'print("raw-output-" * 2000)']}})
         result = subprocess.run(command, capture_output=True, text=True)
         self.assertEqual(0, result.returncode, result.stderr)
-        self.assertEqual(2, len(result.stdout.splitlines()))
-        self.assertEqual('ok：通过', result.stdout.splitlines()[0])
-        self.assertNotIn('raw-output-', result.stdout)
-        target = Path(result.stdout.split('验证证据：')[1].strip())
-        self.assertEqual('raw-output-' * 2000 + '\n', (target.parent / 'ok.log').read_text())
+        self.assertEqual('验证：通过（change）\n', result.stdout)
+        self.assertEqual('raw-output-' * 2000 + '\n', (latest().parent / 'ok.log').read_text())
         self.config({'fail': {'argv': [sys.executable, '-c', 'print("failure detail"); raise SystemExit(7)']},
                      'missing': {'argv': ['/no-such-tool']},
                      'slow': {'argv': [sys.executable, '-c', 'import time; time.sleep(30)'], 'timeout_seconds': 1}})
         failed = subprocess.run(command, capture_output=True, text=True)
         self.assertEqual(1, failed.returncode)
-        for expected in ('fail：失败', 'missing：无法执行', 'slow：超时'):
+        self.assertEqual(1, len(failed.stdout.splitlines()))
+        for expected in ('验证：失败（change）', 'fail 失败（logs/project-checks/', 'missing 无法执行', 'slow 超时'):
             self.assertIn(expected, failed.stdout)
-        target = Path(failed.stdout.split('验证证据：')[1].strip())
+        target = latest()
         self.assertEqual(['失败', '无法执行', '超时'], [r['status'] for r in json.loads(target.read_text())['results']])
         self.assertEqual('failure detail\n', (target.parent / 'fail.log').read_text())
         self.config({'mutate': {'argv': [sys.executable, '-c', 'from pathlib import Path; Path("source").write_text("changed")']}})
-        changed = subprocess.run(command, capture_output=True, text=True)
+        changed = subprocess.run(command + ['--json'], capture_output=True, text=True)
         self.assertEqual(1, changed.returncode)
-        target = Path(changed.stdout.split('验证证据：')[1].strip())
-        self.assertEqual('输入已变化，需重测', json.loads(target.read_text())['status'])
+        self.assertEqual('输入已变化，需重测', json.loads(changed.stdout)['status'])

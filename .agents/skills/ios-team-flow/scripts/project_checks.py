@@ -49,9 +49,46 @@ def suggest(root):
         profiles.append({'profile': profile, 'covered_files': sorted(selected),
                          'uncovered_files': sorted(names - selected),
                          'covers_all_changes': bool(names) and selected == names})
-    return {'changed_files': sorted(names), 'profiles': profiles,
+    covering = [item['profile'] for item in profiles if item['covers_all_changes']]
+    # 覆盖全部改动时取检查项最少者，避免为小改动跑发布级验证。
+    recommended = min(covering, key=lambda name: (len(config['profiles'][name]['checks']),
+                                                  len(config['profiles'][name].get('inputs') or ()))) if covering else None
+    return {'changed_files': sorted(names), 'profiles': profiles, 'recommended': recommended,
             'uncovered_files': sorted(names - covered),
             'note': '仅按路径建议；必须核对检查内容与实际影响面，不自动运行或省略必要测试。'}
+
+
+def resolve_profile(profiles, name, seen=()):
+    """extends 继承父 profile 的 inputs 与 checks；自身 inputs 覆盖，checks 追加或同名覆盖。"""
+    if name in seen:
+        raise ValueError('profile extends 存在循环：' + ' → '.join(seen + (name,)))
+    if name not in profiles:
+        raise ValueError('extends 指向不存在的 profile：' + name)
+    settings = dict(profiles[name])
+    parent = settings.pop('extends', None)
+    if parent is None:
+        return settings
+    if not isinstance(parent, str):
+        raise ValueError('extends 必须是 profile 名：' + name)
+    base = resolve_profile(profiles, parent, seen + (name,))
+    own_checks = settings.get('checks', {})
+    if not isinstance(own_checks, dict):
+        raise ValueError('checks 必须为对象：' + name)
+    resolved = {'inputs': base.get('inputs'), **settings, 'checks': {**base.get('checks', {}), **own_checks}}
+    return {key: value for key, value in resolved.items() if value is not None}
+
+
+def select_profile(root):
+    """选择覆盖全部改动、检查项最少的 profile；无改动或无覆盖时报错。"""
+    report = suggest(root)
+    if not report['changed_files']:
+        raise ValueError('相对 HEAD 没有改动，无法自动选择验证；请用 --profile 指定')
+    if report['recommended'] is None:
+        if report['uncovered_files']:
+            raise ValueError('以下改动不在任何 profile 输入内：' + '、'.join(report['uncovered_files'][:10])
+                             + '；请配置覆盖范围或用 --profile 指定')
+        raise ValueError('改动分属多个 profile，没有单个 profile 全部覆盖；请配置覆盖整个改动的 profile 或用 --profile 指定')
+    return report['recommended']
 
 
 def load_config(root):
@@ -59,10 +96,11 @@ def load_config(root):
     if not isinstance(config, dict) or config.get('schema_version') != 2:
         raise ValueError('配置 schema_version 必须为 2')
     profiles = config.get('profiles')
-    if not isinstance(profiles, dict):
+    if not isinstance(profiles, dict) or any(not isinstance(v, dict) for v in profiles.values()):
         raise ValueError('profiles 必须为对象')
+    config['profiles'] = profiles = {name: resolve_profile(profiles, name) for name in profiles}
     for profile, settings in profiles.items():
-        if not isinstance(settings, dict) or not isinstance(settings.get('checks'), dict) or not settings['checks']:
+        if not isinstance(settings.get('checks'), dict) or not settings['checks']:
             raise ValueError('profile 必须包含非空 checks 对象：' + profile)
         for name, check in settings['checks'].items():
             if not re.fullmatch(r'[a-zA-Z0-9_-]+', name) or not isinstance(check, dict):
@@ -81,7 +119,7 @@ def load_config(root):
 
 
 # 自动生成的证据不参与源码指纹，避免报告写入令自身失效。
-EVIDENCE_DIRS = ('logs/project-checks/', 'releases/')
+EVIDENCE_DIRS = ('logs/project-checks/',)
 
 
 def excluded_input(name):
@@ -189,7 +227,7 @@ def source_snapshot(root, config, profile, staged=False, requirement=None, raw_c
         paths.add(CONFIG)
     if requirement is not None:
         if not ID.fullmatch(requirement):
-            raise ValueError('需求编号格式应为 REQ-0001')
+            raise ValueError('需求编号格式应为 REQ-YYYYMMDD-xxxx')
         card = 'requirements/' + requirement + '.md'
         if not local_path(root, card).is_file():
             raise ValueError('需求不存在：' + requirement)
@@ -215,7 +253,11 @@ def source_snapshot(root, config, profile, staged=False, requirement=None, raw_c
                 content = blobs[oid]
                 if name == CONFIG and not raw_config:
                     try:
-                        content = json.dumps(effective_config(json.loads(content), profile), sort_keys=True).encode()
+                        staged_config = json.loads(content)
+                        # 与工作区一致地展开 extends，否则继承的 profile 指纹永远不匹配。
+                        staged_config['profiles'] = {name: resolve_profile(staged_config['profiles'], name)
+                                                     for name in staged_config['profiles']}
+                        content = json.dumps(effective_config(staged_config, profile), sort_keys=True).encode()
                     except (ValueError, KeyError, TypeError) as error:
                         raise ValueError('暂存配置缺少有效的所选 profile') from error
                 files[name] = {'sha256': hashlib.sha256(content_for_snapshot(name, content)).hexdigest(), 'executable': mode == b'100755'}
@@ -251,7 +293,6 @@ def verify(root, result, staged=False):
     if staged and source_snapshot(root, config, report['profile'], staged=True,
                                   requirement=report.get('requirement')) != current:
         raise ValueError('暂存内容与已测试工作区不一致；请暂存正确版本或测试暂存快照')
-    print('验证结果与当前源码/配置' + ('及暂存区' if staged else '') + '一致：' + str(result))
     return report
 
 
@@ -292,7 +333,6 @@ def run(root, profile, requirement=None):
                 result.update(status='无法执行', error=str(error))
         result['duration_seconds'] = round(time.monotonic() - start, 3)
         report['results'].append(result)
-        print(name + '：' + result['status'])
         # 每个所选检查都是本次必跑项；失败后仍收集其余检查结果。
         (run_dir / 'result.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
     report['status'] = '通过' if all(r['status'] == '通过' for r in report['results']) else '失败'
@@ -316,5 +356,49 @@ def run(root, profile, requirement=None):
     report['completed_at'] = datetime.now(timezone.utc).isoformat()
     target = run_dir / 'result.json'
     target.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
-    print('验证证据：' + str(target))
     return target, report['status'] == '通过'
+
+
+def describe_run(root, target):
+    """一次运行的简短结论；失败时列出失败项及本地日志。"""
+    report = json.loads(target.read_text())
+    relative = target.parent.relative_to(root.resolve())
+    line = f"验证：{report['status']}（{report['profile']}）"
+    failed = [r for r in report['results'] if r['status'] != '通过']
+    if failed:
+        line += '：' + '、'.join(f"{r['name']} {r['status']}（{relative / r['log']}）" for r in failed)
+    elif report['status'] != '通过':
+        line += '：运行期间输入变化，请重新验证'
+    return line
+
+
+def summarize(root, target):
+    """写入需求卡的证据摘要：日志留在本地，卡片只保存可复核的指纹。"""
+    report = json.loads(target.read_text())
+    requirement = report.get('requirement')
+    card = local_path(root, 'requirements/' + requirement + '.md').read_text()
+    summary = {'kind': 'result', 'profile': report['profile'], 'status': report['status'],
+            'fingerprint': 'sha256:' + report['end_fingerprint'],
+            'requirement': 'sha256:' + hashlib.sha256(semantic_content(card, requirement)).hexdigest(),
+            'head': (report.get('head') or '')[:12] or None,
+            'at': datetime.now().astimezone().isoformat(timespec='seconds'),
+            'log': str(target.relative_to(root.resolve()))}
+    return {key: value for key, value in summary.items() if value is not None}
+
+
+def verify_summary(root, requirement, evidence, staged=False):
+    """按卡片摘要重新计算当前（及暂存）输入指纹，不读取日志文件。"""
+    root = root.resolve()
+    if evidence.get('status') != '通过':
+        raise ValueError('已绑定的验证未通过；请重新执行')
+    config = load_config(root)
+    profile = evidence.get('profile')
+    if profile not in config['profiles']:
+        raise ValueError('证据中的 profile 已不存在：' + str(profile))
+    current = source_snapshot(root, config, profile, requirement=requirement)
+    if evidence.get('fingerprint') != 'sha256:' + current['fingerprint']:
+        raise ValueError('测试后源码或配置已变化，旧结果不能用于当前代码')
+    if staged and source_snapshot(root, config, profile, staged=True,
+                                  requirement=requirement)['fingerprint'] != current['fingerprint']:
+        raise ValueError('暂存内容与已验证工作区不一致；请暂存同一内容或重新验证')
+    return current

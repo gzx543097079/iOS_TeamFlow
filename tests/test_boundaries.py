@@ -1,5 +1,3 @@
-import contextlib
-import io
 import json
 import unittest
 from pathlib import Path
@@ -14,6 +12,7 @@ class BoundaryTests(unittest.TestCase):
     configure_checks = test_teamflow.TeamFlowTests.configure_checks
     create = test_teamflow.TeamFlowTests.create
     fill = test_teamflow.TeamFlowTests.fill
+    card_path = test_teamflow.TeamFlowTests.card_path
 
     def test_uncovered_staged_code_rejected(self):
         req = self.create(); self.fill(req)
@@ -60,7 +59,7 @@ class BoundaryTests(unittest.TestCase):
         flow.complete(self.root, req, evidence='实际核对')
         (self.root / 'source.txt').write_text('changed')
         with self.assertRaisesRegex(ValueError, '人工证据'):
-            flow.complete(self.root, req)
+            flow.verify_saved(self.root, flow.parse_card(self.card_path(req)))
         (self.root / 'Business.swift').write_text('let a = 1')
         self.git('add', '.')
         with self.assertRaisesRegex(ValueError, '自动验证'):
@@ -71,8 +70,8 @@ class BoundaryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, '占位'):
             flow.complete(self.root, req, evidence='实际核对', confirm_ac=['AC-01'])
         path = self.fill(req)
-        for state in ('暂停', '取消'):
-            flow.set_state(self.root, req, state, '用户要求')
+        for state, blocked in (('阻塞', '暂停'), ('取消', None)):
+            flow.set_state(self.root, req, state, '用户要求', blocked)
             original = path.read_text()
             with self.assertRaisesRegex(ValueError, '恢复'):
                 flow.complete(self.root, req, profile='change')
@@ -81,7 +80,9 @@ class BoundaryTests(unittest.TestCase):
     def test_list_does_not_follow_symlink(self):
         req = self.create(); card = self.fill(req)
         target = self.root / 'real.md'; card.rename(target); card.symlink_to(target)
-        self.assertEqual([], flow.cards(self.root))
+        rows, skipped = flow.cards(self.root)
+        self.assertEqual([], rows)
+        self.assertIn('符号链接', skipped[0]['error'])
 
     def test_manual_scope_reuse_and_uncovered_document(self):
         req = self.create(); self.fill(req)
@@ -95,37 +96,6 @@ class BoundaryTests(unittest.TestCase):
         self.git('add', 'other.md')
         with self.assertRaisesRegex(ValueError, '未覆盖'):
             flow.git_check(self.root, req)
-
-    def test_release_identity_and_symlink(self):
-        options = dict(bundle_id='com.example.one', environment='production',
-                       commit='a' * 40, outcome='processing')
-        flow.release_record(self.root, 'upload-testflight', '1.0', '1', '平台处理中', **options)
-        one = self.root / 'releases/com.example.one-production-1.0-1.md'
-        self.assertIn('processing', one.read_text())
-        flow.release_record(self.root, 'upload-testflight', '1.0', '1', '完成',
-                            **dict(options, bundle_id='com.example.two', outcome='succeeded'))
-        self.assertEqual(2, len(list((self.root / 'releases').glob('*.md'))))
-        original = one.read_text()
-        with self.assertRaisesRegex(ValueError, '身份'):
-            flow.release_record(self.root, 'archive', '1.0', '1', '完成',
-                                **dict(options, commit='b' * 40))
-        target = self.root / 'protected.md'; one.rename(target); one.symlink_to(target)
-        with self.assertRaisesRegex(ValueError, '符号链接'):
-            flow.release_record(self.root, 'archive', '1.0', '1', '完成', **options)
-        self.assertEqual(original, target.read_text())
-
-    def test_release_requires_identity_and_preserves_failed_events(self):
-        with self.assertRaisesRegex(ValueError, '发布身份'):
-            flow.release_record(self.root, 'archive', '1.0', '1', '完成')
-        self.assertFalse((self.root / 'releases').exists())
-        options = dict(bundle_id='com.example.app', environment='production', commit='a' * 40)
-        for outcome in ('failed', 'processing', 'succeeded'):
-            flow.release_record(self.root, 'upload-testflight', '1.0', '1', outcome,
-                                outcome=outcome, **options)
-        path = self.root / 'releases/com.example.app-production-1.0-1.md'
-        events = [json.loads(line[2:]) for line in path.read_text().splitlines() if line.startswith('- ')]
-        self.assertEqual(['failed', 'processing', 'succeeded'], [event['outcome'] for event in events])
-
 
 if __name__ == '__main__':
     unittest.main()

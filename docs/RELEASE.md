@@ -2,13 +2,13 @@
 
 本文件只处理 TeamFlow ZIP，不处理业务 App。
 
-发布时更新版本与 CHANGELOG；完成本次分发清单和测试变更后，源码仓库可用 `req complete REQ-0001 --profile workflow-release` 一次验证、打包并绑定需求证据（替换实际需求编号）。已运行该 profile 时不重复执行下面的独立命令；没有该项目配置时运行：
+发布时更新版本与 CHANGELOG；完成本次分发清单和测试变更后，源码仓库可用 `req complete REQ-20260101-a3f9 --profile workflow-release` 一次验证、打包并绑定需求证据（替换实际需求编号）。已运行该 profile 时不重复执行下面的独立命令；没有该项目配置时运行：
 
 ```sh
 python3 scripts/run_workflow_checks.py
 python3 scripts/package_release.py
 ```
 
-输出完整仓库包和独立 Skill 包及 SHA256。包使用显式清单，不包含 App、requirements、logs、releases、Git 数据或密钥。本地打包不等于发布。
+输出完整仓库包和独立 Skill 包及 SHA256。包使用显式清单，不包含 App、requirements、logs、Git 数据或密钥。本地打包不等于发布。
 
 只有用户明确提出 Git 目标时才执行写操作。GitHub Release 目标可自动补齐验证、commit、push 和标签等最小必要前置；不执行 App Store 发布等可选或后续动作。正式 Release 工作流在验证通过后创建公开 Release 并附带压缩包；GitHub Release 不代表 App Store 上线。

@@ -3,7 +3,7 @@
   "profiles": {
     "ios-demo": {
       "inputs": [
-        "App/TeamFlowDemo",
+        "examples/TeamFlowDemo",
         "scripts/test_demo.py"
       ],
       "checks": {
@@ -40,7 +40,10 @@
         "scripts/validate_workflow.py",
         "scripts/package_release.py",
         "scripts/check_logging.py",
-        "tests"
+        "tests",
+        ".agents/project-modules.json",
+        "CHANGELOG.md",
+        "docs"
       ],
       "checks": {
         "workflow-tests": {
@@ -60,7 +63,9 @@
         ".agents/skills/ios-team-flow/SKILL.md",
         ".agents/skills/ios-team-flow/references",
         "scripts/validate_workflow.py",
-        "scripts/package_release.py"
+        "scripts/package_release.py",
+        "CHANGELOG.md",
+        "docs"
       ],
       "checks": {
         "workflow-docs": {
@@ -68,33 +73,14 @@
             "python3",
             "scripts/validate_workflow.py"
           ],
-          "timeout_seconds": 60
+          "timeout_seconds": 60,
+          "cwd": "."
         }
       }
     },
     "workflow-release": {
-      "inputs": [
-        ".agents/skills/ios-team-flow",
-        ".github",
-        ".gitignore",
-        "AGENTS.md",
-        "README.md",
-        "scripts/teamflow.py",
-        "scripts/run_workflow_checks.py",
-        "scripts/validate_workflow.py",
-        "scripts/package_release.py",
-        "scripts/check_logging.py",
-        "tests"
-      ],
+      "extends": "workflow",
       "checks": {
-        "workflow-tests": {
-          "argv": [
-            "python3",
-            "scripts/run_workflow_checks.py"
-          ],
-          "cwd": ".",
-          "timeout_seconds": 900
-        },
         "workflow-package": {
           "argv": [
             "python3",

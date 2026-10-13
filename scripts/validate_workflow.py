@@ -7,12 +7,9 @@ from package_release import FILES, SKILL
 
 
 def validate_profile_overlap(config):
-    profiles = config['profiles']
-    base = profiles['workflow']
-    release = profiles['workflow-release']
-    if base.get('inputs') != release.get('inputs') or any(
-            release['checks'].get(name) != check for name, check in base['checks'].items()):
-        raise ValueError('workflow-release 必须保留 workflow 的相同输入和检查')
+    release = config['profiles']['workflow-release']
+    if release.get('extends') != 'workflow' or 'inputs' in release:
+        raise ValueError('workflow-release 必须 extends workflow 且不覆盖 inputs')
 
 
 def validate(root):

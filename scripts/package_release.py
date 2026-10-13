@@ -6,19 +6,19 @@ import zipfile
 from pathlib import Path
 SKILL = '.agents/skills/ios-team-flow'
 REFERENCES = (
-    'COMMANDS.md', 'DATA-MIGRATION.md', 'SECURITY-BOUNDARIES.md',
-    'LOGGING.md', 'LOCALIZATION.md', 'ARCHITECTURE.md', 'APP-LIFECYCLE.md', 'EVOLUTION.md', 'SCENARIOS.md', 'APP-RELEASE.md', 'templates/app-release.md', 'VERSION', 'CHANGELOG.md', 'WORKFLOW.md', 'GIT-ACTIONS.md',
-    'RELEASE.md', 'SOURCES.md', 'INSTALL.md', 'standards/ui.md',
-    'standards/comments.md', 'standards/objective-c.md', 'standards/swift.md', 'standards/swiftui.md',
-    'templates/new-project.md', 'templates/feature.md', 'templates/requirement.md', 'BUGFIX.md',
-    'PROJECT-CHECKS.md', 'EXISTING-PROJECT.md', 'MODULE-CONTEXT.md', 'templates/project-context.md',
+    'WORKFLOW.md', 'CHECKS.md', 'BOUNDARIES.md', 'APP-RELEASE.md', 'INSTALL.md', 'APP-LIFECYCLE.md',
+    'LOGGING.md', 'EXISTING-PROJECT.md', 'MODULE-CONTEXT.md', 'ARCHITECTURE.md', 'LOCALIZATION.md',
+    'VERSION',
+    'standards/ui.md', 'standards/comments.md', 'standards/objective-c.md', 'standards/swift.md', 'standards/swiftui.md',
+    'templates/new-project.md', 'templates/feature.md', 'templates/requirement.md', 'templates/app-release.md',
+    'templates/project-context.md',
 )
 # 仅打包明确登记的通用文件，不打包项目接入记录、需求或日志。
 FILES = (
     'tests/test_boundaries.py', 'tests/test_diagnostics.py', SKILL + '/scripts/diagnostics.py',
-    'AGENTS.md', 'README.md', '.gitignore',
-    '.github/workflows/teamflow-check.yml', '.github/workflows/teamflow-release.yml',
-    'scripts/check_logging.py', '.github/workflows/teamflow-logging.yml', 'tests/test_logging_install.py',
+    'AGENTS.md', 'README.md', 'CHANGELOG.md', 'docs/RELEASE.md', '.gitignore',
+    '.github/workflows/teamflow.yml',
+    'scripts/check_logging.py', 'tests/test_logging_install.py',
     'scripts/teamflow.py', 'scripts/package_release.py', 'scripts/validate_workflow.py', 'scripts/run_workflow_checks.py',
     'tests/release_fixture.py', 'tests/test_consumer_release.py', 'tests/test_workflow.py', 'tests/test_project_checks.py', 'tests/test_teamflow.py', 'tests/test_module_context.py', SKILL + '/SKILL.md',
     SKILL + '/assets/logging/TFLogger.swift', SKILL + '/assets/logging/TFLogger.h', SKILL + '/assets/logging/TFLogger.m',

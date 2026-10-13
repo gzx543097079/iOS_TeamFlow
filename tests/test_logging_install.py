@@ -23,11 +23,11 @@ class LoggingInstallTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         with zipfile.ZipFile(self.archive) as archive:
             archive.extractall(self.root / '.agents/skills')
-        self.script = self.root / '.agents/skills/ios-team-flow/scripts/install_logging.py'
+        self.script = self.root / '.agents/skills/ios-team-flow/scripts/teamflow.py'
 
     def run_install(self, language='mixed', destination='App/Sources/Logging'):
-        return subprocess.run([sys.executable, str(self.script), '--project', str(self.root),
-                               '--language', language, '--destination', destination],
+        return subprocess.run([sys.executable, str(self.script), '--project', str(self.root), 'logging', 'install',
+                               '--language', language, '--destination', destination, '--json'],
                               capture_output=True, text=True)
 
     def test_language_selection_and_idempotence_from_zip(self):
@@ -59,5 +59,6 @@ class LoggingInstallTests(unittest.TestCase):
         (self.root / 'App').symlink_to(self.root / '.agents', target_is_directory=True)
         self.assertEqual(2, self.run_install().returncode)
         result = subprocess.run([sys.executable, str(self.script), '--project', str(self.root / 'Other'),
-                                 '--language', 'swift', '--destination', 'Sources'], capture_output=True)
+                                 'logging', 'install', '--language', 'swift', '--destination', 'Sources'],
+                                capture_output=True)
         self.assertEqual(2, result.returncode)

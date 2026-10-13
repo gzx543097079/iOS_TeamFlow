@@ -17,6 +17,7 @@ class DiagnosticsTests(unittest.TestCase):
     configure_checks = test_teamflow.TeamFlowTests.configure_checks
     create = test_teamflow.TeamFlowTests.create
     fill = test_teamflow.TeamFlowTests.fill
+    card_path = test_teamflow.TeamFlowTests.card_path
 
     def test_suggestion_reports_uncovered_without_running(self):
         (self.root / 'other.swift').write_text('let a = 1')
@@ -34,7 +35,7 @@ class DiagnosticsTests(unittest.TestCase):
         report = diagnostics.resume(self.root, req)
         self.assertEqual('缺失或失效', report['evidence_status'])
         self.assertEqual(original, card.read_bytes())
-        flow.set_state(self.root, req, '暂停', '等待用户')
+        flow.set_state(self.root, req, '阻塞', '等待用户', '暂停')
         self.assertIn('不得自动继续', diagnostics.resume(self.root, req)['next_step'])
 
     def test_doctor_treats_stale_finished_evidence_as_history(self):

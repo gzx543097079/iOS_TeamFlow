@@ -1,18 +1,17 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "cross_cutting_paths": [
-    "App/TeamFlowDemo/Sources/Shared",
-    "App/TeamFlowDemo/Sources/Infrastructure",
-    "App/TeamFlowDemo/Resources",
-    "App/TeamFlowDemo/project.yml",
-    "App/TeamFlowDemo/Podfile",
-    "App/TeamFlowDemo/Podfile.lock"
+    "examples/TeamFlowDemo/Sources/Shared",
+    "examples/TeamFlowDemo/Sources/Infrastructure",
+    "examples/TeamFlowDemo/Resources",
+    "examples/TeamFlowDemo/project.yml",
+    "examples/TeamFlowDemo/Podfile",
+    "examples/TeamFlowDemo/Podfile.lock"
   ],
   "modules": [
     {
       "name": "demo-application",
       "responsibility": "场景生命周期、依赖组装与导航",
-      "baseline": "1f5a6d3abd3ad2424e43b0b0d18e367d44a0573e",
       "triggers": [
         "启动",
         "导航",
@@ -20,15 +19,15 @@
         "coordinator"
       ],
       "paths": [
-        "App/TeamFlowDemo/Sources/Application"
+        "examples/TeamFlowDemo/Sources/Application"
       ],
       "entry_symbols": [
         "SceneDelegate",
         "DemoCoordinator"
       ],
       "dependencies": [
-        "App/TeamFlowDemo/Sources/Shared",
-        "App/TeamFlowDemo/Sources/Infrastructure"
+        "examples/TeamFlowDemo/Sources/Shared",
+        "examples/TeamFlowDemo/Sources/Infrastructure"
       ],
       "callers": [
         "TeamFlowDemo"
@@ -40,7 +39,6 @@
     {
       "name": "demo-store",
       "responsibility": "商城展示、分类筛选与商品卡片",
-      "baseline": "1f5a6d3abd3ad2424e43b0b0d18e367d44a0573e",
       "triggers": [
         "商城",
         "首页",
@@ -48,7 +46,7 @@
         "store"
       ],
       "paths": [
-        "App/TeamFlowDemo/Sources/Features/Store"
+        "examples/TeamFlowDemo/Sources/Features/Store"
       ],
       "entry_symbols": [
         "DemoViewController",
@@ -68,14 +66,13 @@
     {
       "name": "demo-product",
       "responsibility": "商品详情与加入购物袋",
-      "baseline": "1f5a6d3abd3ad2424e43b0b0d18e367d44a0573e",
       "triggers": [
         "商品详情",
         "加购",
         "product"
       ],
       "paths": [
-        "App/TeamFlowDemo/Sources/Features/Product"
+        "examples/TeamFlowDemo/Sources/Features/Product"
       ],
       "entry_symbols": [
         "ProductViewController",
@@ -95,14 +92,13 @@
     {
       "name": "demo-bag",
       "responsibility": "购物袋列表、金额汇总与逐件减少",
-      "baseline": "1f5a6d3abd3ad2424e43b0b0d18e367d44a0573e",
       "triggers": [
         "购物袋",
         "购物车",
         "bag"
       ],
       "paths": [
-        "App/TeamFlowDemo/Sources/Features/Bag"
+        "examples/TeamFlowDemo/Sources/Features/Bag"
       ],
       "entry_symbols": [
         "BagViewController",
@@ -121,7 +117,6 @@
     {
       "name": "demo-settings",
       "responsibility": "设置、语言、外观与关于页面",
-      "baseline": "1f5a6d3abd3ad2424e43b0b0d18e367d44a0573e",
       "triggers": [
         "设置",
         "语言",
@@ -130,7 +125,7 @@
         "settings"
       ],
       "paths": [
-        "App/TeamFlowDemo/Sources/Features/Settings"
+        "examples/TeamFlowDemo/Sources/Features/Settings"
       ],
       "entry_symbols": [
         "SettingsViewController",

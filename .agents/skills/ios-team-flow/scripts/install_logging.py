@@ -1,7 +1,4 @@
-#!/usr/bin/env python3
-"""在工程生成阶段复制对应语言日志源码，返回待纳入构建的文件清单。"""
-import argparse
-import json
+"""在工程生成阶段复制对应语言日志源码，返回待纳入构建的文件清单；由 teamflow logging install 调用。"""
 from pathlib import Path
 
 SOURCES = {
@@ -58,20 +55,3 @@ def install(project, destination, language):
         'created': [str(path.relative_to(root)) for path in written],
         'next': '生成工程时将 .swift/.m 纳入目标 Sources，并核对 Debug 定义 DEBUG、Release 不定义 DEBUG；复制成功不代表已加入构建目标。',
     }
-
-
-def main():
-    """由 Codex 按已确认工程语言和真实源码目录调用，无需用户再次选择日志组件。"""
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--project', type=Path, default=Path('.'))
-    parser.add_argument('--destination', required=True)
-    parser.add_argument('--language', choices=SOURCES, required=True)
-    args = parser.parse_args()
-    try:
-        print(json.dumps(install(args.project, args.destination, args.language), ensure_ascii=False, indent=2))
-    except (ValueError, OSError) as error:
-        parser.exit(2, '日志安装失败：' + str(error) + '\n')
-
-
-if __name__ == '__main__':
-    main()
