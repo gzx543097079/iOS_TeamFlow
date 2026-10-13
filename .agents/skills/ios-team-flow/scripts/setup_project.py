@@ -109,7 +109,7 @@ def diagnose(project):
         git_ready = False
     add('Git 根目录', git_ready, '项目根必须是 Git 根')
     try:
-        skill = safe(project, '.agents/skills/ios-team-flow')
+        safe(project, '.agents/skills/ios-team-flow')
         version = safe(project, '.agents/skills/ios-team-flow/references/VERSION').read_text().strip()
         validate_version(version)
         entry_ready = (safe(project, '.agents/skills/ios-team-flow/SKILL.md').is_file()

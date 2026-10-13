@@ -50,7 +50,7 @@ class ModuleContextTests(unittest.TestCase):
             self.git('add', '.agents/project-modules.json')
             self.git('commit', '-qm', 'module index')
 
-    def test_record_has_no_baseline_and_main_is_unchanged(self):
+    def test_record_and_unchanged_main(self):
         self.record_account()
         data = json.loads((self.root / '.agents/project-modules.json').read_text())
         self.assertEqual(2, data['schema_version'])
@@ -111,16 +111,6 @@ class ModuleContextTests(unittest.TestCase):
         missing = self.run_tool('inspect', '--all', check=False)
         self.assertNotEqual(0, missing.returncode)
         self.assertIn('base_branch', missing.stderr)
-
-    def test_legacy_baseline_is_rejected(self):
-        self.record_account()
-        manifest = self.root / '.agents/project-modules.json'
-        data = json.loads(manifest.read_text())
-        data['modules'][0]['baseline'] = 'f' * 40
-        manifest.write_text(json.dumps(data))
-        result = self.run_tool('validate', check=False)
-        self.assertNotEqual(0, result.returncode)
-        self.assertIn('baseline', result.stderr)
 
     def test_record_rejects_unsafe_or_untracked_paths(self):
         unsafe = self.run_tool('record', '--name', 'bad', '--trigger', 'bad',

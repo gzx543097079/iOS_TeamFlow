@@ -1,10 +1,4 @@
-import contextlib
-import io
-import json
-import subprocess
-import sys
 import unittest
-from pathlib import Path
 import test_teamflow
 import diagnostics
 
@@ -26,17 +20,22 @@ class DiagnosticsTests(unittest.TestCase):
         self.assertIn('source.txt', report['profiles'][0]['covered_files'])
         self.assertFalse((self.root / 'logs').exists())
 
-    def test_resume_is_read_only_and_checks_stale_evidence(self):
+    def test_status_is_read_only_and_checks_stale_evidence(self):
         req = self.create(); card = self.fill(req)
         flow.complete(self.root, req, profile='change')
         original = card.read_bytes()
-        self.assertEqual('有效', diagnostics.resume(self.root, req)['evidence_status'])
+        report = flow.status(self.root, req)
+        self.assertEqual(('有效', []), (report['evidence_status'], report['problems']))
+        self.assertIn('（有效）', flow.render('status', report))
         (self.root / 'source.txt').write_text('changed')
-        report = diagnostics.resume(self.root, req)
+        report = flow.status(self.root, req)
         self.assertEqual('缺失或失效', report['evidence_status'])
+        brief = flow.render('status', report)
+        self.assertIn('问题：测试后源码或配置已变化', brief)
+        self.assertIn('下一步：', brief)
         self.assertEqual(original, card.read_bytes())
         flow.set_state(self.root, req, '阻塞', '等待用户', '暂停')
-        self.assertIn('不得自动继续', diagnostics.resume(self.root, req)['next_step'])
+        self.assertIn('不得自动继续', flow.status(self.root, req)['next_step'])
 
     def test_doctor_treats_stale_finished_evidence_as_history(self):
         req = self.create(); self.fill(req)

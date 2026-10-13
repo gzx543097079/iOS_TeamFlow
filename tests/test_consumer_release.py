@@ -77,8 +77,9 @@ class ConsumerReleaseTests(unittest.TestCase):
 
     def test_packaged_readonly_helpers(self):
         req = json.loads(self.cli('req', 'create', '--title', '恢复', '--json').stdout)['requirement']
-        summary = json.loads(self.cli('req', 'resume', req, '--json').stdout)
+        summary = json.loads(self.cli('req', 'status', req, '--json').stdout)
         self.assertTrue(summary['problems'])
+        self.assertNotEqual(0, self.cli('req', 'resume', req, ok=False).returncode)
         doctor = self.cli('doctor', '--json', ok=False)
         self.assertEqual(1, doctor.returncode)
         self.assertTrue(json.loads(doctor.stdout)['needs_action'])

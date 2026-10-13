@@ -92,11 +92,11 @@ python3 scripts/teamflow.py req complete REQ-20260101-a3f9 \
 ```sh
 python3 scripts/teamflow.py doctor
 python3 scripts/teamflow.py verify suggest
-python3 scripts/teamflow.py req resume REQ-20260101-a3f9
+python3 scripts/teamflow.py req status REQ-20260101-a3f9
 ```
 
 - `doctor` 汇总接入、验证配置与输入、占位卡片、失效证据及已启用模块索引，默认每项一行，`--json` 输出完整结构。已完成需求仅证据失效时列为历史提示，不计入需处理。发现需处理项退出 1，不执行修复或项目检查；不因工具仓库缺少 Xcode 强制阻塞。
 - `verify suggest` 列出相对 HEAD 的暂存、未暂存和未跟踪改动、各 profile 覆盖和遗漏路径，以及 `req complete` 会自动选用的 profile。只按路径建议，不能判断某项测试足以验证业务语义；不执行检查。
-- `req resume` 汇总剩余 AC、证据有效性、决策与异常和下一步。不修改状态，不自动恢复阻塞或取消，不为已完成需求扩张交付。
+- `req status` 汇总状态、进度、证据有效性与问题、剩余 AC 和下一步，`--json` 另含范围、AC 与决策记录。不修改状态，不自动恢复阻塞或取消，不为已完成需求扩张交付。
 
 这些命令按需使用，不成为每个需求的强制前置。诊断旧完成卡的证据失效只提示当前证据不可复用，不自动重开历史需求。

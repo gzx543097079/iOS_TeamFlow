@@ -1,16 +1,11 @@
-"""只读诊断和需求恢复摘要，不写第二套状态或执行项目检查。"""
-import json
+"""只读诊断和需求状态摘要，不写第二套状态或执行项目检查。"""
 import subprocess
 from teamflow_common import local_path
 from requirement_model import require_ready, parse_card
 
 
-def resume(root, requirement):
-    return _resume(root, requirement)[0]
-
-
-def _resume(root, requirement):
-    """返回恢复摘要及是否仅为已完成需求的证据失效。"""
+def requirement_summary(root, requirement):
+    """返回证据有效性、问题与下一步，以及是否仅为已完成需求的证据失效。"""
     import teamflow as flow
     card = parse_card(flow.requirement_path(root, requirement))
     problems = []
@@ -68,7 +63,7 @@ def doctor(root):
         for path in sorted(directory.glob('REQ-*.md')):
             try:
                 local_path(root, str(path.relative_to(root)))
-                summary, finished = _resume(root, path.stem)
+                summary, finished = requirement_summary(root, path.stem)
                 status = '就绪' if not summary['problems'] else '历史' if finished else '需处理'
                 checks.append({'item': path.stem, 'status': status, 'detail': summary})
             except (ValueError, OSError, KeyError, TypeError) as error:
@@ -91,7 +86,7 @@ def _brief(item):
     if isinstance(detail, list):
         return '、'.join(map(str, detail))
     if isinstance(detail, dict) and 'requirement' in detail:
-        return '；'.join(detail['problems']) + '（req resume ' + detail['requirement'] + ' 查看）'
+        return '；'.join(detail['problems']) + '（req status ' + detail['requirement'] + ' 查看）'
     if isinstance(detail, dict) and 'modules' in detail:
         counts = {}
         for module in detail['modules']:

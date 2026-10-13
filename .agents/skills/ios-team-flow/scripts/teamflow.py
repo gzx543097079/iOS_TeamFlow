@@ -304,11 +304,16 @@ def git_check(root, requirement, result=None, evidence=None, evidence_inputs=Non
 
 
 def status(root, requirement):
+    """只读：卡片内容 + 证据是否仍可复用 + 下一步；不修改状态。"""
+    from diagnostics import requirement_summary
     card = parse_card(requirement_path(root, requirement))
+    summary, _ = requirement_summary(root, requirement)
     return {'requirement': requirement, 'title': card['title'], 'type': card['type'],
             'state': card['state_display'], 'state_key': card['state'], 'blocked': card['blocked'],
             'reason': card['reason'], 'progress': card['progress'], 'scope': card['scope'],
-            'excluded': card['excluded'], 'ac': card['ac'], 'evidence': card['evidence']}
+            'excluded': card['excluded'], 'ac': card['ac'], 'evidence': card['evidence'],
+            'evidence_status': summary['evidence_status'], 'problems': summary['problems'],
+            'decisions': summary['decisions'], 'next_step': summary['next_step']}
 
 
 # ---- 默认简短输出；--json 输出完整结构 ----
@@ -343,10 +348,13 @@ def render(kind, data):
     if kind == 'status':
         pending = [item for item in data['ac'] if not item['done']]
         lines = [f"{data['requirement']} {data['title']}",
-                 f"{data['state']} {data['progress']['display']}", _evidence_line(data['evidence'])]
+                 f"{data['state']} {data['progress']['display']}",
+                 _evidence_line(data['evidence']) + (f"（{data['evidence_status']}）" if data['evidence'] else '')]
         if data['reason']:
             lines.append('原因：' + data['reason'])
-        return '\n'.join(lines + _pending_lines(data['requirement'], pending))
+        lines.extend('问题：' + problem for problem in data['problems'])
+        lines.extend(_pending_lines(data['requirement'], pending)[:1])
+        return '\n'.join(lines + ['下一步：' + data['next_step']])
     if kind == 'complete':
         lines = [data['verification']] if data['verification'] else []
         lines.append(f"{data['requirement']} {data['state']} {data['progress']}")
@@ -369,12 +377,6 @@ def render(kind, data):
             more = len(data['uncovered_files']) - len(shown)
             lines.append('无 profile 覆盖：' + '、'.join(shown) + (f' 等 {len(data["uncovered_files"])} 个' if more else ''))
         lines.append('仅按路径建议，不代表测试充分')
-        return '\n'.join(lines)
-    if kind == 'resume':
-        lines = [f"{data['requirement']} {data['state']}", f"证据：{data['evidence_status']}"]
-        lines.extend('问题：' + problem for problem in data['problems'])
-        lines.extend(_pending_lines(data['requirement'], data['pending_ac'])[:1])
-        lines.append('下一步：' + data['next_step'])
         return '\n'.join(lines)
     if kind == 'module':
         lines = [f"基线 {data['base']}（{data['merge_base'][:12]}）" +
@@ -408,8 +410,7 @@ def main():
     creator.add_argument('--queued', action='store_true', help='进行中但排队，暂不开始')
     creator.add_argument('--bug', action='store_true')
     req_sub.add_parser('list', parents=[output])
-    req_sub.add_parser('status', parents=[output]).add_argument('requirement')
-    req_sub.add_parser('resume', parents=[output], help='只读恢复摘要，不改变状态').add_argument('requirement')
+    req_sub.add_parser('status', parents=[output], help='只读：状态、证据有效性、剩余 AC 与下一步').add_argument('requirement')
     state = req_sub.add_parser('state', parents=[output])
     state.add_argument('requirement')
     state.add_argument('--state', choices=[s for s in STATES if s not in ('完成', '待用户验证')], required=True)
@@ -496,9 +497,6 @@ def main():
                 emit('list', (rows, skipped), {'requirements': rows, 'skipped': skipped})
             elif args.command == 'status':
                 emit('status', status(root, args.requirement))
-            elif args.command == 'resume':
-                from diagnostics import resume
-                emit('resume', resume(root, args.requirement))
             elif args.command == 'state':
                 emit('state', set_state(root, args.requirement, args.state, args.reason, args.blocked))
             else:

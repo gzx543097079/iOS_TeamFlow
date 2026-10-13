@@ -62,8 +62,6 @@ def validate_manifest(data):
             raise ValueError('模块 name 必须非空且唯一')
         name = name.strip()
         names.add(name)
-        if 'baseline' in raw:
-            raise ValueError(name + ' 含已废弃的 baseline 字段；v4 改为与基线分支比较，请删除该字段')
         responsibility = raw.get('responsibility', '')
         if not isinstance(responsibility, str):
             raise ValueError(name + ' 的 responsibility 必须是字符串')
