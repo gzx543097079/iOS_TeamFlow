@@ -10,10 +10,10 @@
 
 ```sh
 # iOS 原生
-unzip ~/Downloads/teamflow-ios-v5.0.1.zip -d .agents
+unzip ~/Downloads/teamflow-ios-v5.0.2.zip -d .agents
 python3 .agents/teamflow-core/scripts/teamflow.py setup --mode ios
 # Godot + iOS（已安装核心及两个 Skill）
-unzip ~/Downloads/teamflow-godot-v5.0.1.zip -d .agents
+unzip ~/Downloads/teamflow-godot-v5.0.2.zip -d .agents
 python3 .agents/teamflow-core/scripts/teamflow.py setup --mode godot-ios
 ```
 

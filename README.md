@@ -1,6 +1,6 @@
 # TeamFlow
 
-面向 AI Agent 驱动开发的中文工作流，支持 iOS 原生和 Godot + iOS。当前版本为 **5.0.1**。
+面向 AI Agent 驱动开发的中文工作流，支持 iOS 原生和 Godot + iOS。当前版本为 **5.0.2**。
 
 需求、实施、验证与显式交付的规则见 [WORKFLOW](.agents/teamflow-core/references/WORKFLOW.md)；按安装模式进入 [iOS Skill](.agents/skills/iOS/SKILL.md) 或 [Godot Skill](.agents/skills/Godot/SKILL.md)。Agent 通过项目根 `AGENTS.md` 的托管区块找到所选入口，Codex 与 Claude Code 均可直接使用。
 
@@ -20,23 +20,23 @@ mkdir -p .agents
 
 ### iOS 原生
 
-安装 `teamflow-ios-v5.0.1.zip`，包含共用核心和原生 Skill。本仓库打包命令为 `python3 scripts/package_release.py`，产物在 `dist/`；例如将包放到 `~/Downloads` 后，在目标项目根执行：
+安装 `teamflow-ios-v5.0.2.zip`，包含共用核心和原生 Skill。本仓库打包命令为 `python3 scripts/package_release.py`，产物在 `dist/`；例如将包放到 `~/Downloads` 后，在目标项目根执行：
 
 ```sh
-unzip ~/Downloads/teamflow-ios-v5.0.1.zip -d .agents
+unzip ~/Downloads/teamflow-ios-v5.0.2.zip -d .agents
 python3 .agents/teamflow-core/scripts/teamflow.py setup --mode ios
 ```
 
 ### Godot + iOS
 
-安装 `teamflow-godot-v5.0.1.zip`，包含共用核心、Godot Skill 与 iOS 平台 Skill；包同样由本仓库打包生成。目标项目根执行：
+安装 `teamflow-godot-v5.0.2.zip`，包含共用核心、Godot Skill 与 iOS 平台 Skill；包同样由本仓库打包生成。目标项目根执行：
 
 ```sh
-unzip ~/Downloads/teamflow-godot-v5.0.1.zip -d .agents
+unzip ~/Downloads/teamflow-godot-v5.0.2.zip -d .agents
 python3 .agents/teamflow-core/scripts/teamflow.py setup --mode godot-ios
 ```
 
-游戏开发读取 Godot Skill，iOS 原生插件按需加载原生规范；详见 [Godot 接入说明](docs/GODOT.md)。从 [5.0.1 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v5.0.1) 下载对应安装包，也可使用本仓库打包生成的文件。
+游戏开发读取 Godot Skill，iOS 原生插件按需加载原生规范；详见 [Godot 接入说明](docs/GODOT.md)。从 [5.0.2 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v5.0.2) 下载对应安装包，也可使用本仓库打包生成的文件。
 
 安装后的目录对应：
 
@@ -150,8 +150,9 @@ Godot + GDScript + iOS 扩展见 [接入与分工说明](docs/GODOT.md)。它与
 | `examples/TeamFlowDemo/` | [演练 Demo](examples/TeamFlowDemo/README.md)（UIKit + MVVM，CocoaPods） |
 | `examples/TeamFlowGame/` | 最小 Godot 场景与行为测试；不包含 iOS 导出配置 |
 | `docs/RELEASE.md`、`CHANGELOG.md` | [源码验证与分发](docs/RELEASE.md)、[版本记录](CHANGELOG.md) |
+| `.github/workflows/release.yml` | 仅发布：推送 `teamflow-v*` 标签时打包并创建 GitHub Release |
 
-Demo、测试和发布工具属于源码仓库，不进入独立 Skill 包。仓库不配置 CI，验证按下表在本地运行；GitHub Release 由本地验证打包后创建，见 [源码验证与分发](docs/RELEASE.md)。
+Demo、测试和发布工具属于源码仓库，不进入独立 Skill 包。验证按下表在本地运行；CI 只负责发布，推送 `teamflow-v*` 标签后打包并创建 GitHub Release，见 [源码验证与分发](docs/RELEASE.md)。
 
 本仓库按改动选择 profile（接入业务项目时自行配置）：
 
