@@ -443,9 +443,12 @@ class ProjectChecksTests(unittest.TestCase):
                      'slow': {'argv': [sys.executable, '-c', 'import time; time.sleep(30)'], 'timeout_seconds': 1}})
         failed = subprocess.run(command, capture_output=True, text=True)
         self.assertEqual(1, failed.returncode)
-        self.assertEqual(1, len(failed.stdout.splitlines()))
+        summary, *excerpt = failed.stdout.splitlines()
         for expected in ('验证：失败（change）', 'fail 失败（logs/project-checks/', 'missing 无法执行', 'slow 超时'):
-            self.assertIn(expected, failed.stdout)
+            self.assertIn(expected, summary)
+        # 失败时附关键行，无需再打开完整日志。
+        self.assertIn('fail 关键行：', excerpt)
+        self.assertIn('  failure detail', excerpt)
         target = latest()
         self.assertEqual(['失败', '无法执行', '超时'], [r['status'] for r in json.loads(target.read_text())['results']])
         self.assertEqual('failure detail\n', (target.parent / 'fail.log').read_text())

@@ -379,14 +379,31 @@ def run(root, profile, requirement=None):
     return target, report['status'] == '通过'
 
 
+FAILURE_LINE = re.compile(r'error|fail|fatal|exception|traceback|assert|panic|错误|失败', re.I)
+
+
+def key_lines(path, limit=8, width=200):
+    """失败日志的关键行：优先匹配错误特征的最后几行，否则取末尾几行，省去再次打开完整日志。"""
+    try:
+        lines = [line.rstrip() for line in path.read_text(errors='replace').splitlines() if line.strip()]
+    except OSError:
+        return []
+    matched = [line for line in lines if FAILURE_LINE.search(line)]
+    return [line[:width] for line in (matched or lines)[-limit:]]
+
+
 def describe_run(root, target):
-    """一次运行的简短结论；失败时列出失败项及本地日志。"""
+    """一次运行的简短结论；失败时列出失败项、本地日志及关键错误行。"""
     report = json.loads(target.read_text())
     relative = target.parent.relative_to(root.resolve())
     line = f"验证：{report['status']}（{report['profile']}）"
     failed = [r for r in report['results'] if r['status'] != '通过']
     if failed:
         line += '：' + '、'.join(f"{r['name']} {r['status']}（{relative / r['log']}）" for r in failed)
+        for result in failed:
+            excerpt = key_lines(target.parent / result['log'])
+            if excerpt:
+                line += '\n' + result['name'] + ' 关键行：\n' + '\n'.join('  ' + item for item in excerpt)
     elif report['status'] != '通过':
         line += '：运行期间输入变化，请重新验证'
     return line

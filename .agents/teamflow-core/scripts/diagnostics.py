@@ -3,6 +3,8 @@ import subprocess
 from teamflow_common import local_path
 from requirement_model import require_ready, parse_card
 
+LARGE_PROJECT_FILES = 1000
+
 
 def requirement_summary(root, requirement):
     """返回证据有效性、问题与下一步，以及是否为已交付但证据无法对应交付提交的历史需求。"""
@@ -86,6 +88,13 @@ def doctor(root):
             # 改动只是增量读取线索；只有索引失效才需要处理。
             problem = any(m['status'] == 'invalid' for m in summary['modules'])
             checks.append({'item': '模块索引', 'status': '需处理' if problem else '就绪', 'detail': summary})
+        else:
+            listed = subprocess.run(['git', '-C', str(root), 'ls-files', '-z'], capture_output=True, text=True)
+            count = len([name for name in listed.stdout.split('\0') if name]) if listed.returncode == 0 else 0
+            if count >= LARGE_PROJECT_FILES:
+                # 大工程没有索引时，Agent 定位代码只能广泛搜索，读取成本随规模增长。
+                checks.append({'item': '模块索引', 'status': '提示',
+                               'detail': f'Git 跟踪 {count} 个文件，建议按 MODULE-CONTEXT 记录模块索引以增量定位'})
     except (ValueError, OSError, KeyError, TypeError, subprocess.CalledProcessError) as error:
         checks.append({'item': '模块索引', 'status': '需处理', 'detail': str(error)})
     return {'checks': checks, 'needs_action': any(item['status'] == '需处理' for item in checks)}

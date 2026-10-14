@@ -144,3 +144,21 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual('就绪', self.ci_status(base, req)[0])
         with self.assertRaisesRegex(ValueError, 'fetch-depth'):
             diagnostics.ci_check(self.root, 'missing-ref')
+
+
+class ModuleHintTests(unittest.TestCase):
+    setUp = test_teamflow.TeamFlowTests.setUp
+    git = test_teamflow.TeamFlowTests.git
+    configure_checks = test_teamflow.TeamFlowTests.configure_checks
+
+    def hint(self):
+        return next((i for i in diagnostics.doctor(self.root)['checks'] if i['item'] == '模块索引'), None)
+
+    def test_large_project_without_index_gets_hint(self):
+        self.git('add', '-A')
+        self.assertIsNone(self.hint())
+        from unittest.mock import patch
+        with patch.object(diagnostics, 'LARGE_PROJECT_FILES', 2):
+            item = self.hint()
+        self.assertEqual('提示', item['status'])
+        self.assertIn('MODULE-CONTEXT', item['detail'])
