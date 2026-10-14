@@ -23,7 +23,7 @@ python3 .agents/skills/Godot/scripts/verify_godot.py \
   --project game --test-script tests/run_tests.gd
 ```
 
-测试脚本相对游戏资源根，必须存在，写法与框架选择见[测试脚本](TESTING.md)；只有明确选择 `--import-only` 才单独检查导入。日志写入游戏根 `.godot/teamflow-checks/`；这类缓存不提交，TeamFlow profile 的完整输出另由核心保存。工具不伪造不存在的项目测试。
+测试故意触发的引擎错误（如损坏存档的解析错误）用 `--allow-error 正则` 逐条放行，只作用于测试阶段且只匹配该行，其他错误仍判失败。测试脚本相对游戏资源根，必须存在，写法与框架选择见[测试脚本](TESTING.md)；只有明确选择 `--import-only` 才单独检查导入。日志写入游戏根 `.godot/teamflow-checks/`；这类缓存不提交，TeamFlow profile 的完整输出另由核心保存。工具不伪造不存在的项目测试。
 
 默认读取 `project.godot` 的 `config/features` 主次版本：引擎须同主版本且次版本不低于工程，升级引擎不失败。需要固定精确版本时传 `--expect-version`（如 `4.7.2`），或由团队在 `.agents/team/toolchain.json` 锁定（见[团队协作](TEAM.md)），不一致即失败；显式参数优先。每个阶段默认最多 120 秒，可用 `--timeout` 按实际项目调整。
 

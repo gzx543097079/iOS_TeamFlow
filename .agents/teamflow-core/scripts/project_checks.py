@@ -36,10 +36,27 @@ def changed_paths(root):
     return names
 
 
+def installed_files(root):
+    """TeamFlow 自身的安装文件不属于项目验证范围：与安装清单一致的核心与 Skill、入口、AGENTS 和权限配置。"""
+    import setup_project
+    import upgrade
+    result = {name for name in ('AGENTS.md', '.claude/settings.json', '.codex/rules/teamflow.rules')
+              if local_path(root, name).is_file()}
+    entry = local_path(root, 'scripts/teamflow.py')
+    if entry.is_file() and entry.read_text() == setup_project.ENTRY:
+        result.add('scripts/teamflow.py')
+    manifest = local_path(root, upgrade.MANIFEST)
+    if manifest.is_file():
+        result.add(upgrade.MANIFEST)
+        files = json.loads(manifest.read_text()).get('files', {})
+        result.update(name for name, digest in files.items() if upgrade.current_hash(root, name) == digest)
+    return result
+
+
 def suggest(root):
     config = load_config(root)
     names = {name for name in changed_paths(root) if not excluded_input(name)
-             and not name.startswith('requirements/')}
+             and not name.startswith('requirements/')} - installed_files(root)
     profiles, covered = [], set()
     for profile, settings in config['profiles'].items():
         selected = input_paths(root, settings.get('inputs'), names)

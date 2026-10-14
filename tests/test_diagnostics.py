@@ -21,6 +21,33 @@ class DiagnosticsTests(unittest.TestCase):
         self.assertIn('source.txt', report['profiles'][0]['covered_files'])
         self.assertFalse((self.root / 'logs').exists())
 
+    def test_source_repository_needs_no_managed_entry(self):
+        import setup_project
+        from pathlib import Path
+        root = Path(__file__).resolve().parents[1]
+        entry = next(item for item in setup_project.diagnose(root)['checks'] if item['item'] == 'Skill 与入口')
+        self.assertEqual('就绪', entry['status'])
+        self.assertIn('源码仓库', entry['detail'])
+
+    def test_in_progress_and_waiting_cards_are_not_action_items(self):
+        req = self.create(); self.fill(req, done=False)
+        report = diagnostics.doctor(self.root)
+        item = next(entry for entry in report['checks'] if entry['item'] == req)
+        self.assertEqual('进行中', item['status'])
+        self.assertIn('统一验收', item['detail']['next_step'])
+        self.assertIn('[进行中] ' + req, diagnostics.format_report(report))
+        flow.complete(self.root, req, profile='change', wait_user=True)
+        status = flow.status(self.root, req)
+        self.assertIn('--user-confirmed', status['next_step'])
+        self.assertIn('--user-confirmed', flow.render('status', status))
+        self.assertIn('--user-confirmed', flow.render('complete', flow.complete(self.root, req, wait_user=True)))
+
+    def test_missing_check_config_is_reported_once(self):
+        (self.root / '.agents/project-checks.json').unlink()
+        items = [entry['item'] for entry in diagnostics.doctor(self.root)['checks']]
+        self.assertIn('项目验证', items)
+        self.assertNotIn('验证配置及输入', items)
+
     def test_status_is_read_only_and_checks_stale_evidence(self):
         req = self.create(); card = self.fill(req)
         flow.complete(self.root, req, profile='change')

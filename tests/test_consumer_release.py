@@ -99,6 +99,28 @@ class ConsumerReleaseTests(unittest.TestCase):
         self.assertFalse((self.root / 'logs').exists())
 
 
+    def test_first_commit_does_not_require_profile_to_cover_install_files(self):
+        req = json.loads(self.cli('req', 'create', '--title', '首次提交', '--json').stdout)['requirement']
+        card = self.root / 'requirements' / (req + '.md')
+        card.write_text(card.read_text().replace('〈填写本次要达到的结果〉', '首个页面')
+                        .replace('〈填写可观察的输入、操作和预期结果〉', '页面可见'))
+        (self.root / 'App').mkdir()
+        (self.root / 'App/main.swift').write_text('print(1)\n')
+        config = {'schema_version': 2, 'profiles': {'change': {'inputs': ['App'],
+                  'checks': {'unit': {'argv': [sys.executable, '-c', 'pass']}}}}}
+        (self.root / '.agents/project-checks.json').write_text(json.dumps(config))
+        self.cli('req', 'complete', req, '--profile', 'change', '--confirm-ac', 'AC-01')
+        subprocess.run(['git', '-C', str(self.root), 'add', '-A'], check=True)
+        report = json.loads(self.cli('git', 'check', req, '--json').stdout)
+        self.assertEqual(['App/main.swift'], report['release_sensitive_files'])
+        # 直接改过的核心文件不再算安装文件，仍须由验证覆盖。
+        workflow = self.root / '.agents/teamflow-core/references/WORKFLOW.md'
+        workflow.write_text(workflow.read_text() + '\n团队改动\n')
+        subprocess.run(['git', '-C', str(self.root), 'add', '-A'], check=True)
+        result = self.cli('git', 'check', req, ok=False)
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn('WORKFLOW.md', result.stderr)
+
     def test_packaged_host_permissions_ask_before_external_actions(self):
         settings = json.loads((self.root / '.claude/settings.json').read_text())
         self.assertIn('Bash(git push:*)', settings['permissions']['ask'])

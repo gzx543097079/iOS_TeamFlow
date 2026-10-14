@@ -16,18 +16,18 @@ Godot 4.x + GDScript 与 iOS 原生使用同一套 TeamFlow 核心，按安装�
 
 | 安装包 | 模式 | AGENTS 入口 |
 | --- | --- | --- |
-| `teamflow-godot-v6.0.0.zip` | `godot` | Godot Skill，跳过 iOS 路由；不含 iOS Skill |
-| `teamflow-godot-ios-v6.0.0.zip` | `godot-ios` | Godot Skill，iOS 原生插件按路由加载原生规范 |
+| `teamflow-godot-v1.0.0.zip` | `godot` | Godot Skill，跳过 iOS 路由；不含 iOS Skill |
+| `teamflow-godot-ios-v1.0.0.zip` | `godot-ios` | Godot Skill，iOS 原生插件按路由加载原生规范 |
 
 新项目在 Git 根解压即可使用：
 
 ```sh
-unzip ~/Downloads/teamflow-godot-v6.0.0.zip -d .
+unzip ~/Downloads/teamflow-godot-v1.0.0.zip -d .
 python3 scripts/teamflow.py setup      # 可选：在根 .gitignore 补上 .godot/
 python3 scripts/teamflow.py doctor
 ```
 
-已有项目用 `unzip -n` 解压，再运行 `python3 .agents/teamflow-core/scripts/teamflow.py setup --mode godot`（或 `--mode godot-ios`）合并入口。重复运行 setup 时不传 mode 会沿用已选入口；后续加入 iOS 时运行 `python3 scripts/teamflow.py upgrade teamflow-godot-ios-v6.0.0.zip --mode godot-ios`，同版本也可以这样补装 iOS Skill 并切换入口。安装选择保存在 AGENTS 托管区块中，不另建状态配置。详见[安装说明](../.agents/teamflow-core/references/INSTALL.md)。
+已有项目用 `unzip -n` 解压，再运行 `python3 .agents/teamflow-core/scripts/teamflow.py setup --mode godot`（或 `--mode godot-ios`）合并入口。重复运行 setup 时不传 mode 会沿用已选入口；后续加入 iOS 时运行 `python3 scripts/teamflow.py upgrade teamflow-godot-ios-v1.0.0.zip --mode godot-ios`，同版本也可以这样补装 iOS Skill 并切换入口。安装选择保存在 AGENTS 托管区块中，不另建状态配置。详见[安装说明](../.agents/teamflow-core/references/INSTALL.md)。
 
 团队协作建议先完成两件事：
 
@@ -52,14 +52,6 @@ python3 scripts/teamflow.py req complete REQ-YYYYMMDD-xxxx --profile godot-check
 
 示例编号必须替换为实际编号。Godot 自动检查通过只确认自动范围；画面、触控、声音和真机 AC 保留待用户验证。
 
-## 本仓库验证
+## 验证范围
 
-[演练场景](../examples/TeamFlowGame/README.md) 用两个按钮验证计分、暂停／恢复和重新进入场景。检查入口会拒绝缺失测试、引擎错误和超时，不因为进程退出 0 就忽略错误。
-
-```sh
-python3 scripts/teamflow.py req complete REQ-20261013-9a5d --profile workflow-godot-review
-```
-
-该 profile 组合工具回归、全部分发包和真实 Godot 样例测试；样例检查按工程声明的主次版本核对本机引擎，不自动安装或升级。
-
-Godot iOS 导出、Xcode 最终 App、真机触控／性能和 TestFlight 尚未验证；实际游戏接入后按目标配置对应 profile。
+本仓库不内置演练工程；工具与安装包回归由 `workflow` / `workflow-release` profile 覆盖，Godot 实际接入在独立试用项目中核对，记录见[内测试用记录](TRIAL.md)。导出、真机触控与性能、TestFlight 按实际项目目标配置对应 profile。

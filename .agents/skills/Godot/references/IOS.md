@@ -10,6 +10,19 @@
 
 游戏源码、导出预设、原生插件和必要导出处理脚本是权威输入。生成的 Xcode 工程与 App 是产物；需长期保留的修复放到可重复生成的源配置／插件／导出处理，禁止只改生成工程后声称已永久修复。已有受维护的 Xcode 宿主工程或官方开发期资源链接方案沿用实际结构，不自动删除或重建。
 
+### 导出与模拟器构建
+
+[export_ios.py](../scripts/export_ios.py) 先核对已知前置条件，再无界面导出 Xcode 工程并用 xcodebuild 做关闭签名的模拟器 Debug 构建；可作为 iOS profile 的检查项，以 `extends` 包含游戏检查：
+
+```sh
+python3 .agents/skills/Godot/scripts/export_ios.py --project game --output build/ios
+```
+
+- Godot 无界面导出遇到配置问题时只报 “configuration errors”，不给原因。常见缺项：项目图标（`config/icon`）、`textures/vram_compression/import_etc2_astc=true`、Team ID、Bundle ID；脚本一次列出全部缺项。
+- 预设须开启 `application/export_project_only`，构建交给 xcodebuild。只做模拟器构建时 Team ID 可用占位值，真机与发布使用真实身份。
+- 模拟器架构以导出的 `libgodot.a` 实际架构为准（目录名不可信）。官方 4.7.2 模板的模拟器切片只有 x86_64：Apple 芯片上 iOS 26 模拟器无法安装运行，脚本仍按 x86_64 核对构建并给出提示；运行与视觉验收须用真机或含 arm64 模拟器切片的模板，否则保持未验证。
+- 导出目录 `build/` 是产物，加入忽略规则，不提交。
+
 需求证据绑定引擎输入及原生源码；平台动作记录最终 build、完整 commit 和可定位结果。重新导出或重建后，核对旧安装／测试结论是否仍适用。
 
 ## 原生桥接

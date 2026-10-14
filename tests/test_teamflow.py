@@ -221,6 +221,20 @@ class TeamFlowTests(unittest.TestCase):
         self.assertEqual('完成', flow.parse_card(card)['state'])
         self.assertEqual(1, len(self.logs()))
 
+    def test_user_confirmed_ac_is_recorded_separately(self):
+        req = self.create(); card = self.fill(req, done=False)
+        flow.complete(self.root, req, profile='change', wait_user=True)
+        before = flow.parse_card(card)['evidence']
+        report = flow.complete(self.root, req, user_confirmed=['AC-01'])
+        self.assertEqual('完成', report['state_key'])
+        saved = flow.parse_card(card)
+        self.assertEqual(['AC-01'], saved['meta']['user_confirmed'])
+        self.assertEqual(before['fingerprint'], saved['evidence']['fingerprint'])
+        self.assertEqual(['AC-01'], flow.status(self.root, req)['user_confirmed'])
+        from diagnostics import pr_body
+        self.assertIn('AC-01：', pr_body(self.root, req)['body'])
+        self.assertIn('（用户确认）', pr_body(self.root, req)['body'])
+
     def test_manual_proof_rejects_semantic_changes_without_writing(self):
         req = self.create(); card = self.fill(req)
         card.write_text(card.read_text().replace('## 不包含\n\n无', '## 不包含\n\n支付'))

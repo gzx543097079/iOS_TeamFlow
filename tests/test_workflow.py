@@ -24,10 +24,14 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn('scripts/teamflow.py', names)
         self.assertIn(package_release.CORE + '/scripts/teamflow.py', names)
 
+    def test_repository_uses_packaged_host_permissions(self):
+        for target, source in package_release.PERMISSIONS.items():
+            self.assertEqual((ROOT / source).read_bytes(), (ROOT / target).read_bytes(), target)
+
     def test_links_are_checked_per_install_mode_and_anchor(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            for name in package_release.FILES + ('.agents/project-checks.json', 'examples/TeamFlowDemo/README.md'):
+            for name in package_release.FILES + ('.agents/project-checks.json',):
                 (root / name).parent.mkdir(parents=True, exist_ok=True)
                 (root / name).write_bytes((ROOT / name).read_bytes())
             validate_workflow.validate(root)

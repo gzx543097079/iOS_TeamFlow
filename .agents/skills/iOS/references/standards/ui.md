@@ -1,6 +1,6 @@
 # iOS UI 规范（中文）
 
-版本：1.2.0；团队截图规则更新日期：2026-10-13；条目核对日期：2026-09-11。适用于 UIKit（OC / Swift）和 SwiftUI。
+适用于 UIKit（OC / Swift）和 SwiftUI。
 本规范是基于 Apple 官方资料编写的团队落地标准，不是 Apple 认证文件。区分“审核要求”“Apple 设计建议”“团队默认”；上线前再次核对目标地区、系统版本及最新官方规则。
 
 新增或修改输入框、搜索、表单或输入栏时另读[键盘与输入](ui-keyboard.md)；购买、订阅或付费墙页面另读[付费 UI](ui-paywall.md)。其他 UI 改动只读本文件。
@@ -57,4 +57,4 @@
 - [Accessibility](https://developer.apple.com/design/human-interface-guidelines/accessibility)
 - [Typography](https://developer.apple.com/design/human-interface-guidelines/typography)
 
-HIG 页面若仅显示 JavaScript 提示，可读取 Apple 自有 DocC 数据路径 `https://developer.apple.com/tutorials/data/design/human-interface-guidelines/<主题>.json`；本次已读取 accessibility、typography、in-app-purchase 的正文。
+HIG 页面若仅显示 JavaScript 提示，可读取 Apple 自有 DocC 数据路径 `https://developer.apple.com/tutorials/data/design/human-interface-guidelines/<主题>.json`。

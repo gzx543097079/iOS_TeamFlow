@@ -162,32 +162,6 @@ class GodotExtensionTests(unittest.TestCase):
             self.assertEqual(original, (project / 'AGENTS.md').read_bytes())
             self.assertEqual('ios', setup_project.install_mode(project))
 
-    def test_setup_migrates_old_managed_entry_and_claude_link(self):
-        import setup_project
-        archive = package_release.package_godot_ios(ROOT)
-        with tempfile.TemporaryDirectory() as directory:
-            project = Path(directory)
-            with zipfile.ZipFile(archive) as stream:
-                stream.extractall(project)
-            old_start, old_end = setup_project.LEGACY_MARKERS
-            (project / 'AGENTS.md').write_text('# 项目约定\n\n' + old_start + '\n## Godot 项目\n旧入口\n' + old_end + '\n\n保留这段。\n')
-            links = project / '.claude/skills'
-            links.mkdir(parents=True)
-            legacy = links / 'godot-team-flow'
-            legacy.symlink_to('../../.agents/skills/godot-team-flow', target_is_directory=True)
-            setup_project.setup(project, project / package_release.CORE)
-            content = (project / 'AGENTS.md').read_text()
-            self.assertIn('保留这段。', content)
-            self.assertNotIn(old_start, content)
-            self.assertEqual(1, content.count(setup_project.START))
-            self.assertEqual('godot-ios', setup_project.install_mode(project))
-            self.assertTrue((links / 'godot').is_symlink())
-            self.assertEqual((project / package_release.GODOT_SKILL).resolve(), (links / 'godot').resolve())
-            self.assertFalse(legacy.is_symlink())
-            before = content
-            setup_project.setup(project, project / package_release.CORE)
-            self.assertEqual(before, (project / 'AGENTS.md').read_text())
-
     def test_engine_version_follows_project_features(self):
         with tempfile.TemporaryDirectory() as directory:
             project = Path(directory)
@@ -213,6 +187,14 @@ class GodotExtensionTests(unittest.TestCase):
             with patch.object(verify_godot.subprocess, 'run', return_value=result):
                 with self.assertRaisesRegex(ValueError, 'Godot 检查失败'):
                     verify_godot.run_phase(['godot'], ROOT, 1)
+        # 只放行明确预期的错误行，其他错误仍失败。
+        mixed = subprocess.CompletedProcess(['godot'], 0, '', 'ERROR: ConfigFile parse error at user://save.cfg\nERROR: other')
+        with patch.object(verify_godot.subprocess, 'run', return_value=mixed):
+            with self.assertRaisesRegex(ValueError, 'Godot 检查失败'):
+                verify_godot.run_phase(['godot'], ROOT, 1, ('ConfigFile parse error',))
+        expected = subprocess.CompletedProcess(['godot'], 0, 'ok', 'ERROR: ConfigFile parse error at user://save.cfg')
+        with patch.object(verify_godot.subprocess, 'run', return_value=expected):
+            self.assertEqual('ok', verify_godot.run_phase(['godot'], ROOT, 1, ('ConfigFile parse error',)))
         with patch.object(verify_godot.subprocess, 'run', side_effect=subprocess.TimeoutExpired(['godot'], 1)):
             with self.assertRaises(subprocess.TimeoutExpired):
                 verify_godot.run_phase(['godot'], ROOT, 1)

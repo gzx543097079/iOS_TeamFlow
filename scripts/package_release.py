@@ -26,7 +26,7 @@ GODOT_SKILL = '.agents/skills/Godot'
 GODOT_FILES = tuple(GODOT_SKILL + '/' + name for name in (
     'SKILL.md', 'references/ENGINE.md', 'references/GDSCRIPT.md',
     'references/CHECKS.md', 'references/IOS.md', 'references/TEAM.md', 'references/RELEASE.md', 'references/PERFORMANCE.md', 'references/TESTING.md',
-    'scripts/verify_godot.py', 'assets/project-checks.example.json',
+    'scripts/verify_godot.py', 'scripts/export_ios.py', 'assets/project-checks.example.json',
 ))
 REFERENCES = (
     'APP-RELEASE.md', 'APP-LIFECYCLE.md', 'PERFORMANCE.md', 'LOGGING.md', 'EXISTING-PROJECT.md', 'ARCHITECTURE.md', 'LOCALIZATION.md',
@@ -44,11 +44,7 @@ FILES = (
     SKILL + '/assets/logging/TFLogger.swift', SKILL + '/assets/logging/TFLogger.h', SKILL + '/assets/logging/TFLogger.m',
     SKILL + '/scripts/install_logging.py',
 ) + tuple(SKILL + '/references/' + name for name in REFERENCES) + CORE_FILES + GODOT_FILES + (
-    'docs/GODOT.md', 'tests/test_godot_extension.py', 'tests/test_upgrade.py', 'tests/test_team.py', 'tests/test_token_budget.py',
-    'examples/TeamFlowGame/project.godot', 'examples/TeamFlowGame/main.tscn',
-    'examples/TeamFlowGame/main.gd', 'examples/TeamFlowGame/tests/run_tests.gd',
-    'examples/TeamFlowGame/main.gd.uid', 'examples/TeamFlowGame/tests/run_tests.gd.uid',
-    'examples/TeamFlowGame/.gitignore', 'examples/TeamFlowGame/README.md',
+    'docs/GODOT.md', 'tests/test_godot_extension.py', 'tests/test_godot_export.py', 'tests/test_upgrade.py', 'tests/test_team.py', 'tests/test_token_budget.py',
 )
 
 

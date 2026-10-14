@@ -19,7 +19,7 @@ python3 scripts/teamflow.py verify run --profile change --requirement REQ-202601
   "schema_version": 2,
   "profiles": {
     "change": {
-      "inputs": ["App", "scripts/test_app.py"],
+      "inputs": ["App", ".gitignore", "scripts/test_app.py"],
       "checks": {
         "tests": {"argv": ["python3", "scripts/test_app.py"], "timeout_seconds": 900}
       }
@@ -28,7 +28,7 @@ python3 scripts/teamflow.py verify run --profile change --requirement REQ-202601
 }
 ```
 
-示例须替换为项目实际文件与命令。
+示例须替换为项目实际文件与命令。inputs 覆盖要提交的工程文件（删除的文件同样须在覆盖范围内），含 `.gitignore` 等工程配置；TeamFlow 自身的安装文件不需要纳入。测试命令须能区分空套件：不用会隐藏测试数量的静默参数，或另行核对结果包中的执行数，避免“0 个测试”被当作通过。
 
 收尾前确认本次受验证输入稳定、用户改动已隔离，然后运行匹配范围的 profile。同批相关小改动在结束后统一检查，按 [主流程](WORKFLOW.md#实施与验收) 复用有效证据；失败后修复并重跑必要验证。
 

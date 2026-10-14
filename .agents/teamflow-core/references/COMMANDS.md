@@ -6,7 +6,7 @@
 
 `req complete REQ-20260101-a3f9 --profile change` 运行所选验证，并把证据摘要写入卡片头部。`--result logs/project-checks/运行编号/result.json` 绑定本地已有结果；不传证据参数时先按卡片摘要重新计算指纹复核，不读取日志；摘要缺失或失效且项目已配置验证时，自动选择覆盖全部改动、检查项最少的 profile 运行（输出标注“按改动自动选择”），没有单个 profile 覆盖时报出未覆盖文件且不改卡片。三种证据来源 `--profile`、`--result`、`--evidence` 互斥。
 
-`--confirm-ac AC-01` 可重复；未知编号、证据无效或验证失败均不更改卡片，未指定的条件保留原状态。`--wait-user` 与恢复规则见 [WORKFLOW](WORKFLOW.md#实施与验收)，恢复命令见下方「状态」。
+`--confirm-ac AC-01` 可重复；`--user-confirmed AC-01` 同样勾选，并把编号记入头部 `user_confirmed`，`req status` 与 `req pr` 标注“用户确认”。未知编号、证据无效或验证失败均不更改卡片，未指定的条件保留原状态。`--wait-user` 与恢复规则见 [WORKFLOW](WORKFLOW.md#实施与验收)，恢复命令见下方「状态」。
 
 ## 输出
 
@@ -39,8 +39,8 @@ python3 scripts/teamflow.py req complete REQ-20260101-a3f9 \
 ## 升级与提交前检查
 
 ```sh
-python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v6.2.1.zip --plan
-python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v6.2.1.zip
+python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.0.1.zip --plan
+python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.0.1.zip
 python3 scripts/teamflow.py setup --git-hook change
 python3 scripts/teamflow.py setup --no-git-hook
 ```

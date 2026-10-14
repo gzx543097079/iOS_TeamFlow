@@ -1,0 +1,54 @@
+# TeamFlow：推送、PR、Release 与 App／游戏上传类外部动作执行前须经人确认。
+# 规则只兜底，授权范围仍以 WORKFLOW「授权与停止」为准。
+
+prefix_rule(
+    pattern = ["git", "push"],
+    decision = "prompt",
+    justification = "推送属于外部 Git 动作，须用户明确目标",
+    match = ["git push", "git push origin main", "git push --tags"],
+    not_match = ["git status", "git commit -m x"],
+)
+
+prefix_rule(
+    pattern = ["gh", "pr", ["create", "merge", "review", "comment"]],
+    decision = "prompt",
+    justification = "创建、合并或评论 PR 属于外部动作，须用户明确目标",
+    match = ["gh pr create --fill", "gh pr merge 12 --squash", "gh pr comment 12 -b ok"],
+    not_match = ["gh pr view 12", "gh pr list"],
+)
+
+prefix_rule(
+    pattern = ["gh", "release"],
+    decision = "prompt",
+    justification = "GitHub Release 属于外部发布，须用户明确目标",
+    match = ["gh release create teamflow-v1.0.0", "gh release upload v1 a.zip"],
+)
+
+prefix_rule(
+    pattern = ["xcrun", "altool"],
+    decision = "prompt",
+    justification = "上传 App Store Connect 属于 App 外部动作，须用户明确目标",
+    match = ["xcrun altool --upload-app -f App.ipa"],
+    not_match = ["xcrun simctl list"],
+)
+
+prefix_rule(
+    pattern = ["fastlane"],
+    decision = "prompt",
+    justification = "fastlane 通道常含上传、分发或提审，须用户明确目标",
+    match = ["fastlane beta", "fastlane ios release"],
+)
+
+prefix_rule(
+    pattern = ["butler", "push"],
+    decision = "prompt",
+    justification = "上传 itch.io 属于游戏外部发布，须用户明确目标",
+    match = ["butler push build user/game:mac"],
+)
+
+prefix_rule(
+    pattern = ["steamcmd"],
+    decision = "prompt",
+    justification = "steamcmd 可上传 Steam 构建，须用户明确目标",
+    match = ["steamcmd +login builder +run_app_build app.vdf +quit"],
+)

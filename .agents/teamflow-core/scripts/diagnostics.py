@@ -27,6 +27,9 @@ def requirement_summary(root, requirement):
         if commit:
             # 交付提交与验证输入一致，之后的代码演进不影响已完成结论。
             evidence = '交付时有效（提交 ' + commit[:7] + '）'
+        elif card['state'] == '进行中' and not card['evidence'] and content_ready:
+            # 实施中尚未验收是正常状态，不计为问题。
+            evidence = '未验证'
         else:
             evidence = '缺失或失效'
             problems.append(str(error))
@@ -40,6 +43,10 @@ def requirement_summary(root, requirement):
         next_step = '历史需求已交付；旧证据无法对应交付提交，无需重开'
     elif problems:
         next_step = '补齐实际需求内容或重新核对失效证据'
+    elif evidence == '未验证':
+        next_step = '实施定稿后统一验收：req complete ' + requirement + ' --profile <名>'
+    elif pending and card['state'] == '待用户验证':
+        next_step = '等待用户确认剩余 AC；用户明确确认后用 --user-confirmed 记录'
     elif pending:
         next_step = '实际核对剩余 AC，使用 --confirm-ac 确认；证据有效时无需重跑'
     elif card['state'] == '完成':
@@ -61,13 +68,18 @@ def doctor(root):
     setup = setup_project.diagnose(root)
     # 工作流工具和组件仓库不一定需要 Xcode；只有 App 检查实际运行时才要求它。
     checks.extend(item for item in setup['checks'] if item['item'] != 'Xcode')
+    # 配置文件缺失已由“项目验证”报告，不再重复一项原始错误。
     try:
+        if not local_path(root, project_checks.CONFIG).exists():
+            raise FileNotFoundError
         config = project_checks.load_config(root)
         if not config['profiles']:
             raise ValueError('未配置任何验证 profile')
         for profile in config['profiles']:
             project_checks.source_snapshot(root, config, profile)
         checks.append({'item': '验证配置及输入', 'status': '就绪', 'detail': list(config['profiles'])})
+    except FileNotFoundError:
+        pass
     except (ValueError, OSError, KeyError, TypeError, subprocess.CalledProcessError) as error:
         checks.append({'item': '验证配置及输入', 'status': '需处理', 'detail': str(error)})
     directory = local_path(root, 'requirements')
@@ -76,7 +88,9 @@ def doctor(root):
             try:
                 local_path(root, str(path.relative_to(root)))
                 summary, finished = requirement_summary(root, path.stem)
-                status = '就绪' if not summary['problems'] else '历史' if finished else '需处理'
+                card_state = summary['state'].split(' ', 1)[-1]
+                status = ('需处理' if summary['problems'] and not finished else '历史' if summary['problems']
+                          else '进行中' if card_state.startswith(('进行中', '待用户验证')) else '就绪')
                 checks.append({'item': path.stem, 'status': status, 'detail': summary})
             except (ValueError, OSError, KeyError, TypeError) as error:
                 checks.append({'item': path.name, 'status': '需处理', 'detail': str(error)})
@@ -123,6 +137,8 @@ def format_report(report):
             ready.append(item['item'])
         elif item['status'] == '历史':
             history.append(item['item'])
+        elif item['status'] == '进行中':
+            lines.append(f"[进行中] {item['item']}：{item['detail']['next_step']}")
         else:
             lines.append(f"[{item['status']}] {item['item']}：{_brief(item)}")
     if ready:
@@ -143,7 +159,9 @@ def pr_body(root, requirement):
     if card['excluded'] and card['excluded'] != '无':
         lines += ['## 不包含', '', card['excluded'], '']
     lines += ['## 验收条件', '']
-    lines += [f"- [{'x' if item['done'] else ' '}] {item['id']}：{item['condition']}" for item in card['ac']]
+    users = set(card['meta'].get('user_confirmed') or [])
+    lines += [f"- [{'x' if item['done'] else ' '}] {item['id']}：{item['condition']}"
+              + ('（用户确认）' if item['id'] in users else '') for item in card['ac']]
     lines += ['', '## 验证', '']
     saved = card['evidence'] if isinstance(card['evidence'], dict) else {}
     if saved:

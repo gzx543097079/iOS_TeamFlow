@@ -10,7 +10,6 @@ from teamflow_common import local_path as safe
 
 START = '<!-- teamflow:start -->'
 END = '<!-- teamflow:end -->'
-LEGACY_MARKERS = ('<!-- ios-team-flow:start -->', '<!-- ios-team-flow:end -->')
 READING_RULES = '''首次仅读取上述 Skill 和 `.agents/teamflow-core/references/WORKFLOW.md`，其余资料按 WORKFLOW「按需读取」加载。'''
 TEAM_RULES = '''存在 `.agents/team/RULES.md` 时一并读取；团队规则可细化规范，不突破 WORKFLOW 的授权边界。'''
 BLOCK = '''<!-- teamflow:start -->
@@ -73,17 +72,14 @@ def validate_version(value):
 
 
 def managed_span(current):
-    """更新旧接入标记时替换原区块，避免升级后叠加两个入口。"""
-    found = [(start, end) for start, end in ((START, END), LEGACY_MARKERS)
-             if start in current or end in current]
-    if not found:
+    """定位唯一托管区块，重复接入时原位替换。"""
+    if START not in current and END not in current:
         return None
-    if len(found) != 1:
+    if current.count(START) > 1 or current.count(END) > 1:
         raise ValueError('AGENTS.md 存在多个托管区块')
-    start, end = found[0]
-    if current.count(start) != 1 or current.count(end) != 1 or current.index(start) >= current.index(end):
+    if current.count(START) != 1 or current.count(END) != 1 or current.index(START) >= current.index(END):
         raise ValueError('AGENTS.md 托管标记无效')
-    return current.index(start), current.index(end) + len(end), current.split(start, 1)[1].split(end, 1)[0]
+    return current.index(START), current.index(END) + len(END), current.split(START, 1)[1].split(END, 1)[0]
 
 
 def agents_content(current, block=BLOCK):
@@ -231,12 +227,7 @@ def setup(project, skill, dry_run=False, claude_link=False, mode=None, git_hook=
     # 曾选择 Claude 接入的项目切换模式时，同步唯一受管理的 Skill 链接。
     managed_opposite = opposite.is_symlink() and os.readlink(opposite) == opposite_target
     link_ready = link.is_symlink() and os.readlink(link) == link_target
-    legacy_links = []
-    for name in ('ios-team-flow', 'godot-team-flow'):
-        old_link = project / '.claude/skills' / name
-        if old_link.is_symlink() and os.readlink(old_link) == '../../.agents/skills/' + name:
-            legacy_links.append(old_link)
-    enable_link = claude_link or managed_opposite or link_ready or bool(legacy_links)
+    enable_link = claude_link or managed_opposite or link_ready
     if enable_link:
         safe(project, '.claude/skills')
         if not link_ready and (link.exists() or link.is_symlink()):
@@ -264,8 +255,6 @@ def setup(project, skill, dry_run=False, claude_link=False, mode=None, git_hook=
         link.symlink_to(link_target, target_is_directory=True)
     if enable_link and managed_opposite:
         opposite.unlink()
-    for old_link in legacy_links:
-        old_link.unlink()
     return planned
 
 
@@ -293,7 +282,11 @@ def diagnose(project):
     except (OSError, ValueError, TypeError):
         entry_ready = False
         version = '未知'
-    add('Skill 与入口', entry_ready, MODE_LABELS.get(mode, '未知模式') + '，版本 ' + version)
+    if source_repository(project):
+        add('Skill 与入口', True, 'TeamFlow 源码仓库，不安装托管入口，版本 ' + version)
+        mode = '未知'
+    else:
+        add('Skill 与入口', entry_ready, MODE_LABELS.get(mode, '未知模式') + '，版本 ' + version)
     try:
         config_ready = safe(project, '.agents/project-checks.json').is_file()
     except ValueError:
@@ -308,6 +301,13 @@ def diagnose(project):
         items.extend(xcode_status(project))
     return {'project': str(project), 'checks': items,
             'needs_action': any(item['status'] == '需处理' for item in items)}
+
+
+def source_repository(project):
+    """工作流源码仓库带打包脚本且 AGENTS 不含托管区块；安装包不含打包脚本。"""
+    agents = project / 'AGENTS.md'
+    return ((project / 'scripts/package_release.py').is_file()
+            and not (agents.is_file() and START in agents.read_text()))
 
 
 def hook_status(project):

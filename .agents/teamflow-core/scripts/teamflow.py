@@ -212,7 +212,7 @@ def manual_proof(root, card, evidence, evidence_inputs=None):
 
 
 def complete(root, requirement, result=None, evidence=None, wait_user=False, profile=None,
-             confirm_ac=None, evidence_inputs=None):
+             confirm_ac=None, evidence_inputs=None, user_confirmed=None):
     if sum(value is not None for value in (result, evidence, profile)) > 1:
         raise ValueError('只能提供 --profile、--result、--evidence 中的一种')
     if evidence_inputs is not None and evidence is None:
@@ -223,7 +223,8 @@ def complete(root, requirement, result=None, evidence=None, wait_user=False, pro
     if card['state'] in ('阻塞', '取消'):
         raise ValueError('需求处于' + card['state_display'] + '；请按用户明确决定先执行 '
                          'req state --state 进行中 --reason "恢复依据"，再验收')
-    confirmed = set(confirm_ac or [])
+    by_user = set(user_confirmed or [])
+    confirmed = set(confirm_ac or []) | by_user
     unknown = confirmed - {item['id'] for item in card['ac']}
     if unknown:
         raise ValueError('未知 AC：' + '、'.join(sorted(unknown)))
@@ -273,6 +274,10 @@ def complete(root, requirement, result=None, evidence=None, wait_user=False, pro
     target_state = ('待用户验证' if wait_user else '进行中') if pending else '完成'
     meta = dict(card['meta'], state=target_state, evidence=proof)
     meta.pop('queued', None)
+    # 用户确认单独记录在头部，供评审区分 Agent 自行核对与用户实际确认。
+    users = sorted(set(meta.get('user_confirmed') or []) | by_user)
+    if users:
+        meta['user_confirmed'] = users
     write_card(path, meta, body)
     card = parse_card(path)
     return {'requirement': requirement, 'state': card['state_display'], 'state_key': target_state,
@@ -302,7 +307,8 @@ def git_check(root, requirement, result=None, evidence=None, evidence_inputs=Non
         raise ValueError('验证日志是本地证据，不应提交；请移出暂存区并在 .gitignore 加入 /logs/project-checks/')
     # 人工提交检查只用于文档/记录，不能替代业务或工具代码的自动验证。
     manual = evidence is not None or (result is None and (card['evidence'] or {}).get('kind') == 'manual')
-    if manual and any(Path(name).suffix.lower() not in ('.md', '.rst', '.txt') for name in names):
+    installed = checks.installed_files(root) & set(names)
+    if manual and any(Path(name).suffix.lower() not in ('.md', '.rst', '.txt') for name in set(names) - installed):
         raise ValueError('非文档暂存变更必须使用自动验证，不能仅提供人工证据')
     if result is not None:
         report = checks.verify(root, result, staged=True)
@@ -319,6 +325,7 @@ def git_check(root, requirement, result=None, evidence=None, evidence_inputs=Non
               if proof['kind'] == 'result' else proof['paths'])
     covered = checks.input_paths(root, inputs, set(names))
     covered.update({'requirements/' + requirement + '.md', checks.CONFIG})
+    covered.update(installed)
     # 移出 Git 的历史日志不改变源码；新增或修改日志仍须由 profile 覆盖。
     deleted = subprocess.check_output(['git', '-C', str(root), 'diff', '--cached', '--name-only',
                                        '--diff-filter=D', '-z']).decode().split('\0')
@@ -326,7 +333,7 @@ def git_check(root, requirement, result=None, evidence=None, evidence_inputs=Non
     uncovered = sorted(set(names) - covered)
     if uncovered:
         raise ValueError('验证未覆盖暂存文件：' + '、'.join(uncovered) + '；请配置覆盖本次提交的 profile')
-    risky = [name for name in names if Path(name).suffix.lower() in
+    risky = [name for name in names if name not in installed and Path(name).suffix.lower() in
              ('.swift', '.m', '.mm', '.h', '.plist', '.entitlements', '.pbxproj', '.xcconfig')]
     return {'requirement': requirement, 'staged_files': names, 'validation': proof,
             'release_sensitive_files': risky, 'commit_trailer': 'Requirement: ' + requirement}
@@ -341,6 +348,7 @@ def status(root, requirement):
             'state': card['state_display'], 'state_key': card['state'], 'blocked': card['blocked'],
             'reason': card['reason'], 'progress': card['progress'], 'scope': card['scope'],
             'excluded': card['excluded'], 'ac': card['ac'], 'evidence': card['evidence'],
+            'user_confirmed': card['meta'].get('user_confirmed') or [],
             'evidence_status': summary['evidence_status'], 'problems': summary['problems'],
             'decisions': summary['decisions'], 'next_step': summary['next_step']}
 
@@ -355,11 +363,12 @@ def _evidence_line(evidence):
     return f"证据：{evidence.get('profile')} {evidence.get('status')} @ {evidence.get('at', '')}"
 
 
-def _pending_lines(requirement, pending):
+def _pending_lines(requirement, pending, waiting=False):
     if not pending:
         return []
-    return (['剩余：' + '；'.join(f"{p['id']} {p['condition']}" for p in pending)]
-            + [f'核对后执行：req complete {requirement} --confirm-ac AC-编号（证据有效时无需重跑）'])
+    hint = (f'用户明确确认后执行：req complete {requirement} --user-confirmed AC-编号' if waiting
+            else f'核对后执行：req complete {requirement} --confirm-ac AC-编号（证据有效时无需重跑）')
+    return ['剩余：' + '；'.join(f"{p['id']} {p['condition']}" for p in pending), hint]
 
 
 def render(kind, data):
@@ -384,12 +393,13 @@ def render(kind, data):
         if data['reason']:
             lines.append('原因：' + data['reason'])
         lines.extend('问题：' + problem for problem in data['problems'])
-        lines.extend(_pending_lines(data['requirement'], pending)[:1])
+        lines.extend(_pending_lines(data['requirement'], pending, data['state_key'] == '待用户验证')[:1])
         return '\n'.join(lines + ['下一步：' + data['next_step']])
     if kind == 'complete':
         lines = [data['verification']] if data['verification'] else []
         lines.append(f"{data['requirement']} {data['state']} {data['progress']}")
-        return '\n'.join(lines + _pending_lines(data['requirement'], data['pending_conditions']))
+        return '\n'.join(lines + _pending_lines(data['requirement'], data['pending_conditions'],
+                                                data['state_key'] == '待用户验证'))
     if kind == 'git':
         proof = data['validation']
         source = proof['profile'] if proof['kind'] == 'result' else '人工核对'
@@ -458,6 +468,8 @@ def main():
     done.add_argument('--evidence-input', action='append', help='人工核对的项目相对文件/目录，可重复；默认整个项目')
     done.add_argument('--confirm-ac', action='append', metavar='AC-编号',
                       help='显式确认已实际核对的条件，可重复传入；验证证据有效后才写入')
+    done.add_argument('--user-confirmed', action='append', metavar='AC-编号',
+                      help='用户已在对话中明确确认的条件；勾选并记入头部 user_confirmed')
 
     verify = top.add_parser('verify')
     verify_sub = verify.add_subparsers(dest='command', required=True)
@@ -552,7 +564,8 @@ def main():
                 emit('state', set_state(root, args.requirement, args.state, args.reason, args.blocked))
             else:
                 emit('complete', complete(root, args.requirement, args.result, args.evidence, args.wait_user,
-                                          args.profile, args.confirm_ac, args.evidence_input))
+                                          args.profile, args.confirm_ac, args.evidence_input,
+                                          args.user_confirmed))
         elif args.area == 'verify':
             checks = checks_module()
             if args.command == 'init':

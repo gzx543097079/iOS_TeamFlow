@@ -68,15 +68,19 @@ def pinned_version(project):
     return value
 
 
-def run_phase(argv, project, timeout):
+def run_phase(argv, project, timeout, allowed_errors=()):
+    """进程退出 0 也要检查引擎错误行；allowed_errors 只放行测试明确预期的错误。"""
     result = subprocess.run(argv, cwd=project, capture_output=True, text=True, timeout=timeout)
     output = result.stdout + '\n' + result.stderr
-    if result.returncode or re.search(r'^\s*(?:SCRIPT ERROR|ERROR):', output, re.MULTILINE):
+    errors = [line for line in output.splitlines() if re.match(r'\s*(?:SCRIPT ERROR|ERROR):', line)
+              and not any(re.search(pattern, line) for pattern in allowed_errors)]
+    if result.returncode or errors:
         raise ValueError('Godot 检查失败：\n' + output.strip())
     return result.stdout.strip()
 
 
-def verify(project, godot=None, test_script=None, import_only=False, timeout=120, expected_version=None):
+def verify(project, godot=None, test_script=None, import_only=False, timeout=120, expected_version=None,
+           allowed_errors=()):
     project = Path(project).expanduser().resolve()
     project_file(project, 'project.godot')
     if import_only and test_script:
@@ -101,7 +105,8 @@ def verify(project, godot=None, test_script=None, import_only=False, timeout=120
     base = [executable, '--headless', '--path', str(project)]
     run_phase(base + ['--log-file', str(logs / 'import.log'), '--editor', '--import'], project, timeout)
     if not import_only:
-        run_phase(base + ['--log-file', str(logs / 'tests.log'), '--script', 'res://' + test_script], project, timeout)
+        run_phase(base + ['--log-file', str(logs / 'tests.log'), '--script', 'res://' + test_script], project, timeout,
+                  allowed_errors)
     return version
 
 
@@ -114,11 +119,15 @@ def main():
     mode.add_argument('--import-only', action='store_true')
     parser.add_argument('--expect-version')
     parser.add_argument('--timeout', type=float, default=120)
+    parser.add_argument('--allow-error', action='append', default=[], metavar='正则',
+                        help='测试阶段放行的预期引擎错误行（如故意损坏存档），可重复；只匹配该行')
     args = parser.parse_args()
     try:
+        for pattern in args.allow_error:
+            re.compile(pattern)
         version = verify(args.project, args.godot, args.test_script, args.import_only,
-                         args.timeout, args.expect_version)
-    except (ValueError, OSError, subprocess.TimeoutExpired) as error:
+                         args.timeout, args.expect_version, tuple(args.allow_error))
+    except (ValueError, OSError, subprocess.TimeoutExpired, re.error) as error:
         parser.exit(1, '验证：失败\n' + str(error) + '\n')
     print('验证：通过（Godot ' + version + '，' + ('仅导入' if args.import_only else '导入与项目测试') + '）')
 

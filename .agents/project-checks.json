@@ -1,33 +1,6 @@
 {
   "schema_version": 2,
   "profiles": {
-    "ios-demo": {
-      "inputs": [
-        "examples/TeamFlowDemo",
-        "scripts/test_demo.py"
-      ],
-      "checks": {
-        "ios-demo": {
-          "argv": [
-            "python3",
-            "scripts/test_demo.py"
-          ],
-          "cwd": ".",
-          "timeout_seconds": 900
-        },
-        "ios-demo-release": {
-          "argv": [
-            "python3",
-            "scripts/test_demo.py",
-            "--configuration",
-            "Release",
-            "--unit-tests-only"
-          ],
-          "cwd": ".",
-          "timeout_seconds": 900
-        }
-      }
-    },
     "workflow": {
       "inputs": [
         ".agents/skills",
@@ -41,15 +14,15 @@
         "scripts/package_release.py",
         "scripts/check_logging.py",
         "tests",
-        ".agents/project-modules.json",
         "CHANGELOG.md",
         "docs",
-        "examples/TeamFlowGame",
         ".agents/teamflow-core",
-        "examples/TeamFlowDemo/README.md",
-        "examples/TeamFlowDemo/Resources/zh-Hans.lproj/Localizable.strings",
-        "examples/TeamFlowDemo/Resources/en.lproj/Localizable.strings",
-        "requirements/PROJECT-CONTEXT.md"
+        ".claude/settings.json",
+        ".codex",
+        "examples",
+        "scripts/test_demo.py",
+        ".agents/project-modules.json",
+        "requirements"
       ],
       "checks": {
         "workflow-tests": {
@@ -96,33 +69,6 @@
           ],
           "cwd": ".",
           "timeout_seconds": 300
-        }
-      }
-    },
-    "workflow-godot-review": {
-      "extends": "workflow-release",
-      "checks": {
-        "godot-example": {
-          "argv": [
-            "python3",
-            ".agents/skills/Godot/scripts/verify_godot.py",
-            "--project",
-            "examples/TeamFlowGame",
-            "--test-script",
-            "tests/run_tests.gd"
-          ],
-          "cwd": ".",
-          "timeout_seconds": 300
-        },
-        "demo-strings": {
-          "argv": [
-            "plutil",
-            "-lint",
-            "examples/TeamFlowDemo/Resources/zh-Hans.lproj/Localizable.strings",
-            "examples/TeamFlowDemo/Resources/en.lproj/Localizable.strings"
-          ],
-          "cwd": ".",
-          "timeout_seconds": 60
         }
       }
     }
