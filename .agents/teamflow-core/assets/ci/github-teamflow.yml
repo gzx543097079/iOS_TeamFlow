@@ -1,0 +1,29 @@
+# TeamFlow PR 核对模板：复制到 .github/workflows/ 后由团队提交。
+# 默认只读核对本 PR 改动的完成卡证据与提交内容一致，不重跑项目检查。
+name: TeamFlow
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: 核对需求证据
+        run: python3 scripts/teamflow.py git ci --base "origin/${{ github.base_ref }}"
+  # 需要 CI 重新执行检查时启用：profile 名以项目 .agents/project-checks.json 为准。
+  # iOS 使用 macOS runner 并按 toolchain.json 选择 Xcode；Godot 需先安装锁定版本的引擎。
+  # verify:
+  #   runs-on: macos-latest
+  #   steps:
+  #     - uses: actions/checkout@v7
+  #       with:
+  #         persist-credentials: false
+  #     - run: python3 scripts/teamflow.py verify run --profile change

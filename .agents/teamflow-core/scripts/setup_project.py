@@ -304,6 +304,8 @@ def diagnose(project):
         items.extend(hook_status(project))
     if mode in ('godot', 'godot-ios'):
         items.extend(godot_status(project, git_ready))
+    if mode in ('ios', 'godot-ios'):
+        items.extend(xcode_status(project))
     return {'project': str(project), 'checks': items,
             'needs_action': any(item['status'] == '需处理' for item in items)}
 
@@ -332,10 +334,32 @@ def toolchain(project):
     data = json.loads(path.read_text())
     if not isinstance(data, dict):
         raise ValueError(TOOLCHAIN + ' 必须为 JSON 对象')
-    godot = data.get('godot')
-    if godot is not None and not (isinstance(godot, str) and re.fullmatch(r'\d+\.\d+(?:\.\d+)?', godot)):
-        raise ValueError(TOOLCHAIN + ' 的 godot 须为 X.Y 或 X.Y.Z')
+    for key in ('godot', 'xcode'):
+        value = data.get(key)
+        if value is not None and not (isinstance(value, str) and re.fullmatch(r'\d+\.\d+(?:\.\d+)?', value)):
+            raise ValueError(TOOLCHAIN + ' 的 ' + key + ' 须为 X.Y 或 X.Y.Z')
     return data
+
+
+def xcode_version():
+    first = subprocess.run(['xcodebuild', '-version'], capture_output=True, text=True, timeout=30).stdout
+    return first.split('\n', 1)[0].removeprefix('Xcode ').strip()
+
+
+def xcode_status(project):
+    """Xcode 版本只在团队锁定时核对；xcodebuild -version 首行形如 Xcode 16.4。"""
+    try:
+        pinned = toolchain(project).get('xcode')
+    except (ValueError, OSError):
+        return []  # 格式错误由 Godot 或通用诊断报告一次即可
+    if not pinned:
+        return []
+    try:
+        actual = xcode_version()
+        ready, detail = actual == pinned, '锁定 ' + pinned + '，本机 ' + (actual or '未知')
+    except (OSError, subprocess.SubprocessError) as error:
+        ready, detail = False, '锁定 ' + pinned + '；' + str(error)
+    return [{'item': 'Xcode 版本锁定', 'status': '就绪' if ready else '需处理', 'detail': detail}]
 
 
 def engine_matches(version, pinned):

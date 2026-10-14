@@ -1,12 +1,16 @@
 # 版本记录
 
-## 未发布（6.1.0）
+## 6.1.0
 
 - 共用核心不再链接 iOS Skill：App 或游戏外部动作由当前模式 Skill 路由的发布专题定义，纯 Godot 包不再有断链。
 - Godot Skill 新增[游戏发布](.agents/skills/Godot/references/RELEASE.md)专题，覆盖 iOS 以外平台的导出、上传、提审、上线与回滚边界、凭据和结果记录。
 - `validate_workflow.py` 按 ios、godot、godot-ios 三个安装包逐一校验包内链接，并校验 Markdown 锚点与 `requirements/` 下的链接。
 - 降低读取 token：iOS UI 规范拆为通用 UI、[键盘与输入](.agents/skills/iOS/references/standards/ui-keyboard.md)、[付费 UI](.agents/skills/iOS/references/standards/ui-paywall.md)，按改动加载；证据绑定规则只保留在 CHECKS；常规完成不再需要读 COMMANDS；iOS 架构与本地化路由直接列出共用规则与 iOS 补充，可同时读取；BOUNDARIES 不再重复授权原则。按估算，iOS UI 缺陷修复并提交的读取链路从约 13.1K 降到约 9.0K。
 - 新增 `tests/test_token_budget.py`：约束入口链路、单个文档和典型任务链路的估算 token 上限。
+- 新增 [PR、评审与 CI](.agents/teamflow-core/references/REVIEW.md) 专题：一卡一 PR、评审核对顺序、评审意见续接原卡；BOUNDARIES 增加创建与合并 PR 的动作范围。
+- 新增 `req pr`：由需求卡生成 PR 标题与正文（范围、AC 进度、证据摘要、未确认 AC、尾注）。
+- 新增 `git ci --base <基线>` 与可选 [GitHub Actions 模板](.agents/teamflow-core/assets/ci/github-teamflow.yml)：只读核对 PR 中改动的完成卡，其证据须对应当前内容或某个交付提交；验证后又改了输入就一起提交的会被拦下。
+- 新增[依赖与工具链](.agents/teamflow-core/references/DEPENDENCIES.md)专题：引入与移除依赖的核对项、锁文件提交、升级单独建卡；`toolchain.json` 支持 `xcode`，`doctor` 在 iOS 与 Godot + iOS 模式核对本机 Xcode 版本。
 
 ## 6.0.0
 

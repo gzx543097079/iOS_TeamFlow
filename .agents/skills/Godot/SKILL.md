@@ -23,6 +23,8 @@ PROJECT_ROOT 是当前 Git 根及其目录树。工程可在根目录或子目�
 | 检查、测试、性能与验收 | [Godot 验证](references/CHECKS.md)、[核心证据机制](../../teamflow-core/references/CHECKS.md)；命令参数再读 [COMMANDS](../../teamflow-core/references/COMMANDS.md) |
 | iOS：导出、原生桥接或前后台行为 | [Godot 与 iOS](references/IOS.md) |
 | Git 交付或敏感数据 | [共用边界](../../teamflow-core/references/BOUNDARIES.md) |
+| PR、评审或 CI | [共用评审](../../teamflow-core/references/REVIEW.md) |
+| 新增或升级插件、SDK | [依赖与工具链](../../teamflow-core/references/DEPENDENCIES.md)；引擎版本见团队协作 |
 | iOS 以外平台的导出分发包、上传、提审或上线 | [游戏发布](references/RELEASE.md) |
 | iOS：Archive、TestFlight、提审或发布 | [Godot 与 iOS](references/IOS.md)、[App 外部动作](../iOS/references/APP-RELEASE.md) |
 | 大型工程模块定位 | [共用模块索引](../../teamflow-core/references/MODULE-CONTEXT.md)，关注路径包含场景、脚本、资源及横切配置 |

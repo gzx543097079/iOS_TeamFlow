@@ -123,3 +123,57 @@ def format_report(report):
     pending = sum(item['status'] == '需处理' for item in report['checks'])
     lines.append(f'结论：需处理 {pending} 项' if pending else '结论：就绪')
     return '\n'.join(lines)
+
+
+def pr_body(root, requirement):
+    """由需求卡生成 PR 描述：范围、AC 进度与证据摘要只取卡片现有内容，不另写状态。"""
+    import teamflow as flow
+    card = parse_card(flow.requirement_path(root, requirement))
+    summary, _ = requirement_summary(root, requirement)
+    lines = ['## 范围', '', card['scope'], '']
+    if card['excluded'] and card['excluded'] != '无':
+        lines += ['## 不包含', '', card['excluded'], '']
+    lines += ['## 验收条件', '']
+    lines += [f"- [{'x' if item['done'] else ' '}] {item['id']}：{item['condition']}" for item in card['ac']]
+    lines += ['', '## 验证', '']
+    saved = card['evidence'] if isinstance(card['evidence'], dict) else {}
+    if saved:
+        lines.append(f"- {saved.get('profile') or '人工核对'}：{saved.get('status', '未知')}，证据{summary['evidence_status']}，"
+                     f"HEAD {str(saved.get('head', ''))[:12]}，{saved.get('at', '')}")
+    else:
+        lines.append('- 未验证')
+    if summary['pending_ac']:
+        lines.append('- 未确认：' + '、'.join(item['id'] for item in summary['pending_ac']))
+    lines += ['', 'Requirement: ' + requirement]
+    return {'requirement': requirement, 'title': card['title'], 'body': '\n'.join(lines)}
+
+
+def ci_check(root, base):
+    """CI 只读核对：本次范围内改动的完成卡，其证据必须对应当前内容或某个交付提交；不重跑项目检查。"""
+    import teamflow as flow
+    import project_checks
+    checks = []
+    try:
+        project_checks.load_config(root)
+        checks.append({'item': '验证配置', 'status': '就绪', 'detail': project_checks.CONFIG})
+    except (ValueError, OSError, KeyError, TypeError) as error:
+        checks.append({'item': '验证配置', 'status': '需处理', 'detail': str(error)})
+    changed = subprocess.run(['git', '-C', str(root), 'diff', '--name-only', base + '...HEAD', '--', 'requirements'],
+                             capture_output=True, text=True)
+    if changed.returncode:
+        raise ValueError('无法比较 ' + base + '...HEAD；CI 需完整历史（fetch-depth: 0）：' + changed.stderr.strip())
+    names = sorted(name for name in changed.stdout.split()
+                   if name.startswith('requirements/REQ-') and name.endswith('.md') and (root / name).is_file())
+    for name in names:
+        requirement = name[len('requirements/'):-3]
+        card = parse_card(flow.requirement_path(root, requirement))
+        summary, _ = requirement_summary(root, requirement)
+        if card['state'] != '完成':
+            checks.append({'item': requirement, 'status': '提示', 'detail': card['state'] + '，不作为交付核对'})
+        elif summary['evidence_status'] == '有效' or summary['evidence_status'].startswith('交付时有效'):
+            checks.append({'item': requirement, 'status': '就绪', 'detail': summary['evidence_status']})
+        else:
+            checks.append({'item': requirement, 'status': '需处理', 'detail': summary})
+    if not names:
+        checks.append({'item': '需求卡', 'status': '提示', 'detail': base + ' 之后未改动需求卡'})
+    return {'base': base, 'checks': checks, 'needs_action': any(item['status'] == '需处理' for item in checks)}

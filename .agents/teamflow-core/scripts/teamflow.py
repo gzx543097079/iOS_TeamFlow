@@ -442,6 +442,7 @@ def main():
     creator.add_argument('--bug', action='store_true')
     req_sub.add_parser('list', parents=[output]).add_argument('--all', action='store_true', help='包含已完成和取消的需求')
     req_sub.add_parser('status', parents=[output], help='只读：状态、证据有效性、剩余 AC 与下一步').add_argument('requirement')
+    req_sub.add_parser('pr', parents=[output], help='只读：由需求卡生成 PR 描述').add_argument('requirement')
     state = req_sub.add_parser('state', parents=[output])
     state.add_argument('requirement')
     state.add_argument('--state', choices=[s for s in STATES if s not in ('完成', '待用户验证')], required=True)
@@ -474,6 +475,8 @@ def main():
     check.add_argument('--result')
     check.add_argument('--evidence')
     check.add_argument('--evidence-input', action='append')
+    ci = git_sub.add_parser('ci', parents=[output], help='只读：核对基线之后改动的完成卡证据，供 CI 使用')
+    ci.add_argument('--base', required=True, help='比较基线，如 origin/main')
 
     installer = top.add_parser('setup', help='接入或更新项目入口；可直接从 Skill 目录运行')
     installer.add_argument('--mode', choices=['ios', 'godot', 'godot-ios'],
@@ -542,6 +545,10 @@ def main():
                 emit('list', (shown, skipped, len(rows) - len(shown)), {'requirements': shown, 'skipped': skipped})
             elif args.command == 'status':
                 emit('status', status(root, args.requirement))
+            elif args.command == 'pr':
+                from diagnostics import pr_body
+                body = pr_body(root, args.requirement)
+                print(json.dumps(body, ensure_ascii=False, indent=2) if args.json else body['title'] + '\n\n' + body['body'])
             elif args.command == 'state':
                 emit('state', set_state(root, args.requirement, args.state, args.reason, args.blocked))
             else:
@@ -567,6 +574,11 @@ def main():
                 else:
                     print(checks.describe_run(root, target))
                 return 0 if passed else 1
+        elif args.area == 'git' and args.command == 'ci':
+            from diagnostics import ci_check, format_report
+            report = ci_check(root, args.base)
+            print(json.dumps(report, ensure_ascii=False, indent=2) if args.json else format_report(report))
+            return 1 if report['needs_action'] else 0
         elif args.area == 'git':
             emit('git', git_check(root, args.requirement, args.result, args.evidence, args.evidence_input))
         elif args.area == 'setup':

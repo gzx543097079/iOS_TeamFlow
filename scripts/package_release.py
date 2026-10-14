@@ -14,6 +14,7 @@ CORE_FILES = tuple(CORE + '/' + name for name in (
     'references/WORKFLOW.md', 'references/CHECKS.md', 'references/COMMANDS.md', 'references/REPAIR.md', 'references/BOUNDARIES.md', 'references/INSTALL.md',
     'references/MODULE-CONTEXT.md', 'references/VERSION', 'references/ARCHITECTURE.md', 'references/LOCALIZATION.md',
     'references/templates/requirement.md', 'references/templates/project-context.md', 'references/standards/comments.md',
+    'references/REVIEW.md', 'references/DEPENDENCIES.md', 'assets/ci/github-teamflow.yml',
 ))
 GODOT_SKILL = '.agents/skills/Godot'
 GODOT_FILES = tuple(GODOT_SKILL + '/' + name for name in (

@@ -1,6 +1,6 @@
 # TeamFlow
 
-面向 AI Agent 驱动开发的中文工作流，支持 iOS 原生、Godot 和 Godot + iOS，面向团队分发，放入项目根目录即可使用。当前版本为 **6.0.0**。
+面向 AI Agent 驱动开发的中文工作流，支持 iOS 原生、Godot 和 Godot + iOS，面向团队分发，放入项目根目录即可使用。当前版本为 **6.1.0**。
 
 需求、实施、验证与显式交付的规则见 [WORKFLOW](.agents/teamflow-core/references/WORKFLOW.md)；按安装模式进入 [iOS Skill](.agents/skills/iOS/SKILL.md) 或 [Godot Skill](.agents/skills/Godot/SKILL.md)。Agent 通过项目根 `AGENTS.md` 的托管区块找到所选入口，Codex 与 Claude Code 均可直接使用。
 
@@ -12,15 +12,15 @@
 
 | 安装包 | 适用 | 包含 |
 | --- | --- | --- |
-| `teamflow-ios-v6.0.0.zip` | iOS 原生 App | 共用核心 + iOS Skill |
-| `teamflow-godot-v6.0.0.zip` | Godot 游戏（不含 iOS 原生工作） | 共用核心 + Godot Skill |
-| `teamflow-godot-ios-v6.0.0.zip` | Godot 游戏 + iOS 导出／原生插件 | 共用核心 + Godot 与 iOS Skill |
+| `teamflow-ios-v6.1.0.zip` | iOS 原生 App | 共用核心 + iOS Skill |
+| `teamflow-godot-v6.1.0.zip` | Godot 游戏（不含 iOS 原生工作） | 共用核心 + Godot Skill |
+| `teamflow-godot-ios-v6.1.0.zip` | Godot 游戏 + iOS 导出／原生插件 | 共用核心 + Godot 与 iOS Skill |
 
 **新项目：解压到项目根即可使用。**
 
 ```sh
 cd ~/Desktop/MyGit/MyGame        # 项目 Git 根；尚无仓库时先 git init
-unzip ~/Downloads/teamflow-godot-v6.0.0.zip -d .
+unzip ~/Downloads/teamflow-godot-v6.1.0.zip -d .
 python3 scripts/teamflow.py doctor
 ```
 
@@ -29,14 +29,14 @@ python3 scripts/teamflow.py doctor
 **已有项目**（已有 `AGENTS.md` 等文件）：用 `unzip -n` 不覆盖解压，再运行 setup 合并入口：
 
 ```sh
-unzip -n ~/Downloads/teamflow-ios-v6.0.0.zip -d .
+unzip -n ~/Downloads/teamflow-ios-v6.1.0.zip -d .
 python3 .agents/teamflow-core/scripts/teamflow.py setup --mode ios
 ```
 
 **升级**：用新版安装包运行 `upgrade`。工具依据安装清单替换未改动的文件；有本地改动时拒绝执行并列出这些文件。5.x 项目需要额外传 `--baseline 旧版安装包`。
 
 ```sh
-python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v6.0.1.zip --plan
+python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v6.1.1.zip --plan
 python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v6.0.1.zip
 ```
 
@@ -73,8 +73,10 @@ python3 scripts/teamflow.py req complete REQ-20260101-a3f9 --profile change
 python3 scripts/teamflow.py req complete REQ-20260101-a3f9 --confirm-ac AC-01   # 核对实际证据后确认条件
 python3 scripts/teamflow.py verify suggest
 
-# 提交前
+# 提交与 PR
 python3 scripts/teamflow.py git check REQ-20260101-a3f9
+python3 scripts/teamflow.py req pr REQ-20260101-a3f9               # 由需求卡生成 PR 标题与正文
+python3 scripts/teamflow.py git ci --base origin/main             # CI 只读核对完成卡证据，模板见 REVIEW
 
 # 按需
 python3 scripts/teamflow.py doctor

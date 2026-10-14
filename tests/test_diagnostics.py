@@ -93,3 +93,54 @@ class DiagnosticsTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class DeliveryTests(unittest.TestCase):
+    setUp = test_teamflow.TeamFlowTests.setUp
+    git = test_teamflow.TeamFlowTests.git
+    configure_checks = test_teamflow.TeamFlowTests.configure_checks
+    create = test_teamflow.TeamFlowTests.create
+    fill = test_teamflow.TeamFlowTests.fill
+    card_path = test_teamflow.TeamFlowTests.card_path
+
+    def ci_status(self, base, req):
+        report = diagnostics.ci_check(self.root, base)
+        return next((i['status'] for i in report['checks'] if i['item'] == req), None), report
+
+    def test_pr_body_comes_from_card(self):
+        req = self.create('登录提示'); self.fill(req, done=False)
+        body = diagnostics.pr_body(self.root, req)
+        self.assertEqual('登录提示', body['title'])
+        self.assertIn('- [ ] AC-01：错误时显示提示', body['body'])
+        self.assertIn('- 未验证', body['body'])
+        self.assertIn('未确认：AC-01', body['body'])
+        self.assertTrue(body['body'].endswith('Requirement: ' + req))
+        flow.complete(self.root, req, profile='change', confirm_ac=['AC-01'])
+        body = diagnostics.pr_body(self.root, req)['body']
+        self.assertIn('change：通过，证据有效', body)
+        self.assertNotIn('未确认', body)
+
+    def test_ci_check_requires_delivered_evidence_for_changed_cards(self):
+        self.git('add', '-A'); self.git('commit', '-qm', 'base')
+        base = self.git('rev-parse', 'HEAD')
+        draft = self.create('进行中')
+        self.git('add', '-A'); self.git('commit', '-qm', 'draft')
+        self.assertEqual('提示', self.ci_status(base, draft)[0])
+        req = self.create(); self.fill(req)
+        flow.complete(self.root, req, profile='change')
+        self.git('add', '-A'); self.git('commit', '-qm', 'deliver')
+        status, report = self.ci_status(base, req)
+        self.assertEqual('就绪', status)
+        self.assertFalse(report['needs_action'])
+        # 验证后又改了输入并一同提交：交付内容与证据不符，CI 必须拦下。
+        stale = self.create('失效'); self.fill(stale)
+        flow.complete(self.root, stale, profile='change')
+        (self.root / 'source.txt').write_text('changed after verify')
+        self.git('add', '-A'); self.git('commit', '-qm', 'stale')
+        status, report = self.ci_status(base, stale)
+        self.assertEqual('需处理', status)
+        self.assertTrue(report['needs_action'])
+        # 已交付的卡不受后续提交影响。
+        self.assertEqual('就绪', self.ci_status(base, req)[0])
+        with self.assertRaisesRegex(ValueError, 'fetch-depth'):
+            diagnostics.ci_check(self.root, 'missing-ref')

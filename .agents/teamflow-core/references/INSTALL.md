@@ -17,7 +17,7 @@
 先确认当前目录是项目 Git 根（`git rev-parse --show-toplevel`），然后解压到项目根：
 
 ```sh
-unzip ~/Downloads/teamflow-godot-v6.0.0.zip -d .
+unzip ~/Downloads/teamflow-godot-v6.1.0.zip -d .
 python3 scripts/teamflow.py doctor
 ```
 
@@ -28,7 +28,7 @@ python3 scripts/teamflow.py doctor
 已有 `AGENTS.md`、`scripts/` 的项目，用 `-n` 解压，不覆盖已有文件，再由 setup 合并托管区块：
 
 ```sh
-unzip -n ~/Downloads/teamflow-ios-v6.0.0.zip -d .
+unzip -n ~/Downloads/teamflow-ios-v6.1.0.zip -d .
 python3 .agents/teamflow-core/scripts/teamflow.py setup --mode ios --plan
 python3 .agents/teamflow-core/scripts/teamflow.py setup --mode ios
 ```
@@ -57,8 +57,8 @@ upgrade 只替换当前模式需要的核心和 Skill 文件。处理规则：
 5.x 项目没有安装清单，核心里也没有 upgrade 命令：先从新包取出核心脚本运行，并传入旧版安装包作为对照：
 
 ```sh
-unzip ~/Downloads/teamflow-godot-ios-v6.0.0.zip '.agents/teamflow-core/scripts/*' -d /tmp/teamflow6
-python3 /tmp/teamflow6/.agents/teamflow-core/scripts/teamflow.py upgrade ~/Downloads/teamflow-godot-ios-v6.0.0.zip \
+unzip ~/Downloads/teamflow-godot-ios-v6.1.0.zip '.agents/teamflow-core/scripts/*' -d /tmp/teamflow6
+python3 /tmp/teamflow6/.agents/teamflow-core/scripts/teamflow.py upgrade ~/Downloads/teamflow-godot-ios-v6.1.0.zip \
   --baseline ~/Downloads/teamflow-godot-v5.0.3.zip
 ```
 
@@ -71,7 +71,7 @@ python3 /tmp/teamflow6/.agents/teamflow-core/scripts/teamflow.py upgrade ~/Downl
 | 文件 | 作用 |
 | --- | --- |
 | `.agents/team/RULES.md` | 团队规则；入口要求 Agent 在该文件存在时一并读取。可细化编码、命名与流程，但不突破 WORKFLOW 的授权边界 |
-| `.agents/team/toolchain.json` | 工具链锁定，如 `{"godot": "4.7.2"}`；`doctor` 与 Godot 检查按它核对本机引擎 |
+| `.agents/team/toolchain.json` | 工具链锁定，如 `{"xcode": "16.4", "godot": "4.7.2"}`；`doctor` 按模式核对本机 Xcode 与 Godot，Godot 检查沿用锁定引擎版本 |
 
 不要直接修改 `.agents/teamflow-core/` 或 `.agents/skills/` 中的文件；直接改过的文件会让 upgrade 拒绝执行，需要逐个核对。
 

@@ -17,6 +17,8 @@ PROJECT_ROOT 是当前 Git 根及其目录树；只使用本项目内的 Skill�
 | --- | --- |
 | 构建、测试与证据 | [CHECKS](../../teamflow-core/references/CHECKS.md)；命令参数再读 [COMMANDS](../../teamflow-core/references/COMMANDS.md) |
 | Git 动作；账号、网络或敏感数据 | [BOUNDARIES](../../teamflow-core/references/BOUNDARIES.md) |
+| PR、评审或 CI | [REVIEW](../../teamflow-core/references/REVIEW.md) |
+| 新增或升级依赖、SDK；锁定 Xcode 版本 | [DEPENDENCIES](../../teamflow-core/references/DEPENDENCIES.md) |
 | App 外部动作（归档、TestFlight、审核、发布）的准备或执行 | [APP-RELEASE](references/APP-RELEASE.md) |
 | 安装或接入诊断 | [INSTALL](../../teamflow-core/references/INSTALL.md) |
 | 新 App 启动或生命周期变化 | [启动模板](references/templates/new-project.md)、[APP-LIFECYCLE](references/APP-LIFECYCLE.md) |

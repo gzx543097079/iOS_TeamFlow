@@ -123,6 +123,22 @@ class TeamTests(unittest.TestCase):
         self.assertIsNone(self.item('Godot 版本锁定'))
         self.assertIsNone(self.item('Godot 缓存忽略'))
 
+    def test_xcode_lock_is_checked_only_when_pinned(self):
+        self.extract(package_release.package_skill(ROOT))
+        self.assertIsNone(self.item('Xcode 版本锁定'))
+        toolchain = self.root / setup_project.TOOLCHAIN
+        toolchain.parent.mkdir(parents=True)
+        toolchain.write_text('{"xcode": "16.4"}')
+        with patch.object(setup_project, 'xcode_version', return_value='16.4'):
+            self.assertEqual('就绪', self.item('Xcode 版本锁定')['status'])
+        with patch.object(setup_project, 'xcode_version', return_value='16.3'):
+            item = self.item('Xcode 版本锁定')
+            self.assertEqual('需处理', item['status'])
+            self.assertIn('16.3', item['detail'])
+        toolchain.write_text('{"xcode": "latest"}')
+        with self.assertRaisesRegex(ValueError, 'xcode 须为'):
+            setup_project.toolchain(self.root)
+
     def configure(self, code):
         (self.root / 'source.txt').write_text('source')
         config = {'schema_version': 2, 'profiles': {'quick': {'inputs': ['source.txt'],
