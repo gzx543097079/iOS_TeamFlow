@@ -46,8 +46,8 @@ def validate(root):
         errors.append('README 当前版本与 VERSION 不一致')
     if errors:
         raise ValueError('\n'.join(errors))
-    print('工作流入口、版本、文件清单和内部链接检查通过')
 
 
 if __name__ == '__main__':
     validate(Path(__file__).resolve().parents[1])
+    print('工作流入口、版本、文件清单和内部链接检查通过')

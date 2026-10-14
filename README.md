@@ -150,9 +150,8 @@ Godot + GDScript + iOS 扩展见 [接入与分工说明](docs/GODOT.md)。它与
 | `examples/TeamFlowDemo/` | [演练 Demo](examples/TeamFlowDemo/README.md)（UIKit + MVVM，CocoaPods） |
 | `examples/TeamFlowGame/` | 最小 Godot 场景与行为测试；不包含 iOS 导出配置 |
 | `docs/RELEASE.md`、`CHANGELOG.md` | [源码验证与分发](docs/RELEASE.md)、[版本记录](CHANGELOG.md) |
-| `.github/workflows/teamflow.yml` | 唯一 CI：push 到 main、PR 与 `teamflow-v*` 标签触发 |
 
-Demo、测试和发布工具属于源码仓库，不进入独立 Skill 包。CI 在 Ubuntu 运行工具测试与打包；原生日志组件与 Demo 测试仅在相关路径变化或发布标签时于 macOS 运行；标签在全部检查通过后创建 GitHub Release。
+Demo、测试和发布工具属于源码仓库，不进入独立 Skill 包。仓库不配置 CI，验证按下表在本地运行；GitHub Release 由本地验证打包后创建，见 [源码验证与分发](docs/RELEASE.md)。
 
 本仓库按改动选择 profile（接入业务项目时自行配置）：
 

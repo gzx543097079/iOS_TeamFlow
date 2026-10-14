@@ -108,9 +108,7 @@
             "--project",
             "examples/TeamFlowGame",
             "--test-script",
-            "tests/run_tests.gd",
-            "--expect-version",
-            "4.7.2"
+            "tests/run_tests.gd"
           ],
           "cwd": ".",
           "timeout_seconds": 300

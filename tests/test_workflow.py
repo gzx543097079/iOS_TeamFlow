@@ -24,6 +24,21 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn('scripts/teamflow.py', names)
         self.assertIn(package_release.CORE + '/scripts/teamflow.py', names)
 
+    def test_clean_dist_keeps_current_version_and_other_files(self):
+        version = (ROOT / package_release.CORE / 'references/VERSION').read_text().strip()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / package_release.CORE / 'references').mkdir(parents=True)
+            (root / package_release.CORE / 'references/VERSION').write_text(version + '\n')
+            dist = root / 'dist'
+            dist.mkdir()
+            keep = ['teamflow-ios-v' + version + '.zip', 'teamflow-ios-v' + version + '.zip.sha256', 'notes.txt']
+            stale = ['teamflow-ios-v0.0.1.zip', 'teamflow-ios-v0.0.1.zip.sha256', 'iOS-TeamFlow-v4.0.0.zip']
+            for name in keep + stale:
+                (dist / name).write_text(name)
+            self.assertEqual(sorted(stale), package_release.clean_dist(root))
+            self.assertEqual(sorted(keep), sorted(p.name for p in dist.iterdir()))
+
     def test_discovery_loads_real_tests(self):
         loader = unittest.TestLoader()
         suite = loader.discover(str(ROOT / 'tests'))

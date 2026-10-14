@@ -28,7 +28,6 @@ REFERENCES = (
 FILES = (
     'tests/test_boundaries.py', 'tests/test_diagnostics.py',
     'AGENTS.md', 'README.md', 'CHANGELOG.md', 'docs/RELEASE.md', '.gitignore',
-    '.github/workflows/teamflow.yml',
     'scripts/check_logging.py', 'tests/test_logging_install.py',
     'scripts/teamflow.py', 'scripts/package_release.py', 'scripts/validate_workflow.py', 'scripts/run_workflow_checks.py',
     'tests/release_fixture.py', 'tests/test_consumer_release.py', 'tests/test_workflow.py', 'tests/test_project_checks.py', 'tests/test_teamflow.py', 'tests/test_module_context.py', SKILL + '/SKILL.md',
@@ -66,8 +65,20 @@ def write_package(root, prefix, entries):
             stream.writestr(entry, (root / name).read_bytes())
     archive.with_suffix('.zip.sha256').write_text(
         hashlib.sha256(archive.read_bytes()).hexdigest() + '  ' + archive.name + '\n')
-    print(archive)
     return archive
+
+
+def clean_dist(root):
+    """仅移除 dist/ 中非当前版本的压缩包与校验文件，避免误取旧包；其他文件不动。"""
+    version = (root / CORE / 'references/VERSION').read_text().strip()
+    output = root / 'dist'
+    current = ('-v' + version + '.zip', '-v' + version + '.zip.sha256')
+    removed = []
+    for path in sorted(output.glob('*')) if output.is_dir() else []:
+        if path.is_file() and path.name.endswith(('.zip', '.zip.sha256')) and not path.name.endswith(current):
+            path.unlink()
+            removed.append(path.name)
+    return removed
 
 
 def package(root):
@@ -88,6 +99,8 @@ def package_godot(root):
 
 
 if __name__ == '__main__':
-    package(Path(__file__).resolve().parents[1])
-    package_skill(Path(__file__).resolve().parents[1])
-    package_godot(Path(__file__).resolve().parents[1])
+    ROOT = Path(__file__).resolve().parents[1]
+    for name in clean_dist(ROOT):
+        print('已移除旧包：' + name)
+    for build in (package, package_skill, package_godot):
+        print(build(ROOT))

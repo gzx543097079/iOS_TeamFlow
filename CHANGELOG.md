@@ -5,6 +5,10 @@
 - 首次读取规则只在 WORKFLOW「按需读取」维护，AGENTS、Skill 入口、README 与安装说明改为一句边界或链接；Godot 专属路由只留在 Godot Skill。
 - 已完成需求的自动证据改为核对交付提交：交付后代码演进不再让 doctor、req status 报证据失效；已提交但对不上的保留历史提示，完成后未提交即失效的报需处理。`req complete` 与 `git check` 校验不变。
 - 补充 setup 两种模式写入读取约束、保留自有说明与重复接入无变化的回归测试。
+- 移除仓库 CI；Release 改为本地验证打包后用 `gh` 创建，见 RELEASE 说明。
+- Godot 检查默认按 `project.godot` 声明的主次版本核对引擎，升级引擎不再失败；`--expect-version` 仍可固定精确版本。
+- 打包前清理 `dist/` 中的旧版本压缩包；测试输出去掉 git 报错、打包路径等噪音。
+- 压缩 WORKFLOW 与 Godot Skill 的规则表述。
 
 ## 5.0.1
 

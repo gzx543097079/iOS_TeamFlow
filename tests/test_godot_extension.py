@@ -186,6 +186,25 @@ class GodotExtensionTests(unittest.TestCase):
             setup_project.setup(project, project / package_release.CORE)
             self.assertEqual(before, (project / 'AGENTS.md').read_text())
 
+    def test_engine_version_follows_project_features(self):
+        with tempfile.TemporaryDirectory() as directory:
+            project = Path(directory)
+            (project / 'project.godot').write_text('config_version=5\n')
+            self.assertIsNone(verify_godot.project_version(project))
+            (project / 'project.godot').write_text(
+                '[application]\nconfig/features=PackedStringArray("4.7", "GL Compatibility")\n')
+            declared = verify_godot.project_version(project)
+            self.assertEqual((4, 7), declared)
+        # 升级引擎可通过；低于工程或跨主版本失败；显式版本精确匹配。
+        for version in ('4.7.2.stable.official', '4.8.0.stable.official'):
+            verify_godot.check_version(version, project=declared)
+        for version in ('4.6.1.stable.official', '5.0.0.stable.official'):
+            with self.assertRaisesRegex(ValueError, '低于工程'):
+                verify_godot.check_version(version, project=declared)
+        verify_godot.check_version('4.6.1.stable.official')
+        with self.assertRaisesRegex(ValueError, '不匹配'):
+            verify_godot.check_version('4.8.0.stable.official', '4.7.2', declared)
+
     def test_zero_exit_engine_errors_and_timeout_fail(self):
         for output in ('SCRIPT ERROR: Parse Error', 'ERROR: Failed loading resource'):
             result = subprocess.CompletedProcess(['godot'], 0, 'engine output', output)

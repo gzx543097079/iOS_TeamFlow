@@ -33,6 +33,25 @@ def project_file(project, name):
     return path
 
 
+def project_version(project):
+    """读取 project.godot 的 config/features 中的主次版本；未声明时返回 None。"""
+    text = (project / 'project.godot').read_text()
+    features = re.search(r'^config/features=PackedStringArray\(([^)]*)\)', text, re.MULTILINE)
+    match = re.search(r'"(\d+)\.(\d+)"', features.group(1)) if features else None
+    return (int(match.group(1)), int(match.group(2))) if match else None
+
+
+def check_version(version, expected=None, project=None):
+    """显式版本须精确匹配；否则引擎须与工程同主版本且次版本不低于工程，允许升级引擎。"""
+    if expected:
+        if version.split('.stable', 1)[0] != expected:
+            raise ValueError('Godot 版本不匹配：预期 ' + expected + '，实际 ' + version)
+        return
+    engine = re.match(r'(\d+)\.(\d+)', version)
+    if project and (not engine or int(engine.group(1)) != project[0] or int(engine.group(2)) < project[1]):
+        raise ValueError(f'Godot 版本低于工程声明：工程 {project[0]}.{project[1]}，实际 {version}')
+
+
 def run_phase(argv, project, timeout):
     result = subprocess.run(argv, cwd=project, capture_output=True, text=True, timeout=timeout)
     output = result.stdout + '\n' + result.stderr
@@ -54,8 +73,7 @@ def verify(project, godot=None, test_script=None, import_only=False, timeout=120
         raise ValueError('timeout 必须大于 0')
     executable = find_godot(godot)
     version = run_phase([executable, '--version'], project, timeout)
-    if expected_version and version.split('.stable', 1)[0] != expected_version:
-        raise ValueError('Godot 版本不匹配：预期 ' + expected_version + '，实际 ' + version)
+    check_version(version, expected_version, project_version(project))
     logs = project / '.godot/teamflow-checks'
     for path in (project / '.godot', logs):
         if path.is_symlink():
