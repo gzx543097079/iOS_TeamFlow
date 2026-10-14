@@ -41,6 +41,10 @@ class WorkflowTests(unittest.TestCase):
             workflow.write_text(original + '\n[边界](BOUNDARIES.md#不存在的标题)\n')
             with self.assertRaisesRegex(ValueError, '锚点不存在：BOUNDARIES.md#不存在的标题'):
                 validate_workflow.validate(root)
+            # 安装包不含源码仓库的示例与文档，包内链接到它们同样是断链。
+            workflow.write_text(original + '\n[说明](../../../README.md)\n')
+            with self.assertRaisesRegex(ValueError, 'ios 安装包中 .*WORKFLOW.md 链接了包外文件：README.md'):
+                validate_workflow.validate(root)
             (root / 'requirements').mkdir()
             workflow.write_text(original)
             (root / 'requirements/PROJECT-CONTEXT.md').write_text('[旧索引](../.agents/skills/ios-team-flow/x.md)\n')

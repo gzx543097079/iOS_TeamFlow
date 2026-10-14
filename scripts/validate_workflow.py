@@ -50,7 +50,7 @@ def mode_link_errors(root, links):
             if (root / name).resolve() not in packaged:
                 continue
             for target, _ in targets:
-                if not target.is_relative_to((root / '.agents').resolve()) or target in packaged:
+                if target in packaged:
                     continue
                 # 纯 Godot 模式下 Godot Skill 指向 iOS 的链接只属于标注「iOS」的路由，不会被加载。
                 if mode == 'godot' and name.startswith(GODOT_SKILL + '/') and target.is_relative_to((root / SKILL).resolve()):

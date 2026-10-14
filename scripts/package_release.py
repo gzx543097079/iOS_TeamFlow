@@ -19,7 +19,7 @@ CORE_FILES = tuple(CORE + '/' + name for name in (
 GODOT_SKILL = '.agents/skills/Godot'
 GODOT_FILES = tuple(GODOT_SKILL + '/' + name for name in (
     'SKILL.md', 'references/ENGINE.md', 'references/GDSCRIPT.md',
-    'references/CHECKS.md', 'references/IOS.md', 'references/TEAM.md', 'references/RELEASE.md', 'references/PERFORMANCE.md',
+    'references/CHECKS.md', 'references/IOS.md', 'references/TEAM.md', 'references/RELEASE.md', 'references/PERFORMANCE.md', 'references/TESTING.md',
     'scripts/verify_godot.py', 'assets/project-checks.example.json',
 ))
 REFERENCES = (

@@ -21,6 +21,7 @@ PROJECT_ROOT 是当前 Git 根及其目录树。工程可在根目录或子目�
 | 编写或修改 GDScript | [GDScript](references/GDSCRIPT.md)；涉及场景交互时再读工程与玩法 |
 | 引擎版本、多人改场景、合并冲突、导出预设与凭据 | [团队协作](references/TEAM.md) |
 | 帧率、内存、加载时间、崩溃或泄漏 | [性能与稳定性](references/PERFORMANCE.md) |
+| 编写测试或引入测试框架 | [测试脚本](references/TESTING.md) |
 | 检查、测试与验收 | [Godot 验证](references/CHECKS.md)、[核心证据机制](../../teamflow-core/references/CHECKS.md)；命令参数再读 [COMMANDS](../../teamflow-core/references/COMMANDS.md) |
 | iOS：导出、原生桥接或前后台行为 | [Godot 与 iOS](references/IOS.md) |
 | Git 交付或敏感数据 | [共用边界](../../teamflow-core/references/BOUNDARIES.md) |
