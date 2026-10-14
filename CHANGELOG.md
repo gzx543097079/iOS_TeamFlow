@@ -1,7 +1,11 @@
 # 版本记录
 
-## 6.1.1
+## 6.2.0
 
+- 共用架构与本地化正文精简（估算约 2444→2119、1954→1645 token），规则不变；WORKFLOW、CHECKS、BOUNDARIES、COMMANDS 去掉与主流程或工具校验重复的表述。典型链路：iOS UI 缺陷修复并提交约 8.7K，新功能约 13.9K。
+- 新增 iOS 与 Godot [性能与稳定性](.agents/skills/iOS/references/PERFORMANCE.md)专题：真机或目标设备、Release 构建、前后同条件多次测量，关注点与工具对照，崩溃需符号化日志与同条件复测；仅在相关工作时加载。
+- 新增 Godot [测试脚本](.agents/skills/Godot/references/TESTING.md)专题：无依赖的 SceneTree 入口脚本约定，GUT 与 gdUnit4 接入方式，首次接入用故意失败的用例确认失败可被识别。
+- 链接校验覆盖安装包内文档到包外任何文件的链接。
 - `verify run` 与 `req complete` 验证失败时，每个失败项附最多 8 条关键错误行，通常无需再打开完整日志。
 - WORKFLOW 增加续接规则：新会话接手进行中的需求先运行 `req status`，只读取剩余工作需要的专题。
 - iOS 入口去掉与 WORKFLOW 重复的输出说明和按语言读取说明，并移除失效的 PROJECT-CHECKS 引用。
