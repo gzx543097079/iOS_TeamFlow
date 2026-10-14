@@ -48,7 +48,8 @@
         ".agents/teamflow-core",
         "examples/TeamFlowDemo/README.md",
         "examples/TeamFlowDemo/Resources/zh-Hans.lproj/Localizable.strings",
-        "examples/TeamFlowDemo/Resources/en.lproj/Localizable.strings"
+        "examples/TeamFlowDemo/Resources/en.lproj/Localizable.strings",
+        "requirements/PROJECT-CONTEXT.md"
       ],
       "checks": {
         "workflow-tests": {

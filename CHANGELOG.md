@@ -1,5 +1,11 @@
 # 版本记录
 
+## 未发布（6.1.0）
+
+- 共用核心不再链接 iOS Skill：App 或游戏外部动作由当前模式 Skill 路由的发布专题定义，纯 Godot 包不再有断链。
+- Godot Skill 新增[游戏发布](.agents/skills/Godot/references/RELEASE.md)专题，覆盖 iOS 以外平台的导出、上传、提审、上线与回滚边界、凭据和结果记录。
+- `validate_workflow.py` 按 ios、godot、godot-ios 三个安装包逐一校验包内链接，并校验 Markdown 锚点与 `requirements/` 下的链接。
+
 ## 6.0.0
 
 不兼容变更：安装包布局与包名调整，见下方迁移说明。

@@ -5,7 +5,7 @@
 - Swift + UIKit，iOS 14，导航栈无 Tab，系统语义颜色；XcodeGen 2.46.0 配置与 .xcodeproj 一起维护。
 - 日志：Sources/Shared/Logging/TFLogger.swift，Debug 全量，Release 不输出；自动布局通过 CocoaPods 接入 Masonry 1.1.0，Podfile.lock 固定版本；pod install 后打开 TeamFlowDemo.xcworkspace，桥接头供 Swift 使用。
 - 验证入口：.agents/project-checks.json 的 ios-demo（Debug 单元/UI、Release 单元），scripts/test_demo.py 按实际可用模拟器执行。
-- 大项目增量读取入口：[模块索引](../.agents/project-modules.json)，定位和维护方式见 [MODULE-CONTEXT](../.agents/skills/ios-team-flow/references/MODULE-CONTEXT.md)。
+- 大项目增量读取入口：[模块索引](../.agents/project-modules.json)，定位和维护方式见 [MODULE-CONTEXT](../.agents/teamflow-core/references/MODULE-CONTEXT.md)。
 - 默认语言、主题、商城增量按当前需求实施；当前 AC 与阶段结果只在各需求卡维护。
 
 - Demo 入口为本地商城：Sources/Shared/Models/DemoCatalog.swift 提供示例商品与内存购物袋，Sources/Infrastructure/DemoPreferences.swift 管理语言与外观，Resources 提供英文/简体中文；用户可见及无障碍文本使用按语义层级伸缩的点分本地化键，两种语言的键集合与格式占位符由单元测试核对。无网络、库存、订单或支付服务。

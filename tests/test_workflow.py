@@ -24,6 +24,34 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn('scripts/teamflow.py', names)
         self.assertIn(package_release.CORE + '/scripts/teamflow.py', names)
 
+    def test_links_are_checked_per_install_mode_and_anchor(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name in package_release.FILES + ('.agents/project-checks.json', 'examples/TeamFlowDemo/README.md'):
+                (root / name).parent.mkdir(parents=True, exist_ok=True)
+                (root / name).write_bytes((ROOT / name).read_bytes())
+            validate_workflow.validate(root)
+            # 纯 Godot 模式下 Godot Skill 的 iOS 路由允许指向未安装的 iOS Skill。
+            self.assertIn('../iOS/references/APP-RELEASE.md', (root / package_release.GODOT_SKILL / 'SKILL.md').read_text())
+            workflow = root / package_release.CORE / 'references/WORKFLOW.md'
+            original = workflow.read_text()
+            workflow.write_text(original + '\n[发布](../../skills/iOS/references/APP-RELEASE.md)\n')
+            with self.assertRaisesRegex(ValueError, 'godot 安装包中 .*WORKFLOW.md 链接了包外文件'):
+                validate_workflow.validate(root)
+            workflow.write_text(original + '\n[边界](BOUNDARIES.md#不存在的标题)\n')
+            with self.assertRaisesRegex(ValueError, '锚点不存在：BOUNDARIES.md#不存在的标题'):
+                validate_workflow.validate(root)
+            (root / 'requirements').mkdir()
+            workflow.write_text(original)
+            (root / 'requirements/PROJECT-CONTEXT.md').write_text('[旧索引](../.agents/skills/ios-team-flow/x.md)\n')
+            with self.assertRaisesRegex(ValueError, 'PROJECT-CONTEXT.md 的链接不存在'):
+                validate_workflow.validate(root)
+
+    def test_heading_slug_matches_github(self):
+        self.assertEqual('显式-git-动作', validate_workflow.slug('显式 Git 动作'))
+        self.assertEqual('授权与停止', validate_workflow.slug('授权与停止'))
+        self.assertEqual('1-设计基线', validate_workflow.slug('1. 设计基线'))
+
     def test_clean_dist_keeps_current_version_and_other_files(self):
         version = (ROOT / package_release.CORE / 'references/VERSION').read_text().strip()
         with tempfile.TemporaryDirectory() as directory:

@@ -7,7 +7,7 @@ Godot 4.x + GDScript 与 iOS 原生使用同一套 TeamFlow 核心，按安装�
 | 层 | 唯一来源 | 处理内容 |
 | --- | --- | --- |
 | 共用协作核心 | [WORKFLOW](../.agents/teamflow-core/references/WORKFLOW.md)、CHECKS、COMMANDS、REPAIR、BOUNDARIES 与 TeamFlow Python 工具 | 需求、AC、状态、证据、模块索引、升级和 Git 交付 |
-| Godot 工程 | [Godot](../.agents/skills/Godot/SKILL.md) | GDScript、场景／资源、游戏 UI、玩法、性能、检查入口与[团队协作](../.agents/skills/Godot/references/TEAM.md) |
+| Godot 工程 | [Godot](../.agents/skills/Godot/SKILL.md) | GDScript、场景／资源、游戏 UI、玩法、性能、检查入口、[团队协作](../.agents/skills/Godot/references/TEAM.md)与[游戏发布](../.agents/skills/Godot/references/RELEASE.md) |
 | iOS 平台（仅 Godot + iOS） | [Godot 与 iOS](../.agents/skills/Godot/references/IOS.md) + 原有 APP-RELEASE | 导出与原生桥接、设备验收、签名、隐私、TestFlight 和审核 |
 
 共用核心独立放在 `.agents/teamflow-core/`，包含需求、验证、安装、升级、模块索引与交付工具，以及共用的架构、本地化规则和模板。各 Skill 只维护自己的工程规范；版本统一由核心维护。

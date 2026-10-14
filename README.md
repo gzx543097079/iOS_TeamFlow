@@ -132,7 +132,7 @@ Godot + GDScript（可选 iOS）扩展见 [接入与分工说明](docs/GODOT.md)
 | --- | --- |
 | `.agents/teamflow-core/` | 共用需求、验证、安装、升级与模块工具；流程、版本和模板 |
 | `.agents/skills/iOS/` | 原生编码、UI、生命周期、日志与 iOS 平台规则 |
-| `.agents/skills/Godot/` | Godot 工程、团队协作与 iOS 衔接规范、导入／测试入口；依赖同版核心 |
+| `.agents/skills/Godot/` | Godot 工程、团队协作、游戏发布与 iOS 衔接规范、导入／测试入口；依赖同版核心 |
 | `scripts/` | 入口、测试运行、文档校验、打包、Demo 测试 |
 | `tests/` | 工具行为与包内消费测试 |
 | `examples/TeamFlowDemo/` | [演练 Demo](examples/TeamFlowDemo/README.md)（UIKit + MVVM，CocoaPods） |
