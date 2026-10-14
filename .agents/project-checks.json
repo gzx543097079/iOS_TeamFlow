@@ -18,11 +18,7 @@
         "docs",
         ".agents/teamflow-core",
         ".claude/settings.json",
-        ".codex",
-        "examples",
-        "scripts/test_demo.py",
-        ".agents/project-modules.json",
-        "requirements"
+        ".codex"
       ],
       "checks": {
         "workflow-tests": {
