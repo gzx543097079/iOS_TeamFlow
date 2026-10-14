@@ -15,7 +15,13 @@ CORE_FILES = tuple(CORE + '/' + name for name in (
     'references/MODULE-CONTEXT.md', 'references/VERSION', 'references/ARCHITECTURE.md', 'references/LOCALIZATION.md',
     'references/templates/requirement.md', 'references/templates/project-context.md', 'references/standards/comments.md',
     'references/REVIEW.md', 'references/DEPENDENCIES.md', 'assets/ci/github-teamflow.yml',
+    'assets/permissions/claude-settings.json', 'assets/permissions/codex.rules',
 ))
+# 宿主权限模板：解压后对推送、PR、Release 与上传类命令要求人工确认。
+PERMISSIONS = {
+    '.claude/settings.json': CORE + '/assets/permissions/claude-settings.json',
+    '.codex/rules/teamflow.rules': CORE + '/assets/permissions/codex.rules',
+}
 GODOT_SKILL = '.agents/skills/Godot'
 GODOT_FILES = tuple(GODOT_SKILL + '/' + name for name in (
     'SKILL.md', 'references/ENGINE.md', 'references/GDSCRIPT.md',
@@ -30,7 +36,7 @@ REFERENCES = (
 # 仅打包明确登记的通用文件，不打包项目接入记录、需求或日志。
 FILES = (
     'tests/test_boundaries.py', 'tests/test_diagnostics.py',
-    'AGENTS.md', 'README.md', 'CHANGELOG.md', 'docs/RELEASE.md', '.gitignore',
+    'AGENTS.md', 'README.md', 'CHANGELOG.md', 'docs/RELEASE.md', 'docs/TRIAL.md', '.gitignore',
     '.github/workflows/release.yml',
     'scripts/check_logging.py', 'tests/test_logging_install.py',
     'scripts/teamflow.py', 'scripts/package_release.py', 'scripts/validate_workflow.py', 'scripts/run_workflow_checks.py',
@@ -93,7 +99,7 @@ def package(root):
 
 
 def package_mode(root, mode):
-    """解压到项目根即可使用：含核心、所选 Skill、入口脚本、对应模式的 AGENTS 与安装清单。"""
+    """解压到项目根即可使用：含核心、所选 Skill、入口脚本、对应模式的 AGENTS、宿主权限与安装清单。"""
     root = root.resolve()
     sys.path.insert(0, str(root / CORE / 'scripts'))
     import setup_project
@@ -106,6 +112,7 @@ def package_mode(root, mode):
         'AGENTS.md': setup_project.agents_content('', setup_project.block_for(mode)).encode(),
         'scripts/teamflow.py': setup_project.ENTRY.encode(),
         upgrade.MANIFEST: upgrade.manifest_text(version, mode, files).encode(),
+        **{target: (root / source).read_bytes() for target, source in PERMISSIONS.items()},
     }
     return write_package(root, 'teamflow-' + mode + '-v', entries, generated)
 

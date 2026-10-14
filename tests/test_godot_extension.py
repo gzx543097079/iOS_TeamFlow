@@ -28,7 +28,7 @@ class GodotExtensionTests(unittest.TestCase):
             with zipfile.ZipFile(archive) as stream:
                 names = stream.namelist()
                 self.assertTrue(all(n.startswith(('.agents/teamflow-core/', '.agents/skills/iOS/', '.agents/skills/Godot/'))
-                                    or n in ('AGENTS.md', 'scripts/teamflow.py') for n in names))
+                                    or n in ('AGENTS.md', 'scripts/teamflow.py', *package_release.PERMISSIONS) for n in names))
                 stream.extractall(project)
             skills = project / '.agents/skills'
             for md in (project / '.agents').rglob('*.md'):

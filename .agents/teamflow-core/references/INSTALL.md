@@ -10,7 +10,7 @@
 | `teamflow-godot-v<版本>.zip` | Godot | `.agents/teamflow-core/`、`.agents/skills/Godot/` |
 | `teamflow-godot-ios-v<版本>.zip` | Godot + iOS | 核心与两个 Skill |
 
-每个包另含：对应模式的 `AGENTS.md`、命令入口 `scripts/teamflow.py`，以及安装清单 `.agents/teamflow-core/references/MANIFEST.json`（升级时用来识别本地改动）。这些包由源码仓库的 `python3 scripts/package_release.py` 生成，文件名中的版本以核心 VERSION 为准。目录区分大小写：原生 Skill 为 `iOS`，游戏 Skill 为 `Godot`。
+每个包另含：对应模式的 `AGENTS.md`、命令入口 `scripts/teamflow.py`、[宿主权限](#宿主权限)配置，以及安装清单 `.agents/teamflow-core/references/MANIFEST.json`（升级时用来识别本地改动）。这些包由源码仓库的 `python3 scripts/package_release.py` 生成，文件名中的版本以核心 VERSION 为准。目录区分大小写：原生 Skill 为 `iOS`，游戏 Skill 为 `Godot`。
 
 ## 新项目
 
@@ -50,19 +50,9 @@ upgrade 只替换当前模式需要的核心和 Skill 文件。处理规则：
 
 - 依据安装清单判断文件是否被本地改过：未改动的直接替换，新版不再包含的旧文件同时移除。
 - 有本地改动时拒绝升级并列出这些文件；核对后可加 `--force` 覆盖。
-- 安装包缺少当前模式所需的 Skill 时拒绝；版本低于已安装版本时，需要 `--force` 才能降级。
+- 安装包缺少当前模式所需的 Skill 时拒绝；版本号不做新旧比较，回退旧版同样执行。
 - 完成后用新核心刷新入口，模式保持不变；传 `--mode` 可同时切换模式，例如用 `teamflow-godot-ios` 包和 `--mode godot-ios` 给 Godot 项目补装 iOS Skill。切换到依赖更少的模式时，原模式独有且未改动的文件会被移除。
 - `.agents/team/`、需求卡、`.agents/project-checks.json` 和模块索引都不触碰。
-
-5.x 项目没有安装清单，核心里也没有 upgrade 命令：先从新包取出核心脚本运行，并传入旧版安装包作为对照：
-
-```sh
-unzip ~/Downloads/teamflow-godot-ios-v6.2.0.zip '.agents/teamflow-core/scripts/*' -d /tmp/teamflow6
-python3 /tmp/teamflow6/.agents/teamflow-core/scripts/teamflow.py upgrade ~/Downloads/teamflow-godot-ios-v6.2.0.zip \
-  --baseline ~/Downloads/teamflow-godot-v5.0.3.zip
-```
-
-5.x 的 `teamflow-godot` 包含 iOS，对应 6.x 的 `teamflow-godot-ios`。新的 `teamflow-godot` 只含 Godot，用于纯 Godot 项目。
 
 ## 团队定制
 
@@ -85,6 +75,15 @@ python3 scripts/teamflow.py setup --no-git-hook
 ```
 
 Hook 按 Git 实际解析的位置安装，支持 worktree，也支持指向项目内的 `core.hooksPath`；`core.hooksPath` 指向项目外的共享目录时拒绝安装。已有非 TeamFlow 管理的 pre-commit 时不覆盖，`--no-git-hook` 也只移除 TeamFlow 管理的 Hook。所选 profile 必须已经配置。Hook 检查的是工作区当前内容；`git commit --no-verify` 可临时跳过。Hook 不随仓库提交，每位成员自行选择是否安装。
+
+## 宿主权限
+
+包内的 `.claude/settings.json` 与 `.codex/rules/teamflow.rules` 让 Claude Code 和 Codex 在执行推送、PR 创建/合并/评审/评论、GitHub Release、`xcrun altool`、`fastlane`、`butler push`、`steamcmd` 前请求人工确认。它们只兜底，授权范围仍以 WORKFLOW 为准；模板源文件在 `.agents/teamflow-core/assets/permissions/`。
+
+- 随项目提交，团队共用；个人放行写在 `.claude/settings.local.json` 或 `~/.codex/rules/`。
+- Codex 只在信任该项目后加载项目内 `.codex/rules/`，修改后需重启 Codex。
+- 已有项目用 `unzip -n` 时不会覆盖已有的 `.claude/settings.json`，把模板中的 `permissions.ask` 合并进去。
+- 团队有其他发布命令（如自建上传脚本）时，在两个文件中追加同类规则。
 
 ## Claude Code
 

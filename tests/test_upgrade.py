@@ -1,4 +1,4 @@
-"""用真实安装包验证升级：清单识别本地改动、移除旧文件、兼容 5.x 布局，不触碰团队定制与项目数据。"""
+"""用真实安装包验证升级：清单识别本地改动、移除旧文件，不触碰团队定制与项目数据。"""
 import json
 import subprocess
 import sys
@@ -115,23 +115,6 @@ class UpgradeTests(unittest.TestCase):
         self.assertIn(WORKFLOW, result['actions']['conflict'])
         self.assertIn('新版规则', (self.root / WORKFLOW).read_text())
 
-    def test_legacy_layout_without_manifest_uses_baseline_package(self):
-        # 5.x 安装包解压到 .agents/，没有安装清单。
-        legacy = {name[len('.agents/'):]: data for name, data in self.ios.items()
-                  if name.startswith('.agents/') and name != upgrade.MANIFEST}
-        legacy['teamflow-core/references/VERSION'] = b'5.0.3\n'
-        old = write_zip(self.packages / 'old.zip', legacy)
-        with zipfile.ZipFile(old) as stream:
-            stream.extractall(self.root / '.agents')
-        (self.root / 'AGENTS.md').write_bytes(self.ios['AGENTS.md'])
-        package = write_zip(self.packages / 'new.zip', self.ios)
-        with self.assertRaisesRegex(ValueError, '--baseline'):
-            upgrade.upgrade(self.root, package)
-        result = upgrade.upgrade(self.root, package, baseline_zip=old)
-        self.assertEqual('5.0.3', result['from'])
-        self.assertFalse(result['actions']['conflict'])
-        self.assertTrue((self.root / upgrade.MANIFEST).is_file())
-
     def test_package_must_cover_installed_mode_and_only_mode_files_install(self):
         self.install(self.ios)
         with self.assertRaisesRegex(ValueError, '不含当前模式'):
@@ -151,11 +134,8 @@ class UpgradeTests(unittest.TestCase):
         self.assertFalse((self.root / package_release.SKILL).exists())
         self.assertEqual('godot', upgrade.setup_project.install_mode(self.root))
 
-    def test_downgrade_and_unsafe_packages_are_rejected(self):
+    def test_unsafe_packages_are_rejected(self):
         self.install(self.ios)
-        older = write_zip(self.packages / 'older.zip', {**self.ios, VERSION: b'1.0.0\n'})
-        with self.assertRaisesRegex(ValueError, '降级'):
-            upgrade.upgrade(self.root, older)
         unsafe = write_zip(self.packages / 'unsafe.zip', {**self.ios, '.agents/../outside.txt': b'x'})
         with self.assertRaisesRegex(ValueError, '不安全路径'):
             upgrade.upgrade(self.root, unsafe)

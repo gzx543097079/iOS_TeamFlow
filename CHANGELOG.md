@@ -1,5 +1,15 @@
 # 版本记录
 
+## 未发布
+
+内测期改动，未定版。
+
+- 移除 5.x 迁移：`upgrade` 不再接受 `--baseline`，不再兼容旧版 `.agents/` 解压布局；版本号不做新旧比较，回退旧包同样按清单执行。
+- 安装包附带宿主权限配置：`.claude/settings.json` 与 `.codex/rules/teamflow.rules` 在推送、PR、Release 与上传类命令前请求人工确认，见[宿主权限](.agents/teamflow-core/references/INSTALL.md#宿主权限)。
+- WORKFLOW 新增轻量改动通道（不改变运行行为的文案、注释、文档、格式与拼写不建卡）以及并行与子 Agent 规则；CHECKS 明确环境缺少检查条件时标为未验证，不替换检查。
+- token 预算改为留约 10% 余量的护栏，不再作为压缩措辞的依据。
+- 新增[内测试用记录](docs/TRIAL.md)模板：规则改动以真实项目的使用记录为依据。
+
 ## 6.2.0
 
 - 共用架构与本地化正文精简（估算约 2444→2119、1954→1645 token），规则不变；WORKFLOW、CHECKS、BOUNDARIES、COMMANDS 去掉与主流程或工具校验重复的表述。典型链路：iOS UI 缺陷修复并提交约 8.7K，新功能约 13.9K。

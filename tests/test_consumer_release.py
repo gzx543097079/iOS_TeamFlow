@@ -99,5 +99,27 @@ class ConsumerReleaseTests(unittest.TestCase):
         self.assertFalse((self.root / 'logs').exists())
 
 
+    def test_packaged_host_permissions_ask_before_external_actions(self):
+        settings = json.loads((self.root / '.claude/settings.json').read_text())
+        self.assertIn('Bash(git push:*)', settings['permissions']['ask'])
+        self.assertIn('Bash(gh release:*)', settings['permissions']['ask'])
+        rules = []
+        source = (self.root / '.codex/rules/teamflow.rules').read_text()
+        # Starlark 规则语法与 Python 兼容，这里用桩函数核对字段与内联示例。
+        exec(compile(source, 'teamflow.rules', 'exec'), {'prefix_rule': lambda **rule: rules.append(rule)})
+        self.assertTrue(rules)
+        for rule in rules:
+            self.assertEqual('prompt', rule['decision'])
+            for command in rule.get('match', []):
+                self.assertTrue(prefix_matches(rule['pattern'], command.split()), command)
+            for command in rule.get('not_match', []):
+                self.assertFalse(prefix_matches(rule['pattern'], command.split()), command)
+        self.assertIn(['git', 'push'], [rule['pattern'] for rule in rules])
+
+
+def prefix_matches(pattern, argv):
+    return len(argv) >= len(pattern) and all(
+        word == part if isinstance(part, str) else word in part for part, word in zip(pattern, argv))
+
 if __name__ == '__main__':
     unittest.main()

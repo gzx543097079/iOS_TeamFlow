@@ -490,9 +490,8 @@ def main():
 
     upgrader = top.add_parser('upgrade', parents=[output], help='用新版安装包升级核心与所选 Skill')
     upgrader.add_argument('package', type=Path, help='新版安装包 ZIP')
-    upgrader.add_argument('--baseline', type=Path, help='旧版安装包；5.x 项目没有安装清单时用于识别本地改动')
     upgrader.add_argument('--plan', action='store_true', help='只读预览，不写文件')
-    upgrader.add_argument('--force', action='store_true', help='覆盖本地改动或允许降级')
+    upgrader.add_argument('--force', action='store_true', help='覆盖本地改动')
     upgrader.add_argument('--mode', choices=['ios', 'godot', 'godot-ios'], help='升级同时切换安装模式；省略时沿用')
 
     module = top.add_parser('module', help='大型项目模块索引')
@@ -602,7 +601,7 @@ def main():
                     print('已移除 TeamFlow 管理的 pre-commit')
         elif args.area == 'upgrade':
             import upgrade
-            result = upgrade.upgrade(root, args.package, args.baseline, args.force, args.plan, args.mode)
+            result = upgrade.upgrade(root, args.package, args.force, args.plan, args.mode)
             print(json.dumps(result, ensure_ascii=False, indent=2) if args.json else
                   upgrade.describe(result, args.plan))
         elif args.area == 'module':

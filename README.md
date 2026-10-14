@@ -24,7 +24,7 @@ unzip ~/Downloads/teamflow-godot-v6.2.0.zip -d .
 python3 scripts/teamflow.py doctor
 ```
 
-包内已带对应模式的 `AGENTS.md` 和命令入口 `scripts/teamflow.py`，Codex 与 Claude Code 均可直接读取；验证日志目录自带忽略规则。
+包内已带对应模式的 `AGENTS.md` 和命令入口 `scripts/teamflow.py`，Codex 与 Claude Code 均可直接读取；另含两个宿主的权限配置，推送、Release 与上传类命令执行前须人工确认（见[宿主权限](.agents/teamflow-core/references/INSTALL.md#宿主权限)）。验证日志目录自带忽略规则。
 
 **已有项目**（已有 `AGENTS.md` 等文件）：用 `unzip -n` 不覆盖解压，再运行 setup 合并入口：
 
@@ -33,7 +33,7 @@ unzip -n ~/Downloads/teamflow-ios-v6.2.0.zip -d .
 python3 .agents/teamflow-core/scripts/teamflow.py setup --mode ios
 ```
 
-**升级**：用新版安装包运行 `upgrade`。工具依据安装清单替换未改动的文件；有本地改动时拒绝执行并列出这些文件。5.x 项目需要额外传 `--baseline 旧版安装包`。
+**升级**：用新版安装包运行 `upgrade`。工具依据安装清单替换未改动的文件；有本地改动时拒绝执行并列出这些文件。
 
 ```sh
 python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v6.2.1.zip --plan
@@ -140,6 +140,7 @@ Godot + GDScript（可选 iOS）扩展见 [接入与分工说明](docs/GODOT.md)
 | `examples/TeamFlowDemo/` | [演练 Demo](examples/TeamFlowDemo/README.md)（UIKit + MVVM，CocoaPods） |
 | `examples/TeamFlowGame/` | 最小 Godot 场景与行为测试；不包含 iOS 导出配置 |
 | `docs/RELEASE.md`、`CHANGELOG.md` | [源码验证与分发](docs/RELEASE.md)、[版本记录](CHANGELOG.md) |
+| `docs/TRIAL.md` | [内测试用记录](docs/TRIAL.md)：真实项目使用反馈，作为规则改动依据 |
 | `.github/workflows/release.yml` | 仅发布：推送 `teamflow-v*` 标签时打包并创建 GitHub Release |
 
 Demo、测试和发布工具属于源码仓库，不进入独立 Skill 包。验证按下表在本地运行；CI 只负责发布，推送 `teamflow-v*` 标签后打包并创建 GitHub Release，见 [源码验证与分发](docs/RELEASE.md)。
