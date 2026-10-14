@@ -5,6 +5,8 @@
 - 共用核心不再链接 iOS Skill：App 或游戏外部动作由当前模式 Skill 路由的发布专题定义，纯 Godot 包不再有断链。
 - Godot Skill 新增[游戏发布](.agents/skills/Godot/references/RELEASE.md)专题，覆盖 iOS 以外平台的导出、上传、提审、上线与回滚边界、凭据和结果记录。
 - `validate_workflow.py` 按 ios、godot、godot-ios 三个安装包逐一校验包内链接，并校验 Markdown 锚点与 `requirements/` 下的链接。
+- 降低读取 token：iOS UI 规范拆为通用 UI、[键盘与输入](.agents/skills/iOS/references/standards/ui-keyboard.md)、[付费 UI](.agents/skills/iOS/references/standards/ui-paywall.md)，按改动加载；证据绑定规则只保留在 CHECKS；常规完成不再需要读 COMMANDS；iOS 架构与本地化路由直接列出共用规则与 iOS 补充，可同时读取；BOUNDARIES 不再重复授权原则。按估算，iOS UI 缺陷修复并提交的读取链路从约 13.1K 降到约 9.0K。
+- 新增 `tests/test_token_budget.py`：约束入口链路、单个文档和典型任务链路的估算 token 上限。
 
 ## 6.0.0
 

@@ -23,7 +23,7 @@ GODOT_FILES = tuple(GODOT_SKILL + '/' + name for name in (
 ))
 REFERENCES = (
     'APP-RELEASE.md', 'APP-LIFECYCLE.md', 'LOGGING.md', 'EXISTING-PROJECT.md', 'ARCHITECTURE.md', 'LOCALIZATION.md',
-    'standards/ui.md', 'standards/objective-c.md', 'standards/swift.md', 'standards/swiftui.md',
+    'standards/ui.md', 'standards/ui-keyboard.md', 'standards/ui-paywall.md', 'standards/objective-c.md', 'standards/swift.md', 'standards/swiftui.md',
     'templates/new-project.md', 'templates/feature.md', 'templates/app-release.md',
 )
 # 仅打包明确登记的通用文件，不打包项目接入记录、需求或日志。
@@ -37,7 +37,7 @@ FILES = (
     SKILL + '/assets/logging/TFLogger.swift', SKILL + '/assets/logging/TFLogger.h', SKILL + '/assets/logging/TFLogger.m',
     SKILL + '/scripts/install_logging.py',
 ) + tuple(SKILL + '/references/' + name for name in REFERENCES) + CORE_FILES + GODOT_FILES + (
-    'docs/GODOT.md', 'tests/test_godot_extension.py', 'tests/test_upgrade.py', 'tests/test_team.py',
+    'docs/GODOT.md', 'tests/test_godot_extension.py', 'tests/test_upgrade.py', 'tests/test_team.py', 'tests/test_token_budget.py',
     'examples/TeamFlowGame/project.godot', 'examples/TeamFlowGame/main.tscn',
     'examples/TeamFlowGame/main.gd', 'examples/TeamFlowGame/tests/run_tests.gd',
     'examples/TeamFlowGame/main.gd.uid', 'examples/TeamFlowGame/tests/run_tests.gd.uid',

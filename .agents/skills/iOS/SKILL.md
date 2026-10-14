@@ -23,7 +23,7 @@ PROJECT_ROOT 是当前 Git 根及其目录树；只使用本项目内的 Skill�
 | 新工程日志组件 | [LOGGING](references/LOGGING.md) |
 | 功能分析清单；复杂功能设计 | [功能清单](references/templates/feature.md) |
 | 已有工程现状；大型模块索引 | [EXISTING-PROJECT](references/EXISTING-PROJECT.md)、[MODULE-CONTEXT](../../teamflow-core/references/MODULE-CONTEXT.md) |
-| 业务代码、架构调整或数据迁移 | [ARCHITECTURE](references/ARCHITECTURE.md) |
-| App 用户可见文本或多语言变更 | [LOCALIZATION](references/LOCALIZATION.md) |
+| 业务代码、架构调整或数据迁移 | [共用架构](../../teamflow-core/references/ARCHITECTURE.md) + [iOS 补充](references/ARCHITECTURE.md)，同时读取 |
+| App 用户可见文本或多语言变更 | [共用本地化](../../teamflow-core/references/LOCALIZATION.md) + [iOS 补充](references/LOCALIZATION.md)，同时读取 |
 
-修改业务代码时只加载实际语言对应的 [OC](references/standards/objective-c.md)、[Swift](references/standards/swift.md) 或 [SwiftUI](references/standards/swiftui.md) 规范；涉及 UI 时再加载 [UI](references/standards/ui.md)，新增或修改注释时参考[中文注释规则](../../teamflow-core/references/standards/comments.md)。不因为工程含多种语言而读取全部语言规范。已有项目明确约定优先。
+修改业务代码时只加载实际语言对应的 [OC](references/standards/objective-c.md)、[Swift](references/standards/swift.md) 或 [SwiftUI](references/standards/swiftui.md) 规范；涉及 UI 时再加载 [UI](references/standards/ui.md)，改输入时加 [键盘与输入](references/standards/ui-keyboard.md)，购买或订阅页面加 [付费 UI](references/standards/ui-paywall.md)；新增或修改注释时参考[中文注释规则](../../teamflow-core/references/standards/comments.md)。不因为工程含多种语言而读取全部语言规范。已有项目明确约定优先。
