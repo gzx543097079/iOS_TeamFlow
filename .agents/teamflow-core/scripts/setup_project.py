@@ -10,7 +10,7 @@ from teamflow_common import local_path as safe
 START = '<!-- teamflow:start -->'
 END = '<!-- teamflow:end -->'
 LEGACY_MARKERS = ('<!-- ios-team-flow:start -->', '<!-- ios-team-flow:end -->')
-READING_RULES = '''首次仅读取上述 Skill 和 `.agents/teamflow-core/references/WORKFLOW.md`。其他 Skill、专题、模板和脚本按本次任务需要读取，不因目录、依赖声明或链接出现而批量加载。跨平台任务直接引用相关规范，不自动读取另一 Skill 的完整入口；同一会话已读且未变化的内容直接复用。'''
+READING_RULES = '''首次仅读取上述 Skill 和 `.agents/teamflow-core/references/WORKFLOW.md`，其余资料按 WORKFLOW「按需读取」加载。'''
 BLOCK = '''<!-- teamflow:start -->
 ## 工作流
 

@@ -9,7 +9,7 @@ description: Godot 项目的场景、资源、GDScript 与游戏验收工作流�
 
 本扩展依赖项目内 `.agents/teamflow-core/` 共用核心，以及同级 `iOS` 的平台规则与原生插件规范。需求、状态、证据和交付使用唯一来源：[WORKFLOW](../../teamflow-core/references/WORKFLOW.md)。命令仍为 `python3 scripts/teamflow.py`；首次接入运行 `python3 .agents/teamflow-core/scripts/teamflow.py setup --mode godot-ios`。不创建第二套需求卡，不套用原生界面或生命周期模板。
 
-首次只读本入口和共用 WORKFLOW。同级 iOS 目录提供可引用的平台资料，不代表要读取其 SKILL.md；依赖声明和下表均不是全量加载清单。同会话已读且未变化的内容直接复用，进入新专题时只补读相关资料。
+同级 iOS 目录只提供下表引用的平台资料，不读取其 SKILL.md；读取规则见 WORKFLOW「按需读取」。
 
 PROJECT_ROOT 是当前 Git 根及其目录树。工程可在根目录或子目录；先定位实际 `project.godot`，不得混淆 Git 根与游戏资源根。工具使用已有默认安装位置；处理项目外对象遵循核心的范围边界。
 

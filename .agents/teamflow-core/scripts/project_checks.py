@@ -207,9 +207,25 @@ def read_blobs(root, object_ids):
     return blobs
 
 
-def source_snapshot(root, config, profile, staged=False, requirement=None, raw_config=False):
-    inputs = config['profiles'][profile].get('inputs')
+def source_snapshot(root, config, profile, staged=False, requirement=None, raw_config=False, commit=None):
+    """commit 指定时只读取该提交的文件树和配置，用于复核已交付需求，不受后续工作区变化影响。"""
     index = {}
+    if commit is not None:
+        raw = subprocess.check_output(['git', '-C', str(root), 'ls-tree', '-r', '-z', '--full-tree', commit],
+                                      stderr=subprocess.PIPE)
+        for entry in filter(None, raw.split(b'\0')):
+            metadata, name = entry.split(b'\t', 1)
+            mode, kind, oid = metadata.split()
+            if kind == b'blob':
+                index[os.fsdecode(name)] = (mode, oid)
+        if CONFIG not in index:
+            raise ValueError('交付提交缺少验证配置')
+        committed = json.loads(read_blobs(root, [index[CONFIG][1]])[index[CONFIG][1]])
+        profiles = committed.get('profiles') if isinstance(committed, dict) else None
+        if not isinstance(profiles, dict) or profile not in profiles:
+            raise ValueError('交付提交的配置缺少所选 profile：' + str(profile))
+        config = {'profiles': {profile: resolve_profile(profiles, profile)}}
+    inputs = config['profiles'][profile].get('inputs')
     if staged:
         raw = subprocess.check_output(['git', '-C', str(root), 'ls-files', '--stage', '-z'],
                                       stderr=subprocess.PIPE)
@@ -220,7 +236,7 @@ def source_snapshot(root, config, profile, staged=False, requirement=None, raw_c
                 raise ValueError('暂存区有未解决冲突')
             index[os.fsdecode(name)] = (mode, oid)
 
-    paths = input_paths(root, inputs)
+    paths = input_paths(root, inputs, set(index)) if commit is not None else input_paths(root, inputs)
     if staged:
         paths.update(input_paths(root, inputs, index))
     if not raw_config:
@@ -229,7 +245,7 @@ def source_snapshot(root, config, profile, staged=False, requirement=None, raw_c
         if not ID.fullmatch(requirement):
             raise ValueError('需求编号格式应为 REQ-YYYYMMDD-xxxx')
         card = 'requirements/' + requirement + '.md'
-        if not local_path(root, card).is_file():
+        if not (card in index if commit is not None else local_path(root, card).is_file()):
             raise ValueError('需求不存在：' + requirement)
         paths.add(card)
     paths = {name for name in paths if not excluded_input(name)
@@ -238,11 +254,11 @@ def source_snapshot(root, config, profile, staged=False, requirement=None, raw_c
              and not (inputs is None and requirement is None
                       and name.startswith('requirements/') and Path(name).suffix == '.md')}
     blobs = read_blobs(root, [index[name][1] for name in sorted(paths & index.keys())
-                             if index[name][0] in (b'100644', b'100755')]) if staged else {}
+                             if index[name][0] in (b'100644', b'100755')]) if index else {}
     files = {}
     for name in sorted(paths):
         path = local_path(root, name)
-        if staged:
+        if staged or commit is not None:
             entry = index.get(name)
             if entry is None:
                 continue

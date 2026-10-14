@@ -5,7 +5,7 @@ from requirement_model import require_ready, parse_card
 
 
 def requirement_summary(root, requirement):
-    """返回证据有效性、问题与下一步，以及是否仅为已完成需求的证据失效。"""
+    """返回证据有效性、问题与下一步，以及是否为已交付但证据无法对应交付提交的历史需求。"""
     import teamflow as flow
     card = parse_card(flow.requirement_path(root, requirement))
     problems = []
@@ -14,17 +14,28 @@ def requirement_summary(root, requirement):
     except ValueError as error:
         problems.append(str(error))
     content_ready = not problems
+    pending = [item for item in card['ac'] if not item['done']]
+    finished = card['state'] == '完成' and content_ready and not pending
+    history = False
     try:
         flow.verify_saved(root, card)
         evidence = '有效'
     except (ValueError, OSError, KeyError, TypeError) as error:
-        evidence = '缺失或失效'
-        problems.append(str(error))
-    pending = [item for item in card['ac'] if not item['done']]
+        commit = flow.delivered_commit(root, card) if finished else None
+        if commit:
+            # 交付提交与验证输入一致，之后的代码演进不影响已完成结论。
+            evidence = '交付时有效（提交 ' + commit[:7] + '）'
+        else:
+            evidence = '缺失或失效'
+            problems.append(str(error))
+            # 已提交的完成卡对不上交付提交只作历史提示；尚未提交即失效说明交付前内容已变化。
+            history = finished and bool(flow.committed_evidence(root, card, 'HEAD'))
     if card['state'] == '取消' or card['blocked'] == '暂停':
         next_step = '等待用户明确恢复；不得自动继续'
     elif card['state'] == '阻塞':
         next_step = '核对阻塞原因，解除条件后恢复'
+    elif history:
+        next_step = '历史需求已交付；旧证据无法对应交付提交，无需重开'
     elif problems:
         next_step = '补齐实际需求内容或重新核对失效证据'
     elif pending:
@@ -37,8 +48,7 @@ def requirement_summary(root, requirement):
     summary = {'requirement': requirement, 'state': card['state_display'],
                'pending_ac': pending, 'evidence_status': evidence, 'problems': problems,
                'decisions': decisions[1].strip() if len(decisions) == 2 else '', 'next_step': next_step}
-    # 完成后代码继续演进，旧证据失效属于正常历史状态，不要求重开或补测。
-    return summary, card['state'] == '完成' and content_ready and not pending
+    return summary, history
 
 
 def doctor(root):
@@ -109,7 +119,7 @@ def format_report(report):
     if ready:
         lines.append(f'[就绪] 需求：{len(ready)} 张')
     if history:
-        lines.append(f'[历史] 已完成需求证据失效 {len(history)} 张，仅提示：' + '、'.join(history))
+        lines.append(f'[历史] 已交付需求证据无法对应交付提交 {len(history)} 张，仅提示：' + '、'.join(history))
     pending = sum(item['status'] == '需处理' for item in report['checks'])
     lines.append(f'结论：需处理 {pending} 项' if pending else '结论：就绪')
     return '\n'.join(lines)

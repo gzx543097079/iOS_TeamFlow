@@ -164,6 +164,35 @@ def verify_saved(root, card, staged=False):
     return saved
 
 
+def committed_evidence(root, card, revision):
+    """卡片在指定提交中记录的证据指纹与当前一致时返回该指纹。"""
+    fingerprint = card['evidence'].get('fingerprint') if isinstance(card['evidence'], dict) else None
+    shown = subprocess.run(['git', '-C', str(root), 'show', f"{revision}:requirements/{card['requirement']}.md"],
+                           capture_output=True, text=True)
+    return fingerprint if fingerprint and shown.returncode == 0 and fingerprint in shown.stdout else None
+
+
+def delivered_commit(root, card):
+    """已完成需求的自动证据与某个提交的输入一致时返回该提交；后续代码演进不影响交付结论。"""
+    saved = card['evidence']
+    if (card['state'] != '完成' or not isinstance(saved, dict) or saved.get('kind') != 'result'
+            or saved.get('requirement') != requirement_fingerprint(card)):
+        return None
+    history = subprocess.run(['git', '-C', str(root), 'log', '--format=%H', '--',
+                              f"requirements/{card['requirement']}.md"], capture_output=True, text=True)
+    for commit in history.stdout.split() if history.returncode == 0 else []:
+        if not committed_evidence(root, card, commit):
+            continue
+        try:
+            snapshot = checks_module().source_snapshot(root, None, saved.get('profile'),
+                                                       requirement=card['requirement'], commit=commit)
+        except (ValueError, KeyError, TypeError, subprocess.CalledProcessError):
+            continue
+        if saved.get('fingerprint') == 'sha256:' + snapshot['fingerprint']:
+            return commit
+    return None
+
+
 def manual_proof(root, card, evidence, evidence_inputs=None):
     if not isinstance(evidence, str) or not evidence.strip():
         raise ValueError('验证证据不能为空')

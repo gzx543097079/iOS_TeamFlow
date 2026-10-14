@@ -23,7 +23,7 @@ python3 .agents/teamflow-core/scripts/teamflow.py setup --mode godot-ios
 
 不传 `--mode` 时沿用 AGENTS 中已有选择，首次默认 iOS 原生。切换模式使用明确参数；Godot 模式缺少扩展时会报错，不降级为原生模式。原生模式不会因残留 Godot 目录自动切换。
 
-setup 将首次读取边界写入托管区块：只读当前 Skill 与共用 WORKFLOW，其他资料按任务路由，同会话复用未变化内容。已有 5.0.0 项目更新核心和 Skill 后重新运行 setup 即可更新约束；模式、需求卡、项目检查配置及自有说明沿用。此约束不关闭宿主的 Skill 元信息发现或自动选择。
+setup 在托管区块写入首次读取边界，完整规则见 [WORKFLOW](WORKFLOW.md#按需读取)。已有项目更新核心和 Skill 后重新运行 setup 即可；模式、需求卡、项目检查配置及自有说明沿用。
 
 使用 Claude Code 时可追加 `--claude-skill-link`：iOS 原生创建 `.claude/skills/ios`，Godot + iOS 创建 `.claude/skills/godot`，对应 `/ios` 或 `/godot`。切换模式会同步本工具创建的标准链接，非标准链接和用户自有文件不删除；目标存在冲突时先报错。AGENTS 路由始终有效，软链接可选。
 

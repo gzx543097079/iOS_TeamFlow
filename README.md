@@ -49,7 +49,7 @@ python3 .agents/teamflow-core/scripts/teamflow.py setup --mode godot-ios
 
 使用 Claude Code 时可追加 `--claude-skill-link`，按模式创建对应 Skill 链接，可用 `/ios` 或 `/godot` 调用。
 
-首次使用只读取所选 Skill 和共用 WORKFLOW；其余专题按实际操作和语言加载。Godot 普通玩法不预读 iOS 导出／发布资料，原生插件直接引用对应规范。平台列出可用 Skill 的元信息不代表读取全部正文；自动选择继续保留。同一会话已读且未变化的内容直接复用，只在变更、上下文缺失或进入新专题时补读必要文件。
+首次使用只读取所选 Skill 和共用 WORKFLOW，其余资料按 [按需读取](.agents/teamflow-core/references/WORKFLOW.md#按需读取) 规则加载。
 
 确认共用核心在 `.agents/teamflow-core/`，原生 Skill 在 `.agents/skills/iOS/SKILL.md`，不要只复制 `SKILL.md`，也不要多套一层同名目录。已有同名 Skill 时先按 [安装说明](.agents/teamflow-core/references/INSTALL.md) 核对差异和定制，再升级。**4.0.0 与 3.x 不兼容**：升级时删除旧需求卡（Git 历史保留）、移除模块索引中的 `baseline` 字段，并重新运行 `setup`。
 

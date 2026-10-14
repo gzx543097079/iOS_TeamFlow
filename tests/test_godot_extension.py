@@ -112,6 +112,33 @@ class GodotExtensionTests(unittest.TestCase):
             self.assertEqual('ios', setup_project.install_mode(project))
             self.assertEqual('user-owned', (godot_link / 'custom.txt').read_text())
 
+    def test_both_modes_write_reading_rules_and_rerun_is_stable(self):
+        import setup_project
+        archive = package_release.package_godot(ROOT)
+        with tempfile.TemporaryDirectory() as directory:
+            project = Path(directory)
+            with zipfile.ZipFile(archive) as stream:
+                stream.extractall(project / '.agents')
+            skill = project / package_release.CORE
+            agents = project / 'AGENTS.md'
+            # 模拟 5.0.0 托管区块：重新 setup 应补齐读取约束并保留自有说明。
+            old_block = '\n'.join(line for line in setup_project.BLOCK.splitlines() if line != setup_project.READING_RULES) + '\n'
+            agents.write_text('# 自有说明\n\n' + old_block + '\n自有结尾\n')
+            for mode, entry in (('ios', 'skills/iOS/SKILL.md'), ('godot-ios', 'skills/Godot/SKILL.md')):
+                setup_project.setup(project, skill, mode=mode)
+                content = agents.read_text()
+                block = content[content.index(setup_project.START):content.index(setup_project.END)]
+                self.assertIn(entry, block)
+                self.assertEqual(1, block.count(setup_project.READING_RULES))
+                self.assertEqual(1, content.count(setup_project.START))
+                self.assertTrue(content.startswith('# 自有说明\n'))
+                self.assertIn('自有结尾', content)
+                self.assertEqual(mode, setup_project.install_mode(project))
+                snapshot = agents.read_bytes()
+                setup_project.setup(project, skill)
+                self.assertEqual(snapshot, agents.read_bytes())
+                self.assertEqual(snapshot, setup_project.plan(project, skill)['AGENTS.md'])
+
     def test_native_install_ignores_incomplete_extension_and_game_install_fails_before_write(self):
         import setup_project
         with tempfile.TemporaryDirectory() as directory:
