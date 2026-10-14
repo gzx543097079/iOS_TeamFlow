@@ -1,5 +1,13 @@
 # 版本记录
 
+## 5.0.3
+
+- 降低首次加载：WORKFLOW 去掉需求卡完整示例，缺陷修复与工作流改进移到按需读取的 REPAIR，WORKFLOW 正文约减少四分之一。
+- CHECKS 只保留配置、验证强度与证据机制，命令参数、状态、人工证据和只读辅助移到 COMMANDS；常规验收少读约一半。
+- `req list` 默认只列未完成需求并提示其余数量，`--all` 列出全部；`doctor` 历史提示只给数量，编号用 `--json` 查看。输出不再随已完成需求增长。
+- Godot Skill 去掉与 WORKFLOW 重复的读取说明；本仓库 AGENTS 说明维护工作流自身时不读 Skill 入口。
+- 发布工作流的 `actions/checkout`、`actions/setup-python` 升级到 v7（Node 24）。
+
 ## 5.0.2
 
 - 首次读取规则只在 WORKFLOW「按需读取」维护，AGENTS、Skill 入口、README 与安装说明改为一句边界或链接；Godot 专属路由只留在 Godot Skill。

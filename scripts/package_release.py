@@ -9,7 +9,7 @@ CORE = '.agents/teamflow-core'
 CORE_FILES = tuple(CORE + '/' + name for name in (
     'scripts/diagnostics.py', 'scripts/teamflow_common.py', 'scripts/requirement_model.py',
     'scripts/module_context.py', 'scripts/teamflow.py', 'scripts/project_checks.py', 'scripts/setup_project.py',
-    'references/WORKFLOW.md', 'references/CHECKS.md', 'references/BOUNDARIES.md', 'references/INSTALL.md',
+    'references/WORKFLOW.md', 'references/CHECKS.md', 'references/COMMANDS.md', 'references/REPAIR.md', 'references/BOUNDARIES.md', 'references/INSTALL.md',
     'references/MODULE-CONTEXT.md', 'references/VERSION', 'references/ARCHITECTURE.md', 'references/LOCALIZATION.md',
     'references/templates/requirement.md', 'references/templates/project-context.md', 'references/standards/comments.md',
 ))

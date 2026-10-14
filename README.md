@@ -1,6 +1,6 @@
 # TeamFlow
 
-面向 AI Agent 驱动开发的中文工作流，支持 iOS 原生和 Godot + iOS。当前版本为 **5.0.2**。
+面向 AI Agent 驱动开发的中文工作流，支持 iOS 原生和 Godot + iOS。当前版本为 **5.0.3**。
 
 需求、实施、验证与显式交付的规则见 [WORKFLOW](.agents/teamflow-core/references/WORKFLOW.md)；按安装模式进入 [iOS Skill](.agents/skills/iOS/SKILL.md) 或 [Godot Skill](.agents/skills/Godot/SKILL.md)。Agent 通过项目根 `AGENTS.md` 的托管区块找到所选入口，Codex 与 Claude Code 均可直接使用。
 
@@ -20,23 +20,23 @@ mkdir -p .agents
 
 ### iOS 原生
 
-安装 `teamflow-ios-v5.0.2.zip`，包含共用核心和原生 Skill。本仓库打包命令为 `python3 scripts/package_release.py`，产物在 `dist/`；例如将包放到 `~/Downloads` 后，在目标项目根执行：
+安装 `teamflow-ios-v5.0.3.zip`，包含共用核心和原生 Skill。本仓库打包命令为 `python3 scripts/package_release.py`，产物在 `dist/`；例如将包放到 `~/Downloads` 后，在目标项目根执行：
 
 ```sh
-unzip ~/Downloads/teamflow-ios-v5.0.2.zip -d .agents
+unzip ~/Downloads/teamflow-ios-v5.0.3.zip -d .agents
 python3 .agents/teamflow-core/scripts/teamflow.py setup --mode ios
 ```
 
 ### Godot + iOS
 
-安装 `teamflow-godot-v5.0.2.zip`，包含共用核心、Godot Skill 与 iOS 平台 Skill；包同样由本仓库打包生成。目标项目根执行：
+安装 `teamflow-godot-v5.0.3.zip`，包含共用核心、Godot Skill 与 iOS 平台 Skill；包同样由本仓库打包生成。目标项目根执行：
 
 ```sh
-unzip ~/Downloads/teamflow-godot-v5.0.2.zip -d .agents
+unzip ~/Downloads/teamflow-godot-v5.0.3.zip -d .agents
 python3 .agents/teamflow-core/scripts/teamflow.py setup --mode godot-ios
 ```
 
-游戏开发读取 Godot Skill，iOS 原生插件按需加载原生规范；详见 [Godot 接入说明](docs/GODOT.md)。从 [5.0.2 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v5.0.2) 下载对应安装包，也可使用本仓库打包生成的文件。
+游戏开发读取 Godot Skill，iOS 原生插件按需加载原生规范；详见 [Godot 接入说明](docs/GODOT.md)。从 [5.0.3 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v5.0.3) 下载对应安装包，也可使用本仓库打包生成的文件。
 
 安装后的目录对应：
 
@@ -76,7 +76,7 @@ python3 scripts/teamflow.py verify init
 ```sh
 # 需求
 python3 scripts/teamflow.py req create --title "登录失败提示优化"   # --bug 缺陷，--queued 排队
-python3 scripts/teamflow.py req list
+python3 scripts/teamflow.py req list                                 # 默认只列未完成，--all 含已完成和取消
 python3 scripts/teamflow.py req status REQ-20260101-a3f9            # 状态、证据有效性、剩余 AC、下一步
 python3 scripts/teamflow.py req state REQ-20260101-a3f9 --state 阻塞 --blocked 待确认 --reason "等待选择登录方式"
 
@@ -95,7 +95,7 @@ python3 scripts/teamflow.py module inspect --query "修改登录页错误提示"
 python3 scripts/teamflow.py logging install --language swift --destination App/MyApp/Sources/Support/Logging
 ```
 
-`change` 是项目自行配置的 profile 名。参数、输出与证据复用见 [命令参考](.agents/teamflow-core/references/CHECKS.md#命令参考)。
+`change` 是项目自行配置的 profile 名。参数、输出与证据复用见 [命令参考](.agents/teamflow-core/references/COMMANDS.md)。
 
 ## 需求卡
 

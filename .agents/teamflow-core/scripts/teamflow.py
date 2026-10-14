@@ -368,11 +368,13 @@ def render(kind, data):
     if kind == 'state':
         return f"{data['requirement']} → {data['state']}"
     if kind == 'list':
-        rows, skipped = data
+        rows, skipped, *hidden = data
         lines = ['| 需求 | 标题 | 状态 | 进度 |', '| --- | --- | --- | --- |']
         lines.extend(f"| [{r['requirement']}](requirements/{r['requirement']}.md) | {r['title']} | "
                      f"{r['state']} | {r['progress']['display']} |" for r in rows)
         lines.extend(f"已跳过异常需求卡 {s['requirement']}：{s['error']}" for s in skipped)
+        if hidden and hidden[0]:
+            lines.append(f'另有已完成或取消 {hidden[0]} 张（--all 查看）')
         return '\n'.join(lines)
     if kind == 'status':
         pending = [item for item in data['ac'] if not item['done']]
@@ -438,7 +440,7 @@ def main():
     creator.add_argument('--title', required=True)
     creator.add_argument('--queued', action='store_true', help='进行中但排队，暂不开始')
     creator.add_argument('--bug', action='store_true')
-    req_sub.add_parser('list', parents=[output])
+    req_sub.add_parser('list', parents=[output]).add_argument('--all', action='store_true', help='包含已完成和取消的需求')
     req_sub.add_parser('status', parents=[output], help='只读：状态、证据有效性、剩余 AC 与下一步').add_argument('requirement')
     state = req_sub.add_parser('state', parents=[output])
     state.add_argument('requirement')
@@ -525,7 +527,9 @@ def main():
                 emit('create', create(root, args.title, args.queued, args.bug))
             elif args.command == 'list':
                 rows, skipped = cards(root)
-                emit('list', (rows, skipped), {'requirements': rows, 'skipped': skipped})
+                # 默认只列未完成需求，避免历史卡片让输出随项目时间线性增长。
+                shown = rows if args.all else [row for row in rows if row['state_key'] not in ('完成', '取消')]
+                emit('list', (shown, skipped, len(rows) - len(shown)), {'requirements': shown, 'skipped': skipped})
             elif args.command == 'status':
                 emit('status', status(root, args.requirement))
             elif args.command == 'state':

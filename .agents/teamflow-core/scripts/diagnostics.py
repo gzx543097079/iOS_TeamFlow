@@ -119,7 +119,7 @@ def format_report(report):
     if ready:
         lines.append(f'[就绪] 需求：{len(ready)} 张')
     if history:
-        lines.append(f'[历史] 已交付需求证据无法对应交付提交 {len(history)} 张，仅提示：' + '、'.join(history))
+        lines.append(f'[历史] 已交付需求证据无法对应交付提交 {len(history)} 张，仅提示（--json 查看）')
     pending = sum(item['status'] == '需处理' for item in report['checks'])
     lines.append(f'结论：需处理 {pending} 项' if pending else '结论：就绪')
     return '\n'.join(lines)

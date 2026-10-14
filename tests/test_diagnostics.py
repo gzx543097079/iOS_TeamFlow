@@ -71,7 +71,8 @@ class DiagnosticsTests(unittest.TestCase):
         status, report = self.doctor_status(req)
         self.assertEqual('历史', status)
         self.assertFalse(any(i['status'] == '需处理' and i['item'].startswith('REQ-') for i in report['checks']))
-        self.assertIn('[历史] 已交付需求证据无法对应交付提交 1 张', diagnostics.format_report(report))
+        self.assertIn('[历史] 已交付需求证据无法对应交付提交 1 张，仅提示（--json 查看）', diagnostics.format_report(report))
+        self.assertNotIn(req, diagnostics.format_report(report))
         self.assertIn('无需重开', flow.status(self.root, req)['next_step'])
 
     def test_doctor_reports_placeholders_bad_config_and_symlink(self):

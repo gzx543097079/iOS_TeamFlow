@@ -392,6 +392,12 @@ class TeamFlowTests(unittest.TestCase):
         self.assertIn('仅按路径建议', cli('verify', 'suggest'))
         self.assertIn('profiles', json.loads(cli('verify', 'suggest', '--json')))
         self.assertIn('requirements', json.loads(cli('req', 'list', '--json')))
+        cli('req', 'state', req, '--state', '取消', '--reason', '用户取消')
+        listing = cli('req', 'list')
+        self.assertNotIn(req, listing)
+        self.assertIn('另有已完成或取消 1 张（--all 查看）', listing)
+        self.assertIn(req, cli('req', 'list', '--all'))
+        self.assertEqual([], json.loads(cli('req', 'list', '--json'))['requirements'])
 
     def test_complete_auto_selects_smallest_covering_profile(self):
         config = {'schema_version': 2, 'profiles': {
