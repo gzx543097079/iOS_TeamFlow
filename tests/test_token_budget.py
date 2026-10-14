@@ -19,7 +19,7 @@ SCENARIOS = {
     'iOS UI 缺陷修复并提交': (9500, 'ios', (
         CORE + 'REPAIR.md', CORE + 'CHECKS.md', CORE + 'BOUNDARIES.md',
         IOS + 'references/standards/swift.md', IOS + 'references/standards/ui.md')),
-    'iOS 新功能（含输入与多语言）': (15000, 'ios', (
+    'iOS 新功能（含输入与多语言）': (14500, 'ios', (
         IOS + 'references/templates/feature.md', CORE + 'ARCHITECTURE.md', IOS + 'references/ARCHITECTURE.md',
         CORE + 'LOCALIZATION.md', IOS + 'references/LOCALIZATION.md', IOS + 'references/standards/swift.md',
         IOS + 'references/standards/ui.md', IOS + 'references/standards/ui-keyboard.md', CORE + 'CHECKS.md')),
