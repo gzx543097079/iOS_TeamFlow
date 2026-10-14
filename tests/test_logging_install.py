@@ -22,7 +22,7 @@ class LoggingInstallTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         with zipfile.ZipFile(self.archive) as archive:
-            archive.extractall(self.root / '.agents')
+            archive.extractall(self.root)
         self.script = self.root / '.agents/teamflow-core/scripts/teamflow.py'
 
     def run_install(self, language='mixed', destination='App/Sources/Logging'):

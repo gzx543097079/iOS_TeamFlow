@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """检查项目内 Godot 导入与真实测试脚本，错误日志不能被退出码 0 掩盖。"""
 import argparse
+import json
 import re
 import shutil
 import subprocess
@@ -52,6 +53,21 @@ def check_version(version, expected=None, project=None):
         raise ValueError(f'Godot 版本低于工程声明：工程 {project[0]}.{project[1]}，实际 {version}')
 
 
+def pinned_version(project):
+    """未显式传版本时沿用团队锁定：Git 根 .agents/team/toolchain.json 的 godot 字段。"""
+    top = subprocess.run(['git', '-C', str(project), 'rev-parse', '--show-toplevel'],
+                         capture_output=True, text=True)
+    if top.returncode:
+        return None
+    path = Path(top.stdout.strip()) / '.agents/team/toolchain.json'
+    if not path.is_file() or path.is_symlink():
+        return None
+    value = json.loads(path.read_text()).get('godot')
+    if value is not None and not (isinstance(value, str) and re.fullmatch(r'\d+\.\d+(?:\.\d+)?', value)):
+        raise ValueError('toolchain.json 的 godot 须为 X.Y 或 X.Y.Z')
+    return value
+
+
 def run_phase(argv, project, timeout):
     result = subprocess.run(argv, cwd=project, capture_output=True, text=True, timeout=timeout)
     output = result.stdout + '\n' + result.stderr
@@ -73,7 +89,7 @@ def verify(project, godot=None, test_script=None, import_only=False, timeout=120
         raise ValueError('timeout 必须大于 0')
     executable = find_godot(godot)
     version = run_phase([executable, '--version'], project, timeout)
-    check_version(version, expected_version, project_version(project))
+    check_version(version, expected_version or pinned_version(project), project_version(project))
     logs = project / '.godot/teamflow-checks'
     for path in (project / '.godot', logs):
         if path.is_symlink():

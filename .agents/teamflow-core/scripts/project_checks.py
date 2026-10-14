@@ -320,6 +320,10 @@ def run(root, profile, requirement=None):
     source_before = source_snapshot(root, config, profile, requirement=requirement)
     directory = local_path(root, 'logs/project-checks')
     directory.mkdir(parents=True, exist_ok=True)
+    # 目录自带忽略规则：直接解压安装、未运行 setup 的项目也不会把本地日志提交。
+    ignore = local_path(root, 'logs/project-checks/.gitignore')
+    if not ignore.exists():
+        ignore.write_text('*\n')
     run_dir = directory / (datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ-') + uuid.uuid4().hex[:8])
     run_dir.mkdir()
     head = subprocess.run(['git', '-C', str(root), 'rev-parse', 'HEAD'],

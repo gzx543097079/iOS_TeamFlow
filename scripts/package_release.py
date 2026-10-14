@@ -2,6 +2,7 @@
 """按显式清单生成可重复的通用工作流 ZIP，不包含使用项目的数据。"""
 import hashlib
 import re
+import sys
 import zipfile
 from pathlib import Path
 SKILL = '.agents/skills/iOS'
@@ -9,6 +10,7 @@ CORE = '.agents/teamflow-core'
 CORE_FILES = tuple(CORE + '/' + name for name in (
     'scripts/diagnostics.py', 'scripts/teamflow_common.py', 'scripts/requirement_model.py',
     'scripts/module_context.py', 'scripts/teamflow.py', 'scripts/project_checks.py', 'scripts/setup_project.py',
+    'scripts/upgrade.py',
     'references/WORKFLOW.md', 'references/CHECKS.md', 'references/COMMANDS.md', 'references/REPAIR.md', 'references/BOUNDARIES.md', 'references/INSTALL.md',
     'references/MODULE-CONTEXT.md', 'references/VERSION', 'references/ARCHITECTURE.md', 'references/LOCALIZATION.md',
     'references/templates/requirement.md', 'references/templates/project-context.md', 'references/standards/comments.md',
@@ -16,7 +18,7 @@ CORE_FILES = tuple(CORE + '/' + name for name in (
 GODOT_SKILL = '.agents/skills/Godot'
 GODOT_FILES = tuple(GODOT_SKILL + '/' + name for name in (
     'SKILL.md', 'references/ENGINE.md', 'references/GDSCRIPT.md',
-    'references/CHECKS.md', 'references/IOS.md',
+    'references/CHECKS.md', 'references/IOS.md', 'references/TEAM.md',
     'scripts/verify_godot.py', 'assets/project-checks.example.json',
 ))
 REFERENCES = (
@@ -35,7 +37,7 @@ FILES = (
     SKILL + '/assets/logging/TFLogger.swift', SKILL + '/assets/logging/TFLogger.h', SKILL + '/assets/logging/TFLogger.m',
     SKILL + '/scripts/install_logging.py',
 ) + tuple(SKILL + '/references/' + name for name in REFERENCES) + CORE_FILES + GODOT_FILES + (
-    'docs/GODOT.md', 'tests/test_godot_extension.py',
+    'docs/GODOT.md', 'tests/test_godot_extension.py', 'tests/test_upgrade.py', 'tests/test_team.py',
     'examples/TeamFlowGame/project.godot', 'examples/TeamFlowGame/main.tscn',
     'examples/TeamFlowGame/main.gd', 'examples/TeamFlowGame/tests/run_tests.gd',
     'examples/TeamFlowGame/main.gd.uid', 'examples/TeamFlowGame/tests/run_tests.gd.uid',
@@ -43,7 +45,8 @@ FILES = (
 )
 
 
-def write_package(root, prefix, entries):
+def write_package(root, prefix, entries, generated=None):
+    """entries 映射仓库文件到包内路径；generated 为打包时生成的包内文件。"""
     root = root.resolve()
     version = (root / CORE / 'references/VERSION').read_text().strip()
     if not re.fullmatch(r'\d+\.\d+\.\d+', version):
@@ -54,16 +57,18 @@ def write_package(root, prefix, entries):
             raise ValueError('分发文件缺失或包含符号链接：' + name)
         if not path.resolve().is_relative_to(root):
             raise ValueError('文件越出项目目录：' + name)
+    contents = {destination: (root / name).read_bytes() for name, destination in entries.items()}
+    contents.update(generated or {})
     output = root / 'dist'
     output.mkdir(exist_ok=True)
     archive = output / (prefix + version + '.zip')
     with zipfile.ZipFile(archive, 'w', compression=zipfile.ZIP_DEFLATED) as stream:
-        for name, destination in sorted(entries.items()):
+        for destination, data in sorted(contents.items()):
             entry = zipfile.ZipInfo(destination, date_time=(2020, 1, 1, 0, 0, 0))
             entry.compress_type = zipfile.ZIP_DEFLATED
             entry.create_system = 3
             entry.external_attr = 0o100644 << 16
-            stream.writestr(entry, (root / name).read_bytes())
+            stream.writestr(entry, data)
     archive.with_suffix('.zip.sha256').write_text(
         hashlib.sha256(archive.read_bytes()).hexdigest() + '  ' + archive.name + '\n')
     return archive
@@ -86,22 +91,40 @@ def package(root):
     return write_package(root, 'TeamFlow-v', {name: name for name in FILES})
 
 
+def package_mode(root, mode):
+    """解压到项目根即可使用：含核心、所选 Skill、入口脚本、对应模式的 AGENTS 与安装清单。"""
+    root = root.resolve()
+    sys.path.insert(0, str(root / CORE / 'scripts'))
+    import setup_project
+    import upgrade
+    skills = tuple('.agents/skills/' + name + '/' for name in setup_project.MODE_SKILLS[mode])
+    entries = {name: name for name in FILES if name.startswith((CORE + '/',) + skills)}
+    files = {name: (root / name).read_bytes() for name in entries}
+    version = (root / CORE / 'references/VERSION').read_text().strip()
+    generated = {
+        'AGENTS.md': setup_project.agents_content('', setup_project.block_for(mode)).encode(),
+        'scripts/teamflow.py': setup_project.ENTRY.encode(),
+        upgrade.MANIFEST: upgrade.manifest_text(version, mode, files).encode(),
+    }
+    return write_package(root, 'teamflow-' + mode + '-v', entries, generated)
+
+
 def package_skill(root):
-    return write_package(root, 'teamflow-ios-v', {
-        name: name[len('.agents/'):]
-        for name in FILES if name.startswith((CORE + '/', SKILL + '/'))})
+    return package_mode(root, 'ios')
 
 
 def package_godot(root):
-    """扩展包自带同版核心；跨 Skill 引用在解压后仍然有效。"""
-    return write_package(root, 'teamflow-godot-v', {
-        name: name[len('.agents/'):]
-        for name in FILES if name.startswith((CORE + '/', SKILL + '/', GODOT_SKILL + '/'))})
+    return package_mode(root, 'godot')
+
+
+def package_godot_ios(root):
+    """含 iOS 的 Godot 包；跨 Skill 引用在解压后仍然有效。"""
+    return package_mode(root, 'godot-ios')
 
 
 if __name__ == '__main__':
     ROOT = Path(__file__).resolve().parents[1]
     for name in clean_dist(ROOT):
         print('已移除旧包：' + name)
-    for build in (package, package_skill, package_godot):
+    for build in (package, package_skill, package_godot, package_godot_ios):
         print(build(ROOT))

@@ -38,6 +38,18 @@ python3 scripts/teamflow.py req complete REQ-20260101-a3f9 \
 
 `git check` 的人工证据仅支持 `.md`、`.rst`、`.txt` 文档/记录，仍核对文件范围和暂存快照；这些扩展名不是语义证明，脚本或业务数据即使使用文本扩展名也必须执行实际适用检查。
 
+## 升级与提交前检查
+
+```sh
+python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v6.0.1.zip --plan
+python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v6.0.1.zip
+python3 scripts/teamflow.py setup --git-hook change
+python3 scripts/teamflow.py setup --no-git-hook
+```
+
+- `upgrade` 按安装清单替换当前模式的核心与 Skill，移除新版不再包含的旧文件。有本地改动、模式与包不符、降级时拒绝；`--force` 覆盖本地改动或允许降级，`--baseline` 用旧版安装包为 5.x 项目提供对照，`--mode` 同时切换模式。不触碰 `.agents/team/`、需求卡和项目配置。
+- `setup --git-hook` 为本机安装 pre-commit，提交前运行所选 profile；`--no-git-hook` 只移除 TeamFlow 管理的 Hook。规则见 [INSTALL](INSTALL.md#提交前检查可选)。
+
 ## 只读辅助
 
 ```sh

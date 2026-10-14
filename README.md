@@ -1,73 +1,60 @@
 # TeamFlow
 
-面向 AI Agent 驱动开发的中文工作流，支持 iOS 原生和 Godot + iOS。当前版本为 **5.0.3**。
+面向 AI Agent 驱动开发的中文工作流，支持 iOS 原生、Godot 和 Godot + iOS，面向团队分发，放入项目根目录即可使用。当前版本为 **6.0.0**。
 
 需求、实施、验证与显式交付的规则见 [WORKFLOW](.agents/teamflow-core/references/WORKFLOW.md)；按安装模式进入 [iOS Skill](.agents/skills/iOS/SKILL.md) 或 [Godot Skill](.agents/skills/Godot/SKILL.md)。Agent 通过项目根 `AGENTS.md` 的托管区块找到所选入口，Codex 与 Claude Code 均可直接使用。
 
 ## 安装
 
-两种安装都需要 Python 3、Git。原生 iOS 构建使用 Xcode；Godot 开发使用项目指定的 Godot，导出 iOS 时还需要匹配的导出模板及 macOS + Xcode。
+需要 Python 3、Git。原生 iOS 构建使用 Xcode；Godot 开发使用项目指定的 Godot，导出 iOS 时还需要匹配的导出模板及 macOS + Xcode。不需要 CI 环境。
 
-新项目只有空目录时，先创建并进入自己的项目根目录：
+按项目类型选择安装包，从 [Releases](https://github.com/gzx543097079/iOS_TeamFlow/releases) 下载，或在本仓库运行 `python3 scripts/package_release.py` 生成到 `dist/`：
 
-```sh
-mkdir -p ~/Desktop/MyGit/MyApp
-cd ~/Desktop/MyGit/MyApp
-mkdir -p .agents
-```
-
-先运行 `git rev-parse --show-toplevel` 核对是否已属于 Git 仓库；只有不属于任何仓库时才运行 `git init`。如果显示的是上级仓库根，改在该仓库根接入，或另选仓库外的目录，不创建嵌套仓库。已有 Git 项目直接进入其根目录，仅执行 `mkdir -p .agents`。
-
-### iOS 原生
-
-安装 `teamflow-ios-v5.0.3.zip`，包含共用核心和原生 Skill。本仓库打包命令为 `python3 scripts/package_release.py`，产物在 `dist/`；例如将包放到 `~/Downloads` 后，在目标项目根执行：
-
-```sh
-unzip ~/Downloads/teamflow-ios-v5.0.3.zip -d .agents
-python3 .agents/teamflow-core/scripts/teamflow.py setup --mode ios
-```
-
-### Godot + iOS
-
-安装 `teamflow-godot-v5.0.3.zip`，包含共用核心、Godot Skill 与 iOS 平台 Skill；包同样由本仓库打包生成。目标项目根执行：
-
-```sh
-unzip ~/Downloads/teamflow-godot-v5.0.3.zip -d .agents
-python3 .agents/teamflow-core/scripts/teamflow.py setup --mode godot-ios
-```
-
-游戏开发读取 Godot Skill，iOS 原生插件按需加载原生规范；详见 [Godot 接入说明](docs/GODOT.md)。从 [5.0.3 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v5.0.3) 下载对应安装包，也可使用本仓库打包生成的文件。
-
-安装后的目录对应：
-
-| 安装模式 | 共用核心 | Skill 目录 |
+| 安装包 | 适用 | 包含 |
 | --- | --- | --- |
-| iOS 原生 | `.agents/teamflow-core/` | `.agents/skills/iOS/` |
-| Godot + iOS | `.agents/teamflow-core/` | `.agents/skills/iOS/`、`.agents/skills/Godot/` |
+| `teamflow-ios-v6.0.0.zip` | iOS 原生 App | 共用核心 + iOS Skill |
+| `teamflow-godot-v6.0.0.zip` | Godot 游戏（不含 iOS 原生工作） | 共用核心 + Godot Skill |
+| `teamflow-godot-ios-v6.0.0.zip` | Godot 游戏 + iOS 导出／原生插件 | 共用核心 + Godot 与 iOS Skill |
 
-`setup` 生成或更新 `AGENTS.md` 托管区块和 `scripts/teamflow.py` 入口，在 `.gitignore` 忽略本地验证日志，并创建 `requirements/`。省略 `--mode` 时沿用已有选择，首次默认原生模式；已有 Godot 目录不会自动切换模式。两种模式使用同一套需求与验证工具。
-
-使用 Claude Code 时可追加 `--claude-skill-link`，按模式创建对应 Skill 链接，可用 `/ios` 或 `/godot` 调用。
-
-首次使用只读取所选 Skill 和共用 WORKFLOW，其余资料按 [按需读取](.agents/teamflow-core/references/WORKFLOW.md#按需读取) 规则加载。
-
-确认共用核心在 `.agents/teamflow-core/`，原生 Skill 在 `.agents/skills/iOS/SKILL.md`，不要只复制 `SKILL.md`，也不要多套一层同名目录。已有同名 Skill 时先按 [安装说明](.agents/teamflow-core/references/INSTALL.md) 核对差异和定制，再升级。**4.0.0 与 3.x 不兼容**：升级时删除旧需求卡（Git 历史保留）、移除模块索引中的 `baseline` 字段，并重新运行 `setup`。
-
-接入后只读检查：
-
-从 4.x 升级到 5.0.0 时，先核对旧 Skill 的定制，将共用规则和工具迁到 `.agents/teamflow-core/`，平台 Skill 改为 `.agents/skills/iOS/` 和 `.agents/skills/Godot/`。安装包统一解压到 `.agents/`，再从核心入口运行对应模式的 setup；保留现有需求卡和项目验证配置，核对完成后移除旧路径的重复实现。setup 会迁移旧托管标记及本工具管理的 Claude 链接。
+**新项目：解压到项目根即可使用。**
 
 ```sh
+cd ~/Desktop/MyGit/MyGame        # 项目 Git 根；尚无仓库时先 git init
+unzip ~/Downloads/teamflow-godot-v6.0.0.zip -d .
 python3 scripts/teamflow.py doctor
 ```
 
-创建业务工程后，如尚无 `.agents/project-checks.json`，按实际构建与测试命令配置验证：
+包内已带对应模式的 `AGENTS.md` 和命令入口 `scripts/teamflow.py`，Codex 与 Claude Code 均可直接读取；验证日志目录自带忽略规则。
+
+**已有项目**（已有 `AGENTS.md` 等文件）：用 `unzip -n` 不覆盖解压，再运行 setup 合并入口：
+
+```sh
+unzip -n ~/Downloads/teamflow-ios-v6.0.0.zip -d .
+python3 .agents/teamflow-core/scripts/teamflow.py setup --mode ios
+```
+
+**升级**：用新版安装包运行 `upgrade`。工具依据安装清单替换未改动的文件；有本地改动时拒绝执行并列出这些文件。5.x 项目需要额外传 `--baseline 旧版安装包`。
+
+```sh
+python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v6.0.1.zip --plan
+python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v6.0.1.zip
+```
+
+**团队定制**：团队规则写在 `.agents/team/RULES.md`，入口会要求 Agent 读取；工具链版本锁定写在 `.agents/team/toolchain.json`。该目录随项目提交，升级不会覆盖。不要直接修改 `.agents/teamflow-core/` 和 `.agents/skills/`。
+
+**提交前检查（可选，每位成员在本机安装）**：
+
+```sh
+python3 scripts/teamflow.py setup --git-hook change
+```
+
+模式切换、Claude Code Skill 链接、升级细节和 Hook 规则见[安装说明](.agents/teamflow-core/references/INSTALL.md)，Godot 接入见 [Godot 说明](docs/GODOT.md)。首次使用只读取所选 Skill 和共用 WORKFLOW，其余资料按[按需读取](.agents/teamflow-core/references/WORKFLOW.md#按需读取)规则加载。
+
+创建业务工程后，如尚无 `.agents/project-checks.json`，先生成空配置，再按 [CHECKS](.agents/teamflow-core/references/CHECKS.md) 填入真实的构建与测试命令。profile 可用 `extends` 继承另一个 profile 的输入与检查，例如“发布验证 = 日常验证 + 打包”。
 
 ```sh
 python3 scripts/teamflow.py verify init
 ```
-
-`verify init` 只生成空配置；按 [CHECKS](.agents/teamflow-core/references/CHECKS.md) 填入真实检查命令。profile 可用 `extends` 继承另一个 profile 的输入与检查，例如“发布验证 = 日常验证 + 打包”。
 
 ## 常用命令
 
@@ -91,6 +78,7 @@ python3 scripts/teamflow.py git check REQ-20260101-a3f9
 
 # 按需
 python3 scripts/teamflow.py doctor
+python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v6.0.1.zip --plan
 python3 scripts/teamflow.py module inspect --query "修改登录页错误提示"
 python3 scripts/teamflow.py logging install --language swift --destination App/MyApp/Sources/Support/Logging
 ```
@@ -138,13 +126,13 @@ created: 2026-01-01T10:00:00+08:00
 
 ## 源码仓库
 
-Godot + GDScript + iOS 扩展见 [接入与分工说明](docs/GODOT.md)。它与原生 Skill 共用需求和证据工具，另提供 [Godot Skill](.agents/skills/Godot/SKILL.md) 与 [演练场景](examples/TeamFlowGame/README.md)。
+Godot + GDScript（可选 iOS）扩展见 [接入与分工说明](docs/GODOT.md)。它与原生 Skill 共用需求和证据工具，另提供 [Godot Skill](.agents/skills/Godot/SKILL.md) 与 [演练场景](examples/TeamFlowGame/README.md)。
 
 | 路径 | 内容 |
 | --- | --- |
-| `.agents/teamflow-core/` | 共用需求、验证、安装与模块工具；流程、版本和模板 |
+| `.agents/teamflow-core/` | 共用需求、验证、安装、升级与模块工具；流程、版本和模板 |
 | `.agents/skills/iOS/` | 原生编码、UI、生命周期、日志与 iOS 平台规则 |
-| `.agents/skills/Godot/` | Godot 工程与 iOS 衔接规范、导入／测试入口；依赖同版核心 |
+| `.agents/skills/Godot/` | Godot 工程、团队协作与 iOS 衔接规范、导入／测试入口；依赖同版核心 |
 | `scripts/` | 入口、测试运行、文档校验、打包、Demo 测试 |
 | `tests/` | 工具行为与包内消费测试 |
 | `examples/TeamFlowDemo/` | [演练 Demo](examples/TeamFlowDemo/README.md)（UIKit + MVVM，CocoaPods） |
@@ -160,7 +148,7 @@ Demo、测试和发布工具属于源码仓库，不进入独立 Skill 包。验
 | --- | --- | --- |
 | 仅文档措辞或链接 | `workflow-docs` | 文档链接、版本与分发入口检查 |
 | 工作流脚本、规则、测试或模块索引 | `workflow` | 工作流完整测试，包含文档检查及包内消费测试 |
-| 分发清单或正式打包 | `workflow-release` | `extends: workflow`，另生成三个 ZIP |
+| 分发清单或正式打包 | `workflow-release` | `extends: workflow`，另生成完整源码包与三个安装包 |
 | Godot 扩展验证 | `workflow-godot-review` | `extends: workflow-release`，另运行实际 Godot 场景测试 |
 | Demo 业务代码 | `ios-demo` | Debug 单元/UI 与 Release 单元测试 |
 

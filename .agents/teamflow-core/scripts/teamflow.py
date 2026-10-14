@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""TeamFlow 共用命令入口：接入、需求、验证、提交前核对与模块索引。"""
+"""TeamFlow 共用命令入口：接入、升级、需求、验证、提交前核对与模块索引。"""
 import argparse
 import difflib
 import hashlib
@@ -476,11 +476,21 @@ def main():
     check.add_argument('--evidence-input', action='append')
 
     installer = top.add_parser('setup', help='接入或更新项目入口；可直接从 Skill 目录运行')
-    installer.add_argument('--mode', choices=['ios', 'godot-ios'],
-                           help='安装 iOS 原生或 Godot + iOS；省略时沿用已有选择，首次默认 ios')
+    installer.add_argument('--mode', choices=['ios', 'godot', 'godot-ios'],
+                           help='安装 iOS 原生、Godot 或 Godot + iOS；省略时沿用已有选择，首次默认 ios')
     installer.add_argument('--plan', action='store_true', help='只输出待修改内容的 diff')
     installer.add_argument('--claude-skill-link', action='store_true',
                            help='为选中的安装模式创建 Claude Code Skill 软链接')
+    hook = installer.add_mutually_exclusive_group()
+    hook.add_argument('--git-hook', metavar='PROFILE', help='安装本机 pre-commit，提交前运行该验证 profile')
+    hook.add_argument('--no-git-hook', action='store_true', help='移除 TeamFlow 管理的 pre-commit')
+
+    upgrader = top.add_parser('upgrade', parents=[output], help='用新版安装包升级核心与所选 Skill')
+    upgrader.add_argument('package', type=Path, help='新版安装包 ZIP')
+    upgrader.add_argument('--baseline', type=Path, help='旧版安装包；5.x 项目没有安装清单时用于识别本地改动')
+    upgrader.add_argument('--plan', action='store_true', help='只读预览，不写文件')
+    upgrader.add_argument('--force', action='store_true', help='覆盖本地改动或允许降级')
+    upgrader.add_argument('--mode', choices=['ios', 'godot', 'godot-ios'], help='升级同时切换安装模式；省略时沿用')
 
     module = top.add_parser('module', help='大型项目模块索引')
     module_sub = module.add_subparsers(dest='command', required=True)
@@ -562,17 +572,27 @@ def main():
         elif args.area == 'setup':
             import setup_project
             skill = Path(__file__).resolve().parents[1]
-            planned = setup_project.setup(root, skill, args.plan, args.claude_skill_link, args.mode)
+            planned = setup_project.setup(root, skill, args.plan, args.claude_skill_link, args.mode,
+                                          args.git_hook, args.no_git_hook)
             if args.plan:
                 for name, data in planned.items():
-                    current = safe(root, name)
+                    current = Path(name) if Path(name).is_absolute() else safe(root, name)
                     before = current.read_text() if current.exists() else ''
                     print(''.join(difflib.unified_diff(before.splitlines(keepends=True),
                                                        data.decode().splitlines(keepends=True),
                                                        fromfile=name, tofile=name)), end='')
             else:
                 mode = setup_project.install_mode(root)
-                print('已接入 ' + ('Godot + iOS' if mode == 'godot-ios' else 'iOS 原生') + '：' + str(root))
+                print('已接入 ' + setup_project.MODE_LABELS[mode] + '：' + str(root))
+                if args.git_hook:
+                    print('提交前检查：pre-commit 运行 ' + args.git_hook)
+                elif args.no_git_hook:
+                    print('已移除 TeamFlow 管理的 pre-commit')
+        elif args.area == 'upgrade':
+            import upgrade
+            result = upgrade.upgrade(root, args.package, args.baseline, args.force, args.plan, args.mode)
+            print(json.dumps(result, ensure_ascii=False, indent=2) if args.json else
+                  upgrade.describe(result, args.plan))
         elif args.area == 'module':
             import module_context
             module_root = module_context.project_root(root)

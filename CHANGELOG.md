@@ -1,5 +1,26 @@
 # 版本记录
 
+## 6.0.0
+
+不兼容变更：安装包布局与包名调整，见下方迁移说明。
+
+- 安装包以项目根为解压目标，内含对应模式的 `AGENTS.md`、`scripts/teamflow.py` 和安装清单。新项目解压即可使用，不再需要 setup；已有项目用 `unzip -n` 解压后运行 setup 合并入口。验证日志目录自带忽略规则。
+- 新增纯 Godot 模式（`setup --mode godot`）和 `teamflow-godot` 包（只含核心与 Godot Skill）；含 iOS 的包改名为 `teamflow-godot-ios`。Godot Skill 中的 iOS 路由只在 Godot + iOS 模式使用。
+- 新增 `upgrade` 命令：依据安装清单识别本地改动，替换未改动文件、移除过时文件后刷新入口；有本地改动或降级时拒绝，支持 `--plan`、`--force`、`--baseline` 与 `--mode`。
+- 新增团队定制层 `.agents/team/`：入口要求读取存在的 `RULES.md`，`toolchain.json` 锁定 Godot 版本；升级不触碰该目录。
+- Godot 团队协作：新增团队协作专题（版本锁定、场景归属、`.tscn` 冲突、导出凭据）；`doctor` 在 Godot 模式核对锁定的引擎版本和 `.godot/` 忽略；`verify_godot.py` 未传 `--expect-version` 时沿用锁定版本；Godot 模式的 setup 会忽略 `.godot/`。
+- 可选的本机提交前检查：`setup --git-hook <profile>` 安装托管 pre-commit，`--no-git-hook` 移除；不覆盖非托管 Hook，也不写入项目外的共享 Hook 目录。
+
+迁移：5.x 核心没有 upgrade 命令，先从新包取出核心脚本运行一次，并用旧版安装包作对照识别本地改动：
+
+```sh
+unzip ~/Downloads/teamflow-godot-ios-v6.0.0.zip '.agents/teamflow-core/scripts/*' -d /tmp/teamflow6
+python3 /tmp/teamflow6/.agents/teamflow-core/scripts/teamflow.py upgrade ~/Downloads/teamflow-godot-ios-v6.0.0.zip \
+  --baseline ~/Downloads/teamflow-godot-v5.0.3.zip --plan
+```
+
+确认预览后去掉 `--plan` 执行。5.x 的 `teamflow-godot` 对应 6.x 的 `teamflow-godot-ios`；原生项目换成 `teamflow-ios` 两个版本的包。
+
 ## 5.0.3
 
 - 降低首次加载：WORKFLOW 去掉需求卡完整示例，缺陷修复与工作流改进移到按需读取的 REPAIR，WORKFLOW 正文约减少四分之一。

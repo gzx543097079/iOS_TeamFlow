@@ -20,13 +20,10 @@ class ConsumerReleaseTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
+        # 零命令安装：解压到项目根即可使用，不运行 setup。
         with zipfile.ZipFile(self.archive) as archive:
-            archive.extractall(self.root / '.agents')
+            archive.extractall(self.root)
         subprocess.run(['git', '-C', str(self.root), 'init', '-q'], check=True)
-        setup = self.root / '.agents/teamflow-core/scripts/teamflow.py'
-        result = subprocess.run([sys.executable, str(setup), '--project', str(self.root), 'setup'],
-                                capture_output=True, text=True)
-        self.assertEqual(0, result.returncode, result.stderr)
 
     def cli(self, *args, ok=True):
         result = subprocess.run([sys.executable, str(self.root / 'scripts/teamflow.py'),
@@ -38,7 +35,10 @@ class ConsumerReleaseTests(unittest.TestCase):
     def test_packaged_requirement_and_removed_release_record(self):
         created = json.loads(self.cli('req', 'create', '--title', '新需求', '--json').stdout)
         self.assertRegex(created['requirement'], r'^REQ-\d{8}-[0-9a-f]{4}$')
-        self.assertIn('/logs/project-checks/', (self.root / '.gitignore').read_text().splitlines())
+        self.assertFalse((self.root / '.gitignore').exists())
+        report = json.loads(self.cli('doctor', '--json', ok=False).stdout)
+        entry = next(item for item in report['checks'] if item['item'] == 'Skill 与入口')
+        self.assertEqual('就绪', entry['status'], entry)
         listing = self.cli('req', 'list').stdout
         self.assertIn(created['requirement'], listing)
         self.assertIn('🔵 进行中', listing)
@@ -55,6 +55,10 @@ class ConsumerReleaseTests(unittest.TestCase):
                   'checks': {'unit': {'argv': [sys.executable, '-c', 'pass']}}}}}
         (self.root / '.agents/project-checks.json').write_text(json.dumps(config))
         self.cli('req', 'complete', req, '--profile', 'change', '--wait-user')
+        # 未运行 setup 也不会把本地验证日志带进提交。
+        untracked = subprocess.run(['git', '-C', str(self.root), 'status', '--porcelain', '--untracked-files=all'],
+                                   check=True, capture_output=True, text=True).stdout
+        self.assertNotIn('logs/', untracked)
         status = json.loads(self.cli('req', 'status', req, '--json').stdout)
         self.assertEqual('待用户验证', status['state_key'])
         self.assertEqual(0, status['progress']['done'])

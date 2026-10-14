@@ -22,13 +22,14 @@ spec.loader.exec_module(verify_godot)
 
 class GodotExtensionTests(unittest.TestCase):
     def test_bundle_is_dependency_complete_and_repeatable(self):
-        archive = package_release.package_godot(ROOT)
+        archive = package_release.package_godot_ios(ROOT)
         with tempfile.TemporaryDirectory(dir=ROOT / 'build' if (ROOT / 'build').is_dir() else ROOT) as directory:
             project = Path(directory)
             with zipfile.ZipFile(archive) as stream:
                 names = stream.namelist()
-                self.assertTrue(all(n.startswith(('teamflow-core/', 'skills/iOS/', 'skills/Godot/')) for n in names))
-                stream.extractall(project / '.agents')
+                self.assertTrue(all(n.startswith(('.agents/teamflow-core/', '.agents/skills/iOS/', '.agents/skills/Godot/'))
+                                    or n in ('AGENTS.md', 'scripts/teamflow.py') for n in names))
+                stream.extractall(project)
             skills = project / '.agents/skills'
             for md in (project / '.agents').rglob('*.md'):
                 if md.name == 'requirement.md':
@@ -74,12 +75,13 @@ class GodotExtensionTests(unittest.TestCase):
 
     def test_install_modes_persist_and_switch_without_deleting_user_files(self):
         import setup_project
-        archive = package_release.package_godot(ROOT)
+        archive = package_release.package_godot_ios(ROOT)
         with tempfile.TemporaryDirectory() as directory:
             project = Path(directory)
             with zipfile.ZipFile(archive) as stream:
-                stream.extractall(project / '.agents')
+                stream.extractall(project)
             skill = project / package_release.CORE
+            (project / 'AGENTS.md').unlink()
             # 扩展目录存在不自动激活游戏；首次无参数保持原生入口。
             setup_project.setup(project, skill)
             self.assertEqual('ios', setup_project.install_mode(project))
@@ -114,11 +116,11 @@ class GodotExtensionTests(unittest.TestCase):
 
     def test_both_modes_write_reading_rules_and_rerun_is_stable(self):
         import setup_project
-        archive = package_release.package_godot(ROOT)
+        archive = package_release.package_godot_ios(ROOT)
         with tempfile.TemporaryDirectory() as directory:
             project = Path(directory)
             with zipfile.ZipFile(archive) as stream:
-                stream.extractall(project / '.agents')
+                stream.extractall(project)
             skill = project / package_release.CORE
             agents = project / 'AGENTS.md'
             # 模拟 5.0.0 托管区块：重新 setup 应补齐读取约束并保留自有说明。
@@ -162,11 +164,11 @@ class GodotExtensionTests(unittest.TestCase):
 
     def test_setup_migrates_old_managed_entry_and_claude_link(self):
         import setup_project
-        archive = package_release.package_godot(ROOT)
+        archive = package_release.package_godot_ios(ROOT)
         with tempfile.TemporaryDirectory() as directory:
             project = Path(directory)
             with zipfile.ZipFile(archive) as stream:
-                stream.extractall(project / '.agents')
+                stream.extractall(project)
             old_start, old_end = setup_project.LEGACY_MARKERS
             (project / 'AGENTS.md').write_text('# 项目约定\n\n' + old_start + '\n## Godot 项目\n旧入口\n' + old_end + '\n\n保留这段。\n')
             links = project / '.claude/skills'
