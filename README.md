@@ -1,6 +1,6 @@
 # TeamFlow
 
-面向 AI Agent 驱动开发的中文工作流，支持 iOS 原生和 Godot + iOS。当前版本为 **5.0.0**。
+面向 AI Agent 驱动开发的中文工作流，支持 iOS 原生和 Godot + iOS。当前版本为 **5.0.1**。
 
 需求、实施、验证与显式交付的规则见 [WORKFLOW](.agents/teamflow-core/references/WORKFLOW.md)；按安装模式进入 [iOS Skill](.agents/skills/iOS/SKILL.md) 或 [Godot Skill](.agents/skills/Godot/SKILL.md)。Agent 通过项目根 `AGENTS.md` 的托管区块找到所选入口，Codex 与 Claude Code 均可直接使用。
 
@@ -20,23 +20,23 @@ mkdir -p .agents
 
 ### iOS 原生
 
-安装 `teamflow-ios-v5.0.0.zip`，包含共用核心和原生 Skill。本仓库打包命令为 `python3 scripts/package_release.py`，产物在 `dist/`；例如将包放到 `~/Downloads` 后，在目标项目根执行：
+安装 `teamflow-ios-v5.0.1.zip`，包含共用核心和原生 Skill。本仓库打包命令为 `python3 scripts/package_release.py`，产物在 `dist/`；例如将包放到 `~/Downloads` 后，在目标项目根执行：
 
 ```sh
-unzip ~/Downloads/teamflow-ios-v5.0.0.zip -d .agents
+unzip ~/Downloads/teamflow-ios-v5.0.1.zip -d .agents
 python3 .agents/teamflow-core/scripts/teamflow.py setup --mode ios
 ```
 
 ### Godot + iOS
 
-安装 `teamflow-godot-v5.0.0.zip`，包含共用核心、Godot Skill 与 iOS 平台 Skill；包同样由本仓库打包生成。目标项目根执行：
+安装 `teamflow-godot-v5.0.1.zip`，包含共用核心、Godot Skill 与 iOS 平台 Skill；包同样由本仓库打包生成。目标项目根执行：
 
 ```sh
-unzip ~/Downloads/teamflow-godot-v5.0.0.zip -d .agents
+unzip ~/Downloads/teamflow-godot-v5.0.1.zip -d .agents
 python3 .agents/teamflow-core/scripts/teamflow.py setup --mode godot-ios
 ```
 
-游戏开发读取 Godot Skill，iOS 原生插件按需加载原生规范；详见 [Godot 接入说明](docs/GODOT.md)。从 [5.0.0 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v5.0.0) 下载对应安装包，也可使用本仓库打包生成的文件。
+游戏开发读取 Godot Skill，iOS 原生插件按需加载原生规范；详见 [Godot 接入说明](docs/GODOT.md)。从 [5.0.1 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v5.0.1) 下载对应安装包，也可使用本仓库打包生成的文件。
 
 安装后的目录对应：
 
@@ -48,6 +48,8 @@ python3 .agents/teamflow-core/scripts/teamflow.py setup --mode godot-ios
 `setup` 生成或更新 `AGENTS.md` 托管区块和 `scripts/teamflow.py` 入口，在 `.gitignore` 忽略本地验证日志，并创建 `requirements/`。省略 `--mode` 时沿用已有选择，首次默认原生模式；已有 Godot 目录不会自动切换模式。两种模式使用同一套需求与验证工具。
 
 使用 Claude Code 时可追加 `--claude-skill-link`，按模式创建对应 Skill 链接，可用 `/ios` 或 `/godot` 调用。
+
+首次使用只读取所选 Skill 和共用 WORKFLOW；其余专题按实际操作和语言加载。Godot 普通玩法不预读 iOS 导出／发布资料，原生插件直接引用对应规范。平台列出可用 Skill 的元信息不代表读取全部正文；自动选择继续保留。同一会话已读且未变化的内容直接复用，只在变更、上下文缺失或进入新专题时补读必要文件。
 
 确认共用核心在 `.agents/teamflow-core/`，原生 Skill 在 `.agents/skills/iOS/SKILL.md`，不要只复制 `SKILL.md`，也不要多套一层同名目录。已有同名 Skill 时先按 [安装说明](.agents/teamflow-core/references/INSTALL.md) 核对差异和定制，再升级。**4.0.0 与 3.x 不兼容**：升级时删除旧需求卡（Git 历史保留）、移除模块索引中的 `baseline` 字段，并重新运行 `setup`。
 

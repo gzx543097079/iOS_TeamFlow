@@ -1,6 +1,6 @@
 # Godot 工作流扩展
 
-Godot 4.x + GDScript 与 iOS 原生使用同一套 TeamFlow 核心，按安装模式选择入口。从 [5.0.0 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v5.0.0) 获取对应安装包。
+Godot 4.x + GDScript 与 iOS 原生使用同一套 TeamFlow 核心，按安装模式选择入口。从 [5.0.1 Release](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v5.0.1) 获取对应安装包。
 
 ## 共用与分工
 
@@ -14,12 +14,12 @@ Godot 4.x + GDScript 与 iOS 原生使用同一套 TeamFlow 核心，按安装�
 
 ## 接入一个项目
 
-先在本源码仓库运行 `python3 scripts/package_release.py`，生成完整源码、原生 Skill 和 `teamflow-godot-v5.0.0.zip` 三类 ZIP 及校验文件。扩展包包含两个 Skill，自带全部共用依赖，不包含演练游戏、使用项目的数据或日志。
+先在本源码仓库运行 `python3 scripts/package_release.py`，生成完整源码、原生 Skill 和 `teamflow-godot-v5.0.1.zip` 三类 ZIP 及校验文件。扩展包包含两个 Skill，自带全部共用依赖，不包含演练游戏、使用项目的数据或日志。
 
 在目标项目 Git 根解压扩展包到 `.agents/`，确认 `teamflow-core/` 和 `skills/` 下的两个 Skill 均存在；已有核心或 Skill 先核对定制与升级差异。然后执行：
 
 ```sh
-unzip ~/Downloads/teamflow-godot-v5.0.0.zip -d .agents
+unzip ~/Downloads/teamflow-godot-v5.0.1.zip -d .agents
 python3 .agents/teamflow-core/scripts/teamflow.py setup --mode godot-ios --plan
 python3 .agents/teamflow-core/scripts/teamflow.py setup --mode godot-ios
 ```
