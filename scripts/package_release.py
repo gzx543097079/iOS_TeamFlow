@@ -19,11 +19,11 @@ CORE_FILES = tuple(CORE + '/' + name for name in (
 GODOT_SKILL = '.agents/skills/Godot'
 GODOT_FILES = tuple(GODOT_SKILL + '/' + name for name in (
     'SKILL.md', 'references/ENGINE.md', 'references/GDSCRIPT.md',
-    'references/CHECKS.md', 'references/IOS.md', 'references/TEAM.md', 'references/RELEASE.md',
+    'references/CHECKS.md', 'references/IOS.md', 'references/TEAM.md', 'references/RELEASE.md', 'references/PERFORMANCE.md',
     'scripts/verify_godot.py', 'assets/project-checks.example.json',
 ))
 REFERENCES = (
-    'APP-RELEASE.md', 'APP-LIFECYCLE.md', 'LOGGING.md', 'EXISTING-PROJECT.md', 'ARCHITECTURE.md', 'LOCALIZATION.md',
+    'APP-RELEASE.md', 'APP-LIFECYCLE.md', 'PERFORMANCE.md', 'LOGGING.md', 'EXISTING-PROJECT.md', 'ARCHITECTURE.md', 'LOCALIZATION.md',
     'standards/ui.md', 'standards/ui-keyboard.md', 'standards/ui-paywall.md', 'standards/objective-c.md', 'standards/swift.md', 'standards/swiftui.md',
     'templates/new-project.md', 'templates/feature.md', 'templates/app-release.md',
 )
