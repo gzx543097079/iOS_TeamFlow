@@ -8,21 +8,21 @@
 | `teamflow-godot-v<版本>.zip` | Godot | `.agents/teamflow-core/`、`.agents/skills/Godot/` |
 | `teamflow-godot-ios-v<版本>.zip` | Godot + iOS | 核心与两个 Skill |
 
-每个包另含对应模式的 `AGENTS.md`、命令入口 `scripts/teamflow.py`、[宿主权限](#宿主权限)配置和安装清单 `.agents/teamflow-core/references/MANIFEST.json`（升级时识别本地改动）。目录区分大小写：`iOS`、`Godot`。
+每个包另含对应模式的 `AGENTS.md`、命令入口 `scripts/teamflow.py`、可选[宿主权限模板](#宿主权限)（默认不激活）和安装清单 `.agents/teamflow-core/references/MANIFEST.json`（升级时识别本地改动）。目录区分大小写：`iOS`、`Godot`。
 
 ## 新项目与已有项目
 
 新项目解压即可使用，验证日志目录自带忽略规则：
 
 ```sh
-unzip ~/Downloads/teamflow-ios-v1.1.0.zip -d .
+unzip ~/Downloads/teamflow-ios-v1.1.1.zip -d .
 python3 scripts/teamflow.py doctor
 ```
 
 已有 `AGENTS.md` 或 `scripts/` 的项目不覆盖解压，再由 setup 合并托管区块：
 
 ```sh
-unzip -n ~/Downloads/teamflow-ios-v1.1.0.zip -d .
+unzip -n ~/Downloads/teamflow-ios-v1.1.1.zip -d .
 python3 .agents/teamflow-core/scripts/teamflow.py setup --mode ios
 ```
 
@@ -48,12 +48,27 @@ python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.1.1.zip
 
 ## 宿主权限
 
-包内的 `.claude/settings.json` 与 `.codex/rules/teamflow.rules` 让 Claude Code 和 Codex 在推送、PR 创建/合并/评审/评论、GitHub Release、`xcrun altool`、`fastlane`、`butler push`、`steamcmd` 前请求人工确认。它们只兜底，授权范围仍以 WORKFLOW 为准；模板源文件在 `.agents/teamflow-core/assets/permissions/`。
+默认安装不向 `.claude/settings.json` 或 `.codex/rules/teamflow.rules` 写入规则；授权边界由 WORKFLOW 约束，实际执行仍服从宿主权限。默认模式不代表命令自动放行。
 
-- 随项目提交，团队共用；个人放行写在 `.claude/settings.local.json` 或 `~/.codex/rules/`。
-- Claude Code 的 bypass permissions 模式（`--dangerously-skip-permissions`）会跳过确认，团队项目不使用。
-- Codex 只在信任该项目后加载项目内 `.codex/rules/`，修改后需重启。
-- 已有项目 `unzip -n` 不覆盖已有的 `.claude/settings.json`，需把模板中的 `permissions.ask` 合并进去；自建上传脚本在两个文件中追加同类规则。
+需要每次外部动作都由宿主审批时，显式启用严格模式：
+
+```sh
+python3 scripts/teamflow.py permissions --mode strict --plan
+python3 scripts/teamflow.py permissions --mode strict
+```
+
+模板保留在 `.agents/teamflow-core/assets/permissions/`，涵盖推送、PR 写操作、Release 和上传。已有自定义配置时整次启用拒绝写入，需人工合并；不会覆盖或追加重复规则。
+
+旧版迁移或停用严格模式：
+
+```sh
+python3 scripts/teamflow.py permissions --mode default --plan
+python3 scripts/teamflow.py permissions --mode default
+```
+
+只删除与模板逐字节一致的两个文件；含用户修改的文件完整保留并列出，需人工核对。`--plan` 不写文件。普通 setup 和 upgrade 不改宿主权限，升级发现现有文件时提示显式迁移；`--force` 也不覆盖这些自定义配置。
+
+Codex 的 `prompt` 规则需要可交互的审批策略（如 `on-request`）；与 `never` 组合可能直接拒绝。聊天授权不等于工具审批。修改项目规则后需重启宿主以加载新配置，不承诺解除当前会话限制；Claude Code 也以当前宿主权限模式为准。
 
 ## 提交前检查（可选）
 

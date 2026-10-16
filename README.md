@@ -1,6 +1,6 @@
 # TeamFlow
 
-面向 AI Agent 驱动开发的中文工作流，支持 iOS 原生、Godot 和 Godot + iOS，供小团队在 Codex 与 Claude Code 中共用。当前版本为 **1.1.0**。
+面向 AI Agent 驱动开发的中文工作流，支持 iOS 原生、Godot 和 Godot + iOS，供小团队在 Codex 与 Claude Code 中共用。当前版本为 **1.1.1**。
 
 需求、实施、验证与交付规则见 [WORKFLOW](.agents/teamflow-core/references/WORKFLOW.md)；按安装模式进入 [iOS Skill](.agents/skills/iOS/SKILL.md) 或 [Godot Skill](.agents/skills/Godot/SKILL.md)。Agent 通过项目根 `AGENTS.md` 的托管区块找到入口。
 
@@ -10,19 +10,19 @@
 
 | 安装包 | 适用 | 包含 |
 | --- | --- | --- |
-| `teamflow-ios-v1.1.0.zip` | iOS 原生 App | 共用核心 + iOS Skill |
-| `teamflow-godot-v1.1.0.zip` | Godot 游戏（不含 iOS 原生工作） | 共用核心 + Godot Skill |
-| `teamflow-godot-ios-v1.1.0.zip` | Godot 游戏 + iOS 导出／原生插件 | 共用核心 + Godot 与 iOS Skill |
+| `teamflow-ios-v1.1.1.zip` | iOS 原生 App | 共用核心 + iOS Skill |
+| `teamflow-godot-v1.1.1.zip` | Godot 游戏（不含 iOS 原生工作） | 共用核心 + Godot Skill |
+| `teamflow-godot-ios-v1.1.1.zip` | Godot 游戏 + iOS 导出／原生插件 | 共用核心 + Godot 与 iOS Skill |
 
 从 [Releases](https://github.com/gzx543097079/iOS_TeamFlow/releases) 下载，或在本仓库运行 `python3 scripts/package_release.py` 生成到 `dist/`。新项目在 Git 根解压即可使用：
 
 ```sh
-unzip ~/Downloads/teamflow-ios-v1.1.0.zip -d .
+unzip ~/Downloads/teamflow-ios-v1.1.1.zip -d .
 python3 scripts/teamflow.py doctor
 python3 scripts/teamflow.py verify init     # 生成空验证配置，再按 CHECKS 填入真实构建与测试命令
 ```
 
-包内带对应模式的 `AGENTS.md`、命令入口 `scripts/teamflow.py`，以及 Claude Code 与 Codex 的权限配置：推送、PR、Release 与上传类命令执行前须人工确认。已有项目、升级、团队定制、[宿主权限](.agents/teamflow-core/references/INSTALL.md#宿主权限)与提交前 Hook 见[安装说明](.agents/teamflow-core/references/INSTALL.md)，Godot 接入见 [Godot 说明](docs/GODOT.md)。
+包内带对应模式的 `AGENTS.md`、命令入口 `scripts/teamflow.py`，默认不激活额外宿主审批规则；需要逐次审批时显式启用严格模式。已有项目、升级、团队定制、[宿主权限](.agents/teamflow-core/references/INSTALL.md#宿主权限)与提交前 Hook 见[安装说明](.agents/teamflow-core/references/INSTALL.md)，Godot 接入见 [Godot 说明](docs/GODOT.md)。
 
 ## 常用命令
 

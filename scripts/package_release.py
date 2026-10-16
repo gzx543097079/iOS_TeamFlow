@@ -17,7 +17,7 @@ CORE_FILES = tuple(CORE + '/' + name for name in (
     'references/REVIEW.md', 'references/DEPENDENCIES.md', 'references/THIRD-PARTY.md', 'assets/ci/github-teamflow.yml',
     'assets/permissions/claude-settings.json', 'assets/permissions/codex.rules',
 ))
-# 宿主权限模板：解压后对推送、PR、Release 与上传类命令要求人工确认。
+# 可选严格模式模板，仅作为核心资源分发，不在宿主目录自动激活。
 PERMISSIONS = {
     '.claude/settings.json': CORE + '/assets/permissions/claude-settings.json',
     '.codex/rules/teamflow.rules': CORE + '/assets/permissions/codex.rules',
@@ -108,7 +108,6 @@ def package_mode(root, mode):
         'AGENTS.md': setup_project.agents_content('', setup_project.block_for(mode)).encode(),
         'scripts/teamflow.py': setup_project.ENTRY.encode(),
         upgrade.MANIFEST: upgrade.manifest_text(version, mode, files).encode(),
-        **{target: (root / source).read_bytes() for target, source in PERMISSIONS.items()},
     }
     return write_package(root, 'teamflow-' + mode + '-v', entries, generated)
 

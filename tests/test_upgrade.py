@@ -62,6 +62,22 @@ class UpgradeTests(unittest.TestCase):
         files[ADDED] = '# 新增\n'.encode()
         return write_zip(self.packages / name, files)
 
+    def test_upgrade_preserves_and_reports_existing_permissions(self):
+        self.install(self.ios)
+        paths = {'.claude/settings.json': b'{"permissions":{"ask":["custom"]}}',
+                 '.codex/rules/teamflow.rules': self.ios[package_release.CORE + '/assets/permissions/codex.rules']}
+        for name, content in paths.items():
+            target = self.root / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(content)
+        archive = self.newer(self.ios)
+        preview = upgrade.upgrade(self.root, archive, dry_run=True)
+        self.assertEqual(set(paths), set(preview['host_permissions']))
+        self.assertIn('permissions --mode default --plan', upgrade.describe(preview, True))
+        upgrade.upgrade(self.root, archive, force=True)
+        for name, content in paths.items():
+            self.assertEqual(content, (self.root / name).read_bytes())
+
     def cli(self, *args):
         return subprocess.run([sys.executable, str(self.root / 'scripts/teamflow.py'), '--project', str(self.root),
                                *args], capture_output=True, text=True)

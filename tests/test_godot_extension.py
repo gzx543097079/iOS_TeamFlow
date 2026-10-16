@@ -28,7 +28,7 @@ class GodotExtensionTests(unittest.TestCase):
             with zipfile.ZipFile(archive) as stream:
                 names = stream.namelist()
                 self.assertTrue(all(n.startswith(('.agents/teamflow-core/', '.agents/skills/iOS/', '.agents/skills/Godot/'))
-                                    or n in ('AGENTS.md', 'scripts/teamflow.py', *package_release.PERMISSIONS) for n in names))
+                                    or n in ('AGENTS.md', 'scripts/teamflow.py') for n in names))
                 stream.extractall(project)
             skills = project / '.agents/skills'
             for md in (project / '.agents').rglob('*.md'):
@@ -59,6 +59,15 @@ class GodotExtensionTests(unittest.TestCase):
             helper = skills / 'Godot/scripts/verify_godot.py'
             help_result = subprocess.run([sys.executable, str(helper), '--help'], capture_output=True)
             self.assertEqual(0, help_result.returncode)
+
+    def test_all_modes_leave_host_permissions_inactive(self):
+        for mode in ('ios', 'godot', 'godot-ios'):
+            with self.subTest(mode=mode):
+                with zipfile.ZipFile(package_release.package_mode(ROOT, mode)) as archive:
+                    names = set(archive.namelist())
+                    for target, source in package_release.PERMISSIONS.items():
+                        self.assertNotIn(target, names)
+                        self.assertIn(source, names)
 
     def test_missing_tests_do_not_run_engine(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -106,7 +106,9 @@ def plan(root, package_zip, mode=None):
         else:
             actions['conflict'].append(name)
     return {'project': str(root), 'mode': mode, 'from': old_version, 'to': package['version'],
-            'actions': actions, 'files': new}
+            'actions': actions, 'files': new,
+            'host_permissions': [name for name in setup_project.PERMISSION_TEMPLATES
+                                 if safe(root, name).exists()]}
 
 
 def manifest_text(version, package, files):
@@ -169,5 +171,8 @@ def describe(result, dry_run=False):
             lines.append('! 为本地改动，直接升级会被拒绝：' + CONFLICT_HINT)
     else:
         lines.append('下一步：python3 scripts/teamflow.py doctor')
+    if result.get('host_permissions'):
+        lines.append('保留现有宿主权限：' + '、'.join(result['host_permissions']))
+        lines.append('若要迁移为默认模式，升级后运行 permissions --mode default --plan 核对，再去掉 --plan 执行；自定义内容不删除。')
     return '\n'.join(lines)
 

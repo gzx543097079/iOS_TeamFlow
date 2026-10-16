@@ -127,6 +127,13 @@ class ConsumerReleaseTests(unittest.TestCase):
         self.assertIn('WORKFLOW.md', result.stderr)
 
     def test_packaged_host_permissions_ask_before_external_actions(self):
+        for target in ('.claude/settings.json', '.codex/rules/teamflow.rules'):
+            self.assertFalse((self.root / target).exists())
+        preview = json.loads(self.cli('permissions', '--mode', 'strict', '--plan').stdout)
+        self.assertEqual(2, len(preview['changes']))
+        self.assertFalse((self.root / '.claude/settings.json').exists())
+        self.cli('permissions', '--mode', 'strict')
+        self.assertEqual({}, json.loads(self.cli('permissions', '--mode', 'strict').stdout)['changes'])
         settings = json.loads((self.root / '.claude/settings.json').read_text())
         self.assertIn('Bash(git push:*)', settings['permissions']['ask'])
         self.assertIn('Bash(gh release:*)', settings['permissions']['ask'])
@@ -142,6 +149,42 @@ class ConsumerReleaseTests(unittest.TestCase):
             for command in rule.get('not_match', []):
                 self.assertFalse(prefix_matches(rule['pattern'], command.split()), command)
         self.assertIn(['git', 'push'], [rule['pattern'] for rule in rules])
+
+    def test_default_migration_preserves_custom_content(self):
+        self.cli('permissions', '--mode', 'strict')
+        codex = self.root / '.codex/rules/teamflow.rules'
+        claude = self.root / '.claude/settings.json'
+        custom = claude.read_text() + '\n'
+        claude.write_text(custom)
+        preview = json.loads(self.cli('permissions', '--mode', 'default', '--plan').stdout)
+        self.assertEqual(['.claude/settings.json'], preview['preserved'])
+        self.assertTrue(codex.exists())
+        self.cli('permissions', '--mode', 'default')
+        self.assertFalse(codex.exists())
+        self.assertEqual(custom, claude.read_text())
+        self.assertEqual({}, json.loads(self.cli('permissions', '--mode', 'default').stdout)['changes'])
+        result = self.cli('permissions', '--mode', 'strict', ok=False)
+        self.assertNotEqual(0, result.returncode)
+        self.assertFalse(codex.exists())
+        self.assertEqual(custom, claude.read_text())
+
+    def test_default_migration_removes_only_exact_templates(self):
+        self.cli('permissions', '--mode', 'strict')
+        self.cli('permissions', '--mode', 'default')
+        for target in ('.claude/settings.json', '.codex/rules/teamflow.rules'):
+            self.assertFalse((self.root / target).exists())
+        self.assertEqual({}, json.loads(self.cli('permissions', '--mode', 'default').stdout)['changes'])
+
+    def test_permissions_reject_symlink_without_partial_write(self):
+        outside = self.root / 'custom.rules'
+        outside.write_text('keep')
+        target = self.root / '.codex/rules/teamflow.rules'
+        target.parent.mkdir(parents=True)
+        target.symlink_to(outside)
+        result = self.cli('permissions', '--mode', 'strict', ok=False)
+        self.assertNotEqual(0, result.returncode)
+        self.assertEqual('keep', outside.read_text())
+        self.assertFalse((self.root / '.claude/settings.json').exists())
 
 
 def prefix_matches(pattern, argv):

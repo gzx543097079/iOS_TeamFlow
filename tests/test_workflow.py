@@ -24,9 +24,10 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn('scripts/teamflow.py', names)
         self.assertIn(package_release.CORE + '/scripts/teamflow.py', names)
 
-    def test_repository_uses_packaged_host_permissions(self):
+    def test_repository_does_not_activate_extra_host_permissions(self):
         for target, source in package_release.PERMISSIONS.items():
-            self.assertEqual((ROOT / source).read_bytes(), (ROOT / target).read_bytes(), target)
+            self.assertTrue((ROOT / source).is_file(), source)
+            self.assertFalse((ROOT / target).exists(), target)
 
     def test_links_are_checked_per_install_mode_and_anchor(self):
         with tempfile.TemporaryDirectory() as directory:

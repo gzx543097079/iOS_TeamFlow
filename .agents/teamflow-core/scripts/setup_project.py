@@ -12,6 +12,47 @@ START = '<!-- teamflow:start -->'
 END = '<!-- teamflow:end -->'
 READING_RULES = '''首次仅读取上述 Skill 和 `.agents/teamflow-core/references/WORKFLOW.md`，其余资料按 WORKFLOW「按需读取」加载。'''
 TEAM_RULES = '''存在 `.agents/team/RULES.md` 时一并读取；团队规则可细化规范，不突破 WORKFLOW 的授权边界。'''
+
+PERMISSION_TEMPLATES = {
+    '.claude/settings.json': 'claude-settings.json',
+    '.codex/rules/teamflow.rules': 'codex.rules',
+}
+
+
+def permissions(root, mode, dry_run=False):
+    """显式切换额外审批；仅管理完整原版模板，自定义内容始终保留。"""
+    if mode not in ('default', 'strict'):
+        raise ValueError('权限模式须为 default 或 strict')
+    templates = Path(__file__).resolve().parents[1] / 'assets/permissions'
+    changes, preserved = {}, []
+    for name, source in PERMISSION_TEMPLATES.items():
+        target = safe(root, name)
+        expected = (templates / source).read_bytes()
+        if target.exists() and not target.is_file():
+            raise ValueError('权限路径不是普通文件：' + name)
+        current = target.read_bytes() if target.is_file() else None
+        if current is not None and current != expected:
+            preserved.append(name)
+        elif mode == 'strict' and current is None:
+            changes[name] = expected
+        elif mode == 'default' and current == expected:
+            changes[name] = None
+    # 严格模式须两个宿主都能安全安装；先检查全部路径，避免冲突时部分写入。
+    if mode == 'strict' and preserved:
+        raise ValueError('保留自定义权限，未启用严格模式；请人工合并模板：' + '、'.join(preserved))
+    if not dry_run:
+        for name, data in changes.items():
+            target = safe(root, name)
+            if data is None:
+                target.unlink()
+            else:
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(data)
+    return {'mode': mode, 'plan': dry_run,
+            'changes': {name: 'remove' if data is None else 'add' for name, data in changes.items()},
+            'preserved': preserved,
+            'notice': '仅修改项目配置；宿主可能需重启加载，当前会话策略不由此命令解除。'}
+
 BLOCK = '''<!-- teamflow:start -->
 ## 工作流
 

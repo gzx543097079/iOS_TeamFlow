@@ -443,6 +443,9 @@ def main():
     output.add_argument('--json', action='store_true', help='输出完整结构化结果')
     top = parser.add_subparsers(dest='area', required=True)
     top.add_parser('doctor', parents=[output], help='只读核对接入、配置、需求证据和可选模块索引')
+    permissions = top.add_parser('permissions', parents=[output], help='显式管理可选宿主审批模板')
+    permissions.add_argument('--mode', choices=['default', 'strict'], required=True)
+    permissions.add_argument('--plan', action='store_true')
 
     req = top.add_parser('req')
     req_sub = req.add_subparsers(dest='command', required=True)
@@ -546,6 +549,10 @@ def main():
             report = doctor(root)
             print(json.dumps(report, ensure_ascii=False, indent=2) if args.json else format_report(report))
             return 1 if report['needs_action'] else 0
+        elif args.area == 'permissions':
+            import setup_project
+            report = setup_project.permissions(root, args.mode, args.plan)
+            print(json.dumps(report, ensure_ascii=False, indent=2))
         elif args.area == 'req':
             if args.command == 'create':
                 emit('create', create(root, args.title, args.queued, args.bug))
