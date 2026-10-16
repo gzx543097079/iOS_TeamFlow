@@ -25,6 +25,7 @@ PROJECT_ROOT 是当前 Git 根及其目录树；只使用本项目内的 Skill�
 | 新工程日志组件 | [LOGGING](references/LOGGING.md) |
 | 功能分析清单；复杂功能设计 | [功能清单](references/templates/feature.md) |
 | 已有工程现状；大型模块索引 | [EXISTING-PROJECT](references/EXISTING-PROJECT.md)、[MODULE-CONTEXT](../../teamflow-core/references/MODULE-CONTEXT.md) |
+| UI 评审、打磨或设计质量检查 | [UI 评审与打磨](references/UI-REVIEW.md) |
 | 性能指标、启动、滚动、内存、崩溃或卡死 | [性能与稳定性](references/PERFORMANCE.md) |
 | 业务代码、架构调整或数据迁移 | [共用架构](../../teamflow-core/references/ARCHITECTURE.md) + [iOS 补充](references/ARCHITECTURE.md)，同时读取 |
 | App 用户可见文本或多语言变更 | [共用本地化](../../teamflow-core/references/LOCALIZATION.md) + [iOS 补充](references/LOCALIZATION.md)，同时读取 |

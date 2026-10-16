@@ -1,5 +1,9 @@
 # 版本记录
 
+## 未发布
+
+- 融合 [impeccable](https://github.com/pbakaus/impeccable) 的原生 UI 设计方法：新增 iOS [UI 评审与打磨](.agents/skills/iOS/references/UI-REVIEW.md)（五维度 0–4 评分、P0–P3 分级、打磨顺序、模拟器截图与外观核对）；UI 规范补充平台一致性与常见痕迹；Godot 增加游戏 UI 评审；工程现状模板增加产品与设计约定。来源与许可见[第三方说明](.agents/teamflow-core/references/THIRD-PARTY.md)。
+
 ## 1.0.0
 
 首个正式版本。此前的内部迭代不再保留兼容与迁移路径。

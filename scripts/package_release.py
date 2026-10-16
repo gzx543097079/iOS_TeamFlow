@@ -14,7 +14,7 @@ CORE_FILES = tuple(CORE + '/' + name for name in (
     'references/WORKFLOW.md', 'references/CHECKS.md', 'references/COMMANDS.md', 'references/REPAIR.md', 'references/BOUNDARIES.md', 'references/INSTALL.md',
     'references/MODULE-CONTEXT.md', 'references/VERSION', 'references/ARCHITECTURE.md', 'references/LOCALIZATION.md',
     'references/templates/requirement.md', 'references/templates/project-context.md', 'references/standards/comments.md',
-    'references/REVIEW.md', 'references/DEPENDENCIES.md', 'assets/ci/github-teamflow.yml',
+    'references/REVIEW.md', 'references/DEPENDENCIES.md', 'references/THIRD-PARTY.md', 'assets/ci/github-teamflow.yml',
     'assets/permissions/claude-settings.json', 'assets/permissions/codex.rules',
 ))
 # 宿主权限模板：解压后对推送、PR、Release 与上传类命令要求人工确认。
@@ -29,7 +29,7 @@ GODOT_FILES = tuple(GODOT_SKILL + '/' + name for name in (
     'scripts/verify_godot.py', 'scripts/export_ios.py', 'assets/project-checks.example.json',
 ))
 REFERENCES = (
-    'APP-RELEASE.md', 'APP-LIFECYCLE.md', 'PERFORMANCE.md', 'LOGGING.md', 'EXISTING-PROJECT.md', 'ARCHITECTURE.md', 'LOCALIZATION.md',
+    'APP-RELEASE.md', 'APP-LIFECYCLE.md', 'PERFORMANCE.md', 'UI-REVIEW.md', 'LOGGING.md', 'EXISTING-PROJECT.md', 'ARCHITECTURE.md', 'LOCALIZATION.md',
     'standards/ui.md', 'standards/ui-keyboard.md', 'standards/ui-paywall.md', 'standards/objective-c.md', 'standards/swift.md', 'standards/swiftui.md',
     'templates/new-project.md', 'templates/feature.md', 'templates/app-release.md',
 )

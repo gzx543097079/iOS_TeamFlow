@@ -20,6 +20,18 @@ Control／Container 管理游戏界面；按实际方向、窗口尺寸和设备
 
 本地化共用[文案原则](../../../teamflow-core/references/LOCALIZATION.md)，实际使用 Godot 的翻译资源与 API，不生成原生 String Catalog 代替游戏翻译。Godot 日志使用项目既有输出方式，原生插件沿用原生日志；共用脱敏要求，不将 TFLogger 直接写入 GDScript。
 
+### 游戏 UI 评审
+
+用户要求评审或打磨游戏界面时只读核对，修改建卡或续接原卡。证据来自有画面的实际运行或目标设备截图，注明来源；无界面测试不能证明视觉、触控或手感。
+
+- 可读性：字号、字重与背景对比，动态画面上的文字有底衬或描边；数字与计时不跳动错位。
+- 输入：触控热区与拇指可达区、误触与多点触控、键盘／手柄焦点顺序；按钮按下、禁用和冷却有反馈。
+- 布局：Safe Area、刘海与圆角、横竖屏和不同宽高比；HUD 不遮挡玩法关键区域。
+- 流程：开始、暂停、恢复、失败、重开、返回菜单都有明确入口，状态与原因看得懂；暂停时玩法确实停止。
+- 一致性与本地化：同类按钮与面板样式一致，长文案和非开发语言不截断；动效服务于反馈，可在设置中减弱时遵守。
+
+问题按 P0（无法继续游戏、进度丢失、卡死）、P1（明显困难或违反平台要求，发布前修）、P2（有绕过办法）、P3（细节，少列）分级，每条写明场景或节点路径、影响和建议。原生 iOS 界面使用 iOS 的 UI 评审专题。
+
 涉及持久化数据变化时使用[共用迁移原则](../../../teamflow-core/references/ARCHITECTURE.md#数据迁移与恢复)，以旧版存档的真实或项目内合成样本验证，不以重装清空存档证明升级成功。
 
 依据：[Godot 场景组织](https://docs.godotengine.org/en/stable/tutorials/best_practices/scene_organization.html)、[版本控制](https://docs.godotengine.org/en/stable/tutorials/best_practices/version_control_systems.html)。实施时查询与锁定引擎版本相符的文档。

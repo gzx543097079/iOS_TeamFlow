@@ -74,4 +74,4 @@ python3 scripts/teamflow.py git ci --base origin/main
 | 工作流脚本、规则或测试 | `workflow` | 完整工具测试，含文档检查与安装包消费测试 |
 | 分发清单或正式打包 | `workflow-release` | `extends: workflow`，另生成源码包与三个安装包 |
 
-日志组件改动另在 macOS 运行 `python3 scripts/check_logging.py`。版本记录见 [CHANGELOG](CHANGELOG.md)。
+日志组件改动另在 macOS 运行 `python3 scripts/check_logging.py`。版本记录见 [CHANGELOG](CHANGELOG.md)，第三方来源见[第三方说明](.agents/teamflow-core/references/THIRD-PARTY.md)。
