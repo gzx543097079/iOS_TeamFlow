@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -26,8 +27,11 @@ class ConsumerReleaseTests(unittest.TestCase):
         subprocess.run(['git', '-C', str(self.root), 'init', '-q'], check=True)
 
     def cli(self, *args, ok=True):
+        # 必须验证默认缓存行为，不能由宿主禁用或重定向缓存来掩盖安装缺陷。
+        env = {key: value for key, value in os.environ.items()
+               if key not in ('PYTHONDONTWRITEBYTECODE', 'PYTHONPYCACHEPREFIX')}
         result = subprocess.run([sys.executable, str(self.root / 'scripts/teamflow.py'),
-                                 '--project', str(self.root), *args], capture_output=True, text=True)
+                                 '--project', str(self.root), *args], capture_output=True, text=True, env=env)
         if ok:
             self.assertEqual(0, result.returncode, result.stderr)
         return result
@@ -110,6 +114,7 @@ class ConsumerReleaseTests(unittest.TestCase):
                   'checks': {'unit': {'argv': [sys.executable, '-c', 'pass']}}}}}
         (self.root / '.agents/project-checks.json').write_text(json.dumps(config))
         self.cli('req', 'complete', req, '--profile', 'change', '--confirm-ac', 'AC-01')
+        self.assertEqual([], list((self.root / '.agents/teamflow-core').rglob('__pycache__')))
         subprocess.run(['git', '-C', str(self.root), 'add', '-A'], check=True)
         report = json.loads(self.cli('git', 'check', req, '--json').stdout)
         self.assertEqual(['App/main.swift'], report['release_sensitive_files'])

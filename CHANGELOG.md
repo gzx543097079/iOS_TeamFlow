@@ -1,5 +1,10 @@
 # 版本记录
 
+## 未发布
+
+- 修复零命令安装后 TeamFlow 生成 Python 字节码缓存、首次提交检查误报未覆盖文件的问题；源码与分发入口均禁止自身写缓存，消费测试不再依赖宿主缓存环境变量。
+- 补强项目长期结论的按需读取、就地更新与失效处理：复用已有资料及项目现状索引，不新增记忆文件或全量历史加载步骤。
+
 ## 1.1.0
 
 - 融合 [impeccable](https://github.com/pbakaus/impeccable) 的原生 UI 设计方法：新增 iOS [UI 评审与打磨](.agents/skills/iOS/references/UI-REVIEW.md)（五维度 0–4 评分、P0–P3 分级、打磨顺序、模拟器截图与外观核对）；UI 规范补充平台一致性与常见痕迹；Godot 增加游戏 UI 评审；工程现状模板增加产品与设计约定。来源与许可见[第三方说明](.agents/teamflow-core/references/THIRD-PARTY.md)。
