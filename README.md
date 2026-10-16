@@ -55,6 +55,8 @@ python3 scripts/teamflow.py git ci --base origin/main
 - 完成时证据摘要写入头部；验证日志只留本地，换机后仍可按摘要复核。
 - 证据只绑定“范围”“不包含”和各 AC 文字，标题、排版、勾选与决策记录可自由修改。
 
+跨需求仍有效的结论更新到已有项目资料，由 `PROJECT-CONTEXT.md` 按需索引；读取与失效处理见[项目现状模板](.agents/teamflow-core/references/templates/project-context.md)。不另建记忆文件，不在每个任务加载全部历史。
+
 ## 源码仓库
 
 | 路径 | 内容 |
