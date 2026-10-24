@@ -29,7 +29,8 @@
           "cwd": ".",
           "timeout_seconds": 900
         }
-      }
+      },
+      "priority": 100
     },
     "workflow-docs": {
       "inputs": [
@@ -53,7 +54,19 @@
           "timeout_seconds": 60,
           "cwd": "."
         }
-      }
+      },
+      "priority": 10,
+      "covers": [
+        "AGENTS.md",
+        "README.md",
+        "CHANGELOG.md",
+        "docs",
+        ".agents/skills/iOS/SKILL.md",
+        ".agents/skills/iOS/references",
+        ".agents/skills/Godot/SKILL.md",
+        ".agents/skills/Godot/references",
+        ".agents/teamflow-core/references"
+      ]
     },
     "workflow-release": {
       "extends": "workflow",
@@ -66,7 +79,8 @@
           "cwd": ".",
           "timeout_seconds": 300
         }
-      }
+      },
+      "priority": 200
     }
   }
 }

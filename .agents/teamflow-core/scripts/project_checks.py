@@ -59,7 +59,7 @@ def suggest(root):
              and not name.startswith('requirements/')} - installed_files(root)
     profiles, covered = [], set()
     for profile, settings in config['profiles'].items():
-        selected = input_paths(root, settings.get('inputs'), names)
+        selected = input_paths(root, coverage_inputs(settings), names)
         if CONFIG in names:
             selected.add(CONFIG)
         covered.update(selected)
@@ -67,16 +67,22 @@ def suggest(root):
                          'uncovered_files': sorted(names - selected),
                          'covers_all_changes': bool(names) and selected == names})
     covering = [item['profile'] for item in profiles if item['covers_all_changes']]
-    # 覆盖全部改动时取检查项最少者，避免为小改动跑发布级验证。
-    recommended = min(covering, key=lambda name: (len(config['profiles'][name]['checks']),
-                                                  len(config['profiles'][name].get('inputs') or ()))) if covering else None
+    # 检查数量不能代表成本：一个命令也可能包含全量测试。优先级相同不猜测。
+    best = min((config['profiles'][name].get('priority', 100) for name in covering), default=None)
+    preferred = [name for name in covering if config['profiles'][name].get('priority', 100) == best]
+    recommended = preferred[0] if len(preferred) == 1 else None
     return {'changed_files': sorted(names), 'profiles': profiles, 'recommended': recommended,
-            'uncovered_files': sorted(names - covered),
+            'uncovered_files': sorted(names - covered), 'ambiguous_profiles': preferred if len(preferred) > 1 else [],
             'note': '仅按路径建议；必须核对检查内容与实际影响面，不自动运行或省略必要测试。'}
 
 
+def coverage_inputs(settings):
+    """covers 表示可验收的改动；inputs 表示会令证据失效的依赖。旧配置兼容。"""
+    return settings.get('covers', settings.get('inputs'))
+
+
 def resolve_profile(profiles, name, seen=()):
-    """extends 继承父 profile 的 inputs 与 checks；自身 inputs 覆盖，checks 追加或同名覆盖。"""
+    """extends 继承范围、优先级与检查；自身字段覆盖，checks 追加或同名覆盖。"""
     if name in seen:
         raise ValueError('profile extends 存在循环：' + ' → '.join(seen + (name,)))
     if name not in profiles:
@@ -91,16 +97,19 @@ def resolve_profile(profiles, name, seen=()):
     own_checks = settings.get('checks', {})
     if not isinstance(own_checks, dict):
         raise ValueError('checks 必须为对象：' + name)
-    resolved = {'inputs': base.get('inputs'), **settings, 'checks': {**base.get('checks', {}), **own_checks}}
+    resolved = {**base, **settings, 'checks': {**base.get('checks', {}), **own_checks}}
     return {key: value for key, value in resolved.items() if value is not None}
 
 
 def select_profile(root):
-    """选择覆盖全部改动、检查项最少的 profile；无改动或无覆盖时报错。"""
+    """按适用范围与显式优先级选择；没有唯一候选时不猜测。"""
     report = suggest(root)
     if not report['changed_files']:
         raise ValueError('相对 HEAD 没有改动，无法自动选择验证；请用 --profile 指定')
     if report['recommended'] is None:
+        if report['ambiguous_profiles']:
+            raise ValueError('多个 profile 优先级相同：' + '、'.join(report['ambiguous_profiles'])
+                             + '；请配置 priority 或用 --profile 指定')
         if report['uncovered_files']:
             raise ValueError('以下改动不在任何 profile 输入内：' + '、'.join(report['uncovered_files'][:10])
                              + '；请配置覆盖范围或用 --profile 指定')
@@ -117,6 +126,17 @@ def load_config(root):
         raise ValueError('profiles 必须为对象')
     config['profiles'] = profiles = {name: resolve_profile(profiles, name) for name in profiles}
     for profile, settings in profiles.items():
+        if type(settings.get('priority', 100)) is not int or settings.get('priority', 100) < 0:
+            raise ValueError('priority 必须为非负整数：' + profile)
+        for field in ('inputs', 'covers'):
+            if field in settings:
+                if settings[field] is None:
+                    raise ValueError(field + ' 必须是非空项目相对文件/目录列表')
+                input_paths(root, settings[field], set())
+        if 'covers' in settings and settings.get('inputs') is not None:
+            covers = {str(Path(name)) for name in settings['covers']}
+            if input_paths(root, settings['inputs'], covers) != covers:
+                raise ValueError('covers 必须包含在 inputs 依赖范围内：' + profile)
         if not isinstance(settings.get('checks'), dict) or not settings['checks']:
             raise ValueError('profile 必须包含非空 checks 对象：' + profile)
         for name, check in settings['checks'].items():
@@ -193,7 +213,8 @@ def content_for_snapshot(name, content):
 def effective_config(config, profile):
     """仅绑定所选检查的执行语义，其他 profile 和 JSON 排版不影响证据。"""
     settings = config['profiles'][profile]
-    return {'inputs': settings.get('inputs'),
+    return {**({'covers': settings['covers']} if 'covers' in settings else {}),
+            'inputs': settings.get('inputs'),
             'checks': [{'name': name, 'argv': check['argv'],
                         'cwd': check.get('cwd', '.'),
                         'timeout_seconds': check.get('timeout_seconds', 900)}

@@ -145,7 +145,7 @@ class TeamTests(unittest.TestCase):
                   'checks': {'unit': {'argv': [sys.executable, '-c', code]}}}}}
         (self.root / '.agents/project-checks.json').write_text(json.dumps(config))
 
-    def test_pre_commit_hook_runs_profile_and_is_opt_in(self):
+    def test_pre_commit_hook_reuses_evidence_and_is_opt_in(self):
         self.extract(package_release.package_skill(ROOT))
         hook = Path(self.git('rev-parse', '--git-path', 'hooks/pre-commit').stdout.strip())
         hook = hook if hook.is_absolute() else self.root / hook
@@ -157,18 +157,30 @@ class TeamTests(unittest.TestCase):
         self.assertFalse(hook.exists())
         self.assertNotEqual(0, self.cli('setup', '--git-hook', "x';rm").returncode)
         preview = self.cli('setup', '--git-hook', 'quick', '--plan')
-        self.assertIn('verify run --profile', preview.stdout)
+        self.assertIn('git hook --profile', preview.stdout)
         self.assertFalse(hook.exists())
         result = self.cli('setup', '--git-hook', 'quick')
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertTrue(hook.stat().st_mode & 0o100)
         self.git('add', 'source.txt')
         self.assertNotEqual(0, self.git('commit', '-qm', 'blocked', check=False).returncode)
+        self.assertFalse(list((self.root / 'logs/project-checks').glob('*/result.json')))
         self.configure('pass')
-        self.git('add', 'source.txt', '.agents/project-checks.json')
+        req = json.loads(self.cli('req', 'create', '--title', 'hook proof', '--json').stdout)['requirement']
+        card = self.root / 'requirements' / (req + '.md')
+        card.write_text(card.read_text().replace('〈填写本次要达到的结果〉', '验证提交')
+                        .replace('〈填写可观察的输入、操作和预期结果〉', '提交复用证据'))
+        done = self.cli('req', 'complete', req, '--profile', 'quick', '--confirm-ac', 'AC-01')
+        self.assertEqual(0, done.returncode, done.stderr)
+        self.git('add', 'source.txt', '.agents/project-checks.json', str(card.relative_to(self.root)))
         committed = self.git('commit', '-qm', 'allowed', check=False)
+        self.assertEqual(1, len(list((self.root / 'logs/project-checks').glob('*/result.json'))))
         self.assertEqual(0, committed.returncode, committed.stdout + committed.stderr)
         self.assertEqual('就绪', self.item('提交前检查')['status'])
+        hook.write_text(hook.read_text().replace('git hook', 'verify run'))
+        self.assertEqual('需处理', self.item('提交前检查')['status'])
+        self.assertEqual(0, self.cli('setup', '--git-hook', 'quick').returncode)
+        self.assertIn('git hook', hook.read_text())
         (self.root / '.agents/project-checks.json').write_text('{"schema_version": 2, "profiles": {}}')
         self.assertEqual('需处理', self.item('提交前检查')['status'])
         self.assertEqual(0, self.cli('setup', '--no-git-hook').returncode)

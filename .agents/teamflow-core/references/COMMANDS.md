@@ -4,7 +4,7 @@
 
 ## 验证与完成
 
-`req complete REQ-20260101-a3f9 --profile change` 运行所选验证，并把证据摘要写入卡片头部。`--result logs/project-checks/运行编号/result.json` 绑定本地已有结果；不传证据参数时先按卡片摘要重新计算指纹复核，不读取日志；摘要缺失或失效且项目已配置验证时，自动选择覆盖全部改动、检查项最少的 profile 运行（输出标注“按改动自动选择”），没有单个 profile 覆盖时报出未覆盖文件且不改卡片。三种证据来源 `--profile`、`--result`、`--evidence` 互斥。
+`req complete REQ-20260101-a3f9 --profile change` 优先复用同 profile 的有效证据，否则运行并绑定摘要；`--rerun` 与 `--profile` 一起显式重跑。`--result logs/project-checks/运行编号/result.json` 绑定已用 `verify run --requirement` 生成的结果，不重跑。`verify run` 本身始终运行，不是证据复核命令。不传证据参数时先复核摘要；缺失或失效时按 covers 与 priority 选择覆盖全部改动的唯一候选，存在歧义或无覆盖则报错且不改卡片。输出区分“复用验证，未运行测试”和重新验证原因。`--profile`、`--result`、`--evidence` 互斥。
 
 `--confirm-ac AC-01` 可重复；`--user-confirmed AC-01` 同样勾选，并把编号记入头部 `user_confirmed`，`req status` 与 `req pr` 标注“用户确认”。未知编号、证据无效或验证失败均不更改卡片，未指定的条件保留原状态。`--wait-user` 与恢复规则见 [WORKFLOW](WORKFLOW.md#实施与验收)，恢复命令见下方「状态」。
 
@@ -50,7 +50,7 @@ python3 scripts/teamflow.py setup --no-git-hook
 ```
 
 - `upgrade` 按安装清单替换当前模式的核心与 Skill，移除新版不再包含的旧文件。有本地改动或包不含当前模式时拒绝；`--force` 覆盖本地改动，`--mode` 同时切换模式。不触碰 `.agents/team/`、需求卡和项目配置。
-- `setup --git-hook` 为本机安装 pre-commit，提交前运行所选 profile；`--no-git-hook` 只移除 TeamFlow 管理的 Hook。规则见 [INSTALL](INSTALL.md#提交前检查可选)。
+- `setup --git-hook` 为本机安装 pre-commit，提交前通过 `git hook --profile <名>` 只复核该 profile 的需求证据与暂存覆盖；缺失或失效直接报错，不自动跑测试；`--no-git-hook` 只移除 TeamFlow 管理的 Hook。规则见 [INSTALL](INSTALL.md#提交前检查可选)。
 
 ## 只读辅助
 
