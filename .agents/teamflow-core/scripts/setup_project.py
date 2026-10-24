@@ -93,7 +93,7 @@ HOOK_MARK = '# teamflow:managed-hook'
 HOOK = '''#!/bin/sh
 {mark}
 # 由 teamflow setup --git-hook 安装；git commit --no-verify 可临时跳过，--no-git-hook 移除。
-exec python3 scripts/teamflow.py verify run --profile '{profile}'
+exec python3 scripts/teamflow.py git hook --profile '{profile}'
 '''
 ENTRY = '''#!/usr/bin/env python3
 """从项目内 Skill 加载 TeamFlow 唯一实现。"""
@@ -365,8 +365,11 @@ def hook_status(project):
         ready = profile in project_checks.load_config(project)['profiles']
     except (ValueError, OSError, KeyError, TypeError):
         ready = False
-    return [{'item': '提交前检查', 'status': '就绪' if ready else '需处理',
-             'detail': 'pre-commit 运行 ' + profile + ('' if ready else '；该 profile 不存在')}]
+    current = hook_path(project).read_text() == HOOK.format(mark=HOOK_MARK, profile=profile)
+    detail = ('pre-commit 只复核证据 ' + profile if current else
+              '旧版或自定义托管 Hook 可能执行测试；请核对后 setup --git-hook ' + profile)
+    return [{'item': '提交前检查', 'status': '就绪' if ready and current else '需处理',
+             'detail': detail + ('' if ready else '；该 profile 不存在或配置无效')}]
 
 
 def toolchain(project):

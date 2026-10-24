@@ -340,7 +340,7 @@ class TeamFlowTests(unittest.TestCase):
                                      'req', 'complete', req, '--confirm-ac', 'AC-01',
                                      '--confirm-ac', 'AC-02'], capture_output=True, text=True)
             self.assertEqual(0, result.returncode, result.stderr)
-            self.assertEqual(f'{req} ✅ 完成 ✅ 2/2', result.stdout.strip())
+            self.assertEqual(f'复用验证，未运行测试\n{req} ✅ 完成 ✅ 2/2', result.stdout.strip())
             self.assertEqual('完成', flow.parse_card(card)['state'])
         self.assertEqual(1, len(self.logs()))
 
@@ -417,7 +417,7 @@ class TeamFlowTests(unittest.TestCase):
         config = {'schema_version': 2, 'profiles': {
             'change': {'inputs': ['source.txt', '.gitignore'],
                        'checks': {'ok': {'argv': [sys.executable, '-c', 'pass']}}},
-            'release': {'extends': 'change',
+            'release': {'extends': 'change', 'priority': 200,
                         'checks': {'package': {'argv': [sys.executable, '-c', 'pass']}}},
             'docs': {'inputs': ['docs'], 'checks': {'links': {'argv': [sys.executable, '-c', 'pass']}}}}}
         (self.root / 'docs').mkdir(); (self.root / 'docs/a.md').write_text('doc')
@@ -428,10 +428,10 @@ class TeamFlowTests(unittest.TestCase):
         req = self.create(); card = self.fill(req)
         self.git('add', 'docs'); self.git('commit', '-qm', 'docs')
         report = flow.complete(self.root, req)
-        self.assertEqual('验证：通过（change，按改动自动选择）', report['verification'])
+        self.assertIn('验证：通过（change，按改动自动选择）', report['verification'])
         self.assertEqual('change', flow.parse_card(card)['evidence']['profile'])
         self.assertEqual('change', flow.checks_module().suggest(self.root)['recommended'])
-        self.assertIsNone(flow.complete(self.root, req)['verification'])
+        self.assertIn('未运行测试', flow.complete(self.root, req)['verification'])
         (self.root / 'docs/a.md').write_text('changed doc')
         (self.root / 'source.txt').write_text('changed source')
         original = card.read_text()
@@ -446,7 +446,7 @@ class TeamFlowTests(unittest.TestCase):
         config = {'schema_version': 2, 'profiles': {
             'change': {'inputs': ['source.txt', '.gitignore'],
                        'checks': {'ok': {'argv': [sys.executable, '-c', 'pass']}}},
-            'release': {'extends': 'change', 'checks': {'package': {'argv': [sys.executable, '-c', 'pass']}}}}}
+            'release': {'extends': 'change', 'priority': 200, 'checks': {'package': {'argv': [sys.executable, '-c', 'pass']}}}}}
         (self.root / '.agents/project-checks.json').write_text(json.dumps(config))
         req = self.create(); self.fill(req)
         flow.complete(self.root, req, profile='release')
@@ -460,6 +460,113 @@ class TeamFlowTests(unittest.TestCase):
                 json.dumps({'schema_version': 2, 'profiles': profiles}))
             with self.assertRaisesRegex(ValueError, message):
                 flow.checks_module().load_config(self.root)
+
+    def test_final_verification_reused_through_explicit_complete_hook_and_pr(self):
+        from diagnostics import pr_body
+        req = self.create(); self.fill(req)
+        flow.complete(self.root, req, profile='change')
+        self.git('add', '.')
+        with patch.object(flow.checks_module(), 'run', side_effect=AssertionError('重复执行')):
+            self.assertIn('未运行测试', flow.complete(self.root, req, profile='change')['verification'])
+            flow.complete(self.root, req)
+            flow.git_check(self.root, req)
+            flow.hook_check(self.root, 'change')
+            pr_body(self.root, req)
+        self.assertEqual(1, len(self.logs()))
+        flow.complete(self.root, req, profile='change', rerun=True)
+        self.assertEqual(2, len(self.logs()))
+        (self.root / 'source.txt').write_text('new source')
+        with patch.object(flow.checks_module(), 'run', side_effect=AssertionError('钩子不得执行')):
+            with self.assertRaisesRegex(ValueError, '未运行测试'):
+                flow.hook_check(self.root, 'change')
+        flow.complete(self.root, req, profile='change')
+        self.assertEqual(3, len(self.logs()))
+        # 工作区已验收，但 index 仍是旧源码：必须拒绝部分暂存。
+        with self.assertRaisesRegex(ValueError, '暂存'):
+            flow.hook_check(self.root, 'change')
+        self.git('add', '.')
+        flow.hook_check(self.root, 'change')
+
+    def test_bound_run_is_imported_without_second_execution(self):
+        req = self.create(); self.fill(req)
+        checks = flow.checks_module()
+        target, passed = checks.run(self.root, 'change', req)
+        self.assertTrue(passed)
+        with patch.object(checks, 'run', side_effect=AssertionError('重复执行')):
+            flow.complete(self.root, req, result=str(target.relative_to(self.root)))
+            flow.complete(self.root, req, profile='change')
+        self.assertEqual(1, len(self.logs()))
+
+    def test_hook_missing_evidence_does_not_execute(self):
+        req = self.create(); self.fill(req)
+        self.git('add', '.')
+        with patch.object(flow.checks_module(), 'run', side_effect=AssertionError('不应执行')):
+            with self.assertRaisesRegex(ValueError, '没有覆盖暂存内容的已绑定证据'):
+                flow.hook_check(self.root, 'change')
+        self.assertEqual([], self.logs())
+
+    def test_covers_separates_page_coverage_from_dependency_fingerprint(self):
+        path = self.root / '.agents/project-checks.json'
+        config = json.loads(path.read_text())
+        (self.root / 'network.txt').write_text('network')
+        config['profiles']['change'].update(inputs=['source.txt', 'network.txt', '.gitignore'],
+                                             covers=['source.txt', '.gitignore'], priority=10)
+        path.write_text(json.dumps(config))
+        self.git('add', '.'); self.git('commit', '-qm', 'base')
+        req = self.create(); self.fill(req)
+        (self.root / 'source.txt').write_text('page changed')
+        self.assertEqual('change', flow.checks_module().select_profile(self.root))
+        flow.complete(self.root, req, profile='change')
+        self.git('add', '.')
+        flow.hook_check(self.root, 'change')
+        (self.root / 'network.txt').write_text('dependency changed')
+        with self.assertRaises(ValueError):
+            self.saved(req)
+        self.assertIn('network.txt', flow.checks_module().suggest(self.root)['uncovered_files'])
+        # 即使显式运行页面测试成功，也不能替网络修改提供提交证明。
+        flow.complete(self.root, req, profile='change')
+        self.git('add', '.')
+        with self.assertRaisesRegex(ValueError, '未覆盖暂存文件：network.txt'):
+            flow.git_check(self.root, req)
+
+    def test_priority_does_not_confuse_one_full_suite_with_small_checks(self):
+        checks = flow.checks_module()
+        path = self.root / '.agents/project-checks.json'
+        config = json.loads(path.read_text())
+        base = config['profiles']['change']
+        config['profiles'] = {
+            'full': dict(base, priority=100),
+            'page': dict(base, priority=10, checks={
+                'unit': {'argv': [sys.executable, '-c', 'pass']},
+                'smoke': {'argv': [sys.executable, '-c', 'pass']}})}
+        path.write_text(json.dumps(config))
+        self.assertEqual('page', checks.select_profile(self.root))
+        config['profiles']['page']['priority'] = 100
+        path.write_text(json.dumps(config))
+        with self.assertRaisesRegex(ValueError, '优先级相同'):
+            checks.select_profile(self.root)
+        for value in (True, -1, '10'):
+            config['profiles']['page']['priority'] = value
+            path.write_text(json.dumps(config))
+            with self.assertRaisesRegex(ValueError, 'priority'):
+                checks.load_config(self.root)
+
+    def test_coverage_semantics_invalidate_but_priority_does_not(self):
+        req = self.create(); self.fill(req)
+        flow.complete(self.root, req, profile='change')
+        path = self.root / '.agents/project-checks.json'
+        config = json.loads(path.read_text())
+        config['profiles']['change']['priority'] = 1
+        path.write_text(json.dumps(config))
+        self.saved(req)
+        config['profiles']['change']['covers'] = ['source.txt']
+        path.write_text(json.dumps(config))
+        with self.assertRaises(ValueError):
+            self.saved(req)
+        config['profiles']['change']['covers'] = ['outside']
+        path.write_text(json.dumps(config))
+        with self.assertRaisesRegex(ValueError, 'covers 必须包含在 inputs'):
+            flow.checks_module().load_config(self.root)
 
 if __name__ == '__main__':
     unittest.main()

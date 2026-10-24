@@ -77,7 +77,7 @@ python3 scripts/teamflow.py setup --git-hook change
 python3 scripts/teamflow.py setup --no-git-hook
 ```
 
-为本机安装运行所选 profile 的 pre-commit，支持 worktree 与项目内的 `core.hooksPath`；不覆盖非 TeamFlow 管理的 Hook，`git commit --no-verify` 可临时跳过。Hook 不随仓库提交。
+为本机安装只复核所选 profile 已绑定需求证据的 pre-commit；检查源码指纹、暂存快照和 covers 覆盖，找不到覆盖整个暂存区的有效证据时拒绝并提示验收命令，不执行测试，支持 worktree 与项目内的 `core.hooksPath`；不覆盖非 TeamFlow 管理的 Hook，`git commit --no-verify` 可临时跳过。Hook 不随仓库提交。升级核心不会自动替换本机旧 Hook；`doctor` 提示旧版时，核对后重执行 `setup --git-hook <名>` 迁移。轻量无卡修改可不安装 Hook；已启用时需明确选择移除或临时跳过，不会凭扩展名自动放行。
 
 ## Claude Code Skill 链接
 

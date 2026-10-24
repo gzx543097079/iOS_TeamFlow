@@ -212,7 +212,9 @@ def manual_proof(root, card, evidence, evidence_inputs=None):
 
 
 def complete(root, requirement, result=None, evidence=None, wait_user=False, profile=None,
-             confirm_ac=None, evidence_inputs=None, user_confirmed=None):
+             confirm_ac=None, evidence_inputs=None, user_confirmed=None, rerun=False):
+    if rerun and profile is None:
+        raise ValueError('--rerun 必须与 --profile 一起使用')
     if sum(value is not None for value in (result, evidence, profile)) > 1:
         raise ValueError('只能提供 --profile、--result、--evidence 中的一种')
     if evidence_inputs is not None and evidence is None:
@@ -241,19 +243,30 @@ def complete(root, requirement, result=None, evidence=None, wait_user=False, pro
         return line, checks.summarize(root, target)
 
     if profile is not None:
-        verification, proof = run_profile(profile)
+        try:
+            if rerun:
+                raise ValueError('显式要求重新执行')
+            proof = verify_saved(root, card)
+            if proof.get('kind') != 'result' or proof.get('profile') != profile:
+                raise ValueError('所选 profile 与已有证据不同')
+            verification = '复用验证，未运行测试（' + profile + '）'
+        except ValueError as error:
+            verification, proof = run_profile(profile)
+            verification = verification + '；重新验证：' + str(error)
     elif result is not None:
         report = checks.verify(root, result)
         if report.get('requirement') != requirement:
             raise ValueError('验证结果未绑定当前需求：' + requirement)
         proof = checks.summarize(root, safe(root.resolve(), result))
+        verification = '复用验证结果，未运行测试'
     elif evidence is not None:
         proof = manual_proof(root, card, evidence, evidence_inputs)
     else:
         try:
             proof = verify_saved(root, card)
+            verification = '复用验证，未运行测试'
         except ValueError as saved_error:
-            # 已绑定证据不可复用时，按改动选择覆盖全部改动的最小 profile 重新验证。
+            # 已绑定证据不可复用时，按适用范围与优先级选择 profile 重新验证。
             if not safe(root, checks.CONFIG).exists():
                 raise
             try:
@@ -261,6 +274,7 @@ def complete(root, requirement, result=None, evidence=None, wait_user=False, pro
             except ValueError as error:
                 raise ValueError(f'{saved_error}；{error}') from error
             verification, proof = run_profile(selected, auto=True)
+            verification = verification + '；重新验证：' + str(saved_error)
     card = parse_card(path)
     lines = card['body'].split('\n')
     for index, line in enumerate(lines):
@@ -321,7 +335,7 @@ def git_check(root, requirement, result=None, evidence=None, evidence_inputs=Non
             raise ValueError('人工证据暂存内容与已核对工作区不一致')
     else:
         proof = verify_saved(root, card, staged=True)
-    inputs = (checks.load_config(root)['profiles'][proof['profile']].get('inputs')
+    inputs = (checks.coverage_inputs(checks.load_config(root)['profiles'][proof['profile']])
               if proof['kind'] == 'result' else proof['paths'])
     covered = checks.input_paths(root, inputs, set(names))
     covered.update({'requirements/' + requirement + '.md', checks.CONFIG})
@@ -337,6 +351,27 @@ def git_check(root, requirement, result=None, evidence=None, evidence_inputs=Non
              ('.swift', '.m', '.mm', '.h', '.plist', '.entitlements', '.pbxproj', '.xcconfig')]
     return {'requirement': requirement, 'staged_files': names, 'validation': proof,
             'release_sensitive_files': risky, 'commit_trailer': 'Requirement: ' + requirement}
+
+
+def hook_check(root, profile):
+    """只读提交门禁：复用能够覆盖整个暂存区的需求证据，不执行项目命令。"""
+    checks = checks_module()
+    if profile not in checks.load_config(root)['profiles']:
+        raise ValueError('未配置所选 profile：' + profile)
+    rows, skipped = cards(root)
+    problems = []
+    for row in rows:
+        card = parse_card(requirement_path(root, row['requirement']))
+        saved = card['evidence'] or {}
+        if saved.get('kind') != 'result' or saved.get('profile') != profile:
+            continue
+        try:
+            return git_check(root, row['requirement'])
+        except ValueError as error:
+            problems.append(row['requirement'] + '：' + str(error))
+    reason = '；'.join(problems[:3]) or '没有覆盖暂存内容的已绑定证据'
+    raise ValueError('提交证据检查失败，未运行测试：' + reason +
+                     '；请先 req complete <需求编号> --profile ' + profile + '，再暂存验收后的内容')
 
 
 def status(root, requirement):
@@ -403,7 +438,7 @@ def render(kind, data):
     if kind == 'git':
         proof = data['validation']
         source = proof['profile'] if proof['kind'] == 'result' else '人工核对'
-        lines = [f"提交检查：通过（{len(data['staged_files'])} 个暂存文件，证据：{source}）",
+        lines = [f"提交检查：通过（{len(data['staged_files'])} 个暂存文件，证据：{source}；未运行测试）",
                  '提交尾注：' + data['commit_trailer']]
         if data['release_sensitive_files']:
             lines.append('发布敏感文件：' + '、'.join(data['release_sensitive_files']))
@@ -413,6 +448,8 @@ def render(kind, data):
         lines = [f'改动文件：{total} 个' + (f"，建议 {data['recommended']}" if data['recommended'] else '')]
         lines.extend(f"{p['profile']}：覆盖 {len(p['covered_files'])}/{total}" +
                      ('（全部）' if p['covers_all_changes'] else '') for p in data['profiles'])
+        if data.get('ambiguous_profiles'):
+            lines.append('优先级相同，请指定 profile 或配置 priority：' + '、'.join(data['ambiguous_profiles']))
         if data['uncovered_files']:
             shown = data['uncovered_files'][:5]
             more = len(data['uncovered_files']) - len(shown)
@@ -467,6 +504,7 @@ def main():
     proof.add_argument('--profile')
     proof.add_argument('--result')
     proof.add_argument('--evidence')
+    done.add_argument('--rerun', action='store_true', help='与 --profile 一起显式重跑；默认复用有效证据')
     done.add_argument('--wait-user', action='store_true')
     done.add_argument('--evidence-input', action='append', help='人工核对的项目相对文件/目录，可重复；默认整个项目')
     done.add_argument('--confirm-ac', action='append', metavar='AC-编号',
@@ -490,6 +528,8 @@ def main():
     check.add_argument('--result')
     check.add_argument('--evidence')
     check.add_argument('--evidence-input', action='append')
+    gate = git_sub.add_parser('hook', parents=[output], help='只读复核暂存证据，不执行测试')
+    gate.add_argument('--profile', required=True)
     ci = git_sub.add_parser('ci', parents=[output], help='只读：核对基线之后改动的完成卡证据，供 CI 使用')
     ci.add_argument('--base', required=True, help='比较基线，如 origin/main')
 
@@ -500,7 +540,7 @@ def main():
     installer.add_argument('--claude-skill-link', action='store_true',
                            help='为选中的安装模式创建 Claude Code Skill 软链接')
     hook = installer.add_mutually_exclusive_group()
-    hook.add_argument('--git-hook', metavar='PROFILE', help='安装本机 pre-commit，提交前运行该验证 profile')
+    hook.add_argument('--git-hook', metavar='PROFILE', help='安装本机 pre-commit，提交前只复核该 profile 的已绑定证据')
     hook.add_argument('--no-git-hook', action='store_true', help='移除 TeamFlow 管理的 pre-commit')
 
     upgrader = top.add_parser('upgrade', parents=[output], help='用新版安装包升级核心与所选 Skill')
@@ -572,7 +612,7 @@ def main():
             else:
                 emit('complete', complete(root, args.requirement, args.result, args.evidence, args.wait_user,
                                           args.profile, args.confirm_ac, args.evidence_input,
-                                          args.user_confirmed))
+                                          args.user_confirmed, args.rerun))
         elif args.area == 'verify':
             checks = checks_module()
             if args.command == 'init':
@@ -598,6 +638,8 @@ def main():
             report = ci_check(root, args.base)
             print(json.dumps(report, ensure_ascii=False, indent=2) if args.json else format_report(report))
             return 1 if report['needs_action'] else 0
+        elif args.area == 'git' and args.command == 'hook':
+            emit('git', hook_check(root, args.profile))
         elif args.area == 'git':
             emit('git', git_check(root, args.requirement, args.result, args.evidence, args.evidence_input))
         elif args.area == 'setup':
@@ -616,7 +658,7 @@ def main():
                 mode = setup_project.install_mode(root)
                 print('已接入 ' + setup_project.MODE_LABELS[mode] + '：' + str(root))
                 if args.git_hook:
-                    print('提交前检查：pre-commit 运行 ' + args.git_hook)
+                    print('提交前检查：pre-commit 只复核证据 ' + args.git_hook)
                 elif args.no_git_hook:
                     print('已移除 TeamFlow 管理的 pre-commit')
         elif args.area == 'upgrade':

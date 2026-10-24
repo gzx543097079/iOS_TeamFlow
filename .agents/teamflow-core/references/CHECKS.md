@@ -12,7 +12,7 @@ python3 scripts/teamflow.py verify init
 python3 scripts/teamflow.py verify run --profile change --requirement REQ-20260101-a3f9
 ```
 
-配置只维护 `profiles`：每项就近定义 `checks` 和可选 `inputs`，省略输入时使用 Git 可见文件。`"extends": "其他 profile"` 继承其输入与检查，自身 `checks` 追加或同名覆盖，适合“发布验证 = 日常验证 + 打包”。检查使用 argv 数组，无 shell 展开；所选 profile 的每项均为必跑。测试已包含构建时不重复 build。
+配置只维护 `profiles`：每项就近定义 `checks`、可选 `inputs`、`covers` 和 `priority`。`inputs` 是使证据失效的依赖，省略时使用 Git 可见文件；`covers` 是该检查能够验收的改动路径（文件/目录，非 glob），必须在 inputs 内，省略时兼容使用 inputs。不要因为页面测试依赖整个 App，就把整个 App 当作其可验收范围。`priority` 为非负整数，越小越优先，默认 100；只在覆盖全部改动的候选中比较，相同则要求明确选择，不用检查项数量猜成本。`"extends": "其他 profile"` 继承其输入、适用范围、优先级与检查，自身 `checks` 追加或同名覆盖，适合“发布验证 = 日常验证 + 打包”。检查使用 argv 数组，无 shell 展开；所选 profile 的每项均为必跑。测试已包含构建时不重复 build。
 
 ```json
 {
@@ -20,6 +20,8 @@ python3 scripts/teamflow.py verify run --profile change --requirement REQ-202601
   "profiles": {
     "change": {
       "inputs": ["App", ".gitignore", "scripts/test_app.py"],
+      "covers": ["App", ".gitignore", "scripts/test_app.py"],
+      "priority": 100,
       "checks": {
         "tests": {"argv": ["python3", "scripts/test_app.py"], "timeout_seconds": 900}
       }
@@ -28,7 +30,7 @@ python3 scripts/teamflow.py verify run --profile change --requirement REQ-202601
 }
 ```
 
-示例须替换为项目实际文件与命令。inputs 覆盖要提交的工程文件（删除的文件同样须在覆盖范围内），含 `.gitignore` 等工程配置；TeamFlow 自身的安装文件不需要纳入。测试命令须能区分空套件：不用会隐藏测试数量的静默参数，或另行核对结果包中的执行数，避免“0 个测试”被当作通过。
+示例须替换为项目实际文件与命令。covers（省略时为 inputs）覆盖要提交的工程文件（删除的文件同样须在覆盖范围内），含 `.gitignore` 等工程配置；TeamFlow 自身的安装文件不需要纳入。测试命令须能区分空套件：不用会隐藏测试数量的静默参数，或另行核对结果包中的执行数，避免“0 个测试”被当作通过。
 
 收尾前确认本次受验证输入稳定、用户改动已隔离，然后运行匹配范围的 profile。同批相关小改动在结束后统一检查，按 [主流程](WORKFLOW.md#实施与验收) 复用有效证据；失败后修复并重跑必要验证。
 
@@ -36,14 +38,14 @@ python3 scripts/teamflow.py verify run --profile change --requirement REQ-202601
 
 小改动同时按影响范围和风险判断，不以文件数或代码行数单独判断。局部文档措辞、链接或简单展示调整可选择能覆盖改动的快速检查；涉及支付、认证、数据迁移、共享状态或工程配置时，按实际影响补齐必要验证，即使只改一行也不自动降低强度。
 
-快速检查使用项目已有或按实际需要配置的最小有效 profile：例如文档链接检查、相关单元测试，涉及编译或 UI 时补齐必要构建或运行核对。profile 名以项目配置为准，不假定存在 `quick`；选定 profile 的必跑项仍全部执行。正式分发仍执行对应发布验证。
+快速检查使用项目已有或按实际需要配置的最小有效 profile：例如文档链接检查、相关单元测试，涉及编译或 UI 时补齐必要构建或运行核对。profile 名以项目配置为准，不假定存在 `quick`；选定 profile 的必跑项仍全部执行。正式分发仍执行对应发布验证。仅改一个页面且有适用的局部 profile 时运行局部验证；项目仅配置全量命令时仍需运行一次，工作流不会自动拆解命令或删减测试。提交、PR 和合并不构成重复或升级验证的理由。
 
 面向用户的验证结果摘要只返回“通过”或“失败”，不逐项展开命令、耗时与日志。未执行的检查明确标为“未验证”，不能当作通过或测试失败。当前环境缺少检查所需条件（如云端或沙箱中没有 Xcode、模拟器、Godot 或网络）时，说明缺少什么并标为未验证，不改用其他检查或临时修改 profile 绕过；需求保持进行中，由具备环境的成员验收。完整日志由工具保留；需要用户处理的阻塞仍说明原因。
 
 ## 证据
 
-- **运行**：`verify run` 与 `req complete --profile` 在 `logs/project-checks/<运行编号>/` 保存原始日志和结果，只作本地记录。失败、超时、工具缺失或运行期间输入变化均不算通过。
-- **指纹**：覆盖所选 profile 的命令、工作目录、超时、输入范围及输入文件内容（含增删与可执行位）；其他 profile 与 JSON 排版不影响。绑定需求时另加需求语义：范围、不包含和按编号排序的 AC 文字；标题、排版、状态、勾选、证据摘要和决策记录不影响。
+- **运行**：`req complete --profile` 优先复用同 profile 的有效证据；缺失、失效或指定 `--rerun` 才运行。`verify run` 始终执行，用于独立诊断或明确重跑。实际运行在 `logs/project-checks/<运行编号>/` 保存原始日志和结果，只作本地记录。失败、超时、工具缺失或运行期间输入变化均不算通过。
+- **指纹**：覆盖所选 profile 的命令、工作目录、超时、适用范围、输入范围及输入文件内容（含增删与可执行位）；其他 profile、仅影响选择的 priority 与 JSON 排版不影响。绑定需求时另加需求语义：范围、不包含和按编号排序的 AC 文字；标题、排版、状态、勾选、证据摘要和决策记录不影响。
 - **摘要**：完成时写入卡片头部；之后 `req complete`、`git check`、`doctor` 都按摘要重新计算当前指纹核对，不读取日志。提交检查另核对暂存快照，见 [BOUNDARIES](BOUNDARIES.md#显式-git-动作)。
 - 不绑定需求的独立检查结果不能直接用于 `req complete`。配置输入应指向实际工程，避免纳入全部历史资料。
 - 工具测试不能代替真机、视觉、账号、购买或平台验证；人工 AC 按主流程保留待验证。

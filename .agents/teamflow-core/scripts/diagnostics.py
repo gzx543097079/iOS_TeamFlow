@@ -50,7 +50,7 @@ def requirement_summary(root, requirement):
     elif pending:
         next_step = '实际核对剩余 AC，使用 --confirm-ac 确认；证据有效时无需重跑'
     elif card['state'] == '完成':
-        next_step = '需求已完成；仅执行用户明确授权的交付目标'
+        next_step = '需求已完成；证据有效时不重跑测试，仅执行用户明确授权的交付目标'
     else:
         next_step = '复用有效证据执行 req complete'
     decisions = card['body'].split('## 决策与异常', 1)
