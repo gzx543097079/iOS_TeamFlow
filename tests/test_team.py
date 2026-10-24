@@ -187,6 +187,26 @@ class TeamTests(unittest.TestCase):
         self.assertFalse(hook.exists())
         self.assertIsNone(self.item('提交前检查'))
 
+    def test_hook_accepts_evidence_from_any_covering_profile(self):
+        self.extract(package_release.package_skill(ROOT))
+        (self.root / 'source.txt').write_text('source')
+        config = {'schema_version': 2, 'profiles': {
+            'quick': {'inputs': ['source.txt'], 'checks': {'unit': {'argv': [sys.executable, '-c', 'pass']}}},
+            'full': {'inputs': ['source.txt'], 'checks': {
+                'unit': {'argv': [sys.executable, '-c', 'pass']}, 'extra': {'argv': [sys.executable, '-c', 'pass']}}}}}
+        (self.root / '.agents/project-checks.json').write_text(json.dumps(config))
+        # 钩子装在 quick、证据绑定在 full：门禁按覆盖与有效性复用证据，不限定 profile 名。
+        self.assertEqual(0, self.cli('setup', '--git-hook', 'quick').returncode)
+        req = json.loads(self.cli('req', 'create', '--title', 'hook profile', '--json').stdout)['requirement']
+        card = self.root / 'requirements' / (req + '.md')
+        card.write_text(card.read_text().replace('〈填写本次要达到的结果〉', '验证提交')
+                        .replace('〈填写可观察的输入、操作和预期结果〉', '提交复用证据'))
+        done = self.cli('req', 'complete', req, '--profile', 'full', '--confirm-ac', 'AC-01')
+        self.assertEqual(0, done.returncode, done.stderr)
+        self.git('add', 'source.txt', '.agents/project-checks.json', str(card.relative_to(self.root)))
+        committed = self.git('commit', '-qm', 'allowed', check=False)
+        self.assertEqual(0, committed.returncode, committed.stdout + committed.stderr)
+
     def test_hook_refuses_foreign_hook_and_shared_hooks_path(self):
         self.extract(package_release.package_skill(ROOT))
         self.configure('pass')

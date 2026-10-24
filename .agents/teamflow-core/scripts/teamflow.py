@@ -363,7 +363,8 @@ def hook_check(root, profile):
     for row in rows:
         card = parse_card(requirement_path(root, row['requirement']))
         saved = card['evidence'] or {}
-        if saved.get('kind') != 'result' or saved.get('profile') != profile:
+        # 只要是仍有效且覆盖暂存内容的自动证据即可放行；证据本身的覆盖与指纹由 git_check 核对。
+        if saved.get('kind') != 'result':
             continue
         try:
             return git_check(root, row['requirement'])
@@ -371,7 +372,7 @@ def hook_check(root, profile):
             problems.append(row['requirement'] + '：' + str(error))
     reason = '；'.join(problems[:3]) or '没有覆盖暂存内容的已绑定证据'
     raise ValueError('提交证据检查失败，未运行测试：' + reason +
-                     '；请先 req complete <需求编号> --profile ' + profile + '，再暂存验收后的内容')
+                     '；请先 req complete <需求编号> --profile <覆盖本次提交的 profile>，再暂存验收后的内容')
 
 
 def status(root, requirement):

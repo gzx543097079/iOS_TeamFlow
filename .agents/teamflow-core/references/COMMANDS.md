@@ -50,7 +50,7 @@ python3 scripts/teamflow.py setup --no-git-hook
 ```
 
 - `upgrade` 按安装清单替换当前模式的核心与 Skill，移除新版不再包含的旧文件。有本地改动或包不含当前模式时拒绝；`--force` 覆盖本地改动，`--mode` 同时切换模式。不触碰 `.agents/team/`、需求卡和项目配置。
-- `setup --git-hook` 为本机安装 pre-commit，提交前通过 `git hook --profile <名>` 只复核该 profile 的需求证据与暂存覆盖；缺失或失效直接报错，不自动跑测试；`--no-git-hook` 只移除 TeamFlow 管理的 Hook。规则见 [INSTALL](INSTALL.md#提交前检查可选)。
+- `setup --git-hook` 为本机安装 pre-commit，提交前通过 `git hook --profile <名>` 复核覆盖暂存内容且仍有效的需求证据；缺失或失效直接报错，不自动跑测试；`--no-git-hook` 只移除 TeamFlow 管理的 Hook。规则见 [INSTALL](INSTALL.md#提交前检查可选)。
 
 ## 只读辅助
 
