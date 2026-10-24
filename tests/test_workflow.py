@@ -56,6 +56,23 @@ class WorkflowTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'PROJECT-CONTEXT.md 的链接不存在'):
                 validate_workflow.validate(root)
 
+    def test_stale_version_examples_in_distribution_docs_are_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name in package_release.FILES + ('.agents/project-checks.json',):
+                (root / name).parent.mkdir(parents=True, exist_ok=True)
+                (root / name).write_bytes((ROOT / name).read_bytes())
+            validate_workflow.validate(root)
+            install = root / package_release.CORE / 'references/INSTALL.md'
+            original = install.read_text()
+            install.write_text(original + '\nunzip ~/Downloads/teamflow-ios-v0.0.1.zip\n')
+            with self.assertRaisesRegex(ValueError, '版本示例 0.0.1 与 VERSION'):
+                validate_workflow.validate(root)
+            # CHANGELOG 与内测记录保留历史版本号，不视为示例。
+            install.write_text(original)
+            (root / 'CHANGELOG.md').write_text('# 版本记录\n\n## 0.0.1\n\n- 旧版本。\n')
+            validate_workflow.validate(root)
+
     def test_heading_slug_matches_github(self):
         self.assertEqual('显式-git-动作', validate_workflow.slug('显式 Git 动作'))
         self.assertEqual('授权与停止', validate_workflow.slug('授权与停止'))

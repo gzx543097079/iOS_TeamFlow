@@ -90,6 +90,13 @@ def validate(root):
     readme = (root / 'README.md').read_text()
     if '当前版本为 **' + version + '**' not in readme:
         errors.append('README 当前版本与 VERSION 不一致')
+    # 分发文档中的版本示例必须与当前 VERSION 一致；CHANGELOG 与内测记录保留历史版本。
+    historical = {'CHANGELOG.md', 'docs/TRIAL.md'}
+    for name in FILES:
+        if not name.endswith('.md') or name in historical:
+            continue
+        for found in {(a or b) for a, b in re.findall(r'-v(\d+\.\d+\.\d+)\.zip|至 (\d+\.\d+\.\d+)', (root / name).read_text())} - {version}:
+            errors.append(f'{name} 的版本示例 {found} 与 VERSION {version} 不一致')
     if errors:
         raise ValueError('\n'.join(errors))
 
