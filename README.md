@@ -2,7 +2,7 @@
 
 TeamFlow 是一套面向 AI Agent 辅助开发的中文工作流。它把需求拆解、实施边界、验证证据和交付记录串在一起，帮助小团队在 Codex 与 Claude Code 中保持一致的协作方式。
 
-本仓库维护的是工作流本身：规则、Agent 专题、需求与验证工具，以及安装包的构建定义。它不包含业务 App 或游戏工程。当前版本为 **1.1.2**。
+本仓库维护的是工作流本身：规则、Agent 专题、需求与验证工具，以及安装包的构建定义。它不包含业务 App 或游戏工程。当前版本为 **1.2.0**。
 
 ## 解决什么问题
 
@@ -19,9 +19,9 @@ TeamFlow 是一套面向 AI Agent 辅助开发的中文工作流。它把需求�
 
 | 安装包 | 适用项目 | 专题内容 |
 | --- | --- | --- |
-| `teamflow-ios-v1.1.2.zip` | 原生 iOS App | 共用核心、iOS 开发专题 |
-| `teamflow-godot-v1.1.2.zip` | Godot 游戏 | 共用核心、Godot 开发专题 |
-| `teamflow-godot-ios-v1.1.2.zip` | Godot 游戏及其 iOS 导出、原生插件 | 共用核心、Godot 与 iOS 专题 |
+| `teamflow-ios-v1.2.0.zip` | 原生 iOS App | 共用核心、iOS 开发专题 |
+| `teamflow-godot-v1.2.0.zip` | Godot 游戏 | 共用核心、Godot 开发专题 |
+| `teamflow-godot-ios-v1.2.0.zip` | Godot 游戏及其 iOS 导出、原生插件 | 共用核心、Godot 与 iOS 专题 |
 
 安装包可从 [GitHub Releases](https://github.com/gzx543097079/iOS_TeamFlow/releases) 获取。新项目选择对应模式；已有项目的接入、升级和定制说明见[安装与升级指南](.agents/teamflow-core/references/INSTALL.md)。
 
