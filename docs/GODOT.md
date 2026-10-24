@@ -16,18 +16,18 @@ Godot 4.x + GDScript 与 iOS 原生使用同一套 TeamFlow 核心，按安装�
 
 | 安装包 | 模式 | AGENTS 入口 |
 | --- | --- | --- |
-| `teamflow-godot-v1.2.0.zip` | `godot` | Godot Skill，跳过 iOS 路由；不含 iOS Skill |
-| `teamflow-godot-ios-v1.2.0.zip` | `godot-ios` | Godot Skill，iOS 原生插件按路由加载原生规范 |
+| `teamflow-godot-v1.2.1.zip` | `godot` | Godot Skill，跳过 iOS 路由；不含 iOS Skill |
+| `teamflow-godot-ios-v1.2.1.zip` | `godot-ios` | Godot Skill，iOS 原生插件按路由加载原生规范 |
 
 新项目在 Git 根解压即可使用：
 
 ```sh
-unzip ~/Downloads/teamflow-godot-v1.2.0.zip -d .
+unzip ~/Downloads/teamflow-godot-v1.2.1.zip -d .
 python3 scripts/teamflow.py setup      # 可选：在根 .gitignore 补上 .godot/
 python3 scripts/teamflow.py doctor
 ```
 
-已有项目用 `unzip -n` 解压，再运行 `python3 .agents/teamflow-core/scripts/teamflow.py setup --mode godot`（或 `--mode godot-ios`）合并入口。重复运行 setup 时不传 mode 会沿用已选入口；后续加入 iOS 时运行 `python3 scripts/teamflow.py upgrade teamflow-godot-ios-v1.2.0.zip --mode godot-ios`，同版本也可以这样补装 iOS Skill 并切换入口。安装选择保存在 AGENTS 托管区块中，不另建状态配置。详见[安装说明](../.agents/teamflow-core/references/INSTALL.md)。
+已有项目用 `unzip -n` 解压，再运行 `python3 .agents/teamflow-core/scripts/teamflow.py setup --mode godot`（或 `--mode godot-ios`）合并入口。重复运行 setup 时不传 mode 会沿用已选入口；后续加入 iOS 时运行 `python3 scripts/teamflow.py upgrade teamflow-godot-ios-v1.2.1.zip --mode godot-ios`，同版本也可以这样补装 iOS Skill 并切换入口。安装选择保存在 AGENTS 托管区块中，不另建状态配置。详见[安装说明](../.agents/teamflow-core/references/INSTALL.md)。
 
 团队协作建议先完成两件事：
 
