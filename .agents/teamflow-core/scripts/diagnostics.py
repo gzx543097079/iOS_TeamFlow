@@ -79,6 +79,12 @@ def doctor(root):
         for profile in config['profiles']:
             project_checks.source_snapshot(root, config, profile)
         checks.append({'item': '验证配置及输入', 'status': '就绪', 'detail': list(config['profiles'])})
+        # 升级不改项目脚本；旧形态在此提示，按 INSTALL「升级」在升级任务中迁移。
+        issues = project_checks.legacy_layout(root, config)
+        if issues:
+            checks.append({'item': '验证配置形态',
+                           'status': '需处理' if any(i['status'] == '需处理' for i in issues) else '提示',
+                           'detail': [i['detail'] for i in issues] + ['迁移步骤见 CHECKS「从全量脚本迁移」']})
     except FileNotFoundError:
         pass
     except (ValueError, OSError, KeyError, TypeError, subprocess.CalledProcessError) as error:

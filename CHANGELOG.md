@@ -1,5 +1,12 @@
 # 版本记录
 
+## 1.6.0
+
+来源：用户纠正——升级到 1.5.0 后 Slipwise 的日常 profile 仍是单个全量检查（`check_app.py` 内含 Release 模拟器构建，与 `cloud-release` 重复），未声明 check covers，每次整组执行（REQ-20261025-1ec0）。
+
+- `doctor` 新增「验证配置形态」：日常（非 manual）profile 的命令或其引用的项目脚本含 Release 构建为需处理，并列出同样含 Release 构建的其他 profile；未声明 check covers 为提示。
+- `upgrade` 完成后用新核心复核，旧形态时报告“验证配置待迁移”；升级仍不改写项目脚本，INSTALL 规定在同一次升级任务中另建卡迁移，CHECKS 新增「从全量脚本迁移」步骤。从旧版升级时由旧核心执行升级，本次提示需升级后运行 `doctor` 看到。
+
 ## 1.5.0
 
 来源：颜见会话实测（{{ACCOUNT_15skr24k}}）：01:35–03:18 UTC 长耗时约 76 分钟，约 64 分钟为 Agent 固定时长 sleep 轮询，约 10 分钟为绕过 TeamFlow 直接运行全套 xcodebuild test，TeamFlow 验证约 11 分钟；尚未在消费项目复测；合并方式规则来自用户纠正（REQ-20261024-2f7a）。

@@ -116,6 +116,21 @@ class UpgradeTests(unittest.TestCase):
         self.assertEqual('就绪', entry['status'])
         self.assertIn('9.0.0', entry['detail'])
 
+    def test_upgrade_reports_legacy_check_layout(self):
+        self.install(self.ios)
+        package = self.newer(self.ios)
+        self.assertNotIn('config_migration', upgrade.upgrade(self.root, package, force=True))
+        (self.root / 'source.txt').write_text('x')
+        (self.root / 'scripts/check_app.py').write_text("run(['xcodebuild', '-configuration', 'Release', 'build'])\n")
+        (self.root / '.agents/project-checks.json').write_text(json.dumps({'schema_version': 2, 'profiles': {
+            'change': {'inputs': ['source.txt', 'scripts/check_app.py'],
+                       'checks': {'app': {'argv': ['python3', 'scripts/check_app.py']}}}}}))
+        result = upgrade.upgrade(self.root, package, force=True)
+        self.assertEqual('需处理', result['config_migration']['status'])
+        brief = upgrade.describe(result)
+        self.assertIn('验证配置待迁移', brief)
+        self.assertIn('change 的检查 app 含 Release 构建', brief)
+
     def test_local_changes_block_upgrade_until_forced(self):
         self.install(self.ios)
         (self.root / WORKFLOW).write_text('团队直接改过的规则\n')
