@@ -63,7 +63,7 @@ python3 scripts/teamflow.py req status REQ-20260101-a3f9
 ```
 
 - `doctor` 汇总接入、验证配置与输入、占位卡片、失效证据及已启用模块索引，默认每项一行，`--json` 输出完整结构。已完成需求的自动证据与交付提交（卡片记录该证据的提交）输入一致时视为交付时有效，之后的代码演进不再提示；已提交但对不上的列为历史提示，不计入需处理；完成后未提交即失效的计入需处理。`req complete` 与 `git check` 仍按当前内容校验。Git 跟踪文件达到 1000 个且未启用模块索引时给出提示。发现需处理项退出 1，不执行修复或项目检查；不因工具仓库缺少 Xcode 强制阻塞。
-- `verify suggest` 列出相对 HEAD 的暂存、未暂存和未跟踪改动（`--requirement` 另计该需求带尾注的已提交改动）、各 profile 覆盖和遗漏路径，以及 `req complete` 会自动选用的 profile。只按路径建议，不能判断某项测试足以验证业务语义；不执行检查。
+- `verify suggest` 列出相对 HEAD 的暂存、未暂存和未跟踪改动（`--requirement` 另计该需求带尾注的已提交改动）、各 profile 覆盖和遗漏路径、各 profile 最近一次通过的实际耗时，以及 `req complete` 会自动选用的 profile。只按路径建议，不能判断某项测试足以验证业务语义；不执行检查。`verify run` 的多项检查并行执行；incremental profile 中指纹未变的检查复用上次通过结果，输出标明“复用上次通过（未重跑）”。
 - `req pr` 由需求卡生成 PR 标题与正文，`git ci --base <基线>` 供 CI 核对基线之后改动的完成卡证据，用法见 [REVIEW](REVIEW.md)。
 - `req status` 汇总状态、进度、证据有效性与问题、剩余 AC 和下一步，`--json` 另含范围、AC 与决策记录。不修改状态，不自动恢复阻塞或取消，不为已完成需求扩张交付。
 

@@ -490,7 +490,9 @@ def render(kind, data):
         total = len(data['changed_files'])
         lines = [f'改动文件：{total} 个' + (f"，建议 {data['recommended']}" if data['recommended'] else '')]
         lines.extend(f"{p['profile']}：覆盖 {len(p['covered_files'])}/{total}" +
-                     ('（全部）' if p['covers_all_changes'] else '') for p in data['profiles'])
+                     ('（全部）' if p['covers_all_changes'] else '') +
+                     (f"，上次通过 {p['last_pass']['wall_seconds']:g} 秒" if p.get('last_pass') else '')
+                     for p in data['profiles'])
         if data.get('ambiguous_profiles'):
             lines.append('优先级相同，请指定 profile 或配置 priority：' + '、'.join(data['ambiguous_profiles']))
         if data['uncovered_files']:

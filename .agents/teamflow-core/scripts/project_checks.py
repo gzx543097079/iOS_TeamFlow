@@ -121,7 +121,8 @@ def suggest(root, requirement=None):
         covered.update(selected)
         profiles.append({'profile': profile, 'covered_files': sorted(selected),
                          'uncovered_files': sorted(names - selected),
-                         'covers_all_changes': bool(names) and selected == names})
+                         'covers_all_changes': bool(names) and selected == names,
+                         'last_pass': last_pass(root, profile)})
     covering = [item['profile'] for item in profiles if item['covers_all_changes']]
     # 检查数量不能代表成本：一个命令也可能包含全量测试。优先级相同不猜测。
     best = min((config['profiles'][name].get('priority', 100) for name in covering), default=None)
@@ -193,6 +194,8 @@ def load_config(root):
             covers = {str(Path(name)) for name in settings['covers']}
             if input_paths(root, settings['inputs'], covers) != covers:
                 raise ValueError('covers 必须包含在 inputs 依赖范围内：' + profile)
+        if 'incremental' in settings and not isinstance(settings['incremental'], bool):
+            raise ValueError('incremental 必须为布尔值：' + profile)
         if not isinstance(settings.get('checks'), dict) or not settings['checks']:
             raise ValueError('profile 必须包含非空 checks 对象：' + profile)
         for name, check in settings['checks'].items():
@@ -202,6 +205,8 @@ def load_config(root):
             if (not isinstance(argv, list) or not argv
                     or any(not isinstance(arg, str) or not arg or '\0' in arg for arg in argv)):
                 raise ValueError(name + ' 的 argv 必须为非空字符串数组')
+            if check.get('inputs') is not None:
+                input_paths(root, check['inputs'], set())
             timeout = check.get('timeout_seconds', 900)
             if type(timeout) is not int or not 1 <= timeout <= 86400:
                 raise ValueError(name + ' 的 timeout_seconds 必须为 1–86400')
@@ -267,13 +272,16 @@ def content_for_snapshot(name, content):
 
 
 def effective_config(config, profile):
-    """仅绑定所选检查的执行语义，其他 profile 和 JSON 排版不影响证据。"""
+    """仅绑定所选检查的执行语义，其他 profile 和 JSON 排版不影响证据。
+    新字段只在显式配置时写入，保证未启用 incremental 的 profile 指纹不变。"""
     settings = config['profiles'][profile]
     return {**({'covers': settings['covers']} if 'covers' in settings else {}),
             'inputs': settings.get('inputs'),
+            **({'incremental': True} if settings.get('incremental') else {}),
             'checks': [{'name': name, 'argv': check['argv'],
                         'cwd': check.get('cwd', '.'),
-                        'timeout_seconds': check.get('timeout_seconds', 900)}
+                        'timeout_seconds': check.get('timeout_seconds', 900),
+                        **({'inputs': check['inputs']} if check.get('inputs') is not None else {})}
                        for name, check in settings['checks'].items()]}
 
 
@@ -406,11 +414,66 @@ def verify(root, result, staged=False):
     return report
 
 
+def check_snapshot(root, config, profile, name):
+    """检查级指纹：命令与该检查声明的输入（未声明时退回整个 profile 输入）。
+    不含 CONFIG 与其他检查：同 profile 其他检查变化不应使本检查的复用失效。"""
+    check = config['profiles'][profile]['checks'][name]
+    files = {}
+    for item in sorted(input_paths(root, check.get('inputs', config['profiles'][profile].get('inputs')))):
+        path = local_path(root, item)
+        if path.is_file():
+            files[item] = hashlib.sha256(content_for_snapshot(item, path.read_bytes())).hexdigest()
+    identity = {'name': name, 'argv': check['argv'], 'cwd': check.get('cwd', '.'), 'inputs': files}
+    return hashlib.sha256(json.dumps(identity, sort_keys=True, ensure_ascii=True).encode()).hexdigest()
+
+
+def reusable_results(root, profile):
+    """最近完成（输入未中途变化）运行中各检查的通过结果，供 incremental 复用；最新优先。
+    整体失败运行中的其余通过项同样可信：复用始终来自该检查自身通过、指纹可比对的执行。"""
+    available = {}
+    directory = local_path(root, 'logs/project-checks')
+    if not directory.is_dir():
+        return available
+    for run_dir in sorted((item for item in directory.iterdir() if item.is_dir()),
+                          key=lambda item: item.name, reverse=True)[:40]:
+        try:
+            report = json.loads((run_dir / 'result.json').read_text())
+        except (OSError, ValueError):
+            continue
+        if report.get('profile') != profile or report.get('status') not in ('通过', '失败'):
+            continue
+        for item in report.get('results', []):
+            if item.get('status') == '通过' and item.get('check_fingerprint') and item['name'] not in available:
+                available[item['name']] = (run_dir.name, item)
+    return available
+
+
+def last_pass(root, profile):
+    """该 profile 最近一次通过运行的实际耗时；旧报告无 wall_seconds 时按检查耗时合计估算。"""
+    directory = local_path(root, 'logs/project-checks')
+    if not directory.is_dir():
+        return None
+    for run_dir in sorted((item for item in directory.iterdir() if item.is_dir()),
+                          key=lambda item: item.name, reverse=True)[:40]:
+        try:
+            report = json.loads((run_dir / 'result.json').read_text())
+        except (OSError, ValueError):
+            continue
+        if report.get('profile') == profile and report.get('status') == '通过':
+            wall = report.get('wall_seconds')
+            if wall is None:
+                wall = round(sum(item.get('duration_seconds') or 0 for item in report.get('results', [])), 1)
+            return {'wall_seconds': wall, 'completed_at': report.get('completed_at')}
+    return None
+
+
 def run(root, profile, requirement=None):
     root = root.resolve()
     config = load_config(root)
     if profile not in config['profiles']:
         raise ValueError('未配置所选 profile：' + profile)
+    settings = config['profiles'][profile]
+    incremental = bool(settings.get('incremental'))
     source_before = source_snapshot(root, config, profile, requirement=requirement)
     directory = local_path(root, 'logs/project-checks')
     directory.mkdir(parents=True, exist_ok=True)
@@ -425,31 +488,64 @@ def run(root, profile, requirement=None):
     report = {'schema_version': 2, 'profile': profile, 'requirement': requirement,
               'started_at': datetime.now(timezone.utc).isoformat(),
               'head': head.stdout.strip() if head.returncode == 0 else None,
-              'scope': 'working-tree', 'source': source_before, 'results': [], 'status': '未验证'}
+              'scope': 'working-tree', 'source': source_before, 'results': [], 'status': '未验证',
+              **({'incremental': True} if incremental else {})}
+    results = {}
+
+    def save():
+        # 逐项落盘便于中途观察；未完成的检查暂不出现在结果里，整体状态仍为未验证。
+        report['results'] = [results[name] for name in settings['checks'] if name in results]
+        (run_dir / 'result.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
+
     # 配置和命令属于团队明确选定的可执行代码；不使用 shell，不代入需求中的任意文本。
-    for name, check in config['profiles'][profile]['checks'].items():
-        start = time.monotonic()
+    reuse = reusable_results(root, profile) if incremental else {}
+    started = time.monotonic()
+    waiting = []
+    for name, check in settings['checks'].items():
         result = {'name': name, 'argv': check['argv'], 'cwd': check.get('cwd', '.'),
                   'log': name + '.log', 'status': '未验证', 'exit_code': None}
-        with (run_dir / result['log']).open('wb') as stream:
-            try:
-                process = subprocess.Popen(check['argv'], cwd=local_path(root, result['cwd']),
-                                           stdin=subprocess.DEVNULL, stdout=stream,
-                                           stderr=subprocess.STDOUT, start_new_session=True)
-                try:
-                    result['exit_code'] = process.wait(timeout=check.get('timeout_seconds', 900))
-                    result['status'] = '通过' if result['exit_code'] == 0 else '失败'
-                except subprocess.TimeoutExpired:
-                    os.killpg(process.pid, signal.SIGKILL)
-                    process.wait()
-                    result['status'] = '超时'
-            except OSError as error:
-                result.update(status='无法执行', error=str(error))
-        result['duration_seconds'] = round(time.monotonic() - start, 3)
-        report['results'].append(result)
-        # 每个所选检查都是本次必跑项；失败后仍收集其余检查结果。
-        (run_dir / 'result.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
+        if incremental:
+            # 检查级指纹一致时复用最近一次通过结果，不重新执行；整体绑定仍按本次输入快照计算。
+            result['check_fingerprint'] = check_snapshot(root, config, profile, name)
+            origin = reuse.get(name)
+            if origin and origin[1]['check_fingerprint'] == result['check_fingerprint']:
+                previous_dir, previous = origin
+                result.update(log=(previous['log'] if 'reused_from' in previous
+                                   else previous_dir + '/' + previous['log']),
+                              status='通过', exit_code=previous.get('exit_code'),
+                              duration_seconds=previous.get('duration_seconds'), reused=True,
+                              reused_from=previous.get('reused_from', previous_dir))
+                results[name] = result
+                save()
+                continue
+        try:
+            stream = (run_dir / result['log']).open('wb')
+            process = subprocess.Popen(check['argv'], cwd=local_path(root, result['cwd']),
+                                       stdin=subprocess.DEVNULL, stdout=stream,
+                                       stderr=subprocess.STDOUT, start_new_session=True)
+        except OSError as error:
+            result.update(status='无法执行', error=str(error), duration_seconds=0.0)
+            results[name] = result
+            save()
+            continue
+        waiting.append((process, check, result, stream))
+    # 检查同时启动、并行等待；超时自共同启动时刻独立计算，只终止自身的进程组。
+    for process, check, result, stream in waiting:
+        try:
+            result['exit_code'] = process.wait(
+                timeout=max(0.1, check.get('timeout_seconds', 900) - (time.monotonic() - started)))
+            result['status'] = '通过' if result['exit_code'] == 0 else '失败'
+        except subprocess.TimeoutExpired:
+            os.killpg(process.pid, signal.SIGKILL)
+            process.wait()
+            result['status'] = '超时'
+        finally:
+            stream.close()
+        result['duration_seconds'] = round(time.monotonic() - started, 3)
+        results[result['name']] = result
+        save()
     report['status'] = '通过' if all(r['status'] == '通过' for r in report['results']) else '失败'
+    report['wall_seconds'] = round(time.monotonic() - started, 3)
     unchanged = False
     try:
         source_after = source_snapshot(root, load_config(root), profile, requirement=requirement)
@@ -500,6 +596,9 @@ def describe_run(root, target):
                 line += '\n' + result['name'] + ' 关键行：\n' + '\n'.join('  ' + item for item in excerpt)
     elif report['status'] != '通过':
         line += '：运行期间输入变化，请重新验证'
+    reused = [r['name'] for r in report['results'] if r.get('reused')]
+    if reused:
+        line += '\n复用上次通过（未重跑）：' + '、'.join(reused)
     return line
 
 
