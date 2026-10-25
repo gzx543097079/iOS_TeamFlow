@@ -93,7 +93,7 @@ HOOK_MARK = '# teamflow:managed-hook'
 HOOK = '''#!/bin/sh
 {mark}
 # 由 teamflow setup --git-hook 安装；git commit --no-verify 可临时跳过，--no-git-hook 移除。
-exec python3 scripts/teamflow.py git hook --profile '{profile}'
+exec python3 scripts/teamflow.py git hook
 '''
 ENTRY = '''#!/usr/bin/env python3
 """从项目内 Skill 加载 TeamFlow 唯一实现。"""
@@ -123,6 +123,12 @@ def managed_span(current):
     if current.count(START) != 1 or current.count(END) != 1 or current.index(START) >= current.index(END):
         raise ValueError('AGENTS.md 托管标记无效')
     return current.index(START), current.index(END) + len(END), current.split(START, 1)[1].split(END, 1)[0]
+
+
+def outside_block(current):
+    """托管区块之外的项目自有内容；用于区分 TeamFlow 入口更新与项目规则改动。"""
+    span = managed_span(current)
+    return current if span is None else current[:span[0]] + current[span[1]:]
 
 
 def agents_content(current, block=BLOCK):
@@ -228,39 +234,37 @@ def hook_path(project):
     return path
 
 
-def managed_hook_profile(path):
-    """返回托管 Hook 的 profile；非托管 Hook 返回空串，不存在返回 None。"""
+def managed_hook(path):
+    """返回托管 Hook 的内容；非托管 Hook 返回空串，不存在返回 None。"""
     if not path.exists() and not path.is_symlink():
         return None
     text = path.read_text() if path.is_file() and not path.is_symlink() else ''
-    if HOOK_MARK not in text:
-        return ''
-    match = re.search(r"--profile '([^']+)'", text)
-    return match.group(1) if match else ''
+    return text if HOOK_MARK in text else ''
 
 
-def hook_plan(project, profile=None, remove=False):
+def hook_plan(project, remove=False):
     """返回 Hook 目标路径与新内容；None 表示删除托管 Hook。"""
     path = hook_path(project)
-    current = managed_hook_profile(path)
-    if current == '':
+    if managed_hook(path) == '':
         raise ValueError('已存在非 TeamFlow 管理的 pre-commit Hook，不覆盖：' + str(path))
     if remove:
         return path, None
-    if not re.fullmatch(r'[A-Za-z0-9_.-]+', profile):
-        raise ValueError('profile 名称只能包含字母、数字、点、下划线和连字符')
     import project_checks
-    if profile not in project_checks.load_config(project)['profiles']:
-        raise ValueError('未配置所选 profile：' + profile)
-    return path, HOOK.format(mark=HOOK_MARK, profile=profile)
+    if not project_checks.load_config(project)['profiles']:
+        raise ValueError('提交前检查需要至少一个验证 profile')
+    return path, HOOK.format(mark=HOOK_MARK)
 
 
-def setup(project, skill, dry_run=False, claude_link=False, mode=None, git_hook=None, remove_hook=False):
+def setup(project, skill, dry_run=False, claude_link=False, mode=None, git_hook=False, remove_hook=False):
     """返回计划写入的文件；claude_link 额外让 Claude Code 把 Skill 识别为原生 Skill。"""
     project = project.expanduser().resolve()
     mode = install_mode(project, mode)
-    planned = plan(project, skill, mode)
-    hook = hook_plan(project, git_hook, remove_hook) if git_hook or remove_hook else None
+    hook = hook_plan(project, remove_hook) if git_hook or remove_hook else None
+    source = source_repository(project)
+    if source and hook is None:
+        # 工作流源码仓库不安装托管入口；只允许管理本机提交钩子。
+        raise ValueError('TeamFlow 源码仓库不安装托管入口；只可使用 --git-hook 或 --no-git-hook')
+    planned = {} if source else plan(project, skill, mode)
     if hook and hook[1] is not None:
         planned[str(hook[0])] = hook[1].encode()
     link_name, link_target = claude_link_spec(mode)
@@ -270,7 +274,7 @@ def setup(project, skill, dry_run=False, claude_link=False, mode=None, git_hook=
     # 曾选择 Claude 接入的项目切换模式时，同步唯一受管理的 Skill 链接。
     managed_opposite = opposite.is_symlink() and os.readlink(opposite) == opposite_target
     link_ready = link.is_symlink() and os.readlink(link) == link_target
-    enable_link = claude_link or managed_opposite or link_ready
+    enable_link = not source and (claude_link or managed_opposite or link_ready)
     if enable_link:
         safe(project, '.claude/skills')
         if not link_ready and (link.exists() or link.is_symlink()):
@@ -355,21 +359,21 @@ def source_repository(project):
 
 def hook_status(project):
     try:
-        profile = managed_hook_profile(hook_path(project))
+        text = managed_hook(hook_path(project))
     except ValueError:
         return []
-    if not profile:
+    if not text:
         return []
     try:
         import project_checks
-        ready = profile in project_checks.load_config(project)['profiles']
+        ready = bool(project_checks.load_config(project)['profiles'])
     except (ValueError, OSError, KeyError, TypeError):
         ready = False
-    current = hook_path(project).read_text() == HOOK.format(mark=HOOK_MARK, profile=profile)
-    detail = ('pre-commit 只复核证据 ' + profile if current else
-              '旧版或自定义托管 Hook 可能执行测试；请核对后 setup --git-hook ' + profile)
+    current = text == HOOK.format(mark=HOOK_MARK)
+    detail = ('pre-commit 只复核暂存内容的已绑定证据' if current else
+              '旧版或自定义托管 Hook（可能限定 profile 或执行测试）；请核对后 setup --git-hook 迁移')
     return [{'item': '提交前检查', 'status': '就绪' if ready and current else '需处理',
-             'detail': detail + ('' if ready else '；该 profile 不存在或配置无效')}]
+             'detail': detail + ('' if ready else '；验证配置缺失或无效')}]
 
 
 def toolchain(project):

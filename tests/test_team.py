@@ -152,14 +152,14 @@ class TeamTests(unittest.TestCase):
         self.configure('raise SystemExit(1)')
         self.assertEqual(0, self.cli('setup').returncode)
         self.assertFalse(hook.exists())
-        missing = self.cli('setup', '--git-hook', 'absent')
-        self.assertIn('未配置所选 profile', missing.stderr)
+        # 钩子不再绑定 profile：旧用法的 profile 参数被明确拒绝，而不是静默忽略。
+        self.assertNotEqual(0, self.cli('setup', '--git-hook', 'quick').returncode)
         self.assertFalse(hook.exists())
-        self.assertNotEqual(0, self.cli('setup', '--git-hook', "x';rm").returncode)
-        preview = self.cli('setup', '--git-hook', 'quick', '--plan')
-        self.assertIn('git hook --profile', preview.stdout)
+        preview = self.cli('setup', '--git-hook', '--plan')
+        self.assertIn('git hook\n', preview.stdout)
+        self.assertNotIn('--profile', preview.stdout)
         self.assertFalse(hook.exists())
-        result = self.cli('setup', '--git-hook', 'quick')
+        result = self.cli('setup', '--git-hook')
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertTrue(hook.stat().st_mode & 0o100)
         self.git('add', 'source.txt')
@@ -179,7 +179,7 @@ class TeamTests(unittest.TestCase):
         self.assertEqual('就绪', self.item('提交前检查')['status'])
         hook.write_text(hook.read_text().replace('git hook', 'verify run'))
         self.assertEqual('需处理', self.item('提交前检查')['status'])
-        self.assertEqual(0, self.cli('setup', '--git-hook', 'quick').returncode)
+        self.assertEqual(0, self.cli('setup', '--git-hook').returncode)
         self.assertIn('git hook', hook.read_text())
         (self.root / '.agents/project-checks.json').write_text('{"schema_version": 2, "profiles": {}}')
         self.assertEqual('需处理', self.item('提交前检查')['status'])
@@ -196,7 +196,7 @@ class TeamTests(unittest.TestCase):
                 'unit': {'argv': [sys.executable, '-c', 'pass']}, 'extra': {'argv': [sys.executable, '-c', 'pass']}}}}}
         (self.root / '.agents/project-checks.json').write_text(json.dumps(config))
         # 钩子装在 quick、证据绑定在 full：门禁按覆盖与有效性复用证据，不限定 profile 名。
-        self.assertEqual(0, self.cli('setup', '--git-hook', 'quick').returncode)
+        self.assertEqual(0, self.cli('setup', '--git-hook').returncode)
         req = json.loads(self.cli('req', 'create', '--title', 'hook profile', '--json').stdout)['requirement']
         card = self.root / 'requirements' / (req + '.md')
         card.write_text(card.read_text().replace('〈填写本次要达到的结果〉', '验证提交')
@@ -214,16 +214,16 @@ class TeamTests(unittest.TestCase):
         hook = hook if hook.is_absolute() else self.root / hook
         hook.parent.mkdir(parents=True, exist_ok=True)
         hook.write_text('#!/bin/sh\nexit 0\n')
-        for args in (('--git-hook', 'quick'), ('--no-git-hook',)):
+        for args in (('--git-hook',), ('--no-git-hook',)):
             result = self.cli('setup', *args)
             self.assertIn('非 TeamFlow 管理', result.stderr)
         self.assertEqual('#!/bin/sh\nexit 0\n', hook.read_text())
         with tempfile.TemporaryDirectory() as shared:
             self.git('config', 'core.hooksPath', shared)
-            self.assertIn('项目外', self.cli('setup', '--git-hook', 'quick').stderr)
+            self.assertIn('项目外', self.cli('setup', '--git-hook').stderr)
             self.assertEqual([], list(Path(shared).iterdir()))
         self.git('config', 'core.hooksPath', '.githooks')
-        self.assertEqual(0, self.cli('setup', '--git-hook', 'quick').returncode)
+        self.assertEqual(0, self.cli('setup', '--git-hook').returncode)
         self.assertIn(setup_project.HOOK_MARK, (self.root / '.githooks/pre-commit').read_text())
 
 

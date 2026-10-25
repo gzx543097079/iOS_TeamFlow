@@ -15,14 +15,14 @@
 新项目解压即可使用，验证日志目录自带忽略规则：
 
 ```sh
-unzip ~/Downloads/teamflow-ios-v1.2.1.zip -d .
+unzip ~/Downloads/teamflow-ios-v1.3.0.zip -d .
 python3 scripts/teamflow.py doctor
 ```
 
 已有 `AGENTS.md` 或 `scripts/` 的项目不覆盖解压，再由 setup 合并托管区块：
 
 ```sh
-unzip -n ~/Downloads/teamflow-ios-v1.2.1.zip -d .
+unzip -n ~/Downloads/teamflow-ios-v1.3.0.zip -d .
 python3 .agents/teamflow-core/scripts/teamflow.py setup --mode ios
 ```
 
@@ -31,11 +31,11 @@ setup 写入 AGENTS 托管区块和 `scripts/teamflow.py`，在 `.gitignore` 忽
 ## 升级
 
 ```sh
-python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.2.1.zip --plan
-python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.2.1.zip
+python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.3.0.zip --plan
+python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.3.0.zip
 ```
 
-按安装清单替换未改动的核心与 Skill 文件，移除新版不再包含的文件，然后刷新入口。有本地改动时拒绝并列出文件，核对后可加 `--force`。`--mode` 同时切换模式，例如用 `teamflow-godot-ios` 包加 `--mode godot-ios` 给 Godot 项目补装 iOS Skill。`.agents/team/`、需求卡、验证配置和模块索引不触碰。已安装的项目不要用 `unzip -n` 升级。升级提交只含 TeamFlow 安装文件，不建卡，提交消息写明版本，例如“升级 TeamFlow 至 1.2.1”；与业务改动分开提交。
+按安装清单替换未改动的核心与 Skill 文件，移除新版不再包含的文件，然后刷新入口。有本地改动时拒绝并列出文件，核对后可加 `--force`。`--mode` 同时切换模式，例如用 `teamflow-godot-ios` 包加 `--mode godot-ios` 给 Godot 项目补装 iOS Skill。`.agents/team/`、需求卡、验证配置和模块索引不触碰。已安装的项目不要用 `unzip -n` 升级。升级提交只含 TeamFlow 安装文件，不建卡，提交消息写明版本，例如“升级 TeamFlow 至 1.3.0”；与业务改动分开提交。
 
 ## 团队定制
 
@@ -73,11 +73,13 @@ Codex 的 `prompt` 规则需要可交互的审批策略（如 `on-request`）；
 ## 提交前检查（可选）
 
 ```sh
-python3 scripts/teamflow.py setup --git-hook change
+python3 scripts/teamflow.py setup --git-hook
 python3 scripts/teamflow.py setup --no-git-hook
 ```
 
-为本机安装 pre-commit，复核覆盖暂存内容且仍有效的已绑定需求证据；检查源码指纹、暂存快照和 covers 覆盖，找不到覆盖整个暂存区的有效证据时拒绝并提示验收命令，不执行测试，支持 worktree 与项目内的 `core.hooksPath`；不覆盖非 TeamFlow 管理的 Hook，`git commit --no-verify` 可临时跳过。Hook 不随仓库提交。升级核心不会自动替换本机旧 Hook；`doctor` 提示旧版时，核对后重执行 `setup --git-hook <名>` 迁移。轻量无卡修改可不安装 Hook；已启用时需明确选择移除或临时跳过，不会凭扩展名自动放行。
+为本机安装 pre-commit，复核覆盖暂存内容且仍有效的已绑定需求证据（自动证据或仅含文档的人工证据，不限定 profile；优先核对本次暂存与进行中的卡）；检查源码指纹、暂存快照和 covers 覆盖，找不到覆盖整个暂存区的有效证据时拒绝并提示验收命令，不执行测试，支持 worktree 与项目内的 `core.hooksPath`；不覆盖非 TeamFlow 管理的 Hook，`git commit --no-verify` 可临时跳过。Hook 不随仓库提交。升级核心不会自动替换本机旧 Hook（1.2 及更早的 Hook 带 `--profile`，仍可运行）；`doctor` 提示旧版时，核对后重执行 `setup --git-hook` 迁移。轻量无卡修改不会凭扩展名自动放行：钩子识别到仅文档暂存时提示核对后用 `git commit --no-verify` 提交。TeamFlow 源码仓库只管理钩子，不写入托管入口。
+
+`AGENTS.md` 只在托管区块之外的项目规则未改动时视为安装文件；`.claude/settings.json` 与 `.codex/rules/teamflow.rules` 只在与原版模板一致时视为安装文件。项目自己的规则与权限改动须由验证 profile 覆盖。
 
 ## Claude Code Skill 链接
 

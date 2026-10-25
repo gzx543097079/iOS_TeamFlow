@@ -1,5 +1,17 @@
 # 版本记录
 
+## 1.3.0
+
+来源：用户要求的工作流复查（REQ-20261024-b714），每项均有修复前失败、修复后通过的回归测试；尚无新的真实项目试用记录。
+
+- 人工证据与 `git check` 统一使用文档白名单（`.md`、`.rst`、`.txt`）：Godot 脚本、场景、导出预设及各类配置不再能仅凭人工文字完成验收。
+- 提交钩子不再绑定 profile：`setup --git-hook` 不带参数，钩子也接受仅含文档的人工证据，优先核对本次暂存与进行中的卡，不再逐张哈希历史卡；仅文档暂存时提示轻量改动用 `git commit --no-verify`。1.2 及更早的钩子仍可运行，`doctor` 提示迁移；源码仓库执行 `setup --git-hook` 只装钩子，不再写入托管入口。
+- 自动选择 profile 计入本需求带 `Requirement:` 尾注的已提交改动，阶段提交后不再误选窄范围 profile，全部提交后也能选择；`verify suggest` 新增 `--requirement`。
+- `req state --reopen-ac` 重开完成的需求：须填写原因，取消指定 AC 并移出 `user_confirmed`，避免下一次验收复用证据直接判回完成。
+- `AGENTS.md` 只在托管区块外的项目规则未改动时、宿主权限文件只在与原版模板一致时视为安装文件；`git check` 列出暂存配置中未经本次证据执行的其他 profile 变化。
+- `git ci` 要求 PR 内的非文档改动由本 PR 需求卡的有效证据覆盖，只有代码、没有卡的 PR 不再通过；`req pr` 为未完成的卡标注 `[阶段]`。
+- WORKFLOW 准确描述工具对正文的写入范围；validate_workflow 新增文档命令参数与 CLI 一致性检查。
+
 ## 1.2.1
 
 - 修复 v1.2.0 分发文档（INSTALL、COMMANDS、Godot 接入说明）残留旧版本示例的问题；validate_workflow 新增版本示例一致性检查，拦截发版时遗漏的旧版本示例。

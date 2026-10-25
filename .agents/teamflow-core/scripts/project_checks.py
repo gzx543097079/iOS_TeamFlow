@@ -17,8 +17,11 @@ from requirement_model import ID, semantic_content
 CONFIG = '.agents/project-checks.json'
 
 
-def changed_paths(root):
-    """读取相对 HEAD 的暂存/工作区差异和未跟踪文件，支持尚无提交的仓库。"""
+def changed_paths(root, requirement=None):
+    """读取相对 HEAD 的暂存/工作区差异和未跟踪文件，支持尚无提交的仓库。
+
+    指定需求时另计入带 `Requirement: <编号>` 尾注的已提交改动，阶段提交后自动选择仍按整张卡的范围。
+    """
     top = subprocess.check_output(['git', '-C', str(root), 'rev-parse', '--show-toplevel'],
                                   stderr=subprocess.PIPE).decode().strip()
     if Path(top).resolve() != root.resolve():
@@ -29,19 +32,55 @@ def changed_paths(root):
         ['diff', '--cached', '--name-only', '--no-renames', '-z'],
         ['diff', '--name-only', '--no-renames', '-z']]
     commands.append(['ls-files', '--others', '--exclude-standard', '-z'])
+    if requirement is not None and head.returncode == 0:
+        if not ID.fullmatch(requirement):
+            raise ValueError('需求编号格式应为 REQ-YYYYMMDD-xxxx')
+        commands.append(['log', '--format=', '--name-only', '--no-renames', '-z',
+                         '--grep=^Requirement: ' + requirement + '$'])
     names = set()
     for argv in commands:
         raw = subprocess.check_output(['git', '-C', str(root), *argv])
-        names.update(os.fsdecode(name) for name in raw.split(b'\0') if name)
+        names.update(os.fsdecode(name).strip('\n') for name in raw.split(b'\0') if name.strip(b'\n'))
     return names
 
 
+DOCUMENT_SUFFIXES = ('.md', '.rst', '.txt')
+
+
+def non_document_paths(root, names):
+    """人工证据与提交检查共用的白名单：除 TeamFlow 安装文件和需求卡外，只有文档/记录可人工核对。"""
+    installed = installed_files(root)
+    return sorted(name for name in names if name not in installed and not name.startswith('requirements/')
+                  and not excluded_input(name) and Path(name).suffix.lower() not in DOCUMENT_SUFFIXES)
+
+
+def _git_text(root, spec):
+    shown = subprocess.run(['git', '-C', str(root), 'show', spec], capture_output=True)
+    return shown.stdout.decode('utf-8', 'replace') if shown.returncode == 0 else None
+
+
+def _versions(root, name):
+    """HEAD、暂存区与工作区三个版本；不存在为 None。"""
+    path = local_path(root, name)
+    return (_git_text(root, 'HEAD:' + name), _git_text(root, ':' + name),
+            path.read_text() if path.is_file() else None)
+
+
 def installed_files(root):
-    """TeamFlow 自身的安装文件不属于项目验证范围：与安装清单一致的核心与 Skill、入口、AGENTS 和权限配置。"""
+    """TeamFlow 自身的安装文件不属于项目验证范围：与安装清单一致的核心与 Skill、入口，
+    托管区块外未改动的 AGENTS，以及与原版模板一致的宿主权限文件。项目自己的规则与权限改动须由验证覆盖。"""
     import setup_project
     import upgrade
-    result = {name for name in ('AGENTS.md', '.claude/settings.json', '.codex/rules/teamflow.rules')
-              if local_path(root, name).is_file()}
+    result = set()
+    agents = [None if text is None else setup_project.outside_block(text) for text in _versions(root, 'AGENTS.md')]
+    if any(text is not None for text in agents) and len({(text or '').strip() for text in agents}) == 1:
+        result.add('AGENTS.md')
+    templates = Path(__file__).resolve().parents[1] / 'assets/permissions'
+    for name, source in setup_project.PERMISSION_TEMPLATES.items():
+        versions = _versions(root, name)
+        if any(text is not None for text in versions) and all(
+                text in (None, (templates / source).read_text()) for text in versions):
+            result.add(name)
     entry = local_path(root, 'scripts/teamflow.py')
     if entry.is_file() and entry.read_text() == setup_project.ENTRY:
         result.add('scripts/teamflow.py')
@@ -53,9 +92,26 @@ def installed_files(root):
     return result
 
 
-def suggest(root):
+def changed_profiles(root, keep=()):
+    """暂存配置相对 HEAD 改变了执行语义的 profile；本次证据实际运行的 profile 不列出。"""
+    def effective(text):
+        try:
+            profiles = json.loads(text)['profiles']
+            return {name: effective_config({'profiles': {name: resolve_profile(profiles, name)}}, name)
+                    for name in profiles}
+        except (ValueError, KeyError, TypeError):
+            return None
+    before, after = (effective(text) if text is not None else {} for text in _versions(root, CONFIG)[:2])
+    if after is None:
+        return []
+    before = before or {}
+    return sorted(name for name in after.keys() | before.keys()
+                  if name not in keep and after.get(name) != before.get(name))
+
+
+def suggest(root, requirement=None):
     config = load_config(root)
-    names = {name for name in changed_paths(root) if not excluded_input(name)
+    names = {name for name in changed_paths(root, requirement) if not excluded_input(name)
              and not name.startswith('requirements/')} - installed_files(root)
     profiles, covered = [], set()
     for profile, settings in config['profiles'].items():
@@ -101,11 +157,11 @@ def resolve_profile(profiles, name, seen=()):
     return {key: value for key, value in resolved.items() if value is not None}
 
 
-def select_profile(root):
-    """按适用范围与显式优先级选择；没有唯一候选时不猜测。"""
-    report = suggest(root)
+def select_profile(root, requirement=None):
+    """按适用范围与显式优先级选择；没有唯一候选时不猜测。指定需求时计入其已提交的阶段改动。"""
+    report = suggest(root, requirement)
     if not report['changed_files']:
-        raise ValueError('相对 HEAD 没有改动，无法自动选择验证；请用 --profile 指定')
+        raise ValueError('相对 HEAD 及本需求的提交都没有改动，无法自动选择验证；请用 --profile 指定')
     if report['recommended'] is None:
         if report['ambiguous_profiles']:
             raise ValueError('多个 profile 优先级相同：' + '、'.join(report['ambiguous_profiles'])

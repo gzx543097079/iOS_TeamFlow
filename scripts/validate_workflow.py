@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """验证分发入口、版本与内部 Markdown 链接。仅检查通用分发文件与需求记录。"""
+import argparse
+import importlib.util
 import re
 import json
+import sys
 from pathlib import Path
 from package_release import FILES, SKILL, GODOT_SKILL, CORE
 
@@ -59,6 +62,63 @@ def mode_link_errors(root, links):
     return errors
 
 
+def cli_parser(root):
+    """加载源码中的命令行定义；与入口脚本同名，按路径加载避免取到 scripts/teamflow.py。"""
+    scripts = str(root / CORE / 'scripts')
+    if scripts not in sys.path:
+        sys.path.insert(0, scripts)
+    spec = importlib.util.spec_from_file_location('teamflow_cli', root / CORE / 'scripts/teamflow.py')
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.build_parser()
+
+
+def subcommands(parser):
+    return next((action.choices for action in parser._actions
+                 if isinstance(action, argparse._SubParsersAction)), None)
+
+
+def command_fragments(text):
+    """代码块整行与行内代码片段；续行符拼接后再解析。"""
+    fenced = False
+    for line in re.sub(r'\\\n\s*', ' ', text).split('\n'):
+        if line.lstrip().startswith('```'):
+            fenced = not fenced
+            continue
+        yield from ([line] if fenced else re.findall(r'`([^`\n]+)`', line))
+
+
+def command_errors(root, names):
+    """文档里的 TeamFlow 命令须使用 CLI 实际存在且未隐藏的子命令参数，防止改工具后文档滞后。"""
+    top = cli_parser(root)
+    areas = subcommands(top)
+    errors = []
+    for name in names:
+        for fragment in command_fragments((root / name).read_text()):
+            tokens = fragment.split()
+            if 'teamflow.py' in ' '.join(tokens):
+                tokens = tokens[next(i for i, t in enumerate(tokens) if t.endswith('teamflow.py')) + 1:]
+            elif not tokens or tokens[0] not in areas:
+                continue
+            chain = [top]
+            for token in tokens:
+                if token in ('|', '||', '&&', ';', '#') or token.startswith('#'):
+                    break
+                choices = subcommands(chain[-1])
+                if token.startswith('--'):
+                    option = token.split('=', 1)[0]
+                    action = next((p._option_string_actions[option] for p in reversed(chain)
+                                   if option in p._option_string_actions), None)
+                    if action is None or action.help == argparse.SUPPRESS:
+                        errors.append(f'{name} 的命令参数与 CLI 不一致：{fragment.strip()}（{option}）')
+                        break
+                elif choices is not None:
+                    if token not in choices:
+                        break  # 不是 TeamFlow 子命令，如 `git commit --no-verify`
+                    chain.append(choices[token])
+    return errors
+
+
 def validate(root):
     root = Path(root).resolve()
     errors = []
@@ -77,6 +137,8 @@ def validate(root):
             elif anchor and target.suffix == '.md' and anchor not in anchors(target):
                 errors.append(f'{name} 的锚点不存在：{target.name}#{anchor}')
     errors += mode_link_errors(root, links)
+    errors += command_errors(root, [name for name in documents if name not in ('CHANGELOG.md', 'docs/TRIAL.md')
+                                    and not name.startswith('requirements/')])
     for directory in (SKILL, GODOT_SKILL):
         skill = root / directory / 'SKILL.md'
         name = Path(directory).name.lower()

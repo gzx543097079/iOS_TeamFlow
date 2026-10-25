@@ -73,6 +73,18 @@ class WorkflowTests(unittest.TestCase):
             (root / 'CHANGELOG.md').write_text('# 版本记录\n\n## 0.0.1\n\n- 旧版本。\n')
             validate_workflow.validate(root)
 
+    def test_documented_command_options_must_exist_in_cli(self):
+        with tempfile.TemporaryDirectory() as directory:
+            doc = Path(directory) / 'doc.md'
+            doc.write_text('```sh\npython3 scripts/teamflow.py req complete REQ-1 \\\n  --profile change --confirm-ac AC-01\n```\n'
+                           '用 `req state REQ-1 --state 进行中 --reopen-ac AC-01` 重开；`git commit --no-verify` 不是 TeamFlow 命令。\n')
+            self.assertEqual([], validate_workflow.command_errors(ROOT, [str(doc)]))
+            for bad in ('`req complete REQ-1 --bogus`', '`git hook --profile <名>`',
+                        '```sh\npython3 scripts/teamflow.py setup \\\n  --git-hook --typo\n```'):
+                with self.subTest(bad=bad):
+                    doc.write_text(bad + '\n')
+                    self.assertEqual(1, len(validate_workflow.command_errors(ROOT, [str(doc)])))
+
     def test_heading_slug_matches_github(self):
         self.assertEqual('显式-git-动作', validate_workflow.slug('显式 Git 动作'))
         self.assertEqual('授权与停止', validate_workflow.slug('授权与停止'))

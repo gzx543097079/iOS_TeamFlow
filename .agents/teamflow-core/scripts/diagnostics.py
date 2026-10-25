@@ -172,35 +172,62 @@ def pr_body(root, requirement):
     if summary['pending_ac']:
         lines.append('- 未确认：' + '、'.join(item['id'] for item in summary['pending_ac']))
     lines += ['', 'Requirement: ' + requirement]
-    return {'requirement': requirement, 'title': card['title'], 'body': '\n'.join(lines)}
+    # 未完成的卡进入 PR 即为阶段交付，标题直接标明，评审与 CI 不把它当作完整交付。
+    title = card['title'] if card['state'] == '完成' else '[阶段] ' + card['title']
+    return {'requirement': requirement, 'title': title, 'body': '\n'.join(lines)}
 
 
 def ci_check(root, base):
-    """CI 只读核对：本次范围内改动的完成卡，其证据必须对应当前内容或某个交付提交；不重跑项目检查。"""
+    """CI 只读核对：本次范围内改动的完成卡，其证据必须对应当前内容或某个交付提交；
+    非文档改动须由这些卡（或证据仍有效的阶段卡）的验证范围覆盖。不重跑项目检查。"""
     import teamflow as flow
     import project_checks
     checks = []
     try:
-        project_checks.load_config(root)
+        config = project_checks.load_config(root)
         checks.append({'item': '验证配置', 'status': '就绪', 'detail': project_checks.CONFIG})
     except (ValueError, OSError, KeyError, TypeError) as error:
+        config = None
         checks.append({'item': '验证配置', 'status': '需处理', 'detail': str(error)})
-    changed = subprocess.run(['git', '-C', str(root), 'diff', '--name-only', base + '...HEAD', '--', 'requirements'],
+    changed = subprocess.run(['git', '-C', str(root), 'diff', '--name-only', '--no-renames', '-z', base + '...HEAD'],
                              capture_output=True, text=True)
     if changed.returncode:
         raise ValueError('无法比较 ' + base + '...HEAD；CI 需完整历史（fetch-depth: 0）：' + changed.stderr.strip())
-    names = sorted(name for name in changed.stdout.split()
+    files = {name for name in changed.stdout.split('\0') if name}
+    names = sorted(name for name in files
                    if name.startswith('requirements/REQ-') and name.endswith('.md') and (root / name).is_file())
+    covered = set()
     for name in names:
         requirement = name[len('requirements/'):-3]
         card = parse_card(flow.requirement_path(root, requirement))
         summary, _ = requirement_summary(root, requirement)
+        valid = summary['evidence_status'] == '有效' or summary['evidence_status'].startswith('交付时有效')
         if card['state'] != '完成':
-            checks.append({'item': requirement, 'status': '提示', 'detail': card['state'] + '，不作为交付核对'})
-        elif summary['evidence_status'] == '有效' or summary['evidence_status'].startswith('交付时有效'):
+            checks.append({'item': requirement, 'status': '提示',
+                           'detail': card['state'] + '，阶段交付，不作为完整交付核对'})
+        elif valid:
             checks.append({'item': requirement, 'status': '就绪', 'detail': summary['evidence_status']})
         else:
             checks.append({'item': requirement, 'status': '需处理', 'detail': summary})
+        saved = card['evidence'] if isinstance(card['evidence'], dict) else {}
+        if valid and saved.get('kind') == 'manual':
+            covered.update(project_checks.input_paths(root, saved['paths'], files))
+        elif valid and config and saved.get('profile') in config['profiles']:
+            covered.update(project_checks.input_paths(
+                root, project_checks.coverage_inputs(config['profiles'][saved['profile']]), files))
+            covered.add(project_checks.CONFIG)
     if not names:
         checks.append({'item': '需求卡', 'status': '提示', 'detail': base + ' 之后未改动需求卡'})
+    rest = {name for name in files - covered if not name.startswith('logs/')}
+    code = project_checks.non_document_paths(root, rest)
+    if code:
+        # 只有代码、没有完成卡的 PR 不能借“未改动需求卡”通过核对。
+        checks.append({'item': '未覆盖改动', 'status': '需处理',
+                       'detail': '以下非文档改动没有本 PR 需求卡的有效证据覆盖：' + '、'.join(code[:10])
+                       + (f' 等 {len(code)} 个' if len(code) > 10 else '')})
+    documents = sorted(name for name in rest - set(code) if not name.startswith('requirements/')
+                       and name not in project_checks.installed_files(root))
+    if documents:
+        checks.append({'item': '文档改动', 'status': '提示',
+                       'detail': '无需求卡覆盖的文档改动（轻量改动）：' + '、'.join(documents[:10])})
     return {'base': base, 'checks': checks, 'needs_action': any(item['status'] == '需处理' for item in checks)}

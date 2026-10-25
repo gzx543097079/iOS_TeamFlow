@@ -137,7 +137,7 @@ class DeliveryTests(unittest.TestCase):
     def test_pr_body_comes_from_card(self):
         req = self.create('登录提示'); self.fill(req, done=False)
         body = diagnostics.pr_body(self.root, req)
-        self.assertEqual('登录提示', body['title'])
+        self.assertEqual('[阶段] 登录提示', body['title'])
         self.assertIn('- [ ] AC-01：错误时显示提示', body['body'])
         self.assertIn('- 未验证', body['body'])
         self.assertIn('未确认：AC-01', body['body'])
@@ -146,6 +146,7 @@ class DeliveryTests(unittest.TestCase):
         body = diagnostics.pr_body(self.root, req)['body']
         self.assertIn('change：通过，证据有效', body)
         self.assertNotIn('未确认', body)
+        self.assertEqual('登录提示', diagnostics.pr_body(self.root, req)['title'])
 
     def test_ci_check_requires_delivered_evidence_for_changed_cards(self):
         self.git('add', '-A'); self.git('commit', '-qm', 'base')

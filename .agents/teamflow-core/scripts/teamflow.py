@@ -97,7 +97,7 @@ def create(root, title, queued=False, bug=False):
     raise ValueError('无法生成不重复的需求编号')
 
 
-def set_state(root, requirement, state, reason=None, blocked=None):
+def set_state(root, requirement, state, reason=None, blocked=None, reopen_ac=None):
     if state not in STATES:
         raise ValueError('未知状态：' + state)
     if state in ('完成', '待用户验证'):
@@ -109,9 +109,19 @@ def set_state(root, requirement, state, reason=None, blocked=None):
         raise ValueError('阻塞必须用 --blocked 指定原因类型：' + '/'.join(BLOCK_KINDS))
     if state != '阻塞' and blocked is not None:
         raise ValueError('--blocked 只用于阻塞状态')
-    resuming = state == '进行中' and card['state'] in ('阻塞', '取消')
+    reopen = set(reopen_ac or [])
+    if reopen and state != '进行中':
+        raise ValueError('--reopen-ac 只用于恢复为进行中')
+    unknown = reopen - {item['id'] for item in card['ac']}
+    if unknown:
+        raise ValueError('未知 AC：' + '、'.join(sorted(unknown)))
+    reopening = state == '进行中' and card['state'] == '完成'
+    if reopening and not reopen:
+        # 不取消勾选的重开会被下一次 req complete 复用证据直接判回完成。
+        raise ValueError('重开完成的需求必须用 --reopen-ac 指定需重新验收的 AC')
+    resuming = state == '进行中' and card['state'] in ('阻塞', '取消', '完成')
     if (state in ('阻塞', '取消') or resuming) and not reason:
-        raise ValueError(('恢复' if resuming else state) + '必须填写 --reason')
+        raise ValueError(('重开' if reopening else '恢复' if resuming else state) + '必须填写 --reason')
     meta = dict(card['meta'], state=state)
     for key in ('blocked', 'reason', 'queued'):
         meta.pop(key, None)
@@ -120,9 +130,19 @@ def set_state(root, requirement, state, reason=None, blocked=None):
     elif state == '取消':
         meta['reason'] = reason
     body = card['body']
+    if reopen:
+        lines = body.split('\n')
+        for index, line in enumerate(lines):
+            match = AC_LINE.match(line)
+            if match and match.group(2) in reopen:
+                lines[index] = re.sub(r'\[[xX]\]', '[ ]', line, count=1)
+        body = '\n'.join(lines)
+        users = [item for item in meta.get('user_confirmed') or [] if item not in reopen]
+        meta['user_confirmed'] = users or None
     if reason:
         label = state_display(state) + (f'（{blocked}）' if blocked else '')
-        body = append_decision(body, f'- {now()}：{label} — {reason}')
+        reopened = f"（重开 {'、'.join(sorted(reopen))}）" if reopen else ''
+        body = append_decision(body, f'- {now()}：{label}{reopened} — {reason}')
     write_card(path, meta, body)
     return {'requirement': requirement, 'state': parse_card(path)['state_display'], 'state_key': state}
 
@@ -199,12 +219,12 @@ def manual_proof(root, card, evidence, evidence_inputs=None):
     checks = checks_module()
     paths = evidence_inputs or ['.']
     if safe(root, checks.CONFIG).exists():
-        code_suffixes = {'.swift', '.m', '.mm', '.h', '.py', '.sh', '.js', '.ts', '.c', '.cpp',
-                         '.plist', '.entitlements', '.pbxproj', '.xcconfig'}
-        changed = checks.input_paths(root, paths, checks.changed_paths(root))
-        if any(Path(name).suffix.lower() in code_suffixes for name in changed):
-            raise ValueError('项目已配置自动验证且人工范围内存在代码变更；请使用 --profile 或 --result，'
-                             '人工 AC 通过 --confirm-ac 实际确认')
+        # 与 git check 共用文档白名单：脚本、场景、配置等任何非文档改动都不能只靠人工文字。
+        changed = checks.input_paths(root, paths, checks.changed_paths(root, card['requirement']))
+        code = checks.non_document_paths(root, changed)
+        if code:
+            raise ValueError('项目已配置自动验证且人工范围内存在非文档改动：' + '、'.join(code[:5]) +
+                             '；请使用 --profile 或 --result，人工 AC 通过 --confirm-ac 实际确认')
     snapshot = manual_snapshot(root, card, paths)
     return {'kind': 'manual', 'note': evidence.strip(), 'paths': paths,
             'fingerprint': 'sha256:' + snapshot['fingerprint'],
@@ -270,7 +290,7 @@ def complete(root, requirement, result=None, evidence=None, wait_user=False, pro
             if not safe(root, checks.CONFIG).exists():
                 raise
             try:
-                selected = checks.select_profile(root)
+                selected = checks.select_profile(root, requirement)
             except ValueError as error:
                 raise ValueError(f'{saved_error}；{error}') from error
             verification, proof = run_profile(selected, auto=True)
@@ -307,6 +327,11 @@ def git_root(root):
         raise ValueError('请从项目 Git 根目录执行')
 
 
+# 提交时提示需关注发布影响的文件：iOS 工程与签名配置、Godot 工程与导出预设。
+RELEASE_SENSITIVE = ('.swift', '.m', '.mm', '.h', '.plist', '.entitlements', '.pbxproj', '.xcconfig',
+                     '.gd', '.tscn', '.tres', '.godot', '.cfg')
+
+
 def git_check(root, requirement, result=None, evidence=None, evidence_inputs=None):
     git_root(root)
     card = parse_card(requirement_path(root, requirement))
@@ -322,8 +347,9 @@ def git_check(root, requirement, result=None, evidence=None, evidence_inputs=Non
     # 人工提交检查只用于文档/记录，不能替代业务或工具代码的自动验证。
     manual = evidence is not None or (result is None and (card['evidence'] or {}).get('kind') == 'manual')
     installed = checks.installed_files(root) & set(names)
-    if manual and any(Path(name).suffix.lower() not in ('.md', '.rst', '.txt') for name in set(names) - installed):
-        raise ValueError('非文档暂存变更必须使用自动验证，不能仅提供人工证据')
+    code = checks.non_document_paths(root, names)
+    if manual and code:
+        raise ValueError('非文档暂存变更必须使用自动验证，不能仅提供人工证据：' + '、'.join(code[:5]))
     if result is not None:
         report = checks.verify(root, result, staged=True)
         if report.get('requirement') != requirement:
@@ -347,32 +373,45 @@ def git_check(root, requirement, result=None, evidence=None, evidence_inputs=Non
     uncovered = sorted(set(names) - covered)
     if uncovered:
         raise ValueError('验证未覆盖暂存文件：' + '、'.join(uncovered) + '；请配置覆盖本次提交的 profile')
-    risky = [name for name in names if name not in installed and Path(name).suffix.lower() in
-             ('.swift', '.m', '.mm', '.h', '.plist', '.entitlements', '.pbxproj', '.xcconfig')]
+    risky = [name for name in names if name not in installed and Path(name).suffix.lower() in RELEASE_SENSITIVE]
+    # 验证配置总视为覆盖（其所选 profile 已进入指纹）；其他 profile 的命令变化未经本次证据执行，须明确提示。
+    unverified = (checks.changed_profiles(root, keep={proof['profile']} if proof['kind'] == 'result' else ())
+                  if checks.CONFIG in names else [])
     return {'requirement': requirement, 'staged_files': names, 'validation': proof,
-            'release_sensitive_files': risky, 'commit_trailer': 'Requirement: ' + requirement}
+            'release_sensitive_files': risky, 'unverified_profiles': unverified,
+            'commit_trailer': 'Requirement: ' + requirement}
 
 
-def hook_check(root, profile):
-    """只读提交门禁：复用能够覆盖整个暂存区的需求证据，不执行项目命令。"""
+def hook_check(root):
+    """只读提交门禁：复用能够覆盖整个暂存区的需求证据（自动或文档人工证据），不执行项目命令。"""
     checks = checks_module()
-    if profile not in checks.load_config(root)['profiles']:
-        raise ValueError('未配置所选 profile：' + profile)
-    rows, skipped = cards(root)
-    problems = []
+    if not checks.load_config(root)['profiles']:
+        raise ValueError('未配置任何验证 profile')
+    staged = set(name for name in subprocess.check_output(
+        ['git', '-C', str(root), 'diff', '--cached', '--name-only', '-z']).decode().split('\0') if name)
+    rows, _ = cards(root)
+    candidates = []
     for row in rows:
-        card = parse_card(requirement_path(root, row['requirement']))
-        saved = card['evidence'] or {}
-        # 只要是仍有效且覆盖暂存内容的自动证据即可放行；证据本身的覆盖与指纹由 git_check 核对。
-        if saved.get('kind') != 'result':
+        if row['state_key'] == '取消':
             continue
+        card = parse_card(requirement_path(root, row['requirement']))
+        if (card['evidence'] or {}).get('kind') in ('result', 'manual'):
+            candidates.append(row)
+    # 本次暂存的卡最可能对应提交，其次是进行中的卡与新卡；历史卡放最后，避免逐张哈希全部旧证据。
+    candidates.sort(key=lambda row: row['created'], reverse=True)
+    candidates.sort(key=lambda row: ('requirements/' + row['requirement'] + '.md' not in staged,
+                                     row['state_key'] == '完成'))
+    problems = []
+    for row in candidates:
         try:
             return git_check(root, row['requirement'])
         except ValueError as error:
             problems.append(row['requirement'] + '：' + str(error))
     reason = '；'.join(problems[:3]) or '没有覆盖暂存内容的已绑定证据'
-    raise ValueError('提交证据检查失败，未运行测试：' + reason +
-                     '；请先 req complete <需求编号> --profile <覆盖本次提交的 profile>，再暂存验收后的内容')
+    hint = '；请先 req complete <需求编号> --profile <覆盖本次提交的 profile>，再暂存验收后的内容'
+    if staged and not checks.non_document_paths(root, staged):
+        hint += '。仅文档的轻量改动（WORKFLOW「请求与范围」）不建卡：核对内容后用 git commit --no-verify 提交'
+    raise ValueError('提交证据检查失败，未运行测试：' + reason + hint)
 
 
 def status(root, requirement):
@@ -443,6 +482,9 @@ def render(kind, data):
                  '提交尾注：' + data['commit_trailer']]
         if data['release_sensitive_files']:
             lines.append('发布敏感文件：' + '、'.join(data['release_sensitive_files']))
+        if data.get('unverified_profiles'):
+            lines.append('验证配置中以下 profile 的命令或范围有变化，未经本次证据执行，请人工核对：'
+                         + '、'.join(data['unverified_profiles']))
         return '\n'.join(lines)
     if kind == 'suggest':
         total = len(data['changed_files'])
@@ -474,7 +516,8 @@ def render(kind, data):
     raise ValueError(kind)
 
 
-def main():
+def build_parser():
+    """命令行定义单独构建，供 validate_workflow 核对文档中的命令参数。"""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--project', type=Path, default=Path('.'))
     output = argparse.ArgumentParser(add_help=False)
@@ -499,6 +542,8 @@ def main():
     state.add_argument('--state', choices=[s for s in STATES if s not in ('完成', '待用户验证')], required=True)
     state.add_argument('--blocked', choices=BLOCK_KINDS, help='阻塞原因类型')
     state.add_argument('--reason')
+    state.add_argument('--reopen-ac', action='append', metavar='AC-编号',
+                       help='重开完成的需求时取消勾选需重新验收的条件，可重复；须同时 --reason')
     done = req_sub.add_parser('complete', parents=[output])
     done.add_argument('requirement')
     proof = done.add_mutually_exclusive_group()
@@ -517,7 +562,8 @@ def main():
     verify_sub = verify.add_subparsers(dest='command', required=True)
     verify_sub.add_parser('init')
     verify_sub.add_parser('list')
-    verify_sub.add_parser('suggest', parents=[output], help='按改动路径建议验证范围，不运行检查')
+    verify_sub.add_parser('suggest', parents=[output], help='按改动路径建议验证范围，不运行检查').add_argument(
+        '--requirement', help='同时计入该需求带 Requirement 尾注的已提交改动')
     run = verify_sub.add_parser('run', parents=[output])
     run.add_argument('--profile', required=True)
     run.add_argument('--requirement', help='绑定本次需求的范围和 AC，忽略其他需求')
@@ -530,7 +576,8 @@ def main():
     check.add_argument('--evidence')
     check.add_argument('--evidence-input', action='append')
     gate = git_sub.add_parser('hook', parents=[output], help='只读复核暂存证据，不执行测试')
-    gate.add_argument('--profile', required=True)
+    # 1.2 及更早的托管 Hook 会传入 --profile；仅为兼容旧 Hook 而接受，doctor 提示迁移。
+    gate.add_argument('--profile', help=argparse.SUPPRESS)
     ci = git_sub.add_parser('ci', parents=[output], help='只读：核对基线之后改动的完成卡证据，供 CI 使用')
     ci.add_argument('--base', required=True, help='比较基线，如 origin/main')
 
@@ -541,7 +588,7 @@ def main():
     installer.add_argument('--claude-skill-link', action='store_true',
                            help='为选中的安装模式创建 Claude Code Skill 软链接')
     hook = installer.add_mutually_exclusive_group()
-    hook.add_argument('--git-hook', metavar='PROFILE', help='安装本机 pre-commit，提交前只复核该 profile 的已绑定证据')
+    hook.add_argument('--git-hook', action='store_true', help='安装本机 pre-commit，提交前复核覆盖暂存内容的已绑定证据')
     hook.add_argument('--no-git-hook', action='store_true', help='移除 TeamFlow 管理的 pre-commit')
 
     upgrader = top.add_parser('upgrade', parents=[output], help='用新版安装包升级核心与所选 Skill')
@@ -574,7 +621,11 @@ def main():
     install = logging_sub.add_parser('install', parents=[output], help='按工程语言复制日志源码到业务目录')
     install.add_argument('--destination', required=True)
     install.add_argument('--language', choices=('swift', 'objc', 'mixed'), required=True)
+    return parser
 
+
+def main():
+    parser = build_parser()
     args = parser.parse_args()
     root = args.project.resolve()
 
@@ -609,7 +660,8 @@ def main():
                 body = pr_body(root, args.requirement)
                 print(json.dumps(body, ensure_ascii=False, indent=2) if args.json else body['title'] + '\n\n' + body['body'])
             elif args.command == 'state':
-                emit('state', set_state(root, args.requirement, args.state, args.reason, args.blocked))
+                emit('state', set_state(root, args.requirement, args.state, args.reason, args.blocked,
+                                        args.reopen_ac))
             else:
                 emit('complete', complete(root, args.requirement, args.result, args.evidence, args.wait_user,
                                           args.profile, args.confirm_ac, args.evidence_input,
@@ -624,7 +676,7 @@ def main():
                     stream.write('\n')
                 print('已创建空验证配置：' + str(path))
             elif args.command == 'suggest':
-                emit('suggest', checks.suggest(root))
+                emit('suggest', checks.suggest(root, args.requirement))
             elif args.command == 'list':
                 print(json.dumps(checks.load_config(root), ensure_ascii=False, indent=2))
             else:
@@ -640,7 +692,7 @@ def main():
             print(json.dumps(report, ensure_ascii=False, indent=2) if args.json else format_report(report))
             return 1 if report['needs_action'] else 0
         elif args.area == 'git' and args.command == 'hook':
-            emit('git', hook_check(root, args.profile))
+            emit('git', hook_check(root))
         elif args.area == 'git':
             emit('git', git_check(root, args.requirement, args.result, args.evidence, args.evidence_input))
         elif args.area == 'setup':
@@ -656,10 +708,11 @@ def main():
                                                        data.decode().splitlines(keepends=True),
                                                        fromfile=name, tofile=name)), end='')
             else:
-                mode = setup_project.install_mode(root)
-                print('已接入 ' + setup_project.MODE_LABELS[mode] + '：' + str(root))
+                if not setup_project.source_repository(root):
+                    mode = setup_project.install_mode(root)
+                    print('已接入 ' + setup_project.MODE_LABELS[mode] + '：' + str(root))
                 if args.git_hook:
-                    print('提交前检查：pre-commit 只复核证据 ' + args.git_hook)
+                    print('提交前检查：pre-commit 只复核暂存内容的已绑定证据')
                 elif args.no_git_hook:
                     print('已移除 TeamFlow 管理的 pre-commit')
         elif args.area == 'upgrade':

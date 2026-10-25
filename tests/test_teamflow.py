@@ -42,6 +42,9 @@ class TeamFlowTests(unittest.TestCase):
     def create(self, title='需求', **kwargs):
         return flow.create(self.root, title, **kwargs)['requirement']
 
+    def baseline(self):
+        self.git('add', '-A'); self.git('commit', '-qm', 'baseline')
+
     def card_path(self, requirement):
         return self.root / 'requirements' / (requirement + '.md')
 
@@ -196,6 +199,7 @@ class TeamFlowTests(unittest.TestCase):
         self.assertIn('已跳过异常需求卡 REQ-20000101-dead', flow.render('list', (rows, skipped)))
 
     def test_wait_user_completion(self):
+        self.baseline()  # 工程配置已提交，人工证据范围内只剩文档改动
         req = self.create(); card = self.fill(req, done=False)
         report = flow.complete(self.root, req, evidence='人工验证入口已准备', wait_user=True)
         self.assertEqual('🟣 待用户验证', report['state'])
@@ -205,6 +209,7 @@ class TeamFlowTests(unittest.TestCase):
         self.assertEqual('完成', flow.parse_card(card)['state'])
 
     def test_manual_evidence_preserves_literal_text(self):
+        self.baseline()  # 工程配置已提交，人工证据范围内只剩文档改动
         req = self.create(); card = self.fill(req)
         evidence = r'核对路径 App\new，命令含 "引号" 与字面量 \1'
         flow.complete(self.root, req, evidence=evidence)
@@ -236,6 +241,7 @@ class TeamFlowTests(unittest.TestCase):
         self.assertIn('（用户确认）', pr_body(self.root, req)['body'])
 
     def test_manual_proof_rejects_semantic_changes_without_writing(self):
+        self.baseline()  # 工程配置已提交，人工证据范围内只剩文档改动
         req = self.create(); card = self.fill(req)
         card.write_text(card.read_text().replace('## 不包含\n\n无', '## 不包含\n\n支付'))
         flow.complete(self.root, req, evidence='实际展示核对记录')
@@ -257,6 +263,7 @@ class TeamFlowTests(unittest.TestCase):
         self.assertEqual('完成', flow.parse_card(card)['state'])
 
     def test_evidence_cannot_be_copied_to_another_requirement(self):
+        self.baseline()  # 工程配置已提交，人工证据范围内只剩文档改动
         req = self.create(); card = self.fill(req)
         flow.complete(self.root, req, evidence='实际展示核对记录')
         other = self.create(); other_card = self.fill(other)
@@ -268,6 +275,7 @@ class TeamFlowTests(unittest.TestCase):
             self.saved(other)
 
     def test_manual_proof_requires_complete_binding(self):
+        self.baseline()  # 工程配置已提交，人工证据范围内只剩文档改动
         req = self.create(); card = self.fill(req)
         flow.complete(self.root, req, evidence='实际展示核对记录')
         meta, body = flow.split_card(card.read_text())
@@ -470,7 +478,7 @@ class TeamFlowTests(unittest.TestCase):
             self.assertIn('未运行测试', flow.complete(self.root, req, profile='change')['verification'])
             flow.complete(self.root, req)
             flow.git_check(self.root, req)
-            flow.hook_check(self.root, 'change')
+            flow.hook_check(self.root)
             pr_body(self.root, req)
         self.assertEqual(1, len(self.logs()))
         flow.complete(self.root, req, profile='change', rerun=True)
@@ -478,14 +486,14 @@ class TeamFlowTests(unittest.TestCase):
         (self.root / 'source.txt').write_text('new source')
         with patch.object(flow.checks_module(), 'run', side_effect=AssertionError('钩子不得执行')):
             with self.assertRaisesRegex(ValueError, '未运行测试'):
-                flow.hook_check(self.root, 'change')
+                flow.hook_check(self.root)
         flow.complete(self.root, req, profile='change')
         self.assertEqual(3, len(self.logs()))
         # 工作区已验收，但 index 仍是旧源码：必须拒绝部分暂存。
         with self.assertRaisesRegex(ValueError, '暂存'):
-            flow.hook_check(self.root, 'change')
+            flow.hook_check(self.root)
         self.git('add', '.')
-        flow.hook_check(self.root, 'change')
+        flow.hook_check(self.root)
 
     def test_bound_run_is_imported_without_second_execution(self):
         req = self.create(); self.fill(req)
@@ -502,7 +510,7 @@ class TeamFlowTests(unittest.TestCase):
         self.git('add', '.')
         with patch.object(flow.checks_module(), 'run', side_effect=AssertionError('不应执行')):
             with self.assertRaisesRegex(ValueError, '没有覆盖暂存内容的已绑定证据'):
-                flow.hook_check(self.root, 'change')
+                flow.hook_check(self.root)
         self.assertEqual([], self.logs())
 
     def test_covers_separates_page_coverage_from_dependency_fingerprint(self):
@@ -518,7 +526,7 @@ class TeamFlowTests(unittest.TestCase):
         self.assertEqual('change', flow.checks_module().select_profile(self.root))
         flow.complete(self.root, req, profile='change')
         self.git('add', '.')
-        flow.hook_check(self.root, 'change')
+        flow.hook_check(self.root)
         (self.root / 'network.txt').write_text('dependency changed')
         with self.assertRaises(ValueError):
             self.saved(req)

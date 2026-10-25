@@ -11,6 +11,7 @@ class BoundaryTests(unittest.TestCase):
     create = test_teamflow.TeamFlowTests.create
     fill = test_teamflow.TeamFlowTests.fill
     card_path = test_teamflow.TeamFlowTests.card_path
+    baseline = test_teamflow.TeamFlowTests.baseline
 
     def test_uncovered_staged_code_rejected(self):
         req = self.create(); self.fill(req)
@@ -53,6 +54,7 @@ class BoundaryTests(unittest.TestCase):
             flow.git_check(self.root, req, evidence='已看新内容', evidence_inputs=['docs'])
 
     def test_manual_source_change_and_staged_code_rejected(self):
+        self.baseline()  # 工程配置已提交，人工证据范围内只剩文档改动
         req = self.create(); self.fill(req)
         flow.complete(self.root, req, evidence='实际核对')
         (self.root / 'source.txt').write_text('changed')

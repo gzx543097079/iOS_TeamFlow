@@ -2,7 +2,7 @@
 
 本文件只处理 TeamFlow ZIP，不处理业务 App。
 
-不为每次改动升版本：改动先记入 CHANGELOG「未发布」，团队需要新安装包时再统一定版。发布时更新版本与 CHANGELOG；完成本次分发清单和测试变更后，源码仓库可用 `req complete REQ-20260101-a3f9 --profile workflow-release` 一次验证、打包并绑定需求证据（替换实际需求编号）。已运行该 profile 时不重复执行下面的独立命令；没有该项目配置时运行：
+不为每次改动升版本：改动先记入 CHANGELOG「未发布」，团队需要新安装包时再统一定版。CHANGELOG 每个版本注明改动来源（真实项目试用记录、用户纠正或复现缺陷），没有试用数据时如实说明。改动命令行参数时，`validate_workflow` 会核对分发文档中的命令与 CLI 一致。发布时更新版本与 CHANGELOG；完成本次分发清单和测试变更后，源码仓库可用 `req complete REQ-20260101-a3f9 --profile workflow-release` 一次验证、打包并绑定需求证据（替换实际需求编号）。已运行该 profile 时不重复执行下面的独立命令；没有该项目配置时运行：
 
 ```sh
 python3 scripts/run_workflow_checks.py

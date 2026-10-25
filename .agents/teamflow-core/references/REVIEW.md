@@ -4,7 +4,7 @@
 
 ## 创建 PR
 
-一张需求卡对应一个 PR；同一 PR 含多张卡时，每张卡都须完成或明确标为阶段提交。描述直接由卡片生成，不另写一份范围或验证结论：
+一张需求卡对应一个 PR；未完成的卡进入 PR 即为阶段交付，`req pr` 在标题前标注 `[阶段]` 并列出未确认 AC。描述直接由卡片生成，不另写一份范围或验证结论：
 
 ```sh
 python3 scripts/teamflow.py req pr REQ-20260101-a3f9
@@ -34,4 +34,4 @@ python3 scripts/teamflow.py req pr REQ-20260101-a3f9
 python3 scripts/teamflow.py git ci --base origin/main
 ```
 
-它不重跑项目检查，只证明“提交的内容就是验证过的内容”；进行中的卡只提示，不阻塞。需要 CI 重新执行检查时，在模板中按项目平台启用 `verify run` 任务（iOS 需要 macOS runner，Godot 需要安装锁定版本的引擎）。CI 需要完整历史（`fetch-depth: 0`）。接入 CI 本身是用户明确目标，模板复制到 `.github/workflows/` 后由团队提交。
+它不重跑项目检查，只证明“提交的内容就是验证过的内容”：PR 内的非文档改动须由本 PR 改动的需求卡（完成卡，或证据仍有效的阶段卡）的验证范围覆盖，只有代码、没有卡的 PR 需处理；无卡的文档改动按轻量改动提示；进行中的卡只提示，不阻塞。需要 CI 重新执行检查时，在模板中按项目平台启用 `verify run` 任务（iOS 需要 macOS runner，Godot 需要安装锁定版本的引擎）。CI 需要完整历史（`fetch-depth: 0`）。接入 CI 本身是用户明确目标，模板复制到 `.github/workflows/` 后由团队提交。
