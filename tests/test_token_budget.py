@@ -29,7 +29,7 @@ SCENARIOS = {
     'Godot + iOS 发布': (11800, 'godot-ios', (
         GODOT + 'references/IOS.md', IOS + 'references/APP-RELEASE.md', GODOT + 'references/CHECKS.md',
         CORE + 'CHECKS.md', CORE + 'BOUNDARIES.md')),
-    '纯 Godot 发布': (9100, 'godot', (
+    '纯 Godot 发布': (10100, 'godot', (
         GODOT + 'references/RELEASE.md', GODOT + 'references/CHECKS.md', CORE + 'CHECKS.md', CORE + 'BOUNDARIES.md')),
 }
 

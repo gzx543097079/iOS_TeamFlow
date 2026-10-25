@@ -56,6 +56,18 @@ python3 scripts/teamflow.py verify run --profile change --requirement REQ-202601
 
 示例须替换为项目实际命令和完整依赖。测试已包含构建时不重复 build；产物检查须在构建后执行。只升级 TeamFlow 不会拆开既有大脚本：项目需提供日常和发布入口，将 Release 构建移入显式 profile。不要未经核对直接开启 Xcode 测试并行或并发使用同一 DerivedData。
 
+## 从全量脚本迁移
+
+升级不改写项目脚本和验证配置；`upgrade` 输出“验证配置待迁移”或 `doctor` 报告「验证配置形态」时，按 [INSTALL](INSTALL.md#升级) 另建卡迁移：
+
+1. 读懂现有脚本的步骤与产物依赖，给脚本加日常与发布入口（如 `--scope change|release`）；依赖构建产物的核对与其构建留在同一入口。
+2. 日常 profile 按独立步骤拆成多个 check（如单元/UI 测试、静态检查、启动检查），各配 `covers` 与完整 `inputs`。
+3. Release 构建移入 `manual: true` 的 profile；已有独立 Release 检查的，删去日常脚本中的重复构建，并给该 profile 设 `manual`。
+4. 核对 `-parallel-testing-enabled NO` 等串行设置，确有共享状态才保留。
+5. 用新的日常 profile 验收并绑定迁移卡证据，`doctor` 不再报需处理后单独提交。
+
+「需处理」（日常 profile 的命令或引用脚本含 Release 构建）必须迁移；「提示」（未声明 check covers）在脚本含多个独立步骤时拆分，确为单一步骤的可保留。
+
 ## 验证强度与结果输出
 
 小改动按影响范围和风险选择最小有效检查；支付、认证、数据迁移、共享状态和工程配置仍须补齐专项验证。路径匹配只能提供选择线索，不能证明测试充分。测试命令必须能识别空套件，不能把“0 个测试”当通过。

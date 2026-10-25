@@ -208,6 +208,58 @@ def suggest(root, requirement=None):
             'note': '按实际改动选择检查；manual profile 仅显式执行。'}
 
 
+# 日常验证不应包含的 Release 构建：xcodebuild Release 配置与 Godot release 导出。
+RELEASE_BUILD = re.compile(r'''-configuration['"\s,]+Release\b|--export-release\b''')
+
+
+INTERPRETER = re.compile(r'(python[\d.]*|sh|bash|zsh|node|ruby|swift)')
+
+
+def executed_script(argv):
+    """实际执行的脚本：命令本身，或解释器后的首个非选项参数；`-m`/`-c` 不执行脚本文件（如 py_compile 只做语法检查）。"""
+    if not INTERPRETER.fullmatch(Path(argv[0]).name):
+        return argv[0]
+    for arg in argv[1:]:
+        if arg in ('-m', '-c'):
+            return None
+        if not arg.startswith('-'):
+            return arg
+    return None
+
+
+def check_text(root, check):
+    """检查命令及其实际执行的项目内脚本文本；只用于识别旧形态，不执行。"""
+    parts = [' '.join(check['argv'])]
+    script = executed_script(check['argv'])
+    try:
+        path = local_path(root, str(Path(check.get('cwd', '.')) / script)) if script else None
+        if path and path.is_file() and path.stat().st_size < 1_000_000:
+            parts.append(path.read_text(errors='replace'))
+    except (ValueError, OSError):
+        pass
+    return '\n'.join(parts)
+
+
+def legacy_layout(root, config):
+    """升级后需迁移的旧形态：日常（非 manual）profile 含 Release 构建为需处理；
+    未声明 check covers 时每次改动整组执行，仅提示由 Agent 判断是否拆分。"""
+    releases = {profile: [name for name, check in settings['checks'].items()
+                          if RELEASE_BUILD.search(check_text(root, check))]
+                for profile, settings in config['profiles'].items()}
+    issues = []
+    for profile, settings in config['profiles'].items():
+        if settings.get('manual'):
+            continue
+        others = [name for name in releases if name != profile and releases[name]]
+        for name in releases[profile]:
+            issues.append(('需处理', f'日常 profile {profile} 的检查 {name} 含 Release 构建，应移入 manual profile'
+                           + (f"（{'、'.join(others)} 也含 Release 构建，核对是否重复）" if others else '')))
+        if not any('covers' in check for check in settings['checks'].values()):
+            issues.append(('提示', f'profile {profile} 未声明 check covers，每次改动整组执行'
+                           + ('，失败后无法只重跑失败项' if len(settings['checks']) == 1 else '')))
+    return [{'status': status, 'detail': detail} for status, detail in issues]
+
+
 def coverage_inputs(settings):
     """covers 表示可验收的改动；inputs 表示会令证据失效的依赖。旧配置兼容。"""
     return settings.get('covers', settings.get('inputs'))

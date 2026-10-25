@@ -150,6 +150,15 @@ def upgrade(root, package_zip, force=False, dry_run=False, mode=None):
                                capture_output=True, text=True)
     if refreshed.returncode:
         raise ValueError('文件已升级，但刷新入口失败：' + refreshed.stderr.strip())
+    # 用新核心复核验证配置形态；旧形态不阻断升级，但须在本次升级任务中迁移。
+    doctor = subprocess.run([sys.executable, str(entry), '--project', str(root), 'doctor', '--json'],
+                            capture_output=True, text=True)
+    try:
+        item = next((i for i in json.loads(doctor.stdout)['checks'] if i['item'] == '验证配置形态'), None)
+    except (ValueError, KeyError, TypeError):
+        item = None
+    if item:
+        result['config_migration'] = item
     return result
 
 
@@ -169,6 +178,11 @@ def describe(result, dry_run=False):
             lines.extend(f'  {label} {name}' for name in actions[key])
         if result['blocked']:
             lines.append('! 为本地改动，直接升级会被拒绝：' + CONFLICT_HINT)
+    elif result.get('config_migration'):
+        item = result['config_migration']
+        lines.append(f"文件已升级，验证配置待迁移（{item['status']}）：")
+        lines.extend('  ' + detail for detail in item['detail'])
+        lines.append('下一步：按 INSTALL「升级」在本次升级任务中另建卡迁移项目脚本与验证配置')
     else:
         lines.append('下一步：python3 scripts/teamflow.py doctor')
     if result.get('host_permissions'):

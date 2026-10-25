@@ -190,3 +190,54 @@ class ModuleHintTests(unittest.TestCase):
             item = self.hint()
         self.assertEqual('提示', item['status'])
         self.assertIn('MODULE-CONTEXT', item['detail'])
+
+
+class LegacyLayoutTests(unittest.TestCase):
+    """升级后旧形态验证配置的识别：日常 profile 含 Release 构建需处理，未声明 check covers 只提示。"""
+    setUp = test_teamflow.TeamFlowTests.setUp
+    git = test_teamflow.TeamFlowTests.git
+    configure_checks = test_teamflow.TeamFlowTests.configure_checks
+
+    def layout(self, profiles):
+        import json
+        (self.root / '.agents/project-checks.json').write_text(json.dumps({'schema_version': 2, 'profiles': profiles}))
+        report = diagnostics.doctor(self.root)
+        return next((i for i in report['checks'] if i['item'] == '验证配置形态'), None), report
+
+    def test_release_build_in_daily_profile_needs_migration(self):
+        (self.root / 'scripts').mkdir()
+        (self.root / 'scripts/check_app.py').write_text(
+            'xcodebuild("-configuration", "Release", "-destination", "generic/platform=iOS Simulator", "build")\n')
+        release = {'argv': ['xcodebuild', '-configuration', 'Release', 'build']}
+        item, report = self.layout({
+            'change': {'inputs': ['source.txt', 'scripts'], 'checks': {'app': {'argv': ['python3', 'scripts/check_app.py']}}},
+            'cloud-release': {'inputs': ['source.txt'], 'manual': True, 'checks': {'release-build': release}}})
+        self.assertEqual('需处理', item['status'])
+        self.assertTrue(report['needs_action'])
+        text = diagnostics.format_report(report)
+        self.assertIn('change 的检查 app 含 Release 构建', text)
+        self.assertIn('cloud-release', text)
+        self.assertNotIn('cloud-release 的检查', text)
+
+    def test_syntax_check_of_release_script_is_not_a_release_build(self):
+        (self.root / 'scripts').mkdir()
+        (self.root / 'scripts/verify_release.py').write_text("run(['xcodebuild', '-configuration', 'Release'])\n")
+        item, _ = self.layout({'change': {'inputs': ['source.txt', 'scripts'], 'checks': {
+            'release-script': {'argv': ['python3', '-m', 'py_compile', 'scripts/verify_release.py'],
+                               'covers': ['scripts/verify_release.py']},
+            'debug': {'argv': ['python3', '-c', 'pass'], 'covers': ['source.txt']}}}})
+        self.assertIsNone(item)
+
+    def test_missing_check_covers_is_only_a_hint(self):
+        item, report = self.layout({'change': {'inputs': ['source.txt'], 'checks': {
+            'all': {'argv': ['python3', '-c', 'pass']}}}})
+        self.assertEqual('提示', item['status'])
+        self.assertIn('未声明 check covers', diagnostics.format_report(report))
+        self.assertFalse(any(i['status'] == '需处理' for i in report['checks'] if i['item'] == '验证配置形态'))
+
+    def test_migrated_layout_reports_nothing(self):
+        item, _ = self.layout({
+            'change': {'inputs': ['source.txt'], 'checks': {'debug': {'argv': ['true'], 'covers': ['source.txt']}}},
+            'release': {'inputs': ['source.txt'], 'manual': True, 'checks': {
+                'release': {'argv': ['xcodebuild', '-configuration', 'Release', 'build']}}}})
+        self.assertIsNone(item)
