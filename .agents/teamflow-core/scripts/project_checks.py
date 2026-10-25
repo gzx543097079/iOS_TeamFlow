@@ -6,6 +6,8 @@ import json
 import os
 import re
 import signal
+import shutil
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import subprocess
 import time
 import uuid
@@ -109,28 +111,101 @@ def changed_profiles(root, keep=()):
                   if name not in keep and after.get(name) != before.get(name))
 
 
+def requirement_path(name):
+    path = Path(name)
+    return path.parent == Path('requirements') and path.suffix == '.md' and bool(ID.fullmatch(path.stem))
+
+
+def intersect_inputs(left, right):
+    """字面路径范围交集；None 与点均表示完整项目。"""
+    if left is None:
+        return right
+    if right is None:
+        return left
+    result = set()
+    for a in map(lambda n: str(Path(n)), left):
+        for b in map(lambda n: str(Path(n)), right):
+            if a == '.' or a == b or b.startswith(a + '/'):
+                result.add(b)
+            elif b == '.' or a.startswith(b + '/'):
+                result.add(a)
+    return sorted(result)
+
+
+def check_coverage(settings, name):
+    return intersect_inputs(coverage_inputs(settings), settings['checks'][name].get('covers'))
+
+
+def checked_names(settings, checks):
+    if (not isinstance(checks, list) or not checks or any(not isinstance(n, str) for n in checks)
+            or len(set(checks)) != len(checks) or set(checks) - settings['checks'].keys()):
+        raise ValueError('证据 checks 必须是非空、无重复的有效检查名单')
+    return [name for name in settings['checks'] if name in checks]
+
+
+def evidence_inputs(root, evidence, config=None):
+    config = config or load_config(root)
+    settings = config['profiles'][evidence['profile']]
+    if 'checks' not in evidence:
+        return coverage_inputs(settings)
+    names = checked_names(settings, evidence['checks'])
+    scopes = [check_coverage(settings, name) for name in names]
+    return None if None in scopes else sorted({path for scope in scopes for path in scope})
+
+
+def execution_plan(root, config, profile, requirement=None, force=False, names=None):
+    settings = config['profiles'][profile]
+    triggered = any('covers' in check for check in settings['checks'].values())
+    if names is None:
+        try:
+            names = changed_paths(root, requirement)
+        except (ValueError, subprocess.CalledProcessError):
+            if triggered:
+                raise
+            names = set()
+    names = {name for name in names if not excluded_input(name) and not requirement_path(name)} - installed_files(root)
+    selected = []
+    for name, check in settings['checks'].items():
+        scope = check_coverage(settings, name)
+        covered = input_paths(root, scope, names) if scope != [] else set()
+        dependencies = input_paths(root, check.get('inputs', settings.get('inputs')), names)
+        if force or settings.get('manual') or not triggered or CONFIG in names or covered or dependencies:
+            selected.append(name)
+    covered = set()
+    for name in selected:
+        scope = check_coverage(settings, name)
+        if scope != []:
+            covered.update(input_paths(root, scope, names))
+    if selected and CONFIG in names:
+        covered.add(CONFIG)
+    uncovered = sorted(names - covered)
+    # 非规范 requirements 文件仍属于普通工程输入，不能借目录名豁免。
+    engineering = [name for name in uncovered if Path(name).suffix.lower() not in DOCUMENT_SUFFIXES]
+    return {'selected': selected, 'skipped': [name for name in settings['checks'] if name not in selected],
+            'changed_files': sorted(names), 'covered_files': sorted(covered), 'uncovered_files': uncovered,
+            'uncovered_engineering_files': engineering, 'triggered': triggered,
+            'manual': bool(settings.get('manual'))}
+
+
 def suggest(root, requirement=None):
     config = load_config(root)
-    names = {name for name in changed_paths(root, requirement) if not excluded_input(name)
-             and not name.startswith('requirements/')} - installed_files(root)
+    names = changed_paths(root, requirement)
     profiles, covered = [], set()
     for profile, settings in config['profiles'].items():
-        selected = input_paths(root, coverage_inputs(settings), names)
-        if CONFIG in names:
-            selected.add(CONFIG)
-        covered.update(selected)
-        profiles.append({'profile': profile, 'covered_files': sorted(selected),
-                         'uncovered_files': sorted(names - selected),
-                         'covers_all_changes': bool(names) and selected == names,
+        plan = execution_plan(root, config, profile, requirement, names=names)
+        if not plan['manual']:
+            covered.update(plan['covered_files'])
+        profiles.append({'profile': profile, **plan,
+                         'covers_all_changes': bool(plan['changed_files']) and not plan['uncovered_files'],
                          'last_pass': last_pass(root, profile)})
-    covering = [item['profile'] for item in profiles if item['covers_all_changes']]
-    # 检查数量不能代表成本：一个命令也可能包含全量测试。优先级相同不猜测。
+    names = {name for name in names if not excluded_input(name) and not requirement_path(name)} - installed_files(root)
+    covering = [item['profile'] for item in profiles if item['covers_all_changes'] and not item['manual']]
     best = min((config['profiles'][name].get('priority', 100) for name in covering), default=None)
     preferred = [name for name in covering if config['profiles'][name].get('priority', 100) == best]
     recommended = preferred[0] if len(preferred) == 1 else None
     return {'changed_files': sorted(names), 'profiles': profiles, 'recommended': recommended,
             'uncovered_files': sorted(names - covered), 'ambiguous_profiles': preferred if len(preferred) > 1 else [],
-            'note': '仅按路径建议；必须核对检查内容与实际影响面，不自动运行或省略必要测试。'}
+            'note': '按实际改动选择检查；manual profile 仅显式执行。'}
 
 
 def coverage_inputs(settings):
@@ -194,6 +269,10 @@ def load_config(root):
             covers = {str(Path(name)) for name in settings['covers']}
             if input_paths(root, settings['inputs'], covers) != covers:
                 raise ValueError('covers 必须包含在 inputs 依赖范围内：' + profile)
+        if type(settings.get('parallelism', 1)) is not int or settings.get('parallelism', 1) < 1:
+            raise ValueError('parallelism 必须为正整数：' + profile)
+        if 'manual' in settings and not isinstance(settings['manual'], bool):
+            raise ValueError('manual 必须为布尔值：' + profile)
         if 'incremental' in settings and not isinstance(settings['incremental'], bool):
             raise ValueError('incremental 必须为布尔值：' + profile)
         if not isinstance(settings.get('checks'), dict) or not settings['checks']:
@@ -205,8 +284,19 @@ def load_config(root):
             if (not isinstance(argv, list) or not argv
                     or any(not isinstance(arg, str) or not arg or '\0' in arg for arg in argv)):
                 raise ValueError(name + ' 的 argv 必须为非空字符串数组')
-            if check.get('inputs') is not None:
-                input_paths(root, check['inputs'], set())
+            for field in ('inputs', 'covers'):
+                if field in check:
+                    if check[field] is None:
+                        raise ValueError(field + ' 必须是非空项目相对文件/目录列表')
+                    input_paths(root, check[field], set())
+            if 'covers' in check:
+                covers = {str(Path(path)) for path in check['covers']}
+                if input_paths(root, coverage_inputs(settings), covers) != covers:
+                    raise ValueError('check covers 必须包含在 profile covers 范围内：' + name)
+                if input_paths(root, check.get('inputs', settings.get('inputs')), covers) != covers:
+                    raise ValueError('check covers 必须包含在有效 inputs 依赖范围内：' + name)
+            if 'cache' in check and not isinstance(check['cache'], bool):
+                raise ValueError('cache 必须为布尔值：' + name)
             timeout = check.get('timeout_seconds', 900)
             if type(timeout) is not int or not 1 <= timeout <= 86400:
                 raise ValueError(name + ' 的 timeout_seconds 必须为 1–86400')
@@ -232,6 +322,8 @@ def input_paths(root, inputs=None, candidates=None):
         if not isinstance(inputs, list) or not inputs or any(not isinstance(n, str) or not n for n in inputs):
             raise ValueError('inputs 必须是非空项目相对文件/目录列表')
         for name in inputs:
+            if any(c in name for c in '*?'):
+                raise ValueError('inputs/covers 仅支持字面文件或目录，不支持 glob：' + name)
             local_path(root, name)
         inputs = [str(Path(n)) for n in inputs]
     validate_inputs = candidates is None
@@ -277,11 +369,13 @@ def effective_config(config, profile):
     settings = config['profiles'][profile]
     return {**({'covers': settings['covers']} if 'covers' in settings else {}),
             'inputs': settings.get('inputs'),
+            **{key: settings[key] for key in ('manual', 'parallelism') if key in settings},
             **({'incremental': True} if settings.get('incremental') else {}),
             'checks': [{'name': name, 'argv': check['argv'],
                         'cwd': check.get('cwd', '.'),
                         'timeout_seconds': check.get('timeout_seconds', 900),
-                        **({'inputs': check['inputs']} if check.get('inputs') is not None else {})}
+                        **({'inputs': check['inputs']} if check.get('inputs') is not None else {}),
+                        **{key: check[key] for key in ('covers', 'cache') if key in check}}
                        for name, check in settings['checks'].items()]}
 
 
@@ -309,7 +403,15 @@ def read_blobs(root, object_ids):
     return blobs
 
 
-def source_snapshot(root, config, profile, staged=False, requirement=None, raw_config=False, commit=None):
+def check_inputs(settings, name):
+    check = settings['checks'][name]
+    inputs = check.get('inputs', settings.get('inputs'))
+    if inputs is None:
+        return None
+    return sorted(set(inputs + check.get('covers', [])))
+
+
+def source_snapshot(root, config, profile, staged=False, requirement=None, raw_config=False, commit=None, checks=None):
     """commit 指定时只读取该提交的文件树和配置，用于复核已交付需求，不受后续工作区变化影响。"""
     index = {}
     if commit is not None:
@@ -328,6 +430,11 @@ def source_snapshot(root, config, profile, staged=False, requirement=None, raw_c
             raise ValueError('交付提交的配置缺少所选 profile：' + str(profile))
         config = {'profiles': {profile: resolve_profile(profiles, profile)}}
     inputs = config['profiles'][profile].get('inputs')
+    if checks is not None:
+        settings = config['profiles'][profile]
+        checks = checked_names(settings, checks)
+        scopes = [inputs] + [check_inputs(settings, name) for name in checks]
+        inputs = None if None in scopes else sorted({path for scope in scopes for path in scope})
     if staged:
         raw = subprocess.check_output(['git', '-C', str(root), 'ls-files', '--stage', '-z'],
                                       stderr=subprocess.PIPE)
@@ -389,8 +496,25 @@ def source_snapshot(root, config, profile, staged=False, requirement=None, raw_c
                            'executable': bool(path.stat().st_mode & 0o111)}
         else:
             raise ValueError('输入不是普通文件（目录输入需展开，子模块需显式指定文件）：' + name)
-    encoded = json.dumps(files, sort_keys=True, ensure_ascii=True).encode()
-    return {'algorithm': 'sha256-files-v4', 'fingerprint': hashlib.sha256(encoded).hexdigest(), 'files': files}
+    payload = files if checks is None else {'files': files, 'checks': checks}
+    encoded = json.dumps(payload, sort_keys=True, ensure_ascii=True).encode()
+    return {'algorithm': 'sha256-files-v4' if checks is None else 'sha256-files-v5', 'fingerprint': hashlib.sha256(encoded).hexdigest(), 'files': files}
+
+
+def verify_plan(root, config, profile, requirement, checks):
+    settings = config['profiles'][profile]
+    if checks is None:
+        # 无 checks 的历史证据保持旧算法；新触发配置不得把它升级为全组覆盖。
+        if any('covers' in check for check in settings['checks'].values()):
+            raise ValueError('触发配置的证据缺少 checks；请重新执行')
+        return
+    checks = checked_names(settings, checks)
+    plan = execution_plan(root, config, profile, requirement)
+    if plan['triggered'] and plan['uncovered_engineering_files']:
+        raise ValueError('工程改动未被检查覆盖：' + '、'.join(plan['uncovered_engineering_files']))
+    missing = set(plan['selected']) - set(checks)
+    if missing:
+        raise ValueError('验证证据缺少当前触发检查：' + '、'.join(sorted(missing)))
 
 
 def verify(root, result, staged=False):
@@ -405,168 +529,204 @@ def verify(root, result, staged=False):
     config = load_config(root)
     if report.get('profile') not in config['profiles']:
         raise ValueError('验证报告缺少有效 profile')
-    current = source_snapshot(root, config, report['profile'], requirement=report.get('requirement'))
+    verify_plan(root, config, report['profile'], report.get('requirement'), report.get('checks'))
+    if 'checks' in report and report['checks'] != [item['name'] for item in report.get('results', [])
+                                                 if item.get('status') == '通过']:
+        raise ValueError('报告 checks 与实际通过结果不一致')
+    current = source_snapshot(root, config, report['profile'], requirement=report.get('requirement'), checks=report.get('checks'))
     if report.get('source') != current or report['end_fingerprint'] != current['fingerprint']:
         raise ValueError('测试后源码或配置已变化，旧结果不能用于当前代码')
     if staged and source_snapshot(root, config, report['profile'], staged=True,
-                                  requirement=report.get('requirement')) != current:
+                                  requirement=report.get('requirement'), checks=report.get('checks')) != current:
         raise ValueError('暂存内容与已测试工作区不一致；请暂存正确版本或测试暂存快照')
     return report
 
 
-def check_snapshot(root, config, profile, name):
-    """检查级指纹：命令与该检查声明的输入（未声明时退回整个 profile 输入）。
-    不含 CONFIG 与其他检查：同 profile 其他检查变化不应使本检查的复用失效。"""
-    check = config['profiles'][profile]['checks'][name]
+def check_snapshot(root, config, profile, name, requirement=None):
+    """缓存键包含执行语义、依赖范围/内容/可执行位以及需求语义。"""
+    settings = config['profiles'][profile]
+    check = settings['checks'][name]
+    inputs = check_inputs(settings, name)
+    paths = input_paths(root, inputs)
+    if requirement is not None:
+        paths.add('requirements/' + requirement + '.md')
     files = {}
-    for item in sorted(input_paths(root, check.get('inputs', config['profiles'][profile].get('inputs')))):
+    for item in sorted(paths):
         path = local_path(root, item)
         if path.is_file():
-            files[item] = hashlib.sha256(content_for_snapshot(item, path.read_bytes())).hexdigest()
-    identity = {'name': name, 'argv': check['argv'], 'cwd': check.get('cwd', '.'), 'inputs': files}
+            files[item] = {'sha256': hashlib.sha256(content_for_snapshot(item, path.read_bytes())).hexdigest(),
+                           'executable': bool(path.stat().st_mode & 0o111)}
+        elif path.exists():
+            raise ValueError('检查输入不是普通文件：' + item)
+    identity = {'version': 2, 'name': name, 'argv': check['argv'], 'cwd': check.get('cwd', '.'),
+                'timeout_seconds': check.get('timeout_seconds', 900), 'inputs': inputs,
+                'covers': check_coverage(settings, name), 'cache': check.get('cache', True),
+                'files': files, 'requirement': requirement}
     return hashlib.sha256(json.dumps(identity, sort_keys=True, ensure_ascii=True).encode()).hexdigest()
 
 
-def reusable_results(root, profile):
-    """最近完成（输入未中途变化）运行中各检查的通过结果，供 incremental 复用；最新优先。
-    整体失败运行中的其余通过项同样可信：复用始终来自该检查自身通过、指纹可比对的执行。"""
-    available = {}
+def recent_reports(root):
     directory = local_path(root, 'logs/project-checks')
     if not directory.is_dir():
-        return available
-    for run_dir in sorted((item for item in directory.iterdir() if item.is_dir()),
-                          key=lambda item: item.name, reverse=True)[:40]:
+        return []
+    reports = []
+    for run_dir in directory.iterdir():
+        if not run_dir.is_dir():
+            continue
         try:
             report = json.loads((run_dir / 'result.json').read_text())
+            if isinstance(report, dict):
+                reports.append((run_dir, report))
         except (OSError, ValueError):
             continue
-        if report.get('profile') != profile or report.get('status') not in ('通过', '失败'):
+    return sorted(reports, key=lambda entry: entry[1].get('started_at', entry[0].name), reverse=True)[:40]
+
+
+def reusable_results(root, profile):
+    """每项只看最近出现的结果；失败、未完成、输入变化都阻断更早的成功缓存。"""
+    available, seen = {}, set()
+    for run_dir, report in recent_reports(root):
+        if report.get('profile') != profile:
             continue
-        for item in report.get('results', []):
-            if item.get('status') == '通过' and item.get('check_fingerprint') and item['name'] not in available:
-                available[item['name']] = (run_dir.name, item)
+        results = {item['name']: item for item in report.get('results', []) if 'name' in item}
+        for name in report.get('selected', list(results)):
+            if name in seen:
+                continue
+            seen.add(name)
+            item = results.get(name, {})
+            if (report.get('completed_at') and report.get('status') in ('通过', '失败')
+                    and report.get('end_fingerprint') == report.get('source', {}).get('fingerprint')
+                    and item.get('status') == '通过' and item.get('check_fingerprint')):
+                available[name] = (run_dir.name, item)
     return available
 
 
 def last_pass(root, profile):
-    """该 profile 最近一次通过运行的实际耗时；旧报告无 wall_seconds 时按检查耗时合计估算。"""
-    directory = local_path(root, 'logs/project-checks')
-    if not directory.is_dir():
-        return None
-    for run_dir in sorted((item for item in directory.iterdir() if item.is_dir()),
-                          key=lambda item: item.name, reverse=True)[:40]:
-        try:
-            report = json.loads((run_dir / 'result.json').read_text())
-        except (OSError, ValueError):
-            continue
+    """最近通过的实际耗时，并明确是否含缓存及部分选择。"""
+    for run_dir, report in recent_reports(root):
         if report.get('profile') == profile and report.get('status') == '通过':
             wall = report.get('wall_seconds')
             if wall is None:
                 wall = round(sum(item.get('duration_seconds') or 0 for item in report.get('results', [])), 1)
-            return {'wall_seconds': wall, 'completed_at': report.get('completed_at')}
+            reused = any(item.get('reused') for item in report.get('results', []))
+            partial = bool(report.get('skipped'))
+            return {'wall_seconds': wall, 'completed_at': report.get('completed_at'),
+                    'reused': reused, 'partial': partial,
+                    'kind': 'cached' if reused else 'partial' if partial else 'full'}
     return None
 
 
-def run(root, profile, requirement=None):
+def run(root, profile, requirement=None, rerun=False, selected=None):
     root = root.resolve()
     config = load_config(root)
     if profile not in config['profiles']:
         raise ValueError('未配置所选 profile：' + profile)
     settings = config['profiles'][profile]
+    plan = execution_plan(root, config, profile, requirement, force=rerun)
+    forced = set(checked_names(settings, selected)) if selected is not None else set()
+    names = [name for name in settings['checks'] if name in plan['selected'] or name in forced]
+    plan.update(selected=names, skipped=[name for name in settings['checks'] if name not in names])
+    if plan['triggered'] and plan['uncovered_engineering_files']:
+        raise ValueError('工程改动未被检查覆盖：' + '、'.join(plan['uncovered_engineering_files']))
     incremental = bool(settings.get('incremental'))
-    source_before = source_snapshot(root, config, profile, requirement=requirement)
+    source_before = source_snapshot(root, config, profile, requirement=requirement, checks=names) if names else None
     directory = local_path(root, 'logs/project-checks')
     directory.mkdir(parents=True, exist_ok=True)
-    # 目录自带忽略规则：直接解压安装、未运行 setup 的项目也不会把本地日志提交。
     ignore = local_path(root, 'logs/project-checks/.gitignore')
     if not ignore.exists():
         ignore.write_text('*\n')
-    run_dir = directory / (datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ-') + uuid.uuid4().hex[:8])
+    run_dir = directory / (datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S.%fZ-') + uuid.uuid4().hex[:8])
     run_dir.mkdir()
-    head = subprocess.run(['git', '-C', str(root), 'rev-parse', 'HEAD'],
-                          capture_output=True, text=True)
+    head = subprocess.run(['git', '-C', str(root), 'rev-parse', 'HEAD'], capture_output=True, text=True)
     report = {'schema_version': 2, 'profile': profile, 'requirement': requirement,
               'started_at': datetime.now(timezone.utc).isoformat(),
               'head': head.stdout.strip() if head.returncode == 0 else None,
-              'scope': 'working-tree', 'source': source_before, 'results': [], 'status': '未验证',
-              **({'incremental': True} if incremental else {})}
+              'scope': 'working-tree', 'source': source_before, 'results': [], 'checks': [],
+              'status': '未验证', **plan, **({'incremental': True} if incremental else {})}
     results = {}
 
     def save():
-        # 逐项落盘便于中途观察；未完成的检查暂不出现在结果里，整体状态仍为未验证。
-        report['results'] = [results[name] for name in settings['checks'] if name in results]
+        report['results'] = [results[name] for name in names if name in results]
+        report['checks'] = [name for name in names if results.get(name, {}).get('status') == '通过']
         (run_dir / 'result.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
 
-    # 配置和命令属于团队明确选定的可执行代码；不使用 shell，不代入需求中的任意文本。
-    reuse = reusable_results(root, profile) if incremental else {}
+    reuse = reusable_results(root, profile) if incremental and not rerun else {}
     started = time.monotonic()
-    waiting = []
-    for name, check in settings['checks'].items():
+    save()
+
+    def execute(name):
+        check = settings['checks'][name]
         result = {'name': name, 'argv': check['argv'], 'cwd': check.get('cwd', '.'),
                   'log': name + '.log', 'status': '未验证', 'exit_code': None}
-        if incremental:
-            # 检查级指纹一致时复用最近一次通过结果，不重新执行；整体绑定仍按本次输入快照计算。
-            result['check_fingerprint'] = check_snapshot(root, config, profile, name)
-            origin = reuse.get(name)
-            if origin and origin[1]['check_fingerprint'] == result['check_fingerprint']:
-                previous_dir, previous = origin
-                result.update(log=(previous['log'] if 'reused_from' in previous
-                                   else previous_dir + '/' + previous['log']),
-                              status='通过', exit_code=previous.get('exit_code'),
-                              duration_seconds=previous.get('duration_seconds'), reused=True,
-                              reused_from=previous.get('reused_from', previous_dir))
-                results[name] = result
-                save()
-                continue
+        result['check_fingerprint'] = check_snapshot(root, config, profile, name, requirement)
+        origin = reuse.get(name) if check.get('cache', True) and name not in forced else None
+        if origin and origin[1]['check_fingerprint'] == result['check_fingerprint']:
+            previous_dir, previous = origin
+            # 新报告始终有自己的日志副本；兼容旧报告跨目录的相对引用。
+            previous_log = directory / previous_dir / previous['log']
+            if not previous_log.is_file():
+                previous_log = directory / previous['log']
+            if previous_log.is_file():
+                shutil.copyfile(previous_log, run_dir / result['log'])
+                result.update(status='通过', exit_code=0, duration_seconds=0.0,
+                              original_duration_seconds=previous.get('original_duration_seconds', previous.get('duration_seconds')),
+                              reused=True, reused_from=previous.get('reused_from', previous_dir))
+                return result
+        item_started = time.monotonic()
         try:
-            stream = (run_dir / result['log']).open('wb')
-            process = subprocess.Popen(check['argv'], cwd=local_path(root, result['cwd']),
-                                       stdin=subprocess.DEVNULL, stdout=stream,
-                                       stderr=subprocess.STDOUT, start_new_session=True)
+            with (run_dir / result['log']).open('wb') as stream:
+                process = subprocess.Popen(check['argv'], cwd=local_path(root, result['cwd']),
+                                           stdin=subprocess.DEVNULL, stdout=stream,
+                                           stderr=subprocess.STDOUT, start_new_session=True)
+                try:
+                    result['exit_code'] = process.wait(timeout=check.get('timeout_seconds', 900))
+                    result['status'] = '通过' if result['exit_code'] == 0 else '失败'
+                except subprocess.TimeoutExpired:
+                    try:
+                        os.killpg(process.pid, signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
+                    process.wait()
+                    result['status'] = '超时'
         except OSError as error:
-            result.update(status='无法执行', error=str(error), duration_seconds=0.0)
-            results[name] = result
+            result.update(status='无法执行', error=str(error))
+        result['duration_seconds'] = round(time.monotonic() - item_started, 3)
+        return result
+
+    # 默认一个 worker 保留旧顺序；各 worker 独立等待自身进程的超时。
+    with ThreadPoolExecutor(max_workers=settings.get('parallelism', 1)) as executor:
+        futures = {executor.submit(execute, name): name for name in names}
+        for future in as_completed(futures):
+            name = futures[future]
+            try:
+                results[name] = future.result()
+            except (OSError, ValueError, KeyError, TypeError) as error:
+                results[name] = {'name': name, 'status': '无法执行', 'error': str(error), 'log': name + '.log'}
             save()
-            continue
-        waiting.append((process, check, result, stream))
-    # 检查同时启动、并行等待；超时自共同启动时刻独立计算，只终止自身的进程组。
-    for process, check, result, stream in waiting:
-        try:
-            result['exit_code'] = process.wait(
-                timeout=max(0.1, check.get('timeout_seconds', 900) - (time.monotonic() - started)))
-            result['status'] = '通过' if result['exit_code'] == 0 else '失败'
-        except subprocess.TimeoutExpired:
-            os.killpg(process.pid, signal.SIGKILL)
-            process.wait()
-            result['status'] = '超时'
-        finally:
-            stream.close()
-        result['duration_seconds'] = round(time.monotonic() - started, 3)
-        results[result['name']] = result
-        save()
-    report['status'] = '通过' if all(r['status'] == '通过' for r in report['results']) else '失败'
+    report['status'] = '通过' if names and all(r['status'] == '通过' for r in report['results']) else '失败'
     report['wall_seconds'] = round(time.monotonic() - started, 3)
-    unchanged = False
-    try:
-        source_after = source_snapshot(root, load_config(root), profile, requirement=requirement)
-        report['end_fingerprint'] = source_after['fingerprint']
-        unchanged = source_after == source_before
+    if not names:
+        report['status'] = '无需检查'
+    else:
+        unchanged = False
+        try:
+            source_after = source_snapshot(root, load_config(root), profile, requirement=requirement, checks=names)
+            report['end_fingerprint'] = source_after['fingerprint']
+            unchanged = source_after == source_before
+            if not unchanged:
+                before, after = source_before['files'], source_after['files']
+                report['source_changes'] = {
+                    'added': {n: after[n] for n in sorted(after.keys() - before.keys())},
+                    'removed': sorted(before.keys() - after.keys()),
+                    'modified': {n: after[n] for n in sorted(before.keys() & after.keys()) if before[n] != after[n]},
+                }
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            report['source_error'] = str(error)
         if not unchanged:
-            before, after = source_before['files'], source_after['files']
-            report['source_changes'] = {
-                'added': {n: after[n] for n in sorted(after.keys() - before.keys())},
-                'removed': sorted(before.keys() - after.keys()),
-                'modified': {n: after[n] for n in sorted(before.keys() & after.keys())
-                             if before[n] != after[n]},
-            }
-    except (OSError, ValueError, KeyError, TypeError) as error:
-        report['source_error'] = str(error)
-    if not unchanged:
-        report['status'] = '输入已变化，需重测'
+            report['status'] = '输入已变化，需重测'
     report['completed_at'] = datetime.now(timezone.utc).isoformat()
-    target = run_dir / 'result.json'
-    target.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
-    return target, report['status'] == '通过'
+    save()
+    return run_dir / 'result.json', report['status'] == '通过'
 
 
 FAILURE_LINE = re.compile(r'error|fail|fatal|exception|traceback|assert|panic|错误|失败', re.I)
@@ -594,20 +754,26 @@ def describe_run(root, target):
             excerpt = key_lines(target.parent / result['log'])
             if excerpt:
                 line += '\n' + result['name'] + ' 关键行：\n' + '\n'.join('  ' + item for item in excerpt)
+    elif report['status'] == '无需检查':
+        line += '：当前改动未触发项目检查，不生成通过证据'
     elif report['status'] != '通过':
         line += '：运行期间输入变化，请重新验证'
     reused = [r['name'] for r in report['results'] if r.get('reused')]
     if reused:
         line += '\n复用上次通过（未重跑）：' + '、'.join(reused)
+    if report.get('skipped'):
+        line += '\n未触发：' + '、'.join(report['skipped'])
     return line
 
 
 def summarize(root, target):
     """写入需求卡的证据摘要：日志留在本地，卡片只保存可复核的指纹。"""
     report = json.loads(target.read_text())
+    if report.get('status') != '通过':
+        raise ValueError('只有通过结果可生成证据摘要')
     requirement = report.get('requirement')
     card = local_path(root, 'requirements/' + requirement + '.md').read_text()
-    summary = {'kind': 'result', 'profile': report['profile'], 'status': report['status'],
+    summary = {**({'checks': report['checks']} if 'checks' in report else {}), 'kind': 'result', 'profile': report['profile'], 'status': report['status'],
             'fingerprint': 'sha256:' + report['end_fingerprint'],
             'requirement': 'sha256:' + hashlib.sha256(semantic_content(card, requirement)).hexdigest(),
             'head': (report.get('head') or '')[:12] or None,
@@ -625,10 +791,11 @@ def verify_summary(root, requirement, evidence, staged=False):
     profile = evidence.get('profile')
     if profile not in config['profiles']:
         raise ValueError('证据中的 profile 已不存在：' + str(profile))
-    current = source_snapshot(root, config, profile, requirement=requirement)
+    verify_plan(root, config, profile, requirement, evidence.get('checks'))
+    current = source_snapshot(root, config, profile, requirement=requirement, checks=evidence.get('checks'))
     if evidence.get('fingerprint') != 'sha256:' + current['fingerprint']:
         raise ValueError('测试后源码或配置已变化，旧结果不能用于当前代码')
     if staged and source_snapshot(root, config, profile, staged=True,
-                                  requirement=requirement)['fingerprint'] != current['fingerprint']:
+                                  requirement=requirement, checks=evidence.get('checks'))['fingerprint'] != current['fingerprint']:
         raise ValueError('暂存内容与已验证工作区不一致；请暂存同一内容或重新验证')
     return current

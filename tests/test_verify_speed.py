@@ -27,7 +27,7 @@ class VerifySpeedTests(unittest.TestCase):
     # 1. 多项检查并行执行：两个 2 秒检查的总耗时应接近 2 秒而非 4 秒
     def test_checks_run_in_parallel(self):
         self.baseline()
-        self.set_profiles({'p': {'inputs': ['source.txt'], 'checks': {
+        self.set_profiles({'p': {'inputs': ['source.txt'], 'parallelism': 2, 'checks': {
             'slow-a': {'argv': [sys.executable, '-c', 'import time; time.sleep(2)']},
             'slow-b': {'argv': [sys.executable, '-c', 'import time; time.sleep(2)']}}}})
         module = flow.checks_module()
@@ -75,7 +75,7 @@ class VerifySpeedTests(unittest.TestCase):
         results = {r['name']: r for r in report['results']}
         self.assertTrue(results['ca'].get('reused') and results['cb'].get('reused'))
         self.assertEqual((1, 1), (self.counts('ca.count'), self.counts('cb.count')))
-        self.assertTrue(results['ca']['log'].startswith('20'))
+        self.assertTrue((target.parent / results['ca']['log']).is_file())
         self.assertTrue(results['ca']['reused_from'])
         self.assertLess(report['wall_seconds'], 2)
         # 只改 b 的输入：仅 cb 重跑，ca 仍复用

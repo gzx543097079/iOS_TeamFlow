@@ -4,7 +4,7 @@
 
 ## 验证与完成
 
-`req complete REQ-20260101-a3f9 --profile change` 优先复用同 profile 的有效证据，否则运行并绑定摘要；`--rerun` 与 `--profile` 一起显式重跑。`--result logs/project-checks/运行编号/result.json` 绑定已用 `verify run --requirement` 生成的结果，不重跑。`verify run` 本身始终运行，不是证据复核命令。不传证据参数时先复核摘要；缺失或失效时按 covers 与 priority 选择覆盖全部改动（相对 HEAD 的改动加上带本需求 `Requirement:` 尾注的已提交改动）的唯一候选，存在歧义或无覆盖则报错且不改卡片。输出区分“复用验证，未运行测试”和重新验证原因。`--profile`、`--result`、`--evidence` 互斥。
+`req complete REQ-20260101-a3f9 --profile change` 优先复用同 profile 的有效证据，否则运行并绑定摘要；`--rerun` 与 `--profile` 一起显式重跑。`--result logs/project-checks/运行编号/result.json` 绑定已用 `verify run --requirement` 生成的结果，不重跑。`verify run` 计算适用检查；有 check covers 时仅执行触发项，未触发不执行。`verify run --rerun` 与 `req complete --profile change --rerun` 强制全项执行并绕过缓存。manual profile 仅显式选择。不传证据参数时先复核摘要；缺失或失效时按 covers 与 priority 选择覆盖全部改动（相对 HEAD 的改动加上带本需求 `Requirement:` 尾注的已提交改动）的唯一候选，存在歧义或无覆盖则报错且不改卡片。输出区分“复用验证，未运行测试”和重新验证原因。`--profile`、`--result`、`--evidence` 互斥。
 
 `--confirm-ac AC-01` 可重复；`--user-confirmed AC-01` 同样勾选，并把编号记入头部 `user_confirmed`，`req status` 与 `req pr` 标注“用户确认”。未知编号、证据无效或验证失败均不更改卡片，未指定的条件保留原状态。`--wait-user` 与恢复规则见 [WORKFLOW](WORKFLOW.md#实施与验收)，恢复命令见下方「状态」。
 
@@ -14,7 +14,7 @@
 
 ## 输出
 
-所有命令默认输出几行简短摘要：验证只报“通过/失败”，失败时附失败项、本地日志路径和每项最多 8 条关键错误行，通常无需再打开完整日志；需求命令报告状态、进度、剩余 AC 和下一步。追加 `--json` 输出完整结构，供脚本或诊断使用。
+所有命令默认输出几行简短摘要：验证区分通过、失败、复用与未触发，失败时附失败项、本地日志路径和每项最多 8 条关键错误行，通常无需再打开完整日志；需求命令报告状态、进度、剩余 AC 和下一步。追加 `--json` 输出完整结构，供脚本或诊断使用。
 
 ## 状态
 
@@ -44,8 +44,8 @@ python3 scripts/teamflow.py req complete REQ-20260101-a3f9 \
 ## 升级与提交前检查
 
 ```sh
-python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.3.0.zip --plan
-python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.3.0.zip
+python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.4.0.zip --plan
+python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.4.0.zip
 python3 scripts/teamflow.py setup --git-hook
 python3 scripts/teamflow.py setup --no-git-hook
 ```
@@ -63,7 +63,7 @@ python3 scripts/teamflow.py req status REQ-20260101-a3f9
 ```
 
 - `doctor` 汇总接入、验证配置与输入、占位卡片、失效证据及已启用模块索引，默认每项一行，`--json` 输出完整结构。已完成需求的自动证据与交付提交（卡片记录该证据的提交）输入一致时视为交付时有效，之后的代码演进不再提示；已提交但对不上的列为历史提示，不计入需处理；完成后未提交即失效的计入需处理。`req complete` 与 `git check` 仍按当前内容校验。Git 跟踪文件达到 1000 个且未启用模块索引时给出提示。发现需处理项退出 1，不执行修复或项目检查；不因工具仓库缺少 Xcode 强制阻塞。
-- `verify suggest` 列出相对 HEAD 的暂存、未暂存和未跟踪改动（`--requirement` 另计该需求带尾注的已提交改动）、各 profile 覆盖和遗漏路径、各 profile 最近一次通过的实际耗时，以及 `req complete` 会自动选用的 profile。只按路径建议，不能判断某项测试足以验证业务语义；不执行检查。`verify run` 的多项检查并行执行；incremental profile 中指纹未变的检查复用上次通过结果，输出标明“复用上次通过（未重跑）”。
+- `verify suggest` 列出相对 HEAD 的暂存、未暂存和未跟踪改动（`--requirement` 另计该需求带尾注的已提交改动）、各 profile 覆盖和遗漏路径、各 profile 最近一次通过的实际耗时，以及 `req complete` 会自动选用的 profile。只按路径建议，不能判断某项测试足以验证业务语义；不执行检查。`verify suggest` 同时显示各 check 的触发和跳过情况，manual profile 标为仅显式执行。检查默认顺序，显式设置 parallelism 才并行；incremental profile 中指纹未变的检查复用上次通过结果，输出标明“复用上次通过（未重跑）”。
 - `req pr` 由需求卡生成 PR 标题与正文，`git ci --base <基线>` 供 CI 核对基线之后改动的完成卡证据，用法见 [REVIEW](REVIEW.md)。
 - `req status` 汇总状态、进度、证据有效性与问题、剩余 AC 和下一步，`--json` 另含范围、AC 与决策记录。不修改状态，不自动恢复阻塞或取消，不为已完成需求扩张交付。
 

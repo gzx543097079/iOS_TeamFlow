@@ -22,7 +22,15 @@ class WorkflowTests(unittest.TestCase):
         validate_workflow.validate(ROOT)
         names = set(package_release.FILES)
         self.assertIn('scripts/teamflow.py', names)
+        self.assertIn('.agents/project-checks.json', names)
+        for test in (ROOT / 'tests').glob('test_*.py'):
+            self.assertIn(str(test.relative_to(ROOT)), names)
         self.assertIn(package_release.CORE + '/scripts/teamflow.py', names)
+
+    def test_release_profile_is_explicit_only(self):
+        import json
+        config = json.loads((ROOT / '.agents/project-checks.json').read_text())
+        self.assertIs(True, config['profiles']['workflow-release']['manual'])
 
     def test_repository_does_not_activate_extra_host_permissions(self):
         for target, source in package_release.PERMISSIONS.items():
