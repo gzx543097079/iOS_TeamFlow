@@ -15,14 +15,14 @@
 新项目解压即可使用，验证日志目录自带忽略规则：
 
 ```sh
-unzip ~/Downloads/teamflow-ios-v1.4.0.zip -d .
+unzip ~/Downloads/teamflow-ios-v1.5.0.zip -d .
 python3 scripts/teamflow.py doctor
 ```
 
 已有 `AGENTS.md` 或 `scripts/` 的项目不覆盖解压，再由 setup 合并托管区块：
 
 ```sh
-unzip -n ~/Downloads/teamflow-ios-v1.4.0.zip -d .
+unzip -n ~/Downloads/teamflow-ios-v1.5.0.zip -d .
 python3 .agents/teamflow-core/scripts/teamflow.py setup --mode ios
 ```
 
@@ -31,11 +31,11 @@ setup 写入 AGENTS 托管区块和 `scripts/teamflow.py`，在 `.gitignore` 忽
 ## 升级
 
 ```sh
-python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.4.0.zip --plan
-python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.4.0.zip
+python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.5.0.zip --plan
+python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.5.0.zip
 ```
 
-按安装清单替换未改动的核心与 Skill 文件，移除新版不再包含的文件，然后刷新入口。有本地改动时拒绝并列出文件，核对后可加 `--force`。`--mode` 同时切换模式，例如用 `teamflow-godot-ios` 包加 `--mode godot-ios` 给 Godot 项目补装 iOS Skill。`.agents/team/`、需求卡、验证配置和模块索引不触碰。已安装的项目不要用 `unzip -n` 升级。升级提交只含 TeamFlow 安装文件，不建卡，提交消息写明版本，例如“升级 TeamFlow 至 1.4.0”；与业务改动分开提交。
+按安装清单替换未改动的核心与 Skill 文件，移除新版不再包含的文件，然后刷新入口。有本地改动时拒绝并列出文件，核对后可加 `--force`。`--mode` 同时切换模式，例如用 `teamflow-godot-ios` 包加 `--mode godot-ios` 给 Godot 项目补装 iOS Skill。`.agents/team/`、需求卡、验证配置和模块索引不触碰。已安装的项目不要用 `unzip -n` 升级。升级提交只含 TeamFlow 安装文件，不建卡，提交消息写明版本，例如“升级 TeamFlow 至 1.5.0”；与业务改动分开提交。
 
 ## 团队定制
 

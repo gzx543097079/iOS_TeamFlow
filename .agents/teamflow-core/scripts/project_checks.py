@@ -601,6 +601,44 @@ def reusable_results(root, profile):
     return available
 
 
+def retry_results(root, profile):
+    """未启用 incremental 时的失败重跑：仅当该 profile 最近一次完成的运行失败，
+    复用其中通过且输入未中途变化的检查；最新一次已通过或输入变化时不复用。"""
+    for run_dir, report in recent_reports(root):
+        if report.get('profile') != profile or not report.get('completed_at'):
+            continue
+        if (report.get('status') != '失败'
+                or report.get('end_fingerprint') != (report.get('source') or {}).get('fingerprint')):
+            return {}
+        return {item['name']: (run_dir.name, item) for item in report.get('results', [])
+                if item.get('status') == '通过' and item.get('check_fingerprint')}
+    return {}
+
+
+def recent_duration(root, profile, name):
+    """该检查最近一次实际执行（非复用）的耗时，优先取通过的运行，没有时取失败的运行。"""
+    fallback = None
+    for _, report in recent_reports(root):
+        if report.get('profile') != profile:
+            continue
+        for item in report.get('results', []):
+            if (item.get('name') != name or item.get('reused')
+                    or not isinstance(item.get('duration_seconds'), (int, float))):
+                continue
+            if item.get('status') == '通过':
+                return item['duration_seconds']
+            if item.get('status') == '失败' and fallback is None:
+                fallback = item['duration_seconds']
+    return fallback
+
+
+def estimate_seconds(durations, parallelism):
+    if not durations:
+        return 0
+    total = sum(durations)
+    return round(total if parallelism <= 1 else max(max(durations), total / parallelism))
+
+
 def last_pass(root, profile):
     """最近通过的实际耗时，并明确是否含缓存及部分选择。"""
     for run_dir, report in recent_reports(root):
@@ -616,7 +654,8 @@ def last_pass(root, profile):
     return None
 
 
-def run(root, profile, requirement=None, rerun=False, selected=None):
+def run(root, profile, requirement=None, rerun=False, selected=None, announce=None):
+    """announce 在启动命令前接收一行计划提示（执行/复用、预计耗时、结果路径）。"""
     root = root.resolve()
     config = load_config(root)
     if profile not in config['profiles']:
@@ -650,7 +689,43 @@ def run(root, profile, requirement=None, rerun=False, selected=None):
         report['checks'] = [name for name in names if results.get(name, {}).get('status') == '通过']
         (run_dir / 'result.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
 
-    reuse = reusable_results(root, profile) if incremental and not rerun else {}
+    # incremental 按指纹复用历史通过；未启用时仅在上次失败后复用其通过项，失败项与变化项重跑。
+    reuse = {} if rerun else reusable_results(root, profile) if incremental else retry_results(root, profile)
+    fingerprints = {name: check_snapshot(root, config, profile, name, requirement) for name in names}
+
+    def previous_log(name):
+        check = settings['checks'][name]
+        origin = reuse.get(name) if check.get('cache', True) and name not in forced else None
+        if not origin or origin[1]['check_fingerprint'] != fingerprints[name]:
+            return None
+        previous_dir, previous = origin
+        # 新报告始终有自己的日志副本；兼容旧报告跨目录的相对引用。
+        path = directory / previous_dir / previous['log']
+        if not path.is_file():
+            path = directory / previous['log']
+        return path if path.is_file() else None
+
+    reused_names = [name for name in names if previous_log(name)]
+    executed = [name for name in names if name not in reused_names]
+    durations = {name: recent_duration(root, profile, name) for name in executed}
+    unknown = [name for name, value in durations.items() if value is None]
+    report['estimated_seconds'] = (None if unknown else
+                                   estimate_seconds(list(durations.values()), settings.get('parallelism', 1)))
+    if announce and names:
+        line = f"开始验证（{profile}）：执行 {'、'.join(executed) or '无'}"
+        if reused_names:
+            line += '；复用上次通过 ' + '、'.join(reused_names)
+        known = [value for value in durations.values() if value is not None]
+        if report['estimated_seconds'] is not None:
+            line += f"；预计约 {report['estimated_seconds']} 秒（按最近实际执行）"
+        elif known:
+            line += (f"；预计至少 {estimate_seconds(known, settings.get('parallelism', 1))} 秒"
+                     f"（{'、'.join(unknown)} 无历史）")
+        else:
+            line += '；预计耗时未知（无历史执行记录）'
+        line += (f"。结果：{(run_dir / 'result.json').relative_to(root)}。"
+                 '耗时较长时后台运行并等待完成通知，不用固定时长 sleep 轮询')
+        announce(line)
     started = time.monotonic()
     save()
 
@@ -658,20 +733,14 @@ def run(root, profile, requirement=None, rerun=False, selected=None):
         check = settings['checks'][name]
         result = {'name': name, 'argv': check['argv'], 'cwd': check.get('cwd', '.'),
                   'log': name + '.log', 'status': '未验证', 'exit_code': None}
-        result['check_fingerprint'] = check_snapshot(root, config, profile, name, requirement)
-        origin = reuse.get(name) if check.get('cache', True) and name not in forced else None
-        if origin and origin[1]['check_fingerprint'] == result['check_fingerprint']:
-            previous_dir, previous = origin
-            # 新报告始终有自己的日志副本；兼容旧报告跨目录的相对引用。
-            previous_log = directory / previous_dir / previous['log']
-            if not previous_log.is_file():
-                previous_log = directory / previous['log']
-            if previous_log.is_file():
-                shutil.copyfile(previous_log, run_dir / result['log'])
-                result.update(status='通过', exit_code=0, duration_seconds=0.0,
-                              original_duration_seconds=previous.get('original_duration_seconds', previous.get('duration_seconds')),
-                              reused=True, reused_from=previous.get('reused_from', previous_dir))
-                return result
+        result['check_fingerprint'] = fingerprints[name]
+        if name in reused_names:
+            previous_dir, previous = reuse[name]
+            shutil.copyfile(previous_log(name), run_dir / result['log'])
+            result.update(status='通过', exit_code=0, duration_seconds=0.0,
+                          original_duration_seconds=previous.get('original_duration_seconds', previous.get('duration_seconds')),
+                          reused=True, reused_from=previous.get('reused_from', previous_dir))
+            return result
         item_started = time.monotonic()
         try:
             with (run_dir / result['log']).open('wb') as stream:
@@ -758,6 +827,8 @@ def describe_run(root, target):
         line += '：当前改动未触发项目检查，不生成通过证据'
     elif report['status'] != '通过':
         line += '：运行期间输入变化，请重新验证'
+    if failed and any(r['status'] == '通过' for r in report['results']):
+        line += '\n修复后再次运行只重跑失败项与输入变化项，本次通过项复用（--rerun 强制全部执行）'
     reused = [r['name'] for r in report['results'] if r.get('reused')]
     if reused:
         line += '\n复用上次通过（未重跑）：' + '、'.join(reused)

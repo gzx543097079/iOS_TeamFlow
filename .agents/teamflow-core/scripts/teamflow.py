@@ -7,6 +7,7 @@ import json
 import re
 import secrets
 import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
 from teamflow_common import local_path as safe
@@ -233,7 +234,7 @@ def manual_proof(root, card, evidence, evidence_inputs=None):
 
 
 def complete(root, requirement, result=None, evidence=None, wait_user=False, profile=None,
-             confirm_ac=None, evidence_inputs=None, user_confirmed=None, rerun=False):
+             confirm_ac=None, evidence_inputs=None, user_confirmed=None, rerun=False, announce=None):
     if rerun and profile is None:
         raise ValueError('--rerun 必须与 --profile 一起使用')
     if sum(value is not None for value in (result, evidence, profile)) > 1:
@@ -258,7 +259,8 @@ def complete(root, requirement, result=None, evidence=None, wait_user=False, pro
         previous = card.get('evidence') or {}
         selected = (previous.get('checks') if previous.get('profile') == name
                     and previous.get('requirement') != requirement_fingerprint(card) else None)
-        target, passed = checks.run(root, name, requirement, rerun=rerun, selected=selected)
+        target, passed = checks.run(root, name, requirement, rerun=rerun, selected=selected,
+                                    announce=announce)
         line = checks.describe_run(root, target)
         if auto:
             line = line.replace('（' + name + '）', '（' + name + '，按改动自动选择）', 1)
@@ -657,6 +659,10 @@ def main():
     args = parser.parse_args()
     root = args.project.resolve()
 
+    def progress(line):
+        # 开始提示走 stderr，不影响 --json 输出；长验证可据此后台运行并等待完成。
+        print(line, file=sys.stderr, flush=True)
+
     def emit(kind, data, as_json=None):
         if getattr(args, 'json', False):
             print(json.dumps(data if as_json is None else as_json, ensure_ascii=False, indent=2))
@@ -693,7 +699,7 @@ def main():
             else:
                 emit('complete', complete(root, args.requirement, args.result, args.evidence, args.wait_user,
                                           args.profile, args.confirm_ac, args.evidence_input,
-                                          args.user_confirmed, args.rerun))
+                                          args.user_confirmed, args.rerun, announce=progress))
         elif args.area == 'verify':
             checks = checks_module()
             if args.command == 'init':
@@ -708,7 +714,8 @@ def main():
             elif args.command == 'list':
                 print(json.dumps(checks.load_config(root), ensure_ascii=False, indent=2))
             else:
-                target, passed = checks.run(root, args.profile, args.requirement, rerun=args.rerun)
+                target, passed = checks.run(root, args.profile, args.requirement, rerun=args.rerun,
+                                            announce=progress)
                 if args.json:
                     print(target.read_text().rstrip())
                 else:
@@ -765,7 +772,6 @@ def main():
                 if args.command == 'validate' and any(m['status'] == 'invalid' for m in report['modules']):
                     return 1
         else:
-            import sys
             platform_scripts = safe(root, '.agents/skills/iOS/scripts')
             if not (platform_scripts / 'install_logging.py').is_file():
                 raise ValueError('缺少 iOS 日志组件安装工具')

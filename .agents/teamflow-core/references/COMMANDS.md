@@ -14,7 +14,7 @@
 
 ## 输出
 
-所有命令默认输出几行简短摘要：验证区分通过、失败、复用与未触发，失败时附失败项、本地日志路径和每项最多 8 条关键错误行，通常无需再打开完整日志；需求命令报告状态、进度、剩余 AC 和下一步。追加 `--json` 输出完整结构，供脚本或诊断使用。
+`verify run` 与需运行检查的 `req complete` 开始前向 stderr 输出执行计划、预计耗时与结果路径，`--json` 输出不受影响；失败时提示再次运行只重跑失败项。所有命令默认输出几行简短摘要：验证区分通过、失败、复用与未触发，失败时附失败项、本地日志路径和每项最多 8 条关键错误行，通常无需再打开完整日志；需求命令报告状态、进度、剩余 AC 和下一步。追加 `--json` 输出完整结构，供脚本或诊断使用。
 
 ## 状态
 
@@ -44,8 +44,8 @@ python3 scripts/teamflow.py req complete REQ-20260101-a3f9 \
 ## 升级与提交前检查
 
 ```sh
-python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.4.0.zip --plan
-python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.4.0.zip
+python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.5.0.zip --plan
+python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.5.0.zip
 python3 scripts/teamflow.py setup --git-hook
 python3 scripts/teamflow.py setup --no-git-hook
 ```

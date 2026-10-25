@@ -1,10 +1,13 @@
 # 版本记录
 
-## 未发布
+## 1.5.0
 
-来源：用户纠正（REQ-20261024-2f7a）。
+来源：颜见会话实测（{{ACCOUNT_15skr24k}}）：01:35–03:18 UTC 长耗时约 76 分钟，约 64 分钟为 Agent 固定时长 sleep 轮询，约 10 分钟为绕过 TeamFlow 直接运行全套 xcodebuild test，TeamFlow 验证约 11 分钟；尚未在消费项目复测；合并方式规则来自用户纠正（REQ-20261024-2f7a）。
 
+- 同一 profile 上次运行失败后，再次运行只执行失败项与指纹变化项，通过项复用；不要求 `incremental`，`cache: false` 与 `--rerun` 例外。
+- `verify run` 与 `req complete` 开始前输出执行/复用检查、按最近实际耗时估算的预计时间与结果路径；报告记录 `estimated_seconds`。
 - 合并 PR 默认使用 Merge（保留合并提交），不 squash 或 rebase，用户明确指定其他方式时除外（用户纠正，REQ-20261024-2f7a）。
+- 规则：长验证后台运行并等待完成通知，不用固定时长 sleep 轮询；调试只运行失败用例，不在 TeamFlow 外重复全套测试。
 
 ## 1.4.0
 
