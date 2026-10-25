@@ -1,4 +1,5 @@
 """只读诊断和需求状态摘要，不写第二套状态或执行项目检查。"""
+import json
 import subprocess
 from teamflow_common import local_path
 from requirement_model import require_ready, parse_card
@@ -213,8 +214,18 @@ def ci_check(root, base):
         if valid and saved.get('kind') == 'manual':
             covered.update(project_checks.input_paths(root, saved['paths'], files))
         elif valid and config and saved.get('profile') in config['profiles']:
-            covered.update(project_checks.input_paths(
-                root, project_checks.coverage_inputs(config['profiles'][saved['profile']]), files))
+            evidence_config = config
+            if summary['evidence_status'].startswith('交付时有效'):
+                commit = flow.delivered_commit(root, card)
+                if commit:
+                    shown = subprocess.check_output(
+                        ['git', '-C', str(root), 'show', commit + ':' + project_checks.CONFIG], text=True)
+                    historical = json.loads(shown)
+                    evidence_config = {'profiles': {name: project_checks.resolve_profile(
+                        historical['profiles'], name) for name in historical['profiles']}}
+            inputs = project_checks.evidence_inputs(root, saved, config=evidence_config)
+            if inputs != []:
+                covered.update(project_checks.input_paths(root, inputs, files))
             covered.add(project_checks.CONFIG)
     if not names:
         checks.append({'item': '需求卡', 'status': '提示', 'detail': base + ' 之后未改动需求卡'})

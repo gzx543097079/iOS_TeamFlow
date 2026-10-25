@@ -80,7 +80,8 @@
           "timeout_seconds": 300
         }
       },
-      "priority": 200
+      "priority": 200,
+      "manual": true
     }
   }
 }

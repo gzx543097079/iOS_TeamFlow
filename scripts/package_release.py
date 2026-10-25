@@ -35,6 +35,8 @@ REFERENCES = (
 )
 # 仅打包明确登记的通用文件，不打包项目接入记录、需求或日志。
 FILES = (
+    '.agents/project-checks.json', 'tests/test_review_fixes.py', 'tests/test_verify_speed.py',
+    'tests/test_check_triggers.py', 'tests/test_trigger_delivery.py',
     'tests/test_boundaries.py', 'tests/test_diagnostics.py',
     'AGENTS.md', 'README.md', 'CHANGELOG.md', 'docs/RELEASE.md', 'docs/TRIAL.md', '.gitignore',
     '.github/workflows/release.yml',

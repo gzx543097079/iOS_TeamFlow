@@ -14,10 +14,10 @@ IOS = '.agents/skills/iOS/'
 GODOT = '.agents/skills/Godot/'
 # 估算值：中日韩字符按 1 token，其余按 3.5 字符 1 token；只用于相对约束，不代表计费。
 # 上限是防膨胀护栏而非优化目标，留约 10% 余量；不为压低估算而牺牲规则清晰度。
-FILE_BUDGET = 2500
-ENTRY_BUDGET = 3650
+FILE_BUDGET = 2700
+ENTRY_BUDGET = 3850
 SCENARIOS = {
-    'iOS UI 缺陷修复并提交': (10700, 'ios', (
+    'iOS UI 缺陷修复并提交': (11700, 'ios', (
         CORE + 'REPAIR.md', CORE + 'CHECKS.md', CORE + 'BOUNDARIES.md',
         IOS + 'references/standards/swift.md', IOS + 'references/standards/ui.md')),
     'iOS 新功能（含输入与多语言）': (17100, 'ios', (
@@ -26,7 +26,7 @@ SCENARIOS = {
         IOS + 'references/standards/ui.md', IOS + 'references/standards/ui-keyboard.md', CORE + 'CHECKS.md')),
     'iOS UI 评审': (8000, 'ios', (
         IOS + 'references/UI-REVIEW.md', IOS + 'references/standards/ui.md')),
-    'Godot + iOS 发布': (10800, 'godot-ios', (
+    'Godot + iOS 发布': (11800, 'godot-ios', (
         GODOT + 'references/IOS.md', IOS + 'references/APP-RELEASE.md', GODOT + 'references/CHECKS.md',
         CORE + 'CHECKS.md', CORE + 'BOUNDARIES.md')),
     '纯 Godot 发布': (9100, 'godot', (

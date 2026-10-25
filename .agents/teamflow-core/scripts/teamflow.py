@@ -205,7 +205,8 @@ def delivered_commit(root, card):
             continue
         try:
             snapshot = checks_module().source_snapshot(root, None, saved.get('profile'),
-                                                       requirement=card['requirement'], commit=commit)
+                                                       requirement=card['requirement'], commit=commit,
+                                                       checks=saved.get('checks'))
         except (ValueError, KeyError, TypeError, subprocess.CalledProcessError):
             continue
         if saved.get('fingerprint') == 'sha256:' + snapshot['fingerprint']:
@@ -254,7 +255,10 @@ def complete(root, requirement, result=None, evidence=None, wait_user=False, pro
     verification = None
 
     def run_profile(name, auto=False):
-        target, passed = checks.run(root, name, requirement)
+        previous = card.get('evidence') or {}
+        selected = (previous.get('checks') if previous.get('profile') == name
+                    and previous.get('requirement') != requirement_fingerprint(card) else None)
+        target, passed = checks.run(root, name, requirement, rerun=rerun, selected=selected)
         line = checks.describe_run(root, target)
         if auto:
             line = line.replace('（' + name + '）', '（' + name + '，按改动自动选择）', 1)
@@ -289,10 +293,18 @@ def complete(root, requirement, result=None, evidence=None, wait_user=False, pro
             # 已绑定证据不可复用时，按适用范围与优先级选择 profile 重新验证。
             if not safe(root, checks.CONFIG).exists():
                 raise
-            try:
-                selected = checks.select_profile(root, requirement)
-            except ValueError as error:
-                raise ValueError(f'{saved_error}；{error}') from error
+            previous = card.get('evidence') or {}
+            config = checks.load_config(root)
+            old_profile = previous.get('profile')
+            if (previous.get('checks') and old_profile in config['profiles']
+                    and not config['profiles'][old_profile].get('manual')
+                    and previous.get('requirement') != requirement_fingerprint(card)):
+                selected = old_profile
+            else:
+                try:
+                    selected = checks.select_profile(root, requirement)
+                except ValueError as error:
+                    raise ValueError(f'{saved_error}；{error}') from error
             verification, proof = run_profile(selected, auto=True)
             verification = verification + '；重新验证：' + str(saved_error)
     card = parse_card(path)
@@ -361,9 +373,9 @@ def git_check(root, requirement, result=None, evidence=None, evidence_inputs=Non
             raise ValueError('人工证据暂存内容与已核对工作区不一致')
     else:
         proof = verify_saved(root, card, staged=True)
-    inputs = (checks.coverage_inputs(checks.load_config(root)['profiles'][proof['profile']])
+    inputs = (checks.evidence_inputs(root, proof)
               if proof['kind'] == 'result' else proof['paths'])
-    covered = checks.input_paths(root, inputs, set(names))
+    covered = checks.input_paths(root, inputs, set(names)) if inputs != [] else set()
     covered.update({'requirements/' + requirement + '.md', checks.CONFIG})
     covered.update(installed)
     # 移出 Git 的历史日志不改变源码；新增或修改日志仍须由 profile 覆盖。
@@ -489,8 +501,23 @@ def render(kind, data):
     if kind == 'suggest':
         total = len(data['changed_files'])
         lines = [f'改动文件：{total} 个' + (f"，建议 {data['recommended']}" if data['recommended'] else '')]
-        lines.extend(f"{p['profile']}：覆盖 {len(p['covered_files'])}/{total}" +
-                     ('（全部）' if p['covers_all_changes'] else '') for p in data['profiles'])
+        for p in data['profiles']:
+            line = f"{p['profile']}：覆盖 {len(p['covered_files'])}/{total}"
+            if p.get('manual'):
+                line += '（仅显式执行）'
+            elif p['covers_all_changes']:
+                line += '（全部）'
+            if 'selected' in p:
+                line += '；触发：' + ('、'.join(p['selected']) or '无')
+                if p.get('skipped'):
+                    line += '；未触发：' + '、'.join(p['skipped'])
+            if p.get('last_pass'):
+                line += f"；上次通过 {p['last_pass']['wall_seconds']:g} 秒"
+                if p['last_pass'].get('reused'):
+                    line += '（含复用）'
+                if p['last_pass'].get('partial'):
+                    line += '（部分检查）'
+            lines.append(line)
         if data.get('ambiguous_profiles'):
             lines.append('优先级相同，请指定 profile 或配置 priority：' + '、'.join(data['ambiguous_profiles']))
         if data['uncovered_files']:
@@ -567,6 +594,7 @@ def build_parser():
     run = verify_sub.add_parser('run', parents=[output])
     run.add_argument('--profile', required=True)
     run.add_argument('--requirement', help='绑定本次需求的范围和 AC，忽略其他需求')
+    run.add_argument('--rerun', action='store_true', help='强制执行所选 profile 全部检查，绕过增量缓存')
 
     git_area = top.add_parser('git')
     git_sub = git_area.add_subparsers(dest='command', required=True)
@@ -680,7 +708,7 @@ def main():
             elif args.command == 'list':
                 print(json.dumps(checks.load_config(root), ensure_ascii=False, indent=2))
             else:
-                target, passed = checks.run(root, args.profile, args.requirement)
+                target, passed = checks.run(root, args.profile, args.requirement, rerun=args.rerun)
                 if args.json:
                     print(target.read_text().rstrip())
                 else:

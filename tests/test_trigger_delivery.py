@@ -1,0 +1,119 @@
+"""按检查触发的验收、提交、历史交付与 CI 集成。"""
+import json
+import sys
+import unittest
+from unittest.mock import patch
+import test_teamflow
+import diagnostics
+
+flow = test_teamflow.flow
+
+
+class TriggerDeliveryTests(unittest.TestCase):
+    setUp = test_teamflow.TeamFlowTests.setUp
+    git = test_teamflow.TeamFlowTests.git
+    baseline = test_teamflow.TeamFlowTests.baseline
+    configure_checks = test_teamflow.TeamFlowTests.configure_checks
+    create = test_teamflow.TeamFlowTests.create
+    fill = test_teamflow.TeamFlowTests.fill
+    card_path = test_teamflow.TeamFlowTests.card_path
+
+    def configure(self):
+        for name in ('a.py', 'b.py'):
+            (self.root / name).write_text('# original\n')
+        config = {'schema_version': 2, 'profiles': {'change': {
+            'inputs': ['a.py', 'b.py'], 'checks': {
+                name: {'argv': [sys.executable, '-c', 'pass'],
+                       'covers': [name + '.py'], 'inputs': [name + '.py']}
+                for name in ('a', 'b')}}}}
+        (self.root / '.agents/project-checks.json').write_text(json.dumps(config))
+        self.baseline()
+        return self.git('rev-parse', 'HEAD')
+
+    def test_partial_evidence_survives_without_logs_but_cannot_cover_new_code(self):
+        base = self.configure()
+        req = self.create(); self.fill(req)
+        (self.root / 'a.py').write_text('# changed\n')
+        flow.complete(self.root, req, profile='change')
+        card = flow.parse_card(self.card_path(req))
+        self.assertEqual(['a'], card['evidence']['checks'])
+        import shutil
+        shutil.rmtree(self.root / 'logs/project-checks')
+        self.git('add', '-A')
+        with patch.object(flow.checks_module(), 'run', side_effect=AssertionError('gate ran tests')):
+            flow.git_check(self.root, req)
+            flow.hook_check(self.root)
+        self.git('commit', '-qm', 'deliver\n\nRequirement: ' + req)
+        self.assertFalse(diagnostics.ci_check(self.root, base)['needs_action'])
+        (self.root / 'b.py').write_text('# untested\n')
+        self.git('add', 'b.py')
+        with self.assertRaises(ValueError):
+            flow.git_check(self.root, req)
+        self.git('commit', '-qm', 'unverified b')
+        self.assertTrue(diagnostics.ci_check(self.root, base)['needs_action'])
+
+    def test_needless_check_does_not_complete_card(self):
+        self.configure()
+        req = self.create(); self.fill(req, done=False)
+        before = self.card_path(req).read_bytes()
+        with self.assertRaises(ValueError):
+            flow.complete(self.root, req, profile='change', confirm_ac=['AC-01'])
+        self.assertEqual(before, self.card_path(req).read_bytes())
+
+    def test_explicit_rerun_bypasses_incremental_and_runs_all_checks(self):
+        self.configure()
+        p = self.root / '.agents/project-checks.json'
+        config = json.loads(p.read_text())
+        config['profiles']['change']['incremental'] = True
+        p.write_text(json.dumps(config))
+        self.baseline()
+        req = self.create(); self.fill(req)
+        (self.root / 'a.py').write_text('# changed\n')
+        flow.complete(self.root, req, profile='change')
+        flow.complete(self.root, req, profile='change', rerun=True)
+        proof = flow.parse_card(self.card_path(req))['evidence']
+        report = json.loads((self.root / proof['log']).read_text())
+        self.assertEqual(['a', 'b'], proof['checks'])
+        self.assertFalse(any(item.get('reused') for item in report['results']))
+
+    def test_requirement_display_changes_reuse_existing_evidence(self):
+        self.configure()
+        req = self.create(); self.fill(req, done=False)
+        (self.root / 'a.py').write_text('# changed\n')
+        flow.complete(self.root, req, profile='change')
+        p = self.card_path(req)
+        p.write_text(p.read_text() + '\n## 决策与异常\n仅追加记录\n')
+        with patch.object(flow.checks_module(), 'run', side_effect=AssertionError('unnecessary run')):
+            result = flow.complete(self.root, req, confirm_ac=['AC-01'])
+        self.assertEqual('完成', result['state_key'])
+
+    def test_semantic_change_revalidates_previous_checks_without_code_change(self):
+        self.configure()
+        req = self.create(); self.fill(req)
+        (self.root / 'a.py').write_text('# changed\n')
+        flow.complete(self.root, req, profile='change')
+        self.baseline()
+        p = self.card_path(req)
+        p.write_text(p.read_text().replace('实现登录错误提示', '实现新的登录错误提示'))
+        result = flow.complete(self.root, req)
+        self.assertEqual(['a'], result['evidence']['checks'])
+        report = json.loads((self.root / result['evidence']['log']).read_text())
+        self.assertFalse(any(item.get('reused') for item in report['results']))
+
+    def test_historical_partial_coverage_uses_delivered_configuration(self):
+        base = self.configure()
+        req = self.create(); self.fill(req)
+        (self.root / 'a.py').write_text('# changed\n')
+        flow.complete(self.root, req, profile='change')
+        self.git('add', '-A'); self.git('commit', '-qm', 'deliver')
+        p = self.root / '.agents/project-checks.json'
+        config = json.loads(p.read_text())
+        config['profiles']['change']['checks']['a']['covers'] = ['a.py', 'b.py']
+        config['profiles']['change']['checks']['a']['inputs'] = ['a.py', 'b.py']
+        p.write_text(json.dumps(config))
+        (self.root / 'b.py').write_text('# changed without evidence\n')
+        self.git('add', '-A'); self.git('commit', '-qm', 'expand current covers')
+        report = diagnostics.ci_check(self.root, base)
+        self.assertTrue(report['needs_action'])
+        uncovered = next(item for item in report['checks'] if item['item'] == '未覆盖改动')
+        self.assertIn('b.py', uncovered['detail'])
