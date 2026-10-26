@@ -259,6 +259,12 @@ def complete(root, requirement, result=None, evidence=None, wait_user=False, pro
         previous = card.get('evidence') or {}
         selected = (previous.get('checks') if previous.get('profile') == name
                     and previous.get('requirement') != requirement_fingerprint(card) else None)
+        if not rerun:
+            plan = checks.execution_plan(root, checks.load_config(root), name, requirement)
+            target = checks.recent_valid_result(root, name, requirement,
+                                                set(plan['selected']) | set(selected or []))
+            if target is not None:
+                return '复用本需求已有检查结果，未运行测试（' + name + '）', checks.summarize(root, target)
         target, passed = checks.run(root, name, requirement, rerun=rerun, selected=selected,
                                     announce=announce)
         line = checks.describe_run(root, target)

@@ -121,6 +121,85 @@ class TriggerDeliveryTests(unittest.TestCase):
         self.assertEqual([False, True], [item['done'] for item in parsed['ac']])
         self.assertEqual(['AC-02'], parsed['meta']['user_confirmed'])
 
+    def test_complete_reuses_valid_daily_result_without_running_again(self):
+        self.configure()
+        req = self.create(); self.fill(req, done=False)
+        (self.root / 'a.py').write_text('# changed\n')
+        checks = flow.checks_module()
+        target, passed = checks.run(self.root, 'change', req)
+        self.assertTrue(passed)
+        self.assertIsNone(flow.parse_card(self.card_path(req))['evidence'])
+        with patch.object(checks, 'run', side_effect=AssertionError('重复运行检查')):
+            result = flow.complete(self.root, req, profile='change', confirm_ac=['AC-01'])
+        self.assertEqual('完成', result['state_key'])
+        self.assertIn('未运行测试', result['verification'])
+        self.assertEqual(['a'], result['evidence']['checks'])
+        self.git('add', '-A')
+        flow.git_check(self.root, req)
+        (self.root / 'a.py').write_text('# later change\n')
+        with self.assertRaises(ValueError):
+            flow.git_check(self.root, req)
+
+    def test_complete_runs_missing_checks_after_daily_result(self):
+        self.configure()
+        req = self.create(); self.fill(req)
+        (self.root / 'a.py').write_text('# changed\n')
+        checks = flow.checks_module()
+        target, passed = checks.run(self.root, 'change', req)
+        self.assertTrue(passed)
+        (self.root / 'b.py').write_text('# newly affected\n')
+        with patch.object(checks, 'run', wraps=checks.run) as runner:
+            result = flow.complete(self.root, req, profile='change')
+        self.assertEqual('完成', result['state_key'])
+        runner.assert_called_once()
+        self.assertEqual(['a', 'b'], result['evidence']['checks'])
+
+    def test_complete_does_not_reuse_stale_or_failed_daily_result(self):
+        self.configure()
+        req = self.create(); self.fill(req)
+        (self.root / 'a.py').write_text('# initial change\n')
+        checks = flow.checks_module()
+        self.assertTrue(checks.run(self.root, 'change', req)[1])
+        (self.root / 'a.py').write_text('# updated after check\n')
+        with patch.object(checks, 'run', wraps=checks.run) as runner:
+            flow.complete(self.root, req, profile='change')
+        runner.assert_called_once()
+
+        other = self.create(); self.fill(other)
+        (self.root / 'a.py').write_text('# another task\n')
+        with patch.object(checks, 'run', wraps=checks.run) as runner:
+            flow.complete(self.root, other, profile='change')
+        runner.assert_called_once()
+
+    def test_failed_latest_daily_result_cannot_reuse_older_pass(self):
+        self.configure()
+        req = self.create(); self.fill(req)
+        (self.root / 'a.py').write_text('# changed\n')
+        checks = flow.checks_module()
+        self.assertTrue(checks.run(self.root, 'change', req)[1])
+        config_path = self.root / '.agents/project-checks.json'
+        config = json.loads(config_path.read_text())
+        config['profiles']['change']['checks']['a']['argv'] = [sys.executable, '-c', 'raise SystemExit(1)']
+        config_path.write_text(json.dumps(config))
+        self.assertFalse(checks.run(self.root, 'change', req)[1])
+        with self.assertRaises(ValueError):
+            flow.complete(self.root, req, profile='change')
+        self.assertIsNone(flow.parse_card(self.card_path(req))['evidence'])
+
+    def test_complete_reruns_check_with_cache_disabled(self):
+        self.configure()
+        req = self.create(); self.fill(req)
+        config_path = self.root / '.agents/project-checks.json'
+        config = json.loads(config_path.read_text())
+        config['profiles']['change']['checks']['a']['cache'] = False
+        config_path.write_text(json.dumps(config))
+        (self.root / 'a.py').write_text('# changed\n')
+        checks = flow.checks_module()
+        self.assertTrue(checks.run(self.root, 'change', req)[1])
+        with patch.object(checks, 'run', wraps=checks.run) as runner:
+            flow.complete(self.root, req, profile='change')
+        runner.assert_called_once()
+
     def test_needless_check_does_not_complete_card(self):
         self.configure()
         req = self.create(); self.fill(req, done=False)

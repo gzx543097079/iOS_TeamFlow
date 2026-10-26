@@ -633,6 +633,26 @@ def verify(root, result, staged=False):
     return report
 
 
+def recent_valid_result(root, profile, requirement, required_checks=()):
+    """只复用本需求当前仍有效的最近一次运行；失败或缺项不回退更早的通过结果。"""
+    config = load_config(root)
+    settings = config['profiles'][profile]
+    if any(not settings['checks'][name].get('cache', True) for name in required_checks):
+        return None
+    for run_dir, report in recent_reports(root):
+        if report.get('profile') != profile or report.get('requirement') != requirement:
+            continue
+        if report.get('status') != '通过' or not set(required_checks).issubset(report.get('checks') or []):
+            return None
+        target = run_dir / 'result.json'
+        try:
+            verify(root, str(target.relative_to(root.resolve())))
+        except (ValueError, OSError, KeyError, TypeError, subprocess.CalledProcessError):
+            return None
+        return target
+    return None
+
+
 def check_snapshot(root, config, profile, name, requirement=None):
     """缓存键包含执行语义、依赖范围/内容/可执行位以及需求语义。"""
     settings = config['profiles'][profile]

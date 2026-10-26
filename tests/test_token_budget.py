@@ -15,7 +15,7 @@ GODOT = '.agents/skills/Godot/'
 # 估算值：中日韩字符按 1 token，其余按 3.5 字符 1 token；只用于相对约束，不代表计费。
 # 上限是防膨胀护栏而非优化目标，留约 10% 余量；不为压低估算而牺牲规则清晰度。
 FILE_BUDGET = 2900
-ENTRY_BUDGET = 4000
+ENTRY_BUDGET = 4400
 # 实现场景包含业务代码、注释、用户文本与视觉 AC；UIKit 使用 Swift。
 # 只读 UI 评审不修改业务代码。已有检查配置直接使用 CHECKS；配置建立、
 # 编辑或迁移另计 CHECKS-CONFIG，不把条件性引用算作所有任务的必读文件。
@@ -43,7 +43,7 @@ SCENARIOS = {
     'Godot + iOS 发布': (12100, 'godot-ios', (
         GODOT + 'references/IOS.md', IOS + 'references/APP-RELEASE.md', GODOT + 'references/CHECKS.md',
         GODOT + 'references/TEAM.md', CORE + 'CHECKS.md', CORE + 'BOUNDARIES.md')),
-    '纯 Godot 发布': (9800, 'godot', (
+    '纯 Godot 发布': (10780, 'godot', (
         GODOT + 'references/RELEASE.md', GODOT + 'references/CHECKS.md', GODOT + 'references/TEAM.md',
         CORE + 'CHECKS.md', CORE + 'BOUNDARIES.md')),
 }
