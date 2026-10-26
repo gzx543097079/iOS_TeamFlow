@@ -48,10 +48,10 @@ python3 scripts/teamflow.py req complete REQ-20260101-a3f9 \
 ## 安装、升级与提交前检查
 
 ```sh
-unzip -p ~/Downloads/teamflow-ios-v1.6.4.zip install_teamflow.py | python3 - ~/Downloads/teamflow-ios-v1.6.4.zip --mode ios
-python3 scripts/teamflow.py install ~/Downloads/teamflow-ios-v1.6.4.zip --mode ios
-python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.6.4.zip --plan
-python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.6.4.zip
+unzip -p ~/Downloads/teamflow-ios-v1.6.5.zip install_teamflow.py | python3 - ~/Downloads/teamflow-ios-v1.6.5.zip --mode ios
+python3 scripts/teamflow.py install ~/Downloads/teamflow-ios-v1.6.5.zip --mode ios
+python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.6.5.zip --plan
+python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.6.5.zip
 python3 scripts/teamflow.py verify init
 python3 scripts/teamflow.py setup --git-hook
 python3 scripts/teamflow.py setup --no-git-hook

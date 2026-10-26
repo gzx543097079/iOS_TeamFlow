@@ -16,17 +16,17 @@ Godot 4.x + GDScript 与 iOS 原生使用同一套 TeamFlow 核心，按安装�
 
 | 安装包 | 模式 | AGENTS 入口 |
 | --- | --- | --- |
-| `teamflow-godot-v1.6.4.zip` | `godot` | Godot Skill，跳过 iOS 路由；不含 iOS Skill |
-| `teamflow-godot-ios-v1.6.4.zip` | `godot-ios` | Godot Skill，iOS 原生插件按路由加载原生规范 |
+| `teamflow-godot-v1.6.5.zip` | `godot` | Godot Skill，跳过 iOS 路由；不含 iOS Skill |
+| `teamflow-godot-ios-v1.6.5.zip` | `godot-ios` | Godot Skill，iOS 原生插件按路由加载原生规范 |
 
 推荐一键安装（不必人工整包解压进项目根）：
 
 ```sh
-unzip -p ~/Downloads/teamflow-godot-v1.6.4.zip install_teamflow.py | python3 - ~/Downloads/teamflow-godot-v1.6.4.zip --mode godot
+unzip -p ~/Downloads/teamflow-godot-v1.6.5.zip install_teamflow.py | python3 - ~/Downloads/teamflow-godot-v1.6.5.zip --mode godot
 python3 scripts/teamflow.py doctor
 ```
 
-会生成 `.agents/project-checks.json`（来自 Godot 示例，已有则不覆盖）。后续加入 iOS 时：`python3 scripts/teamflow.py upgrade teamflow-godot-ios-v1.6.4.zip --mode godot-ios`。详见[安装说明](../.agents/teamflow-core/references/INSTALL.md)与仓库 README「用 AI 接入」。
+会生成 `.agents/project-checks.json`（来自 Godot 示例，已有则不覆盖）。后续加入 iOS 时：`python3 scripts/teamflow.py upgrade teamflow-godot-ios-v1.6.5.zip --mode godot-ios`。详见[安装说明](../.agents/teamflow-core/references/INSTALL.md)与仓库 README「用 AI 接入」。
 
 团队协作建议先完成两件事：
 

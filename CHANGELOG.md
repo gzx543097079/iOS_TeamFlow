@@ -1,24 +1,14 @@
 # 版本记录
 
-## 未发布
+## 1.6.5
 
-来源：用户要求一键安装生成验证配置、勿手解压复制，并将迁移步骤写入 README 供 AI 自动执行（REQ-20261026-f2c4）。
+来源：用户要求一键安装生成验证配置、人工验收双模式交付，以及精简入口与拆 UI 规范后提 PR 合并发布（REQ-20261026-f2c4 / a3e5 / 8c13 / 1d6f）。规则经源码 `workflow` / `workflow-release` 验证；消费项目配置迁移另议。
 
 - 新增 `install` / 包内 `install_teamflow.py`：从 ZIP 一键接入；缺失时生成 `.agents/project-checks.json`（iOS 另含 design-tokens 与 check 脚本骨架），已有文件不覆盖。
 - README 增加「用 AI 接入」与「验证配置迁移」；`doctor` / `upgrade` 提示指向该段；INSTALL/COMMANDS/GODOT 同步。
+- 双模式交付：默认完整交付须 `--wait-user` 勾选后 `--user-confirmed` 再提交/正式 PR；分任务阶段 commit/push 可用进行中+自动证据；`req pr --allow-stage` 生成阶段 PR。
+- 压缩 WORKFLOW（改动分级与双模式改表）；iOS `ui.md` 改为强制短清单，细则迁入 `ui-details.md`；CHECKS-CONFIG「小任务耗时」强化日常=编译+模块测、全量/Release=manual。
 - token 预算场景与窄路由对齐，并新增「SwiftUI 间距小改动」；REPAIR 补充入口体量约定。
-
-来源：用户要求人工验收交付闸门，并声明分任务单独提交推送时不被卡住（REQ-20261026-a3e5）。
-
-- 双模式：默认完整交付须 `--wait-user` 勾选后 `--user-confirmed` 再提交/正式 PR；用户声明每个任务单独提交推送时，进行中阶段 commit/push 放行。
-- `git check`/hook 拦截待用户验证与完成卡未确认的人工 AC；`req pr` 默认仅完整交付，`--allow-stage` 生成阶段 PR。
-- `--wait-user` 输出固定勾选表；`--waive-human` 记录免除。
-
-来源：用户要求按精简审查全部落地（REQ-20261026-8c13）：减冗余、可做减法、拆臃肿 Skill，避免小任务拖成数十分钟。
-
-- 压缩 WORKFLOW（改动分级与双模式改表），COMMANDS/CHECKS 去复述；CHECKS-CONFIG 增「小任务耗时」日常验证减法。
-- iOS `ui.md` 改为强制短清单，细则迁入 `ui-details.md`；Skill 禁止普通改样式预读 UI 评审。
-- doctor / INSTALL 强化日常=编译+模块测、全量/Release=manual；收紧入口 token 预算。
 
 ## 1.6.4
 
