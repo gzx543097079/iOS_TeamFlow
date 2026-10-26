@@ -11,6 +11,12 @@ TeamFlow 是一套面向 AI Agent 辅助开发的中文工作流。它把需求�
 - 为原生 iOS、Godot，以及 Godot 与 iOS 衔接场景提供对应的开发专题。
 - 在完成时记录可复核的验证证据，并按所选模式交付可安装的工作流包。
 
+1.6.6 起日常路径进一步收紧，避免小任务被拖成「半套审计」：
+
+- **展示小改动**（单页/单组件样式等）默认改完跑适用检查后交用户确认；用户确认即可作视觉人工证据，**不强制截图**。需要可贴路径的画面证据时再读 iOS [UI-EVIDENCE](.agents/skills/iOS/references/UI-EVIDENCE.md)，不要预读 [UI 评审](.agents/skills/iOS/references/UI-REVIEW.md)。
+- **行为或契约改动**不得按「小改动」降测，须适用自动检查并对受影响范围定向测试；人眼确认不替代自动证据。
+- **Git / App 外部动作**（commit、push、TestFlight、审核等）只按用户点名的目标执行；「检查能否上传」不等于授权上传。
+
 主流程、需求卡状态和授权边界由[工作流规则](.agents/teamflow-core/references/WORKFLOW.md)定义。规则改进依据[内测试用记录](docs/TRIAL.md)；已知的检查与发布信息见[源码验证与分发](docs/RELEASE.md)。
 
 ## 分发模式
@@ -23,7 +29,7 @@ TeamFlow 是一套面向 AI Agent 辅助开发的中文工作流。它把需求�
 | `teamflow-godot-v1.6.6.zip` | Godot 游戏 | 共用核心、Godot 开发专题 |
 | `teamflow-godot-ios-v1.6.6.zip` | Godot 游戏及其 iOS 导出、原生插件 | 共用核心、Godot 与 iOS 专题 |
 
-安装包可从 [GitHub Releases](https://github.com/gzx543097079/iOS_TeamFlow/releases) 获取。命令细节见[安装与升级指南](.agents/teamflow-core/references/INSTALL.md)。
+安装包可从 [GitHub Releases](https://github.com/gzx543097079/iOS_TeamFlow/releases/tag/teamflow-v1.6.6) 获取（[全部版本](https://github.com/gzx543097079/iOS_TeamFlow/releases)）。命令细节见[安装与升级指南](.agents/teamflow-core/references/INSTALL.md)。
 
 ## 用 AI 接入（推荐）
 
