@@ -240,9 +240,12 @@ def check_text(root, check):
     return '\n'.join(parts)
 
 
+LONG_CHECK_SECONDS = 180
+
+
 def legacy_layout(root, config):
     """升级后需迁移的旧形态：日常（非 manual）profile 含 Release 构建为需处理；
-    未声明 check covers 时每次改动整组执行，仅提示由 Agent 判断是否拆分。"""
+    未声明 check covers 时每次改动整组执行、日常检查最近实际耗时过长，仅提示由 Agent 判断是否拆分。"""
     releases = {profile: [name for name, check in settings['checks'].items()
                           if RELEASE_BUILD.search(check_text(root, check))]
                 for profile, settings in config['profiles'].items()}
@@ -254,6 +257,11 @@ def legacy_layout(root, config):
         for name in releases[profile]:
             issues.append(('需处理', f'日常 profile {profile} 的检查 {name} 含 Release 构建，应移入 manual profile'
                            + (f"（{'、'.join(others)} 也含 Release 构建，核对是否重复）" if others else '')))
+        for name in settings['checks']:
+            seconds = recent_duration(root, profile, name)
+            if seconds is not None and seconds > LONG_CHECK_SECONDS:
+                issues.append(('提示', f'日常 profile {profile} 的检查 {name} 最近实际执行 {round(seconds)} 秒，'
+                               '命中即整项执行；按模块拆分，全套测试移入 manual profile'))
         if not any('covers' in check for check in settings['checks'].values()):
             issues.append(('提示', f'profile {profile} 未声明 check covers，每次改动整组执行'
                            + ('，失败后无法只重跑失败项' if len(settings['checks']) == 1 else '')))
