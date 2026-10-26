@@ -396,6 +396,16 @@ def git_check(root, requirement, result=None, evidence=None, evidence_inputs=Non
             'commit_trailer': 'Requirement: ' + requirement}
 
 
+# 轻量改动只放行纯文档；.txt 可能是依赖清单等工程输入，需求卡须经证据复核。
+LIGHTWEIGHT_SUFFIXES = ('.md', '.rst')
+
+
+def lightweight_documents(root, names):
+    checks = checks_module()
+    return all(Path(name).suffix.lower() in LIGHTWEIGHT_SUFFIXES and not name.startswith('requirements/')
+               and not checks.excluded_input(name) and name != checks.CONFIG for name in names)
+
+
 def hook_check(root):
     """只读提交门禁：复用能够覆盖整个暂存区的需求证据（自动或文档人工证据），不执行项目命令。"""
     checks = checks_module()
@@ -403,6 +413,9 @@ def hook_check(root):
         raise ValueError('未配置任何验证 profile')
     staged = set(name for name in subprocess.check_output(
         ['git', '-C', str(root), 'diff', '--cached', '--name-only', '-z']).decode().split('\0') if name)
+    if staged and lightweight_documents(root, staged):
+        return {'requirement': None, 'staged_files': sorted(staged), 'validation': {'kind': 'document'},
+                'release_sensitive_files': [], 'unverified_profiles': [], 'commit_trailer': None}
     rows, _ = cards(root)
     candidates = []
     for row in rows:
@@ -423,8 +436,6 @@ def hook_check(root):
             problems.append(row['requirement'] + '：' + str(error))
     reason = '；'.join(problems[:3]) or '没有覆盖暂存内容的已绑定证据'
     hint = '；请先 req complete <需求编号> --profile <覆盖本次提交的 profile>，再暂存验收后的内容'
-    if staged and not checks.non_document_paths(root, staged):
-        hint += '。仅文档的轻量改动（WORKFLOW「请求与范围」）不建卡：核对内容后用 git commit --no-verify 提交'
     raise ValueError('提交证据检查失败，未运行测试：' + reason + hint)
 
 
@@ -491,6 +502,8 @@ def render(kind, data):
                                                 data['state_key'] == '待用户验证'))
     if kind == 'git':
         proof = data['validation']
+        if proof['kind'] == 'document':
+            return f"提交检查：通过（{len(data['staged_files'])} 个暂存文件均为文档，轻量改动无需需求证据；未运行测试）"
         source = proof['profile'] if proof['kind'] == 'result' else '人工核对'
         lines = [f"提交检查：通过（{len(data['staged_files'])} 个暂存文件，证据：{source}；未运行测试）",
                  '提交尾注：' + data['commit_trailer']]

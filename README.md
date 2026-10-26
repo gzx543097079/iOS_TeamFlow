@@ -54,6 +54,6 @@ iOS_TeamFlow/
 
 源码仓库的协作规则写在根目录 `AGENTS.md`。工作流工具和规则有变更时，需要一起检查安装包清单、对应回归测试和相关文档；仅调整文档时，按 README 内容核对相关链接和版本信息即可。
 
-源码验证：文档改动用 `workflow-docs`；工具行为与回归测试改动用 `workflow`；明确制作分发包用 `workflow-release`（包含 workflow，不另跑一次）。通过 `req complete <编号> --profile <名>` 统一验收并绑定证据；已有效的证据直接复用。
+源码验证：日常改动统一用 `workflow`，它按 covers 只运行负责所改模块的检查组（文档只跑 docs 组，单个平台脚本只跑对应平台组），不跑 Release 和全量；明确制作分发包用 `workflow-release`（包含 workflow，不另跑一次）。通过 `req complete <编号> --profile <名>` 统一验收并绑定证据；已有效的证据直接复用。
 
 版本变更历史见 [CHANGELOG](CHANGELOG.md)，第三方组件来源见[第三方说明](.agents/teamflow-core/references/THIRD-PARTY.md)。

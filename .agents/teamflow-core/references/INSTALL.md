@@ -79,7 +79,7 @@ python3 scripts/teamflow.py setup --git-hook
 python3 scripts/teamflow.py setup --no-git-hook
 ```
 
-为本机安装 pre-commit，复核覆盖暂存内容且仍有效的已绑定需求证据（自动证据或仅含文档的人工证据，不限定 profile；优先核对本次暂存与进行中的卡）；检查源码指纹、暂存快照和实际通过 checks 的覆盖，找不到覆盖整个暂存区的有效证据时拒绝并提示验收命令，不执行测试，支持 worktree 与项目内的 `core.hooksPath`；不覆盖非 TeamFlow 管理的 Hook，`git commit --no-verify` 可临时跳过。Hook 不随仓库提交。升级核心不会自动替换本机旧 Hook（1.2 及更早的 Hook 带 `--profile`，仍可运行）；`doctor` 提示旧版时，核对后重执行 `setup --git-hook` 迁移。轻量无卡修改不会凭扩展名自动放行：钩子识别到仅文档暂存时提示核对后用 `git commit --no-verify` 提交。TeamFlow 源码仓库只管理钩子，不写入托管入口。
+为本机安装 pre-commit，复核覆盖暂存内容且仍有效的已绑定需求证据（自动证据或仅含文档的人工证据，不限定 profile；优先核对本次暂存与进行中的卡）；检查源码指纹、暂存快照和实际通过 checks 的覆盖，找不到覆盖整个暂存区的有效证据时拒绝并提示验收命令，不执行测试，支持 worktree 与项目内的 `core.hooksPath`；不覆盖非 TeamFlow 管理的 Hook，`git commit --no-verify` 可临时跳过。Hook 不随仓库提交。升级核心不会自动替换本机旧 Hook（1.2 及更早的 Hook 带 `--profile`，仍可运行）；`doctor` 提示旧版时，核对后重执行 `setup --git-hook` 迁移。轻量无卡修改的暂存只含 `.md`/`.rst` 文档（不含需求卡）时直接放行，无需 `--no-verify`；`.txt` 可能是依赖清单等工程输入，仍须证据。TeamFlow 源码仓库只管理钩子，不写入托管入口。
 
 `AGENTS.md` 只在托管区块之外的项目规则未改动时视为安装文件；`.claude/settings.json` 与 `.codex/rules/teamflow.rules` 只在与原版模板一致时视为安装文件。项目自己的规则与权限改动须由验证 profile 覆盖。
 
