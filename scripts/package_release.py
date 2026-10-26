@@ -31,7 +31,8 @@ GODOT_FILES = tuple(GODOT_SKILL + '/' + name for name in (
 ))
 REFERENCES = (
     'APP-RELEASE.md', 'APP-LIFECYCLE.md', 'PERFORMANCE.md', 'UI-REVIEW.md', 'LOGGING.md', 'EXISTING-PROJECT.md', 'ARCHITECTURE.md', 'LOCALIZATION.md', 'DESIGN-TOKENS.md',
-    'standards/ui.md', 'standards/ui-keyboard.md', 'standards/ui-paywall.md', 'standards/objective-c.md', 'standards/swift.md', 'standards/swiftui.md',
+    'standards/ui.md', 'standards/ui-details.md', 'standards/ui-keyboard.md', 'standards/ui-paywall.md',
+    'standards/objective-c.md', 'standards/swift.md', 'standards/swiftui.md',
     'templates/new-project.md', 'templates/feature.md', 'templates/app-release.md',
 )
 # 仅打包明确登记的通用文件，不打包项目接入记录、需求或日志。

@@ -14,6 +14,12 @@
 - `git check`/hook 拦截待用户验证与完成卡未确认的人工 AC；`req pr` 默认仅完整交付，`--allow-stage` 生成阶段 PR。
 - `--wait-user` 输出固定勾选表；`--waive-human` 记录免除。
 
+来源：用户要求按精简审查全部落地（REQ-20261026-8c13）：减冗余、可做减法、拆臃肿 Skill，避免小任务拖成数十分钟。
+
+- 压缩 WORKFLOW（改动分级与双模式改表），COMMANDS/CHECKS 去复述；CHECKS-CONFIG 增「小任务耗时」日常验证减法。
+- iOS `ui.md` 改为强制短清单，细则迁入 `ui-details.md`；Skill 禁止普通改样式预读 UI 评审。
+- doctor / INSTALL 强化日常=编译+模块测、全量/Release=manual；收紧入口 token 预算。
+
 ## 1.6.4
 
 来源：复核颜见 Login state 对话后，用户要求写明小改动与须扩大检查的判定，并提 PR 合并发布（REQ-20261026-9b7e / REQ-20261026-57fc）。规则经源码 `workflow` / `workflow-release` 验证；消费项目单测门禁另议。

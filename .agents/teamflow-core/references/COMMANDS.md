@@ -4,11 +4,13 @@
 
 ## 验证与完成
 
-`req complete REQ-20260101-a3f9 --profile change` 优先复用同 profile 的有效证据，其次自动复用本需求最近一次有效且检查完整的 `verify run --requirement` 结果，否则运行必要检查并绑定摘要；`--rerun` 与 `--profile` 一起显式重跑。`--result logs/project-checks/运行编号/result.json` 可指定绑定某次已生成的结果，不重跑。`verify run` 计算适用检查；有 check covers 时仅执行触发项，未触发不执行。`verify run --rerun` 与 `req complete --profile change --rerun` 强制全项执行并绕过缓存。manual profile 仅显式选择。不传证据参数时先复核摘要；缺失或失效时按 covers 与 priority 选择覆盖全部改动（相对 HEAD 的改动加上带本需求 `Requirement:` 尾注的已提交改动）的唯一候选，存在歧义或无覆盖则报错且不改卡片。输出区分“复用验证，未运行测试”和重新验证原因。`--profile`、`--result`、`--evidence` 互斥。
+原则与双模式见 [WORKFLOW](WORKFLOW.md#实施与验收)；触发与证据见 [CHECKS](CHECKS.md)。
 
-`--confirm-ac AC-01` 可重复；`--user-confirmed AC-01` 同样勾选并记入 `user_confirmed`；`--waive-human AC-01` 须同时勾选同一编号，记入 `human_waived`（用户明确免除人工验收）。`--wait-user` 在有剩余 AC 时输出固定勾选表。未知编号、证据无效或验证失败均不更改卡片。确认语义未变保留；范围或 AC 文字改变后旧确认与免除失效。双模式与恢复见 [WORKFLOW](WORKFLOW.md#完成与人工确认)。
-
-`req pr` 默认仅完整交付；不合规时失败。用户明确阶段交付时加 `--allow-stage`。`git check` / hook：进行中允许阶段提交；待用户验证，或完成但人工类 AC 未确认/未免除时拒绝。
+- `verify run --profile <名> [--requirement <编号>]`：按 covers 只跑触发项；`--rerun` 强制全项。
+- `req complete … --profile <名>`：优先复用卡上有效摘要，其次本需求最近有效完整结果，否则跑必要检查。`--result` / `--evidence` 与 `--profile` 互斥；`--rerun` 须带 `--profile`。
+- 确认：`--confirm-ac` / `--user-confirmed` / `--waive-human`（免除须同时勾选）可重复；`--wait-user` 输出勾选表。AC 文字变则旧确认失效。
+- `req pr`：默认仅完整交付；阶段交付加 `--allow-stage`。
+- `git check` / hook：进行中可阶段提交；待用户验证，或完成但人工 AC 未确认/未免除则拒绝。
 
 ## 可选宿主审批
 

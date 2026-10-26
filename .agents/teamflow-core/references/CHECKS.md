@@ -11,7 +11,7 @@ python3 scripts/teamflow.py verify suggest --requirement REQ-20260101-0001
 python3 scripts/teamflow.py verify run --profile change --requirement REQ-20260101-0001
 ```
 
-声明检查 `covers` 后改动按各检查的 `covers`/`inputs` 逐项触发（`trigger: "covers"` 时只按 covers），修改验证配置只触发执行语义变化的检查；声明了 check 或 profile `covers` 时，范围外的工程改动在执行前报错。`manual: true` 的 profile 只在显式指定时执行。编辑 `.agents/project-checks.json`，或 `upgrade`/`doctor` 提示验证配置待迁移时，读[验证配置与迁移](CHECKS-CONFIG.md)。
+声明检查 `covers` 后改动按各检查的 `covers`/`inputs` 逐项触发（`trigger: "covers"` 时只按 covers），修改验证配置只触发执行语义变化的检查；声明了 check 或 profile `covers` 时，范围外的工程改动在执行前报错。`manual: true` 的 profile 只在显式指定时执行。日常勿含全套测试与 Release（见 [CHECKS-CONFIG 小任务耗时](CHECKS-CONFIG.md#小任务耗时日常验证减法)）。编辑配置或迁移时读[验证配置与迁移](CHECKS-CONFIG.md)。
 
 ## 验证强度与结果输出
 

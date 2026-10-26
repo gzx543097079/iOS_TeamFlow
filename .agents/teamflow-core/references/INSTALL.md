@@ -26,7 +26,7 @@ python3 scripts/teamflow.py install ~/Downloads/teamflow-ios-v1.6.4.zip --mode i
 - iOS：另生成 `.agents/design-tokens.json`、`scripts/check_debug.py`、`scripts/check_release.py`
 - Godot / Godot+iOS：从 Godot 示例生成 `project-checks.json`
 
-iOS 首次跑检查前写入 `.agents/team/ios-verify.json`（如 `{"scheme":"YourScheme"}`）或设置 `TEAMFLOW_IOS_SCHEME`。`--plan` 只预览；已安装时拒绝，需升级用 `upgrade`，或显式 `--force` 覆盖安装文件后重新接入。
+iOS 首次跑检查前写入 `.agents/team/ios-verify.json`（如 `{"scheme":"YourScheme"}`）或设置 `TEAMFLOW_IOS_SCHEME`。生成的日常 profile 已按「编译 + 设计变量 + manual 全量/Release」拆分，勿再改回单脚本全量。`--plan` 只预览；已安装时拒绝，需升级用 `upgrade`，或显式 `--force` 覆盖安装文件后重新接入。
 
 ## setup
 
