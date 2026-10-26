@@ -8,6 +8,7 @@ from pathlib import Path
 SKILL = '.agents/skills/iOS'
 CORE = '.agents/teamflow-core'
 CORE_FILES = tuple(CORE + '/' + name for name in (
+    'scripts/cli_output.py', 'scripts/cli_parser.py', 'scripts/check_history.py',
     'scripts/diagnostics.py', 'scripts/teamflow_common.py', 'scripts/requirement_model.py',
     'scripts/module_context.py', 'scripts/teamflow.py', 'scripts/project_checks.py', 'scripts/setup_project.py',
     'scripts/upgrade.py',

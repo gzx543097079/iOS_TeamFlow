@@ -52,6 +52,75 @@ class TriggerDeliveryTests(unittest.TestCase):
         self.git('commit', '-qm', 'unverified b')
         self.assertTrue(diagnostics.ci_check(self.root, base)['needs_action'])
 
+    def test_historical_evidence_rejects_later_edits_to_same_path(self):
+        base = self.configure()
+        req = self.create(); self.fill(req)
+        (self.root / 'a.py').write_text('# verified\n')
+        flow.complete(self.root, req, profile='change')
+        self.git('add', '-A'); self.git('commit', '-qm', 'deliver\n\nRequirement: ' + req)
+        self.assertFalse(diagnostics.ci_check(self.root, base)['needs_action'])
+        for content in ('# unverified\n', None):
+            with self.subTest(content=content):
+                path = self.root / 'a.py'
+                if content is None:
+                    path.unlink()
+                else:
+                    path.write_text(content)
+                self.git('add', '-A'); self.git('commit', '-qm', 'later unverified change')
+                report = diagnostics.ci_check(self.root, base)
+                self.assertTrue(report['needs_action'])
+                item = next(i for i in report['checks'] if i['item'] == '未覆盖改动')
+                self.assertIn('a.py', item['detail'])
+
+    def test_changed_acceptance_needs_new_confirmation(self):
+        self.configure()
+        req = self.create(); self.fill(req, done=False)
+        (self.root / 'a.py').write_text('# changed\n')
+        flow.complete(self.root, req, profile='change', user_confirmed=['AC-01'])
+        card = self.card_path(req)
+        card.write_text(card.read_text().replace('错误时显示提示', '错误时显示新的视觉布局'))
+        result = flow.complete(self.root, req, profile='change')
+        self.assertEqual('进行中', result['state_key'])
+        parsed = flow.parse_card(card)
+        self.assertFalse(parsed['ac'][0]['done'])
+        self.assertNotIn('AC-01', parsed['meta'].get('user_confirmed', []))
+        result = flow.complete(self.root, req, user_confirmed=['AC-01'])
+        self.assertEqual('完成', result['state_key'])
+
+    def test_legacy_v5_summary_and_report_remain_verifiable(self):
+        self.configure()
+        req = self.create(); self.fill(req)
+        (self.root / 'a.py').write_text('# changed\n')
+        result = flow.complete(self.root, req, profile='change')
+        checks = flow.checks_module()
+        config = checks.load_config(self.root)
+        source = checks.source_snapshot(self.root, config, 'change', requirement=req,
+                                        checks=['a'], algorithm='sha256-files-v5')
+        proof = dict(result['evidence'], fingerprint='sha256:' + source['fingerprint'])
+        proof.pop('algorithm')
+        checks.verify_summary(self.root, req, proof)
+        target = self.root / proof['log']
+        report = json.loads(target.read_text())
+        report.update(source=source, end_fingerprint=source['fingerprint'])
+        target.write_text(json.dumps(report))
+        checks.verify(self.root, proof['log'])
+        self.git('add', '-A')
+        checks.verify_summary(self.root, req, proof, staged=True)
+
+    def test_changed_ac_does_not_clear_unmodified_confirmation(self):
+        self.configure()
+        req = self.create(); self.fill(req, done=False)
+        card = self.card_path(req)
+        card.write_text(card.read_text().replace('## 决策与异常',
+            '- [ ] AC-02：其他条件\n\n## 决策与异常'))
+        (self.root / 'a.py').write_text('# changed\n')
+        flow.complete(self.root, req, profile='change', user_confirmed=['AC-01', 'AC-02'])
+        card.write_text(card.read_text().replace('错误时显示提示', '错误时显示新提示'))
+        flow.complete(self.root, req, profile='change')
+        parsed = flow.parse_card(card)
+        self.assertEqual([False, True], [item['done'] for item in parsed['ac']])
+        self.assertEqual(['AC-02'], parsed['meta']['user_confirmed'])
+
     def test_needless_check_does_not_complete_card(self):
         self.configure()
         req = self.create(); self.fill(req, done=False)

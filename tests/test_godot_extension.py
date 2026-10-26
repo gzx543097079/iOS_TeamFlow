@@ -172,6 +172,71 @@ class GodotExtensionTests(unittest.TestCase):
             self.assertEqual(original, (project / 'AGENTS.md').read_bytes())
             self.assertEqual('ios', setup_project.install_mode(project))
 
+    def test_example_selects_modules_after_one_uncached_import(self):
+        import project_checks
+        example = ROOT / package_release.GODOT_SKILL / 'assets/project-checks.example.json'
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / '.agents').mkdir()
+            (root / project_checks.CONFIG).write_text(example.read_text())
+            config = project_checks.load_config(root)
+            daily = config['profiles']['godot-check']
+            self.assertEqual(1, daily['parallelism'])
+            self.assertTrue(all(check['cache'] is False for check in daily['checks'].values()))
+            cases = [
+                ({'game/modules/combat/player.gd'}, ['import', 'combat-tests']),
+                ({'game/tests/inventory/run_tests.gd'}, ['import', 'inventory-tests']),
+                ({'game/modules/combat/player.gd', 'game/modules/inventory/bag.gd'},
+                 ['import', 'combat-tests', 'inventory-tests']),
+                ({'game/shared/state.gd'}, ['import', 'combat-tests', 'inventory-tests']),
+                ({'.agents/team/toolchain.json'}, ['import', 'combat-tests', 'inventory-tests']),
+            ]
+            with patch.object(project_checks, 'installed_files', return_value=set()):
+                for changes, expected in cases:
+                    with self.subTest(changes=changes):
+                        plan = project_checks.execution_plan(root, config, 'godot-check', names=changes)
+                        self.assertEqual(expected, plan['selected'])
+                        self.assertEqual([], plan['uncovered_engineering_files'])
+                plan = project_checks.execution_plan(root, config, 'godot-check',
+                                                     names={'game/modules/quests/quest.gd'})
+                self.assertEqual(['game/modules/quests/quest.gd'], plan['uncovered_engineering_files'])
+                full = project_checks.execution_plan(root, config, 'godot-full', names=set())
+                self.assertTrue(full['manual'])
+                self.assertEqual(['all-tests'], full['selected'])
+
+    def test_verify_modes_import_once_before_serial_tests(self):
+        with tempfile.TemporaryDirectory() as directory:
+            project = Path(directory)
+            (project / 'project.godot').write_text('config_version=5\n')
+            for name in ('combat.gd', 'inventory.gd'):
+                (project / name).write_text('extends SceneTree\n')
+            with patch.object(verify_godot, 'find_godot', return_value='/godot'), \
+                    patch.object(verify_godot, 'pinned_version', return_value=None), \
+                    patch.object(verify_godot, 'run_phase', return_value='4.7.2.stable') as phase:
+                verify_godot.verify(project, import_only=True)
+                verify_godot.verify(project, test_script='combat.gd', test_only=True)
+                verify_godot.verify(project, test_script='inventory.gd', test_only=True)
+                commands = [call.args[0] for call in phase.call_args_list]
+                work = [argv for argv in commands if '--version' not in argv]
+                self.assertEqual(3, len(work))
+                self.assertIn('--import', work[0])
+                self.assertEqual('res://combat.gd', work[1][-1])
+                self.assertEqual('res://inventory.gd', work[2][-1])
+                phase.reset_mock()
+                verify_godot.verify(project, test_script='combat.gd')
+                self.assertIn('--import', phase.call_args_list[1].args[0])
+                self.assertIn('--script', phase.call_args_list[2].args[0])
+                phase.reset_mock()
+                for kwargs in ({'test_only': True}, {'import_only': True, 'test_only': True},
+                               {'test_only': True, 'test_script': 'missing.gd'}):
+                    with self.assertRaises(ValueError):
+                        verify_godot.verify(project, **kwargs)
+                phase.assert_not_called()
+                (project / '.godot/teamflow-checks/tests.log').symlink_to(project / 'combat.gd')
+                with self.assertRaisesRegex(ValueError, '日志路径包含符号链接'):
+                    verify_godot.verify(project, test_script='combat.gd', test_only=True)
+                self.assertEqual(1, phase.call_count)  # 仅版本探测，不能启动测试。
+
     def test_engine_version_follows_project_features(self):
         with tempfile.TemporaryDirectory() as directory:
             project = Path(directory)

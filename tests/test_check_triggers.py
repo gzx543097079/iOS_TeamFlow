@@ -57,6 +57,20 @@ class CheckTriggerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, '缺少当前触发检查'):
             m.verify_summary(self.root, R, summary)
 
+    def test_partial_snapshot_tracks_only_selected_dependencies_and_legacy_scope(self):
+        m = self.setup_checks()
+        config = m.load_config(self.root)
+        current = m.source_snapshot(self.root, config, 'p', checks=['a'])
+        legacy = m.source_snapshot(self.root, config, 'p', checks=['a'], algorithm='sha256-files-v5')
+        self.assertEqual('sha256-files-v6', current['algorithm'])
+        self.assertNotIn('b.py', current['files'])
+        self.assertIn('shared.py', current['files'])
+        (self.root / 'b.py').write_text('b = 2\n')
+        self.assertEqual(current, m.source_snapshot(self.root, config, 'p', checks=['a']))
+        self.assertNotEqual(legacy, m.source_snapshot(self.root, config, 'p', checks=['a'], algorithm='sha256-files-v5'))
+        (self.root / 'shared.py').write_text('shared = 2\n')
+        self.assertNotEqual(current, m.source_snapshot(self.root, config, 'p', checks=['a']))
+
     def test_no_changes_or_only_canonical_requirement_produces_no_evidence(self):
         m = self.setup_checks()
         (self.root / 'requirements').mkdir()

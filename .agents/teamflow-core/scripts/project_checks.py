@@ -500,7 +500,8 @@ def check_inputs(settings, name):
     return sorted(set(inputs + check.get('covers', [])))
 
 
-def source_snapshot(root, config, profile, staged=False, requirement=None, raw_config=False, commit=None, checks=None):
+def source_snapshot(root, config, profile, staged=False, requirement=None, raw_config=False, commit=None, checks=None,
+                    algorithm=None):
     """commit 指定时只读取该提交的文件树和配置，用于复核已交付需求，不受后续工作区变化影响。"""
     index = {}
     if commit is not None:
@@ -522,7 +523,7 @@ def source_snapshot(root, config, profile, staged=False, requirement=None, raw_c
     if checks is not None:
         settings = config['profiles'][profile]
         checks = checked_names(settings, checks)
-        scopes = [inputs] + [check_inputs(settings, name) for name in checks]
+        scopes = ([inputs] if algorithm == 'sha256-files-v5' else []) + [check_inputs(settings, name) for name in checks]
         inputs = None if None in scopes else sorted({path for scope in scopes for path in scope})
     if staged:
         raw = subprocess.check_output(['git', '-C', str(root), 'ls-files', '--stage', '-z'],
@@ -587,7 +588,7 @@ def source_snapshot(root, config, profile, staged=False, requirement=None, raw_c
             raise ValueError('输入不是普通文件（目录输入需展开，子模块需显式指定文件）：' + name)
     payload = files if checks is None else {'files': files, 'checks': checks}
     encoded = json.dumps(payload, sort_keys=True, ensure_ascii=True).encode()
-    return {'algorithm': 'sha256-files-v4' if checks is None else 'sha256-files-v5', 'fingerprint': hashlib.sha256(encoded).hexdigest(), 'files': files}
+    return {'algorithm': 'sha256-files-v4' if checks is None else (algorithm or 'sha256-files-v6'), 'fingerprint': hashlib.sha256(encoded).hexdigest(), 'files': files}
 
 
 def verify_plan(root, config, profile, requirement, checks):
@@ -615,6 +616,7 @@ def verify(root, result, staged=False):
     if (report.get('schema_version') != 2 or report.get('status') != '通过'
             or not report.get('completed_at') or not report.get('end_fingerprint')):
         raise ValueError('测试未通过或没有源码绑定证据；请重新执行')
+    algorithm = report.get('source', {}).get('algorithm')
     config = load_config(root)
     if report.get('profile') not in config['profiles']:
         raise ValueError('验证报告缺少有效 profile')
@@ -622,11 +624,11 @@ def verify(root, result, staged=False):
     if 'checks' in report and report['checks'] != [item['name'] for item in report.get('results', [])
                                                  if item.get('status') == '通过']:
         raise ValueError('报告 checks 与实际通过结果不一致')
-    current = source_snapshot(root, config, report['profile'], requirement=report.get('requirement'), checks=report.get('checks'))
+    current = source_snapshot(root, config, report['profile'], requirement=report.get('requirement'), checks=report.get('checks'), algorithm=algorithm)
     if report.get('source') != current or report['end_fingerprint'] != current['fingerprint']:
         raise ValueError('测试后源码或配置已变化，旧结果不能用于当前代码')
     if staged and source_snapshot(root, config, report['profile'], staged=True,
-                                  requirement=report.get('requirement'), checks=report.get('checks')) != current:
+                                  requirement=report.get('requirement'), checks=report.get('checks'), algorithm=algorithm) != current:
         raise ValueError('暂存内容与已测试工作区不一致；请暂存正确版本或测试暂存快照')
     return report
 
@@ -654,93 +656,8 @@ def check_snapshot(root, config, profile, name, requirement=None):
     return hashlib.sha256(json.dumps(identity, sort_keys=True, ensure_ascii=True).encode()).hexdigest()
 
 
-def recent_reports(root):
-    directory = local_path(root, 'logs/project-checks')
-    if not directory.is_dir():
-        return []
-    reports = []
-    for run_dir in directory.iterdir():
-        if not run_dir.is_dir():
-            continue
-        try:
-            report = json.loads((run_dir / 'result.json').read_text())
-            if isinstance(report, dict):
-                reports.append((run_dir, report))
-        except (OSError, ValueError):
-            continue
-    return sorted(reports, key=lambda entry: entry[1].get('started_at', entry[0].name), reverse=True)[:40]
-
-
-def reusable_results(root, profile):
-    """每项只看最近出现的结果；失败、未完成、输入变化都阻断更早的成功缓存。"""
-    available, seen = {}, set()
-    for run_dir, report in recent_reports(root):
-        if report.get('profile') != profile:
-            continue
-        results = {item['name']: item for item in report.get('results', []) if 'name' in item}
-        for name in report.get('selected', list(results)):
-            if name in seen:
-                continue
-            seen.add(name)
-            item = results.get(name, {})
-            if (report.get('completed_at') and report.get('status') in ('通过', '失败')
-                    and report.get('end_fingerprint') == report.get('source', {}).get('fingerprint')
-                    and item.get('status') == '通过' and item.get('check_fingerprint')):
-                available[name] = (run_dir.name, item)
-    return available
-
-
-def retry_results(root, profile):
-    """未启用 incremental 时的失败重跑：仅当该 profile 最近一次完成的运行失败，
-    复用其中通过且输入未中途变化的检查；最新一次已通过或输入变化时不复用。"""
-    for run_dir, report in recent_reports(root):
-        if report.get('profile') != profile or not report.get('completed_at'):
-            continue
-        if (report.get('status') != '失败'
-                or report.get('end_fingerprint') != (report.get('source') or {}).get('fingerprint')):
-            return {}
-        return {item['name']: (run_dir.name, item) for item in report.get('results', [])
-                if item.get('status') == '通过' and item.get('check_fingerprint')}
-    return {}
-
-
-def recent_duration(root, profile, name):
-    """该检查最近一次实际执行（非复用）的耗时，优先取通过的运行，没有时取失败的运行。"""
-    fallback = None
-    for _, report in recent_reports(root):
-        if report.get('profile') != profile:
-            continue
-        for item in report.get('results', []):
-            if (item.get('name') != name or item.get('reused')
-                    or not isinstance(item.get('duration_seconds'), (int, float))):
-                continue
-            if item.get('status') == '通过':
-                return item['duration_seconds']
-            if item.get('status') == '失败' and fallback is None:
-                fallback = item['duration_seconds']
-    return fallback
-
-
-def estimate_seconds(durations, parallelism):
-    if not durations:
-        return 0
-    total = sum(durations)
-    return round(total if parallelism <= 1 else max(max(durations), total / parallelism))
-
-
-def last_pass(root, profile):
-    """最近通过的实际耗时，并明确是否含缓存及部分选择。"""
-    for run_dir, report in recent_reports(root):
-        if report.get('profile') == profile and report.get('status') == '通过':
-            wall = report.get('wall_seconds')
-            if wall is None:
-                wall = round(sum(item.get('duration_seconds') or 0 for item in report.get('results', [])), 1)
-            reused = any(item.get('reused') for item in report.get('results', []))
-            partial = bool(report.get('skipped'))
-            return {'wall_seconds': wall, 'completed_at': report.get('completed_at'),
-                    'reused': reused, 'partial': partial,
-                    'kind': 'cached' if reused else 'partial' if partial else 'full'}
-    return None
+from check_history import (recent_reports, reusable_results, retry_results, recent_duration,
+                           estimate_seconds, last_pass)
 
 
 def run(root, profile, requirement=None, rerun=False, selected=None, announce=None):
@@ -933,7 +850,7 @@ def summarize(root, target):
         raise ValueError('只有通过结果可生成证据摘要')
     requirement = report.get('requirement')
     card = local_path(root, 'requirements/' + requirement + '.md').read_text()
-    summary = {**({'checks': report['checks']} if 'checks' in report else {}), 'kind': 'result', 'profile': report['profile'], 'status': report['status'],
+    summary = {'algorithm': report['source']['algorithm'], **({'checks': report['checks']} if 'checks' in report else {}), 'kind': 'result', 'profile': report['profile'], 'status': report['status'],
             'fingerprint': 'sha256:' + report['end_fingerprint'],
             'requirement': 'sha256:' + hashlib.sha256(semantic_content(card, requirement)).hexdigest(),
             'head': (report.get('head') or '')[:12] or None,
@@ -952,10 +869,11 @@ def verify_summary(root, requirement, evidence, staged=False):
     if profile not in config['profiles']:
         raise ValueError('证据中的 profile 已不存在：' + str(profile))
     verify_plan(root, config, profile, requirement, evidence.get('checks'))
-    current = source_snapshot(root, config, profile, requirement=requirement, checks=evidence.get('checks'))
+    algorithm = evidence.get('algorithm', 'sha256-files-v5')
+    current = source_snapshot(root, config, profile, requirement=requirement, checks=evidence.get('checks'), algorithm=algorithm)
     if evidence.get('fingerprint') != 'sha256:' + current['fingerprint']:
         raise ValueError('测试后源码或配置已变化，旧结果不能用于当前代码')
     if staged and source_snapshot(root, config, profile, staged=True,
-                                  requirement=requirement, checks=evidence.get('checks'))['fingerprint'] != current['fingerprint']:
+                                  requirement=requirement, checks=evidence.get('checks'), algorithm=algorithm)['fingerprint'] != current['fingerprint']:
         raise ValueError('暂存内容与已验证工作区不一致；请暂存同一内容或重新验证')
     return current

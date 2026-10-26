@@ -260,6 +260,8 @@ class TeamFlowTests(unittest.TestCase):
                     flow.git_check(self.root, req)
         flow.complete(self.root, req, evidence='按新范围重新核对')
         flow.complete(self.root, req)
+        self.assertEqual('进行中', flow.parse_card(card)['state'])
+        flow.complete(self.root, req, confirm_ac=['AC-01'])
         self.assertEqual('完成', flow.parse_card(card)['state'])
 
     def test_evidence_cannot_be_copied_to_another_requirement(self):
