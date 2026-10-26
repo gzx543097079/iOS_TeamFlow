@@ -29,7 +29,7 @@ GODOT_FILES = tuple(GODOT_SKILL + '/' + name for name in (
     'scripts/verify_godot.py', 'scripts/export_ios.py', 'assets/project-checks.example.json',
 ))
 REFERENCES = (
-    'APP-RELEASE.md', 'APP-LIFECYCLE.md', 'PERFORMANCE.md', 'UI-REVIEW.md', 'LOGGING.md', 'EXISTING-PROJECT.md', 'ARCHITECTURE.md', 'LOCALIZATION.md',
+    'APP-RELEASE.md', 'APP-LIFECYCLE.md', 'PERFORMANCE.md', 'UI-REVIEW.md', 'LOGGING.md', 'EXISTING-PROJECT.md', 'ARCHITECTURE.md', 'LOCALIZATION.md', 'DESIGN-TOKENS.md',
     'standards/ui.md', 'standards/ui-keyboard.md', 'standards/ui-paywall.md', 'standards/objective-c.md', 'standards/swift.md', 'standards/swiftui.md',
     'templates/new-project.md', 'templates/feature.md', 'templates/app-release.md',
 )
@@ -44,7 +44,7 @@ FILES = (
     'scripts/teamflow.py', 'scripts/package_release.py', 'scripts/validate_workflow.py', 'scripts/run_workflow_checks.py',
     'tests/release_fixture.py', 'tests/test_consumer_release.py', 'tests/test_workflow.py', 'tests/test_project_checks.py', 'tests/test_teamflow.py', 'tests/test_module_context.py', SKILL + '/SKILL.md',
     SKILL + '/assets/logging/TFLogger.swift', SKILL + '/assets/logging/TFLogger.h', SKILL + '/assets/logging/TFLogger.m',
-    SKILL + '/scripts/install_logging.py',
+    SKILL + '/scripts/install_logging.py', SKILL + '/scripts/check_design_tokens.py', 'tests/test_design_tokens.py',
 ) + tuple(SKILL + '/references/' + name for name in REFERENCES) + CORE_FILES + GODOT_FILES + (
     'docs/GODOT.md', 'tests/test_godot_extension.py', 'tests/test_godot_export.py', 'tests/test_upgrade.py', 'tests/test_team.py', 'tests/test_token_budget.py',
 )
