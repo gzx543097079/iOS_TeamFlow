@@ -61,12 +61,12 @@ python3 scripts/teamflow.py verify run --profile change --requirement REQ-202601
 升级不改写项目脚本和验证配置；`upgrade` 输出“验证配置待迁移”或 `doctor` 报告「验证配置形态」时，按 [INSTALL](INSTALL.md#升级) 另建卡迁移：
 
 1. 读懂现有脚本的步骤与产物依赖，给脚本加日常与发布入口（如 `--scope change|release`）；依赖构建产物的核对与其构建留在同一入口。
-2. 日常 profile 按独立步骤拆成多个 check（如单元/UI 测试、静态检查、启动检查），各配 `covers` 与完整 `inputs`。
+2. 日常 profile 按独立步骤拆成多个 check（如编译、静态检查、启动检查），各配 `covers` 与完整 `inputs`。依赖整个源码目录的全套单元/UI 测试命中即整项执行，日常改为编译加按模块测试（如 `-only-testing`，inputs 含该模块依赖的共享目录），全套测试放入 `manual` profile，并在项目规则或 CI 中约定运行时机（如提 PR 前）。
 3. Release 构建移入 `manual: true` 的 profile；已有独立 Release 检查的，删去日常脚本中的重复构建，并给该 profile 设 `manual`。
 4. 核对 `-parallel-testing-enabled NO` 等串行设置，确有共享状态才保留。
 5. 用新的日常 profile 验收并绑定迁移卡证据，`doctor` 不再报需处理后单独提交。
 
-「需处理」（日常 profile 的命令或引用脚本含 Release 构建）必须迁移；「提示」（未声明 check covers）在脚本含多个独立步骤时拆分，确为单一步骤的可保留。
+「需处理」（日常 profile 的命令或引用脚本含 Release 构建）必须迁移；「提示」（未声明 check covers，或日常检查最近实际执行超过 180 秒）在脚本含多个独立步骤时拆分，确为单一步骤的可保留。新项目配置检查时同样按第 2 步拆分。
 
 ## 验证强度与结果输出
 

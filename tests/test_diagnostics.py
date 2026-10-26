@@ -235,6 +235,38 @@ class LegacyLayoutTests(unittest.TestCase):
         self.assertIn('未声明 check covers', diagnostics.format_report(report))
         self.assertFalse(any(i['status'] == '需处理' for i in report['checks'] if i['item'] == '验证配置形态'))
 
+    def record(self, profile, name, seconds, status='通过', reused=False):
+        import json
+        run = self.root / 'logs/project-checks' / f'run-{profile}-{name}-{seconds}'
+        run.mkdir(parents=True)
+        (run / 'result.json').write_text(json.dumps({'profile': profile, 'started_at': f'2026-10-25T00:00:{seconds % 60:02d}Z',
+            'results': [{'name': name, 'status': status, 'duration_seconds': seconds, 'reused': reused}]}))
+
+    def test_long_daily_check_is_a_hint(self):
+        profiles = {
+            'change': {'inputs': ['source.txt'], 'checks': {
+                'unit': {'argv': ['true'], 'covers': ['source.txt']},
+                'lint': {'argv': ['true'], 'covers': ['source.txt']}}},
+            'full': {'inputs': ['source.txt'], 'manual': True, 'checks': {'all': {'argv': ['true']}}}}
+        item, _ = self.layout(profiles)
+        self.assertIsNone(item)  # 无运行记录不提示
+        self.record('change', 'unit', 489)
+        self.record('change', 'lint', 12)
+        self.record('full', 'all', 900)
+        item, report = self.layout(profiles)
+        self.assertEqual('提示', item['status'])
+        text = diagnostics.format_report(report)
+        self.assertIn('change 的检查 unit 最近实际执行 489 秒', text)
+        self.assertIn('manual profile', text)
+        self.assertNotIn('lint 最近', text)
+        self.assertNotIn('all 最近', text)
+
+    def test_reused_duration_does_not_count(self):
+        profiles = {'change': {'inputs': ['source.txt'], 'checks': {'unit': {'argv': ['true'], 'covers': ['source.txt']}}}}
+        self.record('change', 'unit', 400, reused=True)
+        item, _ = self.layout(profiles)
+        self.assertIsNone(item)
+
     def test_migrated_layout_reports_nothing(self):
         item, _ = self.layout({
             'change': {'inputs': ['source.txt'], 'checks': {'debug': {'argv': ['true'], 'covers': ['source.txt']}}},
