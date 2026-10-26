@@ -11,6 +11,10 @@
 - iOS 设计变量改为【团队强制】：字体、圆角、颜色、间距只在设计变量模块写字面量；安装包新增 `check_design_tokens.py` 与 DESIGN-TOKENS 说明，支持模块路径、规则子集、自定义正则与基线（用户要求，REQ-20261025-d172）。
 - 本仓库 `workflow` 日常检查按模块拆为 7 组（需求 CLI、项目检查、诊断与安装、模块索引、iOS 脚本、Godot 脚本、打包与分发），各配 covers/inputs 并以 4 路并行运行；`run_workflow_checks.py` 支持按测试文件运行，回归测试要求每个测试文件恰好归属一组（来源 REQ-20261025-50aa：原单组 194 个测试串行约 73 秒，改任意文件都整组执行）。
 - 打包函数支持输出目录，测试改为打包到临时目录，不再写入或覆盖仓库 `dist/`；Godot 扩展测试的临时工程不再建在仓库根。`workflow-release` 打包行为不变。
+- 按模块精确触发：profile 可设 `trigger: "covers"`，检查只按自身 covers 触发，inputs 仅用于证据指纹与缓存；修改验证配置只触发执行语义变化的检查；check covers 自动并入其 inputs，不再要求重复声明。本仓库 `workflow` 启用该模式并重分 8 组，`workflow-docs` 并入为 `tests-docs`（含 token 预算），改模块索引只跑 tests-module、改单个平台脚本只跑对应平台组、改文档只跑 tests-docs（来源 REQ-20261025-1f64：此前 tests-package 依赖整个仓库，任意改动必跑，改任一核心脚本触发 5 组）。
+- 修复验收漏洞：显式使用未声明 check covers、但有 profile covers 的 profile 时，范围外工程改动不再能通过 `req complete`（此前可用 `--profile workflow-docs` 完成含代码改动的需求）；需求模板与 VERSION 不再被路由为纯文档验证；文档改动会运行 token 预算护栏。
+- 提交钩子对仅含 `.md`/`.rst` 的暂存（不含需求卡）直接放行，规则不再引导用 `git commit --no-verify` 整体绕过钩子；`.txt` 仍须证据。
+- CHECKS 删去与 WORKFLOW 重复的规则句（后台等待、提交不升级全量、Release 仅显式、证据复用）。
 - CHECKS 拆出[验证配置与迁移](.agents/teamflow-core/references/CHECKS-CONFIG.md)（配置字段、示例与「从全量脚本迁移」），常读的 CHECKS 只保留运行、验证强度与证据；`doctor` 迁移提示改指 CHECKS-CONFIG。
 
 ## 1.6.0

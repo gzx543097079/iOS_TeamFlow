@@ -20,6 +20,7 @@
         ".claude/settings.json",
         ".codex"
       ],
+      "trigger": "covers",
       "checks": {
         "tests-cli": {
           "argv": [
@@ -29,12 +30,12 @@
             "test_boundaries.py",
             "test_verify_wait.py"
           ],
-          "cwd": ".",
-          "timeout_seconds": 300,
           "covers": [
             ".agents/teamflow-core/scripts/teamflow.py",
             ".agents/teamflow-core/scripts/requirement_model.py",
             ".agents/teamflow-core/scripts/teamflow_common.py",
+            ".agents/teamflow-core/scripts/project_checks.py",
+            ".agents/teamflow-core/scripts/diagnostics.py",
             ".agents/teamflow-core/references/templates",
             "scripts/teamflow.py",
             "tests/test_teamflow.py",
@@ -45,14 +46,13 @@
             ".agents/teamflow-core/scripts",
             ".agents/teamflow-core/references/templates",
             ".agents/teamflow-core/references/VERSION",
-            ".agents/teamflow-core/references/WORKFLOW.md",
             ".agents/teamflow-core/assets",
             "scripts/teamflow.py",
             "scripts/run_workflow_checks.py",
-            "tests/test_teamflow.py",
-            "tests/test_boundaries.py",
-            "tests/test_verify_wait.py"
-          ]
+            "tests/test_teamflow.py"
+          ],
+          "cwd": ".",
+          "timeout_seconds": 300
         },
         "tests-checks": {
           "argv": [
@@ -62,10 +62,12 @@
             "test_check_triggers.py",
             "test_verify_speed.py"
           ],
-          "cwd": ".",
-          "timeout_seconds": 300,
           "covers": [
+            ".agents/teamflow-core/scripts/teamflow.py",
             ".agents/teamflow-core/scripts/project_checks.py",
+            ".agents/teamflow-core/scripts/requirement_model.py",
+            ".agents/teamflow-core/scripts/teamflow_common.py",
+            "tests/test_teamflow.py",
             "tests/test_project_checks.py",
             "tests/test_check_triggers.py",
             "tests/test_verify_speed.py"
@@ -74,15 +76,13 @@
             ".agents/teamflow-core/scripts",
             ".agents/teamflow-core/references/templates",
             ".agents/teamflow-core/references/VERSION",
-            ".agents/teamflow-core/references/WORKFLOW.md",
             ".agents/teamflow-core/assets",
             "scripts/teamflow.py",
             "scripts/run_workflow_checks.py",
-            "tests/test_teamflow.py",
-            "tests/test_project_checks.py",
-            "tests/test_check_triggers.py",
-            "tests/test_verify_speed.py"
-          ]
+            "tests/test_teamflow.py"
+          ],
+          "cwd": ".",
+          "timeout_seconds": 300
         },
         "tests-setup": {
           "argv": [
@@ -92,14 +92,15 @@
             "test_review_fixes.py",
             "test_trigger_delivery.py"
           ],
-          "cwd": ".",
-          "timeout_seconds": 300,
           "covers": [
+            ".agents/teamflow-core/scripts/teamflow.py",
             ".agents/teamflow-core/scripts/diagnostics.py",
             ".agents/teamflow-core/scripts/setup_project.py",
             ".agents/teamflow-core/scripts/upgrade.py",
+            ".agents/teamflow-core/scripts/project_checks.py",
             ".agents/teamflow-core/references/VERSION",
             ".agents/teamflow-core/assets",
+            "tests/test_teamflow.py",
             "tests/test_diagnostics.py",
             "tests/test_review_fixes.py",
             "tests/test_trigger_delivery.py"
@@ -108,15 +109,13 @@
             ".agents/teamflow-core/scripts",
             ".agents/teamflow-core/references/templates",
             ".agents/teamflow-core/references/VERSION",
-            ".agents/teamflow-core/references/WORKFLOW.md",
             ".agents/teamflow-core/assets",
             "scripts/teamflow.py",
             "scripts/run_workflow_checks.py",
-            "tests/test_teamflow.py",
-            "tests/test_diagnostics.py",
-            "tests/test_review_fixes.py",
-            "tests/test_trigger_delivery.py"
-          ]
+            "tests/test_teamflow.py"
+          ],
+          "cwd": ".",
+          "timeout_seconds": 300
         },
         "tests-module": {
           "argv": [
@@ -124,95 +123,134 @@
             "scripts/run_workflow_checks.py",
             "test_module_context.py"
           ],
-          "cwd": ".",
-          "timeout_seconds": 300,
           "covers": [
             ".agents/teamflow-core/scripts/module_context.py",
+            ".agents/teamflow-core/scripts/teamflow.py",
             "tests/test_module_context.py"
           ],
           "inputs": [
-            ".agents/teamflow-core/scripts",
-            ".agents/teamflow-core/references/templates",
-            ".agents/teamflow-core/references/VERSION",
-            ".agents/teamflow-core/references/WORKFLOW.md",
-            ".agents/teamflow-core/assets",
-            "scripts/teamflow.py",
-            "scripts/run_workflow_checks.py",
-            "tests/test_module_context.py"
-          ]
+            ".agents/teamflow-core/scripts/module_context.py",
+            ".agents/teamflow-core/scripts/teamflow.py",
+            ".agents/teamflow-core/scripts/teamflow_common.py",
+            "scripts/run_workflow_checks.py"
+          ],
+          "cwd": ".",
+          "timeout_seconds": 300
         },
         "tests-ios": {
           "argv": [
             "python3",
             "scripts/run_workflow_checks.py",
-            "test_design_tokens.py"
+            "test_design_tokens.py",
+            "test_logging_install.py"
           ],
-          "cwd": ".",
-          "timeout_seconds": 300,
           "covers": [
-            ".agents/skills/iOS/scripts/check_design_tokens.py",
-            "tests/test_design_tokens.py"
+            ".agents/skills/iOS/scripts",
+            ".agents/skills/iOS/assets",
+            "scripts/check_logging.py",
+            "tests/release_fixture.py",
+            "tests/test_design_tokens.py",
+            "tests/test_logging_install.py"
           ],
           "inputs": [
-            ".agents/skills/iOS/scripts/check_design_tokens.py",
-            "scripts/run_workflow_checks.py",
-            "tests/test_design_tokens.py"
-          ]
+            ".agents/skills/iOS",
+            ".agents/teamflow-core/scripts",
+            "scripts/package_release.py",
+            "scripts/run_workflow_checks.py"
+          ],
+          "cwd": ".",
+          "timeout_seconds": 300
         },
         "tests-godot": {
           "argv": [
             "python3",
             "scripts/run_workflow_checks.py",
-            "test_godot_export.py"
+            "test_godot_export.py",
+            "test_godot_extension.py"
           ],
-          "cwd": ".",
-          "timeout_seconds": 300,
           "covers": [
-            ".agents/skills/Godot/scripts/export_ios.py",
-            "tests/test_godot_export.py"
+            ".agents/skills/Godot/scripts",
+            ".agents/skills/Godot/assets",
+            ".agents/teamflow-core/scripts/setup_project.py",
+            "tests/release_fixture.py",
+            "tests/test_godot_export.py",
+            "tests/test_godot_extension.py"
           ],
           "inputs": [
-            ".agents/skills/Godot/scripts",
-            "scripts/run_workflow_checks.py",
-            "tests/test_godot_export.py"
-          ]
+            ".agents/skills/Godot",
+            ".agents/teamflow-core/scripts",
+            ".agents/teamflow-core/references/VERSION",
+            ".agents/teamflow-core/assets",
+            "scripts/package_release.py",
+            "scripts/run_workflow_checks.py"
+          ],
+          "cwd": ".",
+          "timeout_seconds": 300
         },
         "tests-package": {
           "argv": [
             "python3",
             "scripts/run_workflow_checks.py",
-            "test_workflow.py",
             "test_consumer_release.py",
             "test_team.py",
-            "test_godot_extension.py",
-            "test_logging_install.py",
-            "test_upgrade.py",
-            "test_token_budget.py"
+            "test_upgrade.py"
           ],
-          "cwd": ".",
-          "timeout_seconds": 300,
           "covers": [
-            ".agents/skills",
-            ".agents/teamflow-core/references",
+            ".agents/teamflow-core/scripts/teamflow.py",
+            ".agents/teamflow-core/scripts/setup_project.py",
+            ".agents/teamflow-core/scripts/upgrade.py",
+            ".agents/teamflow-core/assets",
+            ".agents/teamflow-core/references/VERSION",
+            "scripts/teamflow.py",
+            "scripts/package_release.py",
+            "tests/release_fixture.py",
+            "tests/test_consumer_release.py",
+            "tests/test_team.py",
+            "tests/test_upgrade.py"
+          ],
+          "inputs": [
+            ".agents",
             ".github",
             ".gitignore",
             "AGENTS.md",
             "README.md",
             "CHANGELOG.md",
             "docs",
-            "scripts/package_release.py",
-            "scripts/validate_workflow.py",
-            "scripts/check_logging.py",
+            "scripts",
+            "tests",
+            ".claude/settings.json",
+            ".codex"
+          ],
+          "cwd": ".",
+          "timeout_seconds": 300
+        },
+        "tests-docs": {
+          "argv": [
+            "python3",
             "scripts/run_workflow_checks.py",
-            "tests/release_fixture.py",
+            "test_workflow.py",
+            "test_token_budget.py"
+          ],
+          "covers": [
+            "AGENTS.md",
+            "README.md",
+            "CHANGELOG.md",
+            "docs",
+            ".github",
+            ".gitignore",
             ".claude/settings.json",
             ".codex",
+            ".agents/skills/iOS/SKILL.md",
+            ".agents/skills/iOS/references",
+            ".agents/skills/Godot/SKILL.md",
+            ".agents/skills/Godot/references",
+            ".agents/teamflow-core/references",
+            ".agents/teamflow-core/scripts/teamflow.py",
+            ".agents/teamflow-core/scripts/setup_project.py",
+            "scripts/validate_workflow.py",
+            "scripts/package_release.py",
+            "scripts/run_workflow_checks.py",
             "tests/test_workflow.py",
-            "tests/test_consumer_release.py",
-            "tests/test_team.py",
-            "tests/test_godot_extension.py",
-            "tests/test_logging_install.py",
-            "tests/test_upgrade.py",
             "tests/test_token_budget.py"
           ],
           "inputs": [
@@ -227,47 +265,13 @@
             "tests",
             ".claude/settings.json",
             ".codex"
-          ]
+          ],
+          "cwd": ".",
+          "timeout_seconds": 300
         }
       },
       "priority": 100,
       "parallelism": 4
-    },
-    "workflow-docs": {
-      "inputs": [
-        "AGENTS.md",
-        "README.md",
-        ".agents/skills/iOS/SKILL.md",
-        ".agents/skills/iOS/references",
-        "scripts/validate_workflow.py",
-        "scripts/package_release.py",
-        "CHANGELOG.md",
-        "docs",
-        ".agents/skills/Godot",
-        ".agents/teamflow-core"
-      ],
-      "checks": {
-        "workflow-docs": {
-          "argv": [
-            "python3",
-            "scripts/validate_workflow.py"
-          ],
-          "timeout_seconds": 60,
-          "cwd": "."
-        }
-      },
-      "priority": 10,
-      "covers": [
-        "AGENTS.md",
-        "README.md",
-        "CHANGELOG.md",
-        "docs",
-        ".agents/skills/iOS/SKILL.md",
-        ".agents/skills/iOS/references",
-        ".agents/skills/Godot/SKILL.md",
-        ".agents/skills/Godot/references",
-        ".agents/teamflow-core/references"
-      ]
     },
     "workflow-release": {
       "extends": "workflow",

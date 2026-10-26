@@ -94,21 +94,43 @@ def installed_files(root):
     return result
 
 
+def _effective_profiles(text):
+    try:
+        profiles = json.loads(text)['profiles']
+        return {name: effective_config({'profiles': {name: resolve_profile(profiles, name)}}, name)
+                for name in profiles}
+    except (ValueError, KeyError, TypeError):
+        return None
+
+
 def changed_profiles(root, keep=()):
     """暂存配置相对 HEAD 改变了执行语义的 profile；本次证据实际运行的 profile 不列出。"""
-    def effective(text):
-        try:
-            profiles = json.loads(text)['profiles']
-            return {name: effective_config({'profiles': {name: resolve_profile(profiles, name)}}, name)
-                    for name in profiles}
-        except (ValueError, KeyError, TypeError):
-            return None
-    before, after = (effective(text) if text is not None else {} for text in _versions(root, CONFIG)[:2])
+    before, after = (_effective_profiles(text) if text is not None else {} for text in _versions(root, CONFIG)[:2])
     if after is None:
         return []
     before = before or {}
     return sorted(name for name in after.keys() | before.keys()
                   if name not in keep and after.get(name) != before.get(name))
+
+
+def config_changed_checks(root, profile):
+    """工作区配置相对 HEAD 改变了执行语义的检查；profile 级字段变化或无法比较（如配置改动已在阶段提交中）时返回 None，表示全部。"""
+    head, _, current = _versions(root, CONFIG)
+    if head is None or current is None or head == current:
+        return None
+    before, after = _effective_profiles(head), _effective_profiles(current)
+    if not before or not after or profile not in before or profile not in after:
+        return None
+    old, new = before[profile], after[profile]
+    if {k: v for k, v in old.items() if k != 'checks'} != {k: v for k, v in new.items() if k != 'checks'}:
+        return None
+    previous = {check['name']: check for check in old['checks']}
+    return {check['name'] for check in new['checks'] if previous.get(check['name']) != check}
+
+
+def project_changes(root, names):
+    """参与验证的改动：排除生成证据、需求卡与未改动的 TeamFlow 安装文件。"""
+    return {name for name in names if not excluded_input(name) and not requirement_path(name)} - installed_files(root)
 
 
 def requirement_path(name):
@@ -163,20 +185,25 @@ def execution_plan(root, config, profile, requirement=None, force=False, names=N
             if triggered:
                 raise
             names = set()
-    names = {name for name in names if not excluded_input(name) and not requirement_path(name)} - installed_files(root)
+    names = project_changes(root, names)
+    # trigger: covers 时只按各项负责范围触发，inputs 仅进入证据指纹与缓存键。
+    by_covers = settings.get('trigger') == 'covers'
+    configured = config_changed_checks(root, profile) if triggered and CONFIG in names else None
     selected = []
     for name, check in settings['checks'].items():
         scope = check_coverage(settings, name)
         covered = input_paths(root, scope, names) if scope != [] else set()
-        dependencies = input_paths(root, check.get('inputs', settings.get('inputs')), names)
-        if force or settings.get('manual') or not triggered or CONFIG in names or covered or dependencies:
+        dependencies = set() if by_covers else input_paths(root, check.get('inputs', settings.get('inputs')), names)
+        config_hit = CONFIG in names and (configured is None or name in configured)
+        if force or settings.get('manual') or not triggered or config_hit or covered or dependencies:
             selected.append(name)
     covered = set()
     for name in selected:
         scope = check_coverage(settings, name)
         if scope != []:
             covered.update(input_paths(root, scope, names))
-    if selected and CONFIG in names:
+    if CONFIG in names:
+        # 所选 profile 的执行语义已进入指纹；其他 profile 的变化由 git check 提示。
         covered.add(CONFIG)
     uncovered = sorted(names - covered)
     # 非规范 requirements 文件仍属于普通工程输入，不能借目录名豁免。
@@ -184,6 +211,8 @@ def execution_plan(root, config, profile, requirement=None, force=False, names=N
     return {'selected': selected, 'skipped': [name for name in settings['checks'] if name not in selected],
             'changed_files': sorted(names), 'covered_files': sorted(covered), 'uncovered_files': uncovered,
             'uncovered_engineering_files': engineering, 'triggered': triggered,
+            # 声明了 check covers 或 profile covers（验收范围上限）时，范围外工程改动在执行前阻断；仅有 inputs 的旧配置由提交检查核对。
+            'enforced': triggered or 'covers' in settings,
             'manual': bool(settings.get('manual'))}
 
 
@@ -198,7 +227,7 @@ def suggest(root, requirement=None):
         profiles.append({'profile': profile, **plan,
                          'covers_all_changes': bool(plan['changed_files']) and not plan['uncovered_files'],
                          'last_pass': last_pass(root, profile)})
-    names = {name for name in names if not excluded_input(name) and not requirement_path(name)} - installed_files(root)
+    names = project_changes(root, names)
     covering = [item['profile'] for item in profiles if item['covers_all_changes'] and not item['manual']]
     best = min((config['profiles'][name].get('priority', 100) for name in covering), default=None)
     preferred = [name for name in covering if config['profiles'][name].get('priority', 100) == best]
@@ -335,6 +364,8 @@ def load_config(root):
             raise ValueError('manual 必须为布尔值：' + profile)
         if 'incremental' in settings and not isinstance(settings['incremental'], bool):
             raise ValueError('incremental 必须为布尔值：' + profile)
+        if settings.get('trigger', 'inputs') not in ('inputs', 'covers'):
+            raise ValueError('trigger 必须为 inputs 或 covers：' + profile)
         if not isinstance(settings.get('checks'), dict) or not settings['checks']:
             raise ValueError('profile 必须包含非空 checks 对象：' + profile)
         for name, check in settings['checks'].items():
@@ -353,8 +384,6 @@ def load_config(root):
                 covers = {str(Path(path)) for path in check['covers']}
                 if input_paths(root, coverage_inputs(settings), covers) != covers:
                     raise ValueError('check covers 必须包含在 profile covers 范围内：' + name)
-                if input_paths(root, check.get('inputs', settings.get('inputs')), covers) != covers:
-                    raise ValueError('check covers 必须包含在有效 inputs 依赖范围内：' + name)
             if 'cache' in check and not isinstance(check['cache'], bool):
                 raise ValueError('cache 必须为布尔值：' + name)
             timeout = check.get('timeout_seconds', 900)
@@ -429,7 +458,7 @@ def effective_config(config, profile):
     settings = config['profiles'][profile]
     return {**({'covers': settings['covers']} if 'covers' in settings else {}),
             'inputs': settings.get('inputs'),
-            **{key: settings[key] for key in ('manual', 'parallelism') if key in settings},
+            **{key: settings[key] for key in ('manual', 'parallelism', 'trigger') if key in settings},
             **({'incremental': True} if settings.get('incremental') else {}),
             'checks': [{'name': name, 'argv': check['argv'],
                         'cwd': check.get('cwd', '.'),
@@ -570,7 +599,7 @@ def verify_plan(root, config, profile, requirement, checks):
         return
     checks = checked_names(settings, checks)
     plan = execution_plan(root, config, profile, requirement)
-    if plan['triggered'] and plan['uncovered_engineering_files']:
+    if plan['enforced'] and plan['uncovered_engineering_files']:
         raise ValueError('工程改动未被检查覆盖：' + '、'.join(plan['uncovered_engineering_files']))
     missing = set(plan['selected']) - set(checks)
     if missing:
@@ -725,7 +754,7 @@ def run(root, profile, requirement=None, rerun=False, selected=None, announce=No
     forced = set(checked_names(settings, selected)) if selected is not None else set()
     names = [name for name in settings['checks'] if name in plan['selected'] or name in forced]
     plan.update(selected=names, skipped=[name for name in settings['checks'] if name not in names])
-    if plan['triggered'] and plan['uncovered_engineering_files']:
+    if plan['enforced'] and plan['uncovered_engineering_files']:
         raise ValueError('工程改动未被检查覆盖：' + '、'.join(plan['uncovered_engineering_files']))
     incremental = bool(settings.get('incremental'))
     source_before = source_snapshot(root, config, profile, requirement=requirement, checks=names) if names else None

@@ -66,17 +66,27 @@ class ReviewFixTests(unittest.TestCase):
             self.assertEqual(current, flow.hook_check(self.root)['requirement'])
         self.assertEqual([current], calls)
 
-    def test_hook_points_document_only_changes_to_lightweight_path(self):
+    def test_hook_passes_document_only_changes_without_evidence(self):
         self.baseline()
         (self.root / 'README.md').write_text('typo fixed')
         self.git('add', 'README.md')
-        with self.assertRaisesRegex(ValueError, '--no-verify'):
+        result = flow.hook_check(self.root)
+        self.assertEqual('document', result['validation']['kind'])
+        self.assertIsNone(result['commit_trailer'])
+        self.assertIn('均为文档', flow.render('git', result))
+        # .txt 可能是依赖清单，需求卡须复核证据，代码改动仍要求证据。
+        for name in ('requirements.txt', 'App.swift'):
+            with self.subTest(name=name):
+                (self.root / name).write_text('x')
+                self.git('add', name)
+                with self.assertRaises(ValueError) as caught:
+                    flow.hook_check(self.root)
+                self.assertNotIn('--no-verify', str(caught.exception))
+                self.git('rm', '-q', '--cached', name)
+        requirement = self.create()
+        self.git('add', 'requirements')
+        with self.assertRaises(ValueError):
             flow.hook_check(self.root)
-        (self.root / 'App.swift').write_text('let a = 1')
-        self.git('add', 'App.swift')
-        with self.assertRaises(ValueError) as caught:
-            flow.hook_check(self.root)
-        self.assertNotIn('--no-verify', str(caught.exception))
 
     def test_legacy_hook_still_runs_but_doctor_requests_migration(self):
         args = flow.build_parser().parse_args(['git', 'hook', '--profile', 'change'])

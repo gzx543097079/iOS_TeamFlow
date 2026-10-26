@@ -19,6 +19,8 @@ class CheckTriggerTests(unittest.TestCase):
         (self.root / 'a.py').write_text('a = 1\n')
         (self.root / 'b.py').write_text('b = 1\n')
         (self.root / 'shared.py').write_text('shared = 1\n')
+        # 检查运行时写出的标记文件是生成物，按真实项目做法忽略，避免被当作未覆盖的工程改动。
+        (self.root / '.gitignore').write_text('/logs/project-checks/\n/calls\n/hang\n/fail\n')
         settings = {'inputs': ['a.py', 'b.py', 'shared.py'], 'covers': ['a.py', 'b.py'], 'checks': {
             'a': {'argv': [sys.executable, '-c', "print('a')"], 'covers': ['a.py'], 'inputs': ['a.py', 'shared.py']},
             'b': {'argv': [sys.executable, '-c', "print('b')"], 'covers': ['b.py'], 'inputs': ['b.py', 'shared.py']}}}
@@ -244,20 +246,62 @@ class CheckTriggerTests(unittest.TestCase):
         m = self.setup_checks()
         self.assertEqual({'[Model].py'}, m.input_paths(self.root, ['[Model].py'], {'[Model].py', 'M.py'}))
 
+    def test_covers_trigger_ignores_shared_inputs(self):
+        m = self.setup_checks(trigger='covers')
+        (self.root / 'shared.py').write_text('shared = 2\n')
+        plan = self.plan(m)
+        self.assertEqual([], plan['selected'])
+        # inputs 只用于证据：共享依赖不负责验收，范围外工程改动仍阻断。
+        self.assertEqual(['shared.py'], plan['uncovered_engineering_files'])
+        (self.root / 'a.py').write_text('a = 2\n')
+        self.assertEqual(['a'], self.plan(m)['selected'])
+
+    def test_config_change_triggers_only_changed_checks(self):
+        m = self.setup_checks()
+        data = json.loads((self.root / '.agents/project-checks.json').read_text())['profiles']
+        data['p']['checks']['b']['timeout_seconds'] = 30
+        self.write_config(data)
+        self.assertEqual(['b'], self.plan(m)['selected'])
+        data['p']['parallelism'] = 2
+        self.write_config(data)
+        self.assertEqual(['a', 'b'], self.plan(m)['selected'])
+        # 只调整排版或其他 profile 时不触发检查，配置仍视为已覆盖。
+        data['p'].pop('parallelism')
+        data['p']['checks']['b'].pop('timeout_seconds')
+        data['other'] = {'checks': {'x': {'argv': ['true']}}}
+        self.write_config(data)
+        plan = self.plan(m)
+        self.assertEqual([], plan['selected'])
+        self.assertIn('.agents/project-checks.json', plan['covered_files'])
+
+    def test_explicit_profile_covers_blocks_uncovered_code_without_check_covers(self):
+        (self.root / 'App.swift').write_text('let a = 1\n')
+        (self.root / 'notes.md').write_text('notes\n')
+        self.write_config({'docs': {'covers': ['notes.md'], 'inputs': ['notes.md'],
+                                    'checks': {'docs': {'argv': [sys.executable, '-c', 'pass']}}}})
+        self.baseline()
+        (self.root / 'App.swift').write_text('let a = 2\n')
+        m = flow.checks_module()
+        with self.assertRaisesRegex(ValueError, '工程改动未被检查覆盖：App.swift'):
+            m.run(self.root, 'docs')
+
     def test_invalid_glob_parallelism_manual_cache_and_missing_dependency(self):
         m = self.setup_checks()
         data = m.load_config(self.root)
-        for key, value in [('parallelism', 0), ('parallelism', True), ('manual', 'yes')]:
+        for key, value in [('parallelism', 0), ('parallelism', True), ('manual', 'yes'), ('trigger', 'paths')]:
             with self.subTest(key=key, value=value):
                 self.write_config({'p': {**data['profiles']['p'], key: value}})
                 with self.assertRaises(ValueError):
                     m.load_config(self.root)
         for check in ({'covers': ['*.py']}, {'covers': ['shared.py']},
-                      {'covers': ['a.py'], 'inputs': ['b.py']},
                       {'cache': 'yes'}, {'inputs': ['missing.py']}):
             self.write_config({'p': {**data['profiles']['p'], 'checks': {'a': {'argv': ['true'], **check}}}})
             with self.assertRaises(ValueError):
                 m.run(self.root, 'p', rerun=True)
+        # check covers 自动并入该项 inputs，无需在 inputs 中重复声明。
+        self.write_config({'p': {**data['profiles']['p'], 'checks': {'a': {'argv': ['true'], 'covers': ['a.py'], 'inputs': ['b.py']}}}})
+        loaded = m.load_config(self.root)
+        self.assertEqual(['a.py', 'b.py'], m.check_inputs(loaded['profiles']['p'], 'a'))
 
 
 if __name__ == '__main__':
