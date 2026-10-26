@@ -4,7 +4,7 @@
 
 ## 验证与完成
 
-`req complete REQ-20260101-a3f9 --profile change` 优先复用同 profile 的有效证据，否则运行并绑定摘要；`--rerun` 与 `--profile` 一起显式重跑。`--result logs/project-checks/运行编号/result.json` 绑定已用 `verify run --requirement` 生成的结果，不重跑。`verify run` 计算适用检查；有 check covers 时仅执行触发项，未触发不执行。`verify run --rerun` 与 `req complete --profile change --rerun` 强制全项执行并绕过缓存。manual profile 仅显式选择。不传证据参数时先复核摘要；缺失或失效时按 covers 与 priority 选择覆盖全部改动（相对 HEAD 的改动加上带本需求 `Requirement:` 尾注的已提交改动）的唯一候选，存在歧义或无覆盖则报错且不改卡片。输出区分“复用验证，未运行测试”和重新验证原因。`--profile`、`--result`、`--evidence` 互斥。
+`req complete REQ-20260101-a3f9 --profile change` 优先复用同 profile 的有效证据，其次自动复用本需求最近一次有效且检查完整的 `verify run --requirement` 结果，否则运行必要检查并绑定摘要；`--rerun` 与 `--profile` 一起显式重跑。`--result logs/project-checks/运行编号/result.json` 可指定绑定某次已生成的结果，不重跑。`verify run` 计算适用检查；有 check covers 时仅执行触发项，未触发不执行。`verify run --rerun` 与 `req complete --profile change --rerun` 强制全项执行并绕过缓存。manual profile 仅显式选择。不传证据参数时先复核摘要；缺失或失效时按 covers 与 priority 选择覆盖全部改动（相对 HEAD 的改动加上带本需求 `Requirement:` 尾注的已提交改动）的唯一候选，存在歧义或无覆盖则报错且不改卡片。输出区分“复用验证，未运行测试”和重新验证原因。`--profile`、`--result`、`--evidence` 互斥。
 
 `--confirm-ac AC-01` 可重复；`--user-confirmed AC-01` 同样勾选，并把编号记入头部 `user_confirmed`，`req status` 与 `req pr` 标注“用户确认”。未知编号、证据无效或验证失败均不更改卡片。确认语义未变的条件保留原状态；范围或 AC 文字改变后旧确认失效，验收时取消相应勾选，须重新确认。`--wait-user` 与恢复规则见 [WORKFLOW](WORKFLOW.md#实施与验收)，恢复命令见下方「状态」。
 
@@ -44,8 +44,8 @@ python3 scripts/teamflow.py req complete REQ-20260101-a3f9 \
 ## 升级与提交前检查
 
 ```sh
-python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.6.2.zip --plan
-python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.6.2.zip
+python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.6.3.zip --plan
+python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.6.3.zip
 python3 scripts/teamflow.py setup --git-hook
 python3 scripts/teamflow.py setup --no-git-hook
 ```

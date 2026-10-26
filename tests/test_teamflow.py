@@ -230,7 +230,8 @@ class TeamFlowTests(unittest.TestCase):
         req = self.create(); card = self.fill(req, done=False)
         flow.complete(self.root, req, profile='change', wait_user=True)
         before = flow.parse_card(card)['evidence']
-        report = flow.complete(self.root, req, user_confirmed=['AC-01'])
+        with patch.object(flow.checks_module(), 'run', side_effect=AssertionError('确认后不应重跑测试')):
+            report = flow.complete(self.root, req, user_confirmed=['AC-01'])
         self.assertEqual('完成', report['state_key'])
         saved = flow.parse_card(card)
         self.assertEqual(['AC-01'], saved['meta']['user_confirmed'])
