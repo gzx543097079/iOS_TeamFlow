@@ -27,7 +27,7 @@ python3 .agents/skills/Godot/scripts/verify_godot.py \
 
 默认读取 `project.godot` 的 `config/features` 主次版本：引擎须同主版本且次版本不低于工程，升级引擎不失败。需要固定精确版本时传 `--expect-version`（如 `4.7.2`），或由团队在 `.agents/team/toolchain.json` 锁定（见[团队协作](TEAM.md)），不一致即失败；显式参数优先。每个阶段默认最多 120 秒，可用 `--timeout` 按实际项目调整。
 
-[配置示例](../assets/project-checks.example.json) 假定游戏位于 `game/`，并已有 `game/tests/run_tests.gd`。先按实际结构修改，再合并进已有 `.agents/project-checks.json`；不覆盖原 profile。输入必须覆盖脚本、场景、资源、导入配置、导出预设和原生插件的实际源码。将 `.godot/` 加入项目 `.gitignore`，保留持久 UID 与源资源。
+[配置示例](../assets/project-checks.example.json) 假定游戏位于 `game/`，并已有 `game/tests/run_tests.gd`。先按实际结构修改，再合并进已有 `.agents/project-checks.json`（字段见[验证配置](../../../teamflow-core/references/CHECKS-CONFIG.md)）；不覆盖原 profile。输入必须覆盖脚本、场景、资源、导入配置、导出预设和原生插件的实际源码。将 `.godot/` 加入项目 `.gitignore`，保留持久 UID 与源资源。
 
 iOS 构建 profile 必须运行真实导出和构建脚本，可通过 `extends` 包含游戏检查；尚未配置就记未验证，不能用空命令代替。混合原生／Godot 改动使用覆盖两部分的组合 profile。人工视觉、设备或平台条件保持未勾选，等待真实证据后确认。
 

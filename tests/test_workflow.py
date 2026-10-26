@@ -32,6 +32,33 @@ class WorkflowTests(unittest.TestCase):
         config = json.loads((ROOT / '.agents/project-checks.json').read_text())
         self.assertIs(True, config['profiles']['workflow-release']['manual'])
 
+    def test_each_test_file_belongs_to_exactly_one_daily_check(self):
+        import json
+        checks = json.loads((ROOT / '.agents/project-checks.json').read_text())['profiles']['workflow']['checks']
+        owners = {}
+        for name, check in checks.items():
+            argv = check['argv']
+            self.assertEqual(['python3', 'scripts/run_workflow_checks.py'], argv[:2], name)
+            self.assertTrue(argv[2:], name + ' 不能退化为全量发现')
+            for test in argv[2:]:
+                owners.setdefault(test, []).append(name)
+                self.assertIn('tests/' + test, check['covers'], name)
+        files = sorted(p.name for p in (ROOT / 'tests').glob('test_*.py'))
+        self.assertEqual(files, sorted(owners))
+        self.assertEqual({}, {test: names for test, names in owners.items() if len(names) > 1})
+
+    def test_tests_package_into_temporary_output_not_repository_dist(self):
+        snapshot = lambda: {p.name: p.stat().st_mtime_ns for p in (ROOT / 'dist').glob('*')} if (ROOT / 'dist').is_dir() else {}
+        before = snapshot()
+        with tempfile.TemporaryDirectory() as directory:
+            archive = package_release.package_mode(ROOT, 'ios', directory)
+            self.assertEqual(Path(directory), archive.parent)
+            self.assertTrue(archive.with_suffix('.zip.sha256').is_file())
+        self.assertEqual(before, snapshot())
+        for test in (ROOT / 'tests').glob('*.py'):
+            if test.name != 'release_fixture.py':
+                self.assertNotRegex(test.read_text(), r'package_release\.package\w*\(ROOT\)', test.name)
+
     def test_repository_does_not_activate_extra_host_permissions(self):
         for target, source in package_release.PERMISSIONS.items():
             self.assertTrue((ROOT / source).is_file(), source)

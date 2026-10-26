@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
 sys.path.insert(0, str(ROOT / '.agents/teamflow-core/scripts'))
 import package_release
+from release_fixture import archive as release_archive
 import upgrade
 
 WORKFLOW = '.agents/teamflow-core/references/WORKFLOW.md'
@@ -34,9 +35,9 @@ def write_zip(path, files):
 class UpgradeTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.ios = read_zip(package_release.package_skill(ROOT))
-        cls.godot = read_zip(package_release.package_godot(ROOT))
-        cls.godot_ios = read_zip(package_release.package_godot_ios(ROOT))
+        cls.ios = read_zip(release_archive('ios'))
+        cls.godot = read_zip(release_archive('godot'))
+        cls.godot_ios = read_zip(release_archive('godot-ios'))
 
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()

@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
 sys.path.insert(0, str(ROOT / '.agents/teamflow-core/scripts'))
 import package_release
+from release_fixture import archive as release_archive
 
 spec = importlib.util.spec_from_file_location('verify_godot', ROOT / package_release.GODOT_SKILL / 'scripts/verify_godot.py')
 verify_godot = importlib.util.module_from_spec(spec)
@@ -22,8 +23,8 @@ spec.loader.exec_module(verify_godot)
 
 class GodotExtensionTests(unittest.TestCase):
     def test_bundle_is_dependency_complete_and_repeatable(self):
-        archive = package_release.package_godot_ios(ROOT)
-        with tempfile.TemporaryDirectory(dir=ROOT / 'build' if (ROOT / 'build').is_dir() else ROOT) as directory:
+        archive = release_archive('godot-ios')
+        with tempfile.TemporaryDirectory() as directory:
             project = Path(directory)
             with zipfile.ZipFile(archive) as stream:
                 names = stream.namelist()
@@ -63,7 +64,7 @@ class GodotExtensionTests(unittest.TestCase):
     def test_all_modes_leave_host_permissions_inactive(self):
         for mode in ('ios', 'godot', 'godot-ios'):
             with self.subTest(mode=mode):
-                with zipfile.ZipFile(package_release.package_mode(ROOT, mode)) as archive:
+                with zipfile.ZipFile(release_archive(mode)) as archive:
                     names = set(archive.namelist())
                     for target, source in package_release.PERMISSIONS.items():
                         self.assertNotIn(target, names)
@@ -84,7 +85,7 @@ class GodotExtensionTests(unittest.TestCase):
 
     def test_install_modes_persist_and_switch_without_deleting_user_files(self):
         import setup_project
-        archive = package_release.package_godot_ios(ROOT)
+        archive = release_archive('godot-ios')
         with tempfile.TemporaryDirectory() as directory:
             project = Path(directory)
             with zipfile.ZipFile(archive) as stream:
@@ -125,7 +126,7 @@ class GodotExtensionTests(unittest.TestCase):
 
     def test_both_modes_write_reading_rules_and_rerun_is_stable(self):
         import setup_project
-        archive = package_release.package_godot_ios(ROOT)
+        archive = release_archive('godot-ios')
         with tempfile.TemporaryDirectory() as directory:
             project = Path(directory)
             with zipfile.ZipFile(archive) as stream:

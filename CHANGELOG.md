@@ -9,6 +9,9 @@
 - `doctor`「验证配置形态」对日常 profile 中最近实际执行超过 180 秒的检查给出拆分提示（不计需处理，来源 REQ-20261025-b778：颜见 `debug-unit` 全套测试 489/538 秒）；CHECKS 与 iOS Skill 写明日常用编译加按模块测试，全套单元/UI 测试放 manual profile 并约定运行时机。
 - 本地化：目标语言惯用的外文词、缩写和品牌名（如中文里的“Ta”“App”）可以保留，不因值含其他文字或与开发语言相同判为漏译；整句未翻译仍须修正（用户要求，REQ-20261025-7c38）。
 - iOS 设计变量改为【团队强制】：字体、圆角、颜色、间距只在设计变量模块写字面量；安装包新增 `check_design_tokens.py` 与 DESIGN-TOKENS 说明，支持模块路径、规则子集、自定义正则与基线（用户要求，REQ-20261025-d172）。
+- 本仓库 `workflow` 日常检查按模块拆为 7 组（需求 CLI、项目检查、诊断与安装、模块索引、iOS 脚本、Godot 脚本、打包与分发），各配 covers/inputs 并以 4 路并行运行；`run_workflow_checks.py` 支持按测试文件运行，回归测试要求每个测试文件恰好归属一组（来源 REQ-20261025-50aa：原单组 194 个测试串行约 73 秒，改任意文件都整组执行）。
+- 打包函数支持输出目录，测试改为打包到临时目录，不再写入或覆盖仓库 `dist/`；Godot 扩展测试的临时工程不再建在仓库根。`workflow-release` 打包行为不变。
+- CHECKS 拆出[验证配置与迁移](.agents/teamflow-core/references/CHECKS-CONFIG.md)（配置字段、示例与「从全量脚本迁移」），常读的 CHECKS 只保留运行、验证强度与证据；`doctor` 迁移提示改指 CHECKS-CONFIG。
 
 ## 1.6.0
 

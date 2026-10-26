@@ -11,7 +11,7 @@ CORE_FILES = tuple(CORE + '/' + name for name in (
     'scripts/diagnostics.py', 'scripts/teamflow_common.py', 'scripts/requirement_model.py',
     'scripts/module_context.py', 'scripts/teamflow.py', 'scripts/project_checks.py', 'scripts/setup_project.py',
     'scripts/upgrade.py',
-    'references/WORKFLOW.md', 'references/ARTIFACTS.md', 'references/CHECKS.md', 'references/COMMANDS.md', 'references/REPAIR.md', 'references/BOUNDARIES.md', 'references/INSTALL.md',
+    'references/WORKFLOW.md', 'references/ARTIFACTS.md', 'references/CHECKS.md', 'references/CHECKS-CONFIG.md', 'references/COMMANDS.md', 'references/REPAIR.md', 'references/BOUNDARIES.md', 'references/INSTALL.md',
     'references/MODULE-CONTEXT.md', 'references/VERSION', 'references/ARCHITECTURE.md', 'references/LOCALIZATION.md',
     'references/templates/requirement.md', 'references/templates/project-context.md', 'references/standards/comments.md',
     'references/REVIEW.md', 'references/DEPENDENCIES.md', 'references/THIRD-PARTY.md', 'assets/ci/github-teamflow.yml',
@@ -50,8 +50,8 @@ FILES = (
 )
 
 
-def write_package(root, prefix, entries, generated=None):
-    """entries 映射仓库文件到包内路径；generated 为打包时生成的包内文件。"""
+def write_package(root, prefix, entries, generated=None, output=None):
+    """entries 映射仓库文件到包内路径；generated 为打包时生成的包内文件；output 默认为仓库 dist/。"""
     root = root.resolve()
     version = (root / CORE / 'references/VERSION').read_text().strip()
     if not re.fullmatch(r'\d+\.\d+\.\d+', version):
@@ -64,8 +64,8 @@ def write_package(root, prefix, entries, generated=None):
             raise ValueError('文件越出项目目录：' + name)
     contents = {destination: (root / name).read_bytes() for name, destination in entries.items()}
     contents.update(generated or {})
-    output = root / 'dist'
-    output.mkdir(exist_ok=True)
+    output = Path(output) if output else root / 'dist'
+    output.mkdir(parents=True, exist_ok=True)
     archive = output / (prefix + version + '.zip')
     with zipfile.ZipFile(archive, 'w', compression=zipfile.ZIP_DEFLATED) as stream:
         for destination, data in sorted(contents.items()):
@@ -92,11 +92,11 @@ def clean_dist(root):
     return removed
 
 
-def package(root):
-    return write_package(root, 'TeamFlow-v', {name: name for name in FILES})
+def package(root, output=None):
+    return write_package(root, 'TeamFlow-v', {name: name for name in FILES}, output=output)
 
 
-def package_mode(root, mode):
+def package_mode(root, mode, output=None):
     """解压到项目根即可使用：含核心、所选 Skill、入口脚本、对应模式的 AGENTS、宿主权限与安装清单。"""
     root = root.resolve()
     sys.path.insert(0, str(root / CORE / 'scripts'))
@@ -111,20 +111,20 @@ def package_mode(root, mode):
         'scripts/teamflow.py': setup_project.ENTRY.encode(),
         upgrade.MANIFEST: upgrade.manifest_text(version, mode, files).encode(),
     }
-    return write_package(root, 'teamflow-' + mode + '-v', entries, generated)
+    return write_package(root, 'teamflow-' + mode + '-v', entries, generated, output)
 
 
-def package_skill(root):
-    return package_mode(root, 'ios')
+def package_skill(root, output=None):
+    return package_mode(root, 'ios', output)
 
 
-def package_godot(root):
-    return package_mode(root, 'godot')
+def package_godot(root, output=None):
+    return package_mode(root, 'godot', output)
 
 
-def package_godot_ios(root):
+def package_godot_ios(root, output=None):
     """含 iOS 的 Godot 包；跨 Skill 引用在解压后仍然有效。"""
-    return package_mode(root, 'godot-ios')
+    return package_mode(root, 'godot-ios', output)
 
 
 if __name__ == '__main__':
