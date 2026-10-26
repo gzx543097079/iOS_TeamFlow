@@ -23,7 +23,10 @@ def build_parser():
     creator.add_argument('--bug', action='store_true')
     req_sub.add_parser('list', parents=[output]).add_argument('--all', action='store_true', help='包含已完成和取消的需求')
     req_sub.add_parser('status', parents=[output], help='只读：状态、证据有效性、剩余 AC 与下一步').add_argument('requirement')
-    req_sub.add_parser('pr', parents=[output], help='只读：由需求卡生成 PR 描述').add_argument('requirement')
+    pr_cmd = req_sub.add_parser('pr', parents=[output], help='由需求卡生成 PR 描述；默认仅完整交付')
+    pr_cmd.add_argument('requirement')
+    pr_cmd.add_argument('--allow-stage', action='store_true',
+                        help='用户明确阶段交付时，允许未完成或待确认卡生成 [阶段] PR')
     state = req_sub.add_parser('state', parents=[output])
     state.add_argument('requirement')
     state.add_argument('--state', choices=[s for s in STATES if s not in ('完成', '待用户验证')], required=True)
@@ -44,6 +47,8 @@ def build_parser():
                       help='显式确认已实际核对的条件，可重复传入；验证证据有效后才写入')
     done.add_argument('--user-confirmed', action='append', metavar='AC-编号',
                       help='用户已在对话中明确确认的条件；勾选并记入头部 user_confirmed')
+    done.add_argument('--waive-human', action='append', metavar='AC-编号',
+                      help='用户明确免除人工验收的条件；须同时 --confirm-ac 勾选，记入 human_waived')
 
     verify = top.add_parser('verify')
     verify_sub = verify.add_subparsers(dest='command', required=True)

@@ -45,8 +45,12 @@ def render(kind, data):
     if kind == 'complete':
         lines = [data['verification']] if data['verification'] else []
         lines.append(f"{data['requirement']} {data['state']} {data['progress']}")
-        return '\n'.join(lines + _pending_lines(data['requirement'], data['pending_conditions'],
-                                                data['state_key'] == '待用户验证'))
+        if data.get('handover'):
+            lines.extend(['', data['handover']])
+        else:
+            lines.extend(_pending_lines(data['requirement'], data['pending_conditions'],
+                                        data['state_key'] == '待用户验证'))
+        return '\n'.join(lines)
     if kind == 'git':
         proof = data['validation']
         if proof['kind'] == 'document':

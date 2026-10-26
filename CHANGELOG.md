@@ -8,6 +8,12 @@
 - README 增加「用 AI 接入」与「验证配置迁移」；`doctor` / `upgrade` 提示指向该段；INSTALL/COMMANDS/GODOT 同步。
 - token 预算场景与窄路由对齐，并新增「SwiftUI 间距小改动」；REPAIR 补充入口体量约定。
 
+来源：用户要求人工验收交付闸门，并声明分任务单独提交推送时不被卡住（REQ-20261026-a3e5）。
+
+- 双模式：默认完整交付须 `--wait-user` 勾选后 `--user-confirmed` 再提交/正式 PR；用户声明每个任务单独提交推送时，进行中阶段 commit/push 放行。
+- `git check`/hook 拦截待用户验证与完成卡未确认的人工 AC；`req pr` 默认仅完整交付，`--allow-stage` 生成阶段 PR。
+- `--wait-user` 输出固定勾选表；`--waive-human` 记录免除。
+
 ## 1.6.4
 
 来源：复核颜见 Login state 对话后，用户要求写明小改动与须扩大检查的判定，并提 PR 合并发布（REQ-20261026-9b7e / REQ-20261026-57fc）。规则经源码 `workflow` / `workflow-release` 验证；消费项目单测门禁另议。

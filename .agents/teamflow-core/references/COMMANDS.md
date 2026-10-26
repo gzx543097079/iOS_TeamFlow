@@ -6,7 +6,9 @@
 
 `req complete REQ-20260101-a3f9 --profile change` 优先复用同 profile 的有效证据，其次自动复用本需求最近一次有效且检查完整的 `verify run --requirement` 结果，否则运行必要检查并绑定摘要；`--rerun` 与 `--profile` 一起显式重跑。`--result logs/project-checks/运行编号/result.json` 可指定绑定某次已生成的结果，不重跑。`verify run` 计算适用检查；有 check covers 时仅执行触发项，未触发不执行。`verify run --rerun` 与 `req complete --profile change --rerun` 强制全项执行并绕过缓存。manual profile 仅显式选择。不传证据参数时先复核摘要；缺失或失效时按 covers 与 priority 选择覆盖全部改动（相对 HEAD 的改动加上带本需求 `Requirement:` 尾注的已提交改动）的唯一候选，存在歧义或无覆盖则报错且不改卡片。输出区分“复用验证，未运行测试”和重新验证原因。`--profile`、`--result`、`--evidence` 互斥。
 
-`--confirm-ac AC-01` 可重复；`--user-confirmed AC-01` 同样勾选，并把编号记入头部 `user_confirmed`，`req status` 与 `req pr` 标注“用户确认”。未知编号、证据无效或验证失败均不更改卡片。确认语义未变的条件保留原状态；范围或 AC 文字改变后旧确认失效，验收时取消相应勾选，须重新确认。`--wait-user` 与恢复规则见 [WORKFLOW](WORKFLOW.md#实施与验收)，恢复命令见下方「状态」。
+`--confirm-ac AC-01` 可重复；`--user-confirmed AC-01` 同样勾选并记入 `user_confirmed`；`--waive-human AC-01` 须同时勾选同一编号，记入 `human_waived`（用户明确免除人工验收）。`--wait-user` 在有剩余 AC 时输出固定勾选表。未知编号、证据无效或验证失败均不更改卡片。确认语义未变保留；范围或 AC 文字改变后旧确认与免除失效。双模式与恢复见 [WORKFLOW](WORKFLOW.md#完成与人工确认)。
+
+`req pr` 默认仅完整交付；不合规时失败。用户明确阶段交付时加 `--allow-stage`。`git check` / hook：进行中允许阶段提交；待用户验证，或完成但人工类 AC 未确认/未免除时拒绝。
 
 ## 可选宿主审批
 
@@ -24,7 +26,7 @@ python3 scripts/teamflow.py req state REQ-20260101-a3f9 --state 进行中 --reas
 python3 scripts/teamflow.py req state REQ-20260101-a3f9 --state 进行中 --reopen-ac AC-01 --reason "同一缺陷复发"
 ```
 
-`--blocked` 取值 `待确认`、`外部`、`暂停`，只用于阻塞。恢复时清除阻塞类型、原因和排队标记，并在“决策与异常”追加记录。重开完成的需求必须用可重复的 `--reopen-ac` 取消需重新验收的 AC（同时移出 `user_confirmed`），否则下一次 `req complete` 会复用证据直接判回完成。
+`--blocked` 取值 `待确认`、`外部`、`暂停`，只用于阻塞。恢复时清除阻塞类型、原因和排队标记，并在“决策与异常”追加记录。重开完成的需求必须用可重复的 `--reopen-ac` 取消需重新验收的 AC（同时移出 `user_confirmed` 与 `human_waived`），否则下一次 `req complete` 会复用证据直接判回完成。
 
 ## 人工证据
 
