@@ -15,9 +15,9 @@
 在业务项目 Git 根、已下载安装包时：
 
 ```sh
-unzip -p ~/Downloads/teamflow-ios-v1.6.5.zip install_teamflow.py | python3 - ~/Downloads/teamflow-ios-v1.6.5.zip --mode ios
+unzip -p ~/Downloads/teamflow-ios-v1.6.6.zip install_teamflow.py | python3 - ~/Downloads/teamflow-ios-v1.6.6.zip --mode ios
 # 项目内已有 scripts/teamflow.py 时也可用：
-python3 scripts/teamflow.py install ~/Downloads/teamflow-ios-v1.6.5.zip --mode ios
+python3 scripts/teamflow.py install ~/Downloads/teamflow-ios-v1.6.6.zip --mode ios
 ```
 
 `install` 写入核心与所选 Skill、刷新 AGENTS 入口与 `scripts/teamflow.py`、创建 `requirements/`、忽略验证日志，并在缺失时生成验证资产（不覆盖已有文件）：
@@ -42,8 +42,8 @@ setup 合并 AGENTS 托管区块、写入入口与 `.gitignore`、创建 `requir
 ## 升级
 
 ```sh
-python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.6.5.zip --plan
-python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.6.5.zip
+python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.6.6.zip --plan
+python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.6.6.zip
 ```
 
 按安装清单替换未改动的核心与 Skill 文件，移除新版不再包含的文件，然后刷新入口。有本地改动时拒绝并列出文件，核对后可加 `--force`。`--mode` 同时切换模式。`.agents/team/`、需求卡、验证配置和模块索引不触碰。不要用 `unzip -n` 升级。升级提交只含 TeamFlow 安装文件，不建卡，提交消息写明版本；与业务改动分开提交。输出“验证配置待迁移”或 `doctor` 报告「验证配置形态」时，Agent 须按仓库 README「验证配置迁移」在同一次升级任务中建卡迁移，细则见 [CHECKS-CONFIG](CHECKS-CONFIG.md#从全量脚本迁移)；用户明确暂缓时在卡中记录原因。

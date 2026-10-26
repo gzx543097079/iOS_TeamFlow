@@ -46,9 +46,9 @@ python3 scripts/teamflow.py req complete REQ-20260101-a3f9 \
 步骤与 Hook 细则见 [INSTALL](INSTALL.md)。常用入口：
 
 ```sh
-unzip -p ~/Downloads/teamflow-ios-v1.6.5.zip install_teamflow.py | python3 - ~/Downloads/teamflow-ios-v1.6.5.zip --mode ios
-python3 scripts/teamflow.py install ~/Downloads/teamflow-ios-v1.6.5.zip --mode ios
-python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.6.5.zip [--plan]
+unzip -p ~/Downloads/teamflow-ios-v1.6.6.zip install_teamflow.py | python3 - ~/Downloads/teamflow-ios-v1.6.6.zip --mode ios
+python3 scripts/teamflow.py install ~/Downloads/teamflow-ios-v1.6.6.zip --mode ios
+python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.6.6.zip [--plan]
 python3 scripts/teamflow.py verify init
 python3 scripts/teamflow.py setup --git-hook
 python3 scripts/teamflow.py setup --no-git-hook
