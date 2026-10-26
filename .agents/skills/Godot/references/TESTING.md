@@ -26,6 +26,8 @@ func check(condition: bool, message: String) -> void:
 		push_error("失败：" + message)
 ```
 
+按模块维护入口，例如 `tests/combat/run_tests.gd` 只加载战斗用例，`tests/inventory/run_tests.gd` 只加载背包用例；上例的场景路径与断言替换为模块实际行为。共享断言和夹具放 `tests/helpers/`，全套 `tests/run_tests.gd` 聚合相同用例，保留在手动 profile。不能让所有模块入口转调全套；框架接入也须使用其模块筛选能力，并把实际依赖写入 check inputs。
+
 用例加载真实场景、发出输入或信号、等待 `process_frame` 后断言。类型无法推断的变量（如取自无类型节点的属性）显式标注类型，否则整份脚本解析失败。故意触发引擎错误的用例（如损坏存档）按 [Godot 验证](CHECKS.md#可复用检查入口) 用 `--allow-error` 放行。
 
 用例增多或需要替身、参数化、报告时再引入框架，沿用项目已有选择：

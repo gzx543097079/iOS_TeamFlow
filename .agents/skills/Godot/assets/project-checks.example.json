@@ -2,11 +2,43 @@
   "schema_version": 2,
   "profiles": {
     "godot-check": {
-      "inputs": ["game", ".agents/skills/Godot/scripts/verify_godot.py"],
+      "inputs": ["game", ".agents/skills/Godot/scripts/verify_godot.py", ".agents/team/toolchain.json"],
+      "parallelism": 1,
       "checks": {
-        "game-tests": {
+        "import": {
+          "argv": ["python3", ".agents/skills/Godot/scripts/verify_godot.py", "--project", "game", "--import-only"],
+          "covers": ["game/project.godot", "game/shared", "game/assets", "game/tests/helpers", ".agents/skills/Godot/scripts/verify_godot.py", ".agents/team/toolchain.json"],
+          "cwd": ".",
+          "cache": false,
+          "timeout_seconds": 180
+        },
+        "combat-tests": {
+          "argv": ["python3", ".agents/skills/Godot/scripts/verify_godot.py", "--project", "game", "--test-only", "--test-script", "tests/combat/run_tests.gd"],
+          "covers": ["game/modules/combat", "game/tests/combat"],
+          "inputs": ["game/project.godot", "game/shared", "game/assets", "game/tests/helpers", ".agents/skills/Godot/scripts/verify_godot.py", ".agents/team/toolchain.json"],
+          "cwd": ".",
+          "cache": false,
+          "timeout_seconds": 180
+        },
+        "inventory-tests": {
+          "argv": ["python3", ".agents/skills/Godot/scripts/verify_godot.py", "--project", "game", "--test-only", "--test-script", "tests/inventory/run_tests.gd"],
+          "covers": ["game/modules/inventory", "game/tests/inventory"],
+          "inputs": ["game/project.godot", "game/shared", "game/assets", "game/tests/helpers", ".agents/skills/Godot/scripts/verify_godot.py", ".agents/team/toolchain.json"],
+          "cwd": ".",
+          "cache": false,
+          "timeout_seconds": 180
+        }
+      }
+    },
+    "godot-full": {
+      "manual": true,
+      "inputs": ["game", ".agents/skills/Godot/scripts/verify_godot.py", ".agents/team/toolchain.json"],
+      "parallelism": 1,
+      "checks": {
+        "all-tests": {
           "argv": ["python3", ".agents/skills/Godot/scripts/verify_godot.py", "--project", "game", "--test-script", "tests/run_tests.gd"],
           "cwd": ".",
+          "cache": false,
           "timeout_seconds": 300
         }
       }

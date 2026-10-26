@@ -47,6 +47,18 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(files, sorted(owners))
         self.assertEqual({}, {test: names for test, names in owners.items() if len(names) > 1})
 
+    def test_daily_trigger_matrix_preserves_shared_dependencies(self):
+        import project_checks
+        config = project_checks.load_config(ROOT)
+        core = '.agents/teamflow-core/scripts/'
+        def selected(path):
+            return set(project_checks.execution_plan(ROOT, config, 'workflow', names={path})['selected'])
+        for name in ('requirement_model.py', 'teamflow_common.py'):
+            self.assertTrue({'tests-cli', 'tests-checks', 'tests-setup'} <= selected(core + name))
+        self.assertEqual({'tests-cli', 'tests-setup'}, selected(core + 'cli_output.py'))
+        self.assertEqual({'tests-cli', 'tests-setup', 'tests-docs'}, selected(core + 'cli_parser.py'))
+        self.assertEqual({'tests-ios'}, selected('.agents/skills/iOS/scripts/check_design_tokens.py'))
+
     def test_tests_package_into_temporary_output_not_repository_dist(self):
         snapshot = lambda: {p.name: p.stat().st_mtime_ns for p in (ROOT / 'dist').glob('*')} if (ROOT / 'dist').is_dir() else {}
         before = snapshot()

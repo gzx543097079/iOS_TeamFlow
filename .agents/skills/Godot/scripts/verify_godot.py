@@ -80,11 +80,11 @@ def run_phase(argv, project, timeout, allowed_errors=()):
 
 
 def verify(project, godot=None, test_script=None, import_only=False, timeout=120, expected_version=None,
-           allowed_errors=()):
+           allowed_errors=(), test_only=False):
     project = Path(project).expanduser().resolve()
     project_file(project, 'project.godot')
-    if import_only and test_script:
-        raise ValueError('--import-only 与 --test-script 互斥')
+    if import_only and (test_script or test_only):
+        raise ValueError('--import-only 与 --test-script / --test-only 互斥')
     if not import_only:
         if not test_script:
             raise ValueError('必须提供真实 --test-script；仅导入需明确 --import-only')
@@ -103,7 +103,8 @@ def verify(project, godot=None, test_script=None, import_only=False, timeout=120
         if (logs / name).is_symlink():
             raise ValueError('日志路径包含符号链接')
     base = [executable, '--headless', '--path', str(project)]
-    run_phase(base + ['--log-file', str(logs / 'import.log'), '--editor', '--import'], project, timeout)
+    if not test_only:
+        run_phase(base + ['--log-file', str(logs / 'import.log'), '--editor', '--import'], project, timeout)
     if not import_only:
         run_phase(base + ['--log-file', str(logs / 'tests.log'), '--script', 'res://' + test_script], project, timeout,
                   allowed_errors)
@@ -117,6 +118,7 @@ def main():
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument('--test-script')
     mode.add_argument('--import-only', action='store_true')
+    parser.add_argument('--test-only', action='store_true', help='跳过导入；须在同次串行检查中先完成导入')
     parser.add_argument('--expect-version')
     parser.add_argument('--timeout', type=float, default=120)
     parser.add_argument('--allow-error', action='append', default=[], metavar='正则',
@@ -126,10 +128,11 @@ def main():
         for pattern in args.allow_error:
             re.compile(pattern)
         version = verify(args.project, args.godot, args.test_script, args.import_only,
-                         args.timeout, args.expect_version, tuple(args.allow_error))
+                         args.timeout, args.expect_version, tuple(args.allow_error), args.test_only)
     except (ValueError, OSError, subprocess.TimeoutExpired, re.error) as error:
         parser.exit(1, '验证：失败\n' + str(error) + '\n')
-    print('验证：通过（Godot ' + version + '，' + ('仅导入' if args.import_only else '导入与项目测试') + '）')
+    phase = '仅导入' if args.import_only else ('仅项目测试' if args.test_only else '导入与项目测试')
+    print('验证：通过（Godot ' + version + '，' + phase + '）')
 
 
 if __name__ == '__main__':

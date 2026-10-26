@@ -2,7 +2,7 @@
 import json
 import subprocess
 from teamflow_common import local_path
-from requirement_model import require_ready, parse_card
+from requirement_model import require_ready, parse_card, stale_acceptance
 
 LARGE_PROJECT_FILES = 1000
 
@@ -16,6 +16,8 @@ def requirement_summary(root, requirement):
         require_ready(card)
     except ValueError as error:
         problems.append(str(error))
+    if stale_acceptance(card):
+        problems.append('AC 内容已变化，旧确认失效；请重新核对并执行 req complete')
     content_ready = not problems
     pending = [item for item in card['ac'] if not item['done']]
     finished = card['state'] == '完成' and content_ready and not pending
@@ -166,7 +168,7 @@ def pr_body(root, requirement):
     if card['excluded'] and card['excluded'] != '无':
         lines += ['## 不包含', '', card['excluded'], '']
     lines += ['## 验收条件', '']
-    users = set(card['meta'].get('user_confirmed') or [])
+    users = set(card['meta'].get('user_confirmed') or []) - stale_acceptance(card)
     lines += [f"- [{'x' if item['done'] else ' '}] {item['id']}：{item['condition']}"
               + ('（用户确认）' if item['id'] in users else '') for item in card['ac']]
     lines += ['', '## 验证', '']
@@ -182,6 +184,29 @@ def pr_body(root, requirement):
     # 未完成的卡进入 PR 即为阶段交付，标题直接标明，评审与 CI 不把它当作完整交付。
     title = card['title'] if card['state'] == '完成' else '[阶段] ' + card['title']
     return {'requirement': requirement, 'title': title, 'body': '\n'.join(lines)}
+
+
+def historical_coverage(root, saved, commit, config, candidates):
+    """历史通过只覆盖仍与交付版本一致的检查输入；包括依赖变化与删除。"""
+    import project_checks
+    if not commit:
+        return set()
+    settings = config['profiles'][saved['profile']]
+    groups = [[name] for name in saved['checks']] if saved.get('checks') else [None]
+    covered = set()
+    for group in groups:
+        try:
+            before = project_checks.source_snapshot(root, config, saved['profile'], commit=commit, checks=group, algorithm=saved.get('algorithm', 'sha256-files-v5'))
+            after = project_checks.source_snapshot(root, config, saved['profile'], commit='HEAD', checks=group, algorithm=saved.get('algorithm', 'sha256-files-v5'))
+        except (ValueError, KeyError, TypeError, subprocess.CalledProcessError):
+            continue
+        if before != after:
+            continue
+        scope = (project_checks.check_coverage(settings, group[0]) if group
+                 else project_checks.coverage_inputs(settings))
+        if scope != []:
+            covered.update(project_checks.input_paths(root, scope, candidates))
+    return covered
 
 
 def ci_check(root, base):
@@ -231,8 +256,12 @@ def ci_check(root, base):
                         historical['profiles'], name) for name in historical['profiles']}}
             inputs = project_checks.evidence_inputs(root, saved, config=evidence_config)
             if inputs != []:
-                covered.update(project_checks.input_paths(root, inputs, files))
-            covered.add(project_checks.CONFIG)
+                candidates = project_checks.input_paths(root, inputs, files)
+                if summary['evidence_status'].startswith('交付时有效'):
+                    candidates = historical_coverage(root, saved, commit, evidence_config, candidates)
+                covered.update(candidates)
+            if summary['evidence_status'] == '有效':
+                covered.add(project_checks.CONFIG)
     if not names:
         checks.append({'item': '需求卡', 'status': '提示', 'detail': base + ' 之后未改动需求卡'})
     rest = {name for name in files - covered if not name.startswith('logs/')}

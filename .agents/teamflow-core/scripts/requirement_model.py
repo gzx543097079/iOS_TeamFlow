@@ -3,6 +3,7 @@
 卡片 = 头部元数据（工具读写）+ Markdown 正文（人和 Agent 自由编辑）。
 元数据只支持 `键: 值` 与一层缩进的子对象；以 [ { " 开头的值按 JSON 解析。
 """
+import hashlib
 import json
 import re
 
@@ -52,7 +53,7 @@ def split_card(text):
     for number, line in enumerate(lines[1:end], start=2):
         if not line.strip() or line.lstrip().startswith('#'):
             continue
-        match = re.fullmatch(r'( *)([A-Za-z_][A-Za-z0-9_]*):(.*)', line)
+        match = re.fullmatch(r'( *)([A-Za-z_][A-Za-z0-9_-]*):(.*)', line)
         if not match:
             raise ValueError(f'需求卡头部第 {number} 行格式无效：{line.strip()}')
         indent, key, value = match.groups()
@@ -143,6 +144,24 @@ def parse_requirement(text, requirement):
             'progress': {'done': done, 'total': len(ac), 'display': progress_display(done, len(ac))},
             'scope': normalize(parts['范围']), 'excluded': normalize(parts.get('不包含', '')),
             'ac': ac, 'evidence': meta.get('evidence') or None, 'meta': meta, 'body': body, 'text': text}
+
+
+def acceptance_fingerprints(card):
+    """确认绑定范围与该条 AC；排版变化不使确认失效。"""
+    return {item['id']: hashlib.sha256(json.dumps(
+        [card['scope'], card['excluded'], item['condition']], ensure_ascii=False).encode()).hexdigest()
+        for item in card['ac']}
+
+
+def stale_acceptance(card):
+    saved = card['meta'].get('confirmed_ac')
+    current = acceptance_fingerprints(card)
+    if isinstance(saved, dict):
+        return {item['id'] for item in card['ac'] if item['done'] and saved.get(item['id']) != current[item['id']]}
+    # 旧卡无逐条确认指纹：语义未变化可沿用，变化时保守取消全部旧确认。
+    proof = card['evidence'] or {}
+    semantic = 'sha256:' + hashlib.sha256(semantic_content(card['text'], card['requirement'])).hexdigest()
+    return {item['id'] for item in card['ac'] if item['done']} if proof and proof.get('requirement') != semantic else set()
 
 
 def parse_card(path):

@@ -40,7 +40,10 @@
             "scripts/teamflow.py",
             "tests/test_teamflow.py",
             "tests/test_boundaries.py",
-            "tests/test_verify_wait.py"
+            "tests/test_verify_wait.py",
+            ".agents/teamflow-core/scripts/cli_parser.py",
+            ".agents/teamflow-core/scripts/cli_output.py",
+            ".agents/teamflow-core/scripts/check_history.py"
           ],
           "inputs": [
             ".agents/teamflow-core/scripts",
@@ -70,7 +73,8 @@
             "tests/test_teamflow.py",
             "tests/test_project_checks.py",
             "tests/test_check_triggers.py",
-            "tests/test_verify_speed.py"
+            "tests/test_verify_speed.py",
+            ".agents/teamflow-core/scripts/check_history.py"
           ],
           "inputs": [
             ".agents/teamflow-core/scripts",
@@ -103,7 +107,12 @@
             "tests/test_teamflow.py",
             "tests/test_diagnostics.py",
             "tests/test_review_fixes.py",
-            "tests/test_trigger_delivery.py"
+            "tests/test_trigger_delivery.py",
+            ".agents/teamflow-core/scripts/requirement_model.py",
+            ".agents/teamflow-core/scripts/teamflow_common.py",
+            ".agents/teamflow-core/scripts/check_history.py",
+            ".agents/teamflow-core/scripts/cli_output.py",
+            ".agents/teamflow-core/scripts/cli_parser.py"
           ],
           "inputs": [
             ".agents/teamflow-core/scripts",
@@ -126,7 +135,8 @@
           "covers": [
             ".agents/teamflow-core/scripts/module_context.py",
             ".agents/teamflow-core/scripts/teamflow.py",
-            "tests/test_module_context.py"
+            "tests/test_module_context.py",
+            ".agents/teamflow-core/scripts/teamflow_common.py"
           ],
           "inputs": [
             ".agents/teamflow-core/scripts/module_context.py",
@@ -251,7 +261,8 @@
             "scripts/package_release.py",
             "scripts/run_workflow_checks.py",
             "tests/test_workflow.py",
-            "tests/test_token_budget.py"
+            "tests/test_token_budget.py",
+            ".agents/teamflow-core/scripts/cli_parser.py"
           ],
           "inputs": [
             ".agents",

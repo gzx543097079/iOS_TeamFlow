@@ -6,7 +6,7 @@
 
 配置 `schema_version: 2`，维护 `profiles`。路径均为项目相对文件/目录，不支持 glob。
 
-- profile `covers` 是验收范围上限，省略继承 `inputs`；`inputs` 是证据依赖，省略使用 Git 可见文件。`covers` 必须在依赖范围内。
+- profile `covers` 是验收范围上限，省略继承 `inputs`；`inputs` 是检查未自定义 inputs 时的默认依赖，省略使用 Git 可见文件。`covers` 必须在此范围内。新部分证据只合并实际通过检查的完整依赖；所有检查都依赖的共享文件须纳入每项 inputs，不能只列在 profile 中。
 - check `covers` 是该项负责的改动范围，省略继承 profile；check `inputs` 是该项的依赖，省略继承 profile，covers 自动并入，无需重复列出。共享脚本、依赖锁文件及生成器须纳入相关检查的 inputs；输入依赖不会扩大可验收范围。
 - 声明 check `covers` 后启用逐项触发：改动命中该项 covers 或 inputs 才运行；profile 设 `trigger: "covers"` 时只看 covers，inputs 只进入证据指纹与缓存键，适合共享依赖多、需按模块精确触发的项目，此时每个文件须由负责它的检查列入 covers。改动含工作区、暂存、未跟踪及本需求带 `Requirement:` 尾注的阶段提交；需求卡不触发项目检查。修改验证配置时只触发该 profile 中执行语义变化的检查，profile 级字段变化或配置改动已在阶段提交中时触发全部。声明了 check 或 profile `covers` 时，未覆盖的工程改动在执行前报错；只有 inputs 的旧配置保留整组检查，范围由提交检查核对。
 - `priority` 为非负整数，默认 100，越小越优先；只在覆盖全部改动的候选中比较，同优先级要求显式选择。`manual: true` 的 profile 不参与自动选择，显式指定才执行完整检查，适用于 Release；普通代码改动、提交或 PR 不自动触发 Release。
