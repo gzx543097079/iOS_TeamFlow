@@ -1,6 +1,6 @@
 # 授权与外部边界
 
-主流程与授权原则见 [WORKFLOW](WORKFLOW.md#授权与停止)；本专题在用户提出 Git 目标、涉及账号/网络/敏感数据，或需要判断动作范围时加载。App 或游戏外部动作见当前模式 Skill 路由的发布专题。
+主流程与授权原则见 [WORKFLOW](WORKFLOW.md#授权与停止)；本专题在用户提出 Git 目标、涉及账号/网络/敏感数据，或需要判断动作范围时加载。App 或游戏外部动作见当前模式 Skill 路由的发布专题，未点名目标时不加载该专题。
 
 ## 代表性场景
 
@@ -10,14 +10,9 @@
 | “修复登录错误” | 建卡、实施、验证、完成 | 自动 commit/push |
 | “提交代码” | 暂存、最终核对、commit | push、标签或 Release |
 | “发布当前 GitHub Release” | 验证、提交、推送、标签及 Release 的最小依赖链 | App Store 发布 |
-| “检查能否上传 TestFlight” | 只读准备 | Archive 或上传 |
-| “上传 build 123 到 TestFlight” | 只上传指定 build | 分发、Beta Review、App 审核 |
-| “上传 build 123 到 TestFlight，仅限内部测试” | 上传并启用 `testFlightInternalTestingOnly` | 外部测试或 App Store 使用该 build |
-| “分发给内部测试员” | 分发到明确的内部测试组 | 倒推启用 TestFlight Internal Only |
-| “提交 App Store 审核” | 提交指定版本/build | 审核通过后自动发布 |
-| “归档、上传并分发内部测试” | 执行明确列出的三项 | Beta Review 或 App 审核 |
+| “检查/准备/执行 Archive、TestFlight、审核或上架” | 加载发布专题后按用户点名的目标执行；仅检查/准备时只读核对并列出缺项 | 未点名目标时 Archive、上传、分发或提审；把「检查能否上传」当成上传授权 |
 
-真实平台操作需要真实账号、目标和权限；工具测试不能冒充外部平台成功。
+真实平台操作需要真实账号、目标和权限；工具测试不能冒充外部平台成功。TestFlight Internal Only、分发组、Beta Review 与审核动作的细则只在发布专题维护，本文件不复制矩阵。
 
 ## 显式 Git 动作
 

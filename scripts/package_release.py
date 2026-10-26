@@ -30,7 +30,7 @@ GODOT_FILES = tuple(GODOT_SKILL + '/' + name for name in (
     'scripts/verify_godot.py', 'scripts/export_ios.py', 'assets/project-checks.example.json',
 ))
 REFERENCES = (
-    'APP-RELEASE.md', 'APP-LIFECYCLE.md', 'PERFORMANCE.md', 'UI-REVIEW.md', 'LOGGING.md', 'EXISTING-PROJECT.md', 'ARCHITECTURE.md', 'LOCALIZATION.md', 'DESIGN-TOKENS.md',
+    'APP-RELEASE.md', 'APP-LIFECYCLE.md', 'PERFORMANCE.md', 'UI-EVIDENCE.md', 'UI-REVIEW.md', 'LOGGING.md', 'EXISTING-PROJECT.md', 'ARCHITECTURE.md', 'LOCALIZATION.md', 'DESIGN-TOKENS.md',
     'standards/ui.md', 'standards/ui-details.md', 'standards/ui-keyboard.md', 'standards/ui-paywall.md',
     'standards/objective-c.md', 'standards/swift.md', 'standards/swiftui.md',
     'templates/new-project.md', 'templates/feature.md', 'templates/app-release.md',
