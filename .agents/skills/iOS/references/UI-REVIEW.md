@@ -10,9 +10,11 @@
 
 ## 取得证据
 
-截图来自用当前代码重新构建并安装的模拟器或真机 App，旧构建的截图不算证据；不用浏览器或 Preview 代替。用测试数据或启动参数准备有内容的状态，空状态另截一张。模拟器未启动时先启动；多个模拟器运行时用 UDID 代替 `booted`：
+截图来自当前代码构建并安装的模拟器或真机 App，旧构建的截图不算证据；不用浏览器或 Preview 代替。调样式期间可用 Preview 或增量编译迭代，定稿后只构建安装一次。同一代码已有 Debug 模拟器构建（如验证刚构建过）时直接安装该产物；需另行构建时复用同一 `-derivedDataPath` 增量构建，不 clean。用启动参数或测试数据直达目标页面并准备有内容的状态，空状态另截一张，不靠逐步点击导航。模拟器未启动时先启动；多个模拟器运行时用 UDID 代替 `booted`：
 
 ```sh
+xcrun simctl install booted <DerivedData>/Build/Products/Debug-iphonesimulator/<App>.app
+xcrun simctl launch booted <Bundle ID> <启动参数>
 xcrun simctl bootstatus <UDID> -b                   # 启动并等待就绪
 xcrun simctl io booted screenshot <路径>.png
 xcrun simctl ui booted appearance dark              # 结束后恢复原值
@@ -23,6 +25,7 @@ xcrun simctl ui booted content_size extra-extra-extra-large
 - 交互、焦点、VoiceOver 和恢复路径通过实际操作或 UI 测试确认，截图只证明画面。
 - 写明证据来自模拟器还是真机；手势、触感、性能和传感器需要真机，未取得时标为未验证。
 - 一次改完一批再统一截图核对，不改一处截一次；截图放临时目录或需求卡引用的位置，项目没有截图基准时不提交。
+- 视觉 AC 截一轮后用 `--wait-user` 交用户确认，按用户意见再改；不为自行判断的细节反复重截，截图暴露实际缺陷时修复后只补截受影响页面。
 
 ## 评审维度
 
