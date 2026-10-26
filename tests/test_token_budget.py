@@ -24,7 +24,7 @@ SCENARIOS = {
         IOS + 'references/templates/feature.md', CORE + 'ARCHITECTURE.md', IOS + 'references/ARCHITECTURE.md',
         CORE + 'LOCALIZATION.md', IOS + 'references/LOCALIZATION.md', IOS + 'references/standards/swift.md',
         IOS + 'references/standards/ui.md', IOS + 'references/standards/ui-keyboard.md', CORE + 'CHECKS.md')),
-    'iOS UI 评审': (8000, 'ios', (
+    'iOS UI 评审': (8800, 'ios', (
         IOS + 'references/UI-REVIEW.md', IOS + 'references/standards/ui.md')),
     'Godot + iOS 发布': (11800, 'godot-ios', (
         GODOT + 'references/IOS.md', IOS + 'references/APP-RELEASE.md', GODOT + 'references/CHECKS.md',
