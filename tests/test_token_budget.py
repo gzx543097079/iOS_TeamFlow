@@ -30,13 +30,17 @@ IOS_UI_FEATURE = IOS_UI_NARROW + (
 )
 SWIFTUI = (IOS + 'references/standards/swiftui.md',)
 SCENARIOS = {
+    # 窄路径不含 UI-EVIDENCE：截图非默认义务。
     'iOS SwiftUI 间距小改动': (9000, 'ios', IOS_UI_NARROW + SWIFTUI),
+    'iOS 展示小改需交截图': (10000, 'ios', IOS_UI_NARROW + SWIFTUI + (
+        IOS + 'references/UI-EVIDENCE.md',)),
     'iOS UIKit UI 缺陷修复并提交': (12000, 'ios', IOS_UI_REPAIR),
     'iOS SwiftUI UI 缺陷修复并提交': (13000, 'ios', IOS_UI_REPAIR + SWIFTUI),
     'iOS UIKit 新功能（含输入与多语言）': (18000, 'ios', IOS_UI_FEATURE),
     'iOS SwiftUI 新功能（含输入与多语言）': (19000, 'ios', IOS_UI_FEATURE + SWIFTUI),
     'iOS UI 只读评审': (12000, 'ios', (
-        IOS + 'references/UI-REVIEW.md', IOS + 'references/standards/ui.md',
+        IOS + 'references/UI-REVIEW.md', IOS + 'references/UI-EVIDENCE.md',
+        IOS + 'references/standards/ui.md',
         IOS + 'references/standards/ui-details.md',
         CORE + 'LOCALIZATION.md', IOS + 'references/LOCALIZATION.md')),
     'iOS 验证配置建立、编辑或迁移': (8000, 'ios', (

@@ -11,7 +11,7 @@ PROJECT_ROOT 是当前 Git 根及其目录树；只使用本项目内的 Skill�
 
 命令统一使用 `python3 scripts/teamflow.py`；尚未接入时运行 `python3 .agents/teamflow-core/scripts/teamflow.py setup --mode ios`。
 
-流程、状态、授权与按需读取见 [WORKFLOW](../../teamflow-core/references/WORKFLOW.md)。按本次实际工作选择资料：
+流程、状态、授权与按需读取见 [WORKFLOW](../../teamflow-core/references/WORKFLOW.md)。下表是目录，按本次实际工作选用，不要当预读清单：
 
 | 当前工作 | 资料 |
 | --- | --- |
@@ -20,15 +20,16 @@ PROJECT_ROOT 是当前 Git 根及其目录树；只使用本项目内的 Skill�
 | Git 动作；账号、网络或敏感数据 | [BOUNDARIES](../../teamflow-core/references/BOUNDARIES.md) |
 | PR、评审或 CI | [REVIEW](../../teamflow-core/references/REVIEW.md) |
 | 新增或升级依赖、SDK；锁定 Xcode 版本 | [DEPENDENCIES](../../teamflow-core/references/DEPENDENCIES.md) |
-| App 外部动作（归档、TestFlight、审核、发布）的准备或执行 | [APP-RELEASE](references/APP-RELEASE.md) |
+| App 外部动作（归档、TestFlight、审核、发布）的准备或执行（仅用户点名） | [APP-RELEASE](references/APP-RELEASE.md) |
 | 安装或接入诊断 | [INSTALL](../../teamflow-core/references/INSTALL.md) |
 | 新 App 启动或生命周期变化 | [启动模板](references/templates/new-project.md)、[APP-LIFECYCLE](references/APP-LIFECYCLE.md) |
-| 新工程日志组件 | [LOGGING](references/LOGGING.md) |
+| 新工程接入或安装/修改日志组件 | [LOGGING](references/LOGGING.md) |
 | 功能分析清单；复杂功能设计 | [功能清单](references/templates/feature.md) |
 | 已有工程现状；大型模块索引 | [EXISTING-PROJECT](references/EXISTING-PROJECT.md)、[MODULE-CONTEXT](../../teamflow-core/references/MODULE-CONTEXT.md) |
-| UI 评审、打磨或设计质量检查 | [UI 评审与打磨](references/UI-REVIEW.md) |
+| 需要可定位画面/截图证据（非默认；用户确认即可作视觉证据） | [UI-EVIDENCE](references/UI-EVIDENCE.md) |
+| UI 评审、打磨或设计质量检查（仅用户点名或明确评审 AC） | [UI-REVIEW](references/UI-REVIEW.md) |
 | 性能指标、启动、滚动、内存、崩溃或卡死 | [性能与稳定性](references/PERFORMANCE.md) |
 | 架构调整、跨模块接口或数据迁移 | [共用架构](../../teamflow-core/references/ARCHITECTURE.md) + [iOS 补充](references/ARCHITECTURE.md)，同时读取；局部业务代码改动只按下方实际语言与涉及的专题加载 |
 | App 用户可见文本或多语言变更 | [共用本地化](../../teamflow-core/references/LOCALIZATION.md) + [iOS 补充](references/LOCALIZATION.md)，同时读取 |
 
-修改业务代码时只加载实际语言对应的 [OC](references/standards/objective-c.md)、[Swift](references/standards/swift.md) 或 [SwiftUI](references/standards/swiftui.md) 规范，SwiftUI 同时加载 Swift 规范；涉及 UI 时再加载 [UI 强制短清单](references/standards/ui.md)，需要排版/控件/完整验收表时再加 [UI 细则](references/standards/ui-details.md)；改输入时加 [键盘与输入](references/standards/ui-keyboard.md)，购买或订阅页面加 [付费 UI](references/standards/ui-paywall.md)；新增或修改注释时参考[中文注释规则](../../teamflow-core/references/standards/comments.md)。不要在普通改样式时预读 UI 评审。已有项目明确约定优先。
+修改业务代码时只加载实际语言对应的 [OC](references/standards/objective-c.md)、[Swift](references/standards/swift.md) 或 [SwiftUI](references/standards/swiftui.md) 规范，SwiftUI 同时加载 Swift 规范；涉及 UI 时再加载 [UI 强制短清单](references/standards/ui.md)，需要排版/控件/完整验收表时再加 [UI 细则](references/standards/ui-details.md)；改输入时加 [键盘与输入](references/standards/ui-keyboard.md)，购买或订阅页面加 [付费 UI](references/standards/ui-paywall.md)；新增或修改注释时参考[中文注释规则](../../teamflow-core/references/standards/comments.md)。未改 UI 不加载 ui.md；普通改样式不预读细则或评审。已有项目明确约定优先。
