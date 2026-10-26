@@ -84,7 +84,7 @@ def doctor(root):
         if issues:
             checks.append({'item': '验证配置形态',
                            'status': '需处理' if any(i['status'] == '需处理' for i in issues) else '提示',
-                           'detail': [i['detail'] for i in issues] + ['迁移步骤见 CHECKS「从全量脚本迁移」']})
+                           'detail': [i['detail'] for i in issues] + ['迁移步骤见 CHECKS-CONFIG「从全量脚本迁移」']})
     except FileNotFoundError:
         pass
     except (ValueError, OSError, KeyError, TypeError, subprocess.CalledProcessError) as error:

@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
 sys.path.insert(0, str(ROOT / '.agents/teamflow-core/scripts'))
 import package_release
+from release_fixture import archive as release_archive
 import setup_project
 
 spec = importlib.util.spec_from_file_location('verify_godot_team', ROOT / package_release.GODOT_SKILL / 'scripts/verify_godot.py')
@@ -46,7 +47,7 @@ class TeamTests(unittest.TestCase):
         return next((i for i in setup_project.diagnose(self.root)['checks'] if i['item'] == name), None)
 
     def test_godot_only_package_and_mode(self):
-        names = self.extract(package_release.package_godot(ROOT))
+        names = self.extract(release_archive('godot'))
         self.assertFalse(any(name.startswith('.agents/skills/iOS/') for name in names))
         content = (self.root / 'AGENTS.md').read_text()
         self.assertIn(setup_project.GODOT_ONLY_MARK, content)
@@ -74,7 +75,7 @@ class TeamTests(unittest.TestCase):
         self.assertEqual(before, (self.root / 'AGENTS.md').read_bytes())
 
     def test_three_modes_switch_with_shared_godot_link_and_team_rules(self):
-        self.extract(package_release.package_godot_ios(ROOT))
+        self.extract(release_archive('godot-ios'))
         core = self.root / package_release.CORE
         setup_project.setup(self.root, core, mode='godot', claude_link=True)
         link = self.root / '.claude/skills/godot'
@@ -91,7 +92,7 @@ class TeamTests(unittest.TestCase):
             self.assertEqual(snapshot, (self.root / 'AGENTS.md').read_bytes())
 
     def test_godot_version_lock_and_cache_ignore(self):
-        self.extract(package_release.package_godot(ROOT))
+        self.extract(release_archive('godot'))
         game = self.root / 'game'
         game.mkdir()
         (game / 'project.godot').write_text('config_version=5\n')
@@ -119,12 +120,12 @@ class TeamTests(unittest.TestCase):
             verify_godot.check_version('4.7.1.stable.official', verify_godot.pinned_version(game))
 
     def test_native_mode_skips_godot_checks(self):
-        self.extract(package_release.package_skill(ROOT))
+        self.extract(release_archive('ios'))
         self.assertIsNone(self.item('Godot 版本锁定'))
         self.assertIsNone(self.item('Godot 缓存忽略'))
 
     def test_xcode_lock_is_checked_only_when_pinned(self):
-        self.extract(package_release.package_skill(ROOT))
+        self.extract(release_archive('ios'))
         self.assertIsNone(self.item('Xcode 版本锁定'))
         toolchain = self.root / setup_project.TOOLCHAIN
         toolchain.parent.mkdir(parents=True)
@@ -146,7 +147,7 @@ class TeamTests(unittest.TestCase):
         (self.root / '.agents/project-checks.json').write_text(json.dumps(config))
 
     def test_pre_commit_hook_reuses_evidence_and_is_opt_in(self):
-        self.extract(package_release.package_skill(ROOT))
+        self.extract(release_archive('ios'))
         hook = Path(self.git('rev-parse', '--git-path', 'hooks/pre-commit').stdout.strip())
         hook = hook if hook.is_absolute() else self.root / hook
         self.configure('raise SystemExit(1)')
@@ -188,7 +189,7 @@ class TeamTests(unittest.TestCase):
         self.assertIsNone(self.item('提交前检查'))
 
     def test_hook_accepts_evidence_from_any_covering_profile(self):
-        self.extract(package_release.package_skill(ROOT))
+        self.extract(release_archive('ios'))
         (self.root / 'source.txt').write_text('source')
         config = {'schema_version': 2, 'profiles': {
             'quick': {'inputs': ['source.txt'], 'checks': {'unit': {'argv': [sys.executable, '-c', 'pass']}}},
@@ -208,7 +209,7 @@ class TeamTests(unittest.TestCase):
         self.assertEqual(0, committed.returncode, committed.stdout + committed.stderr)
 
     def test_hook_refuses_foreign_hook_and_shared_hooks_path(self):
-        self.extract(package_release.package_skill(ROOT))
+        self.extract(release_archive('ios'))
         self.configure('pass')
         hook = Path(self.git('rev-parse', '--git-path', 'hooks/pre-commit').stdout.strip())
         hook = hook if hook.is_absolute() else self.root / hook

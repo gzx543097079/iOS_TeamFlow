@@ -35,7 +35,7 @@ python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.6.0.zip --plan
 python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.6.0.zip
 ```
 
-按安装清单替换未改动的核心与 Skill 文件，移除新版不再包含的文件，然后刷新入口。有本地改动时拒绝并列出文件，核对后可加 `--force`。`--mode` 同时切换模式，例如用 `teamflow-godot-ios` 包加 `--mode godot-ios` 给 Godot 项目补装 iOS Skill。`.agents/team/`、需求卡、验证配置和模块索引不触碰。已安装的项目不要用 `unzip -n` 升级。升级提交只含 TeamFlow 安装文件，不建卡，提交消息写明版本，例如“升级 TeamFlow 至 1.6.0”；与业务改动分开提交。升级后用新核心复核验证配置：输出“验证配置待迁移”或 `doctor` 报告「验证配置形态」时，在同一次升级任务中另建需求卡，按[迁移步骤](CHECKS.md#从全量脚本迁移)修改项目脚本与 `project-checks.json`，验收后单独提交，迁移完成才算升级完成。用户明确暂缓时在卡中记录原因，`doctor` 持续提示。
+按安装清单替换未改动的核心与 Skill 文件，移除新版不再包含的文件，然后刷新入口。有本地改动时拒绝并列出文件，核对后可加 `--force`。`--mode` 同时切换模式，例如用 `teamflow-godot-ios` 包加 `--mode godot-ios` 给 Godot 项目补装 iOS Skill。`.agents/team/`、需求卡、验证配置和模块索引不触碰。已安装的项目不要用 `unzip -n` 升级。升级提交只含 TeamFlow 安装文件，不建卡，提交消息写明版本，例如“升级 TeamFlow 至 1.6.0”；与业务改动分开提交。升级后用新核心复核验证配置：输出“验证配置待迁移”或 `doctor` 报告「验证配置形态」时，在同一次升级任务中另建需求卡，按[迁移步骤](CHECKS-CONFIG.md#从全量脚本迁移)修改项目脚本与 `project-checks.json`，验收后单独提交，迁移完成才算升级完成。用户明确暂缓时在卡中记录原因，`doctor` 持续提示。
 
 ## 团队定制
 
@@ -70,7 +70,7 @@ python3 scripts/teamflow.py permissions --mode default
 
 Codex 的 `prompt` 规则需要可交互的审批策略（如 `on-request`）；与 `never` 组合可能直接拒绝。聊天授权不等于工具审批。修改项目规则后需重启宿主以加载新配置，不承诺解除当前会话限制；Claude Code 也以当前宿主权限模式为准。
 
-升级不自动重写项目验证配置；旧单个大脚本仍整段执行，需按上方升级规则迁移，详见[验证配置](CHECKS.md#从全量脚本迁移)。
+升级不自动重写项目验证配置；旧单个大脚本仍整段执行，需按上方升级规则迁移，详见[验证配置](CHECKS-CONFIG.md#从全量脚本迁移)。
 
 ## 提交前检查（可选）
 

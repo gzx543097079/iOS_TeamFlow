@@ -15,7 +15,7 @@ PROJECT_ROOT 是当前 Git 根及其目录树；只使用本项目内的 Skill�
 
 | 当前工作 | 资料 |
 | --- | --- |
-| 构建、测试与证据 | [CHECKS](../../teamflow-core/references/CHECKS.md)，日常检查按模块拆分见[从全量脚本迁移](../../teamflow-core/references/CHECKS.md#从全量脚本迁移)；命令参数再读 [COMMANDS](../../teamflow-core/references/COMMANDS.md) |
+| 构建、测试与证据 | [CHECKS](../../teamflow-core/references/CHECKS.md)，日常检查按模块拆分见[从全量脚本迁移](../../teamflow-core/references/CHECKS-CONFIG.md#从全量脚本迁移)；命令参数再读 [COMMANDS](../../teamflow-core/references/COMMANDS.md) |
 | Git 动作；账号、网络或敏感数据 | [BOUNDARIES](../../teamflow-core/references/BOUNDARIES.md) |
 | PR、评审或 CI | [REVIEW](../../teamflow-core/references/REVIEW.md) |
 | 新增或升级依赖、SDK；锁定 Xcode 版本 | [DEPENDENCIES](../../teamflow-core/references/DEPENDENCIES.md) |
