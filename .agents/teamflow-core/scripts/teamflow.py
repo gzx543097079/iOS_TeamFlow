@@ -12,7 +12,8 @@ from pathlib import Path
 from teamflow_common import local_path as safe
 from requirement_model import (ID, STATES, BLOCK_KINDS, AC_LINE, state_display, parse_card,
                                parse_requirement, semantic_content, require_ready, dump_card, split_card,
-                               acceptance_fingerprints, stale_acceptance)
+                               acceptance_fingerprints, stale_acceptance, delivery_blockers,
+                               handover_checklist)
 
 TEMPLATE = Path(__file__).resolve().parents[1] / 'references/templates/requirement.md'
 
@@ -140,6 +141,8 @@ def set_state(root, requirement, state, reason=None, blocked=None, reopen_ac=Non
         body = '\n'.join(lines)
         users = [item for item in meta.get('user_confirmed') or [] if item not in reopen]
         meta['user_confirmed'] = users or None
+        waived = [item for item in meta.get('human_waived') or [] if item not in reopen]
+        meta['human_waived'] = waived or None
     if reason:
         label = state_display(state) + (f'（{blocked}）' if blocked else '')
         reopened = f"（重开 {'、'.join(sorted(reopen))}）" if reopen else ''
@@ -234,7 +237,8 @@ def manual_proof(root, card, evidence, evidence_inputs=None):
 
 
 def complete(root, requirement, result=None, evidence=None, wait_user=False, profile=None,
-             confirm_ac=None, evidence_inputs=None, user_confirmed=None, rerun=False, announce=None):
+             confirm_ac=None, evidence_inputs=None, user_confirmed=None, waive_human=None,
+             rerun=False, announce=None):
     if rerun and profile is None:
         raise ValueError('--rerun 必须与 --profile 一起使用')
     if sum(value is not None for value in (result, evidence, profile)) > 1:
@@ -248,10 +252,14 @@ def complete(root, requirement, result=None, evidence=None, wait_user=False, pro
         raise ValueError('需求处于' + card['state_display'] + '；请按用户明确决定先执行 '
                          'req state --state 进行中 --reason "恢复依据"，再验收')
     by_user = set(user_confirmed or [])
-    confirmed = set(confirm_ac or []) | by_user
+    by_waive = set(waive_human or [])
+    confirmed = set(confirm_ac or []) | by_user | by_waive
     unknown = confirmed - {item['id'] for item in card['ac']}
     if unknown:
         raise ValueError('未知 AC：' + '、'.join(sorted(unknown)))
+    if by_waive - set(confirm_ac or []) - by_user:
+        # 免除须同时勾选该 AC（通常用 --confirm-ac），避免只写免除未完成条件。
+        raise ValueError('--waive-human 须同时用 --confirm-ac 或 --user-confirmed 勾选同一 AC')
     checks = checks_module()
     verification = None
 
@@ -331,16 +339,20 @@ def complete(root, requirement, result=None, evidence=None, wait_user=False, pro
     target_state = ('待用户验证' if wait_user else '进行中') if pending else '完成'
     meta = dict(card['meta'], state=target_state, evidence=proof)
     meta.pop('queued', None)
-    # 用户确认单独记录在头部，供评审区分 Agent 自行核对与用户实际确认。
+    # 用户确认 / 免除单独记录在头部，供评审与提交门禁区分 Agent 自行核对。
     users = sorted(((set(meta.get('user_confirmed') or []) - stale) | by_user) & done)
+    waived = sorted(((set(meta.get('human_waived') or []) - stale) | by_waive) & done)
     meta['user_confirmed'] = users or None
+    meta['human_waived'] = waived or None
     meta['confirmed_ac'] = {key: value for key, value in acceptance_fingerprints(card).items() if key in done}
     write_card(path, meta, body)
     card = parse_card(path)
+    pending_conditions = [{'id': item['id'], 'condition': item['condition']} for item in pending]
     return {'requirement': requirement, 'state': card['state_display'], 'state_key': target_state,
             'progress': card['progress']['display'], 'verification': verification,
             'pending_ac': [item['id'] for item in pending],
-            'pending_conditions': [{'id': item['id'], 'condition': item['condition']} for item in pending],
+            'pending_conditions': pending_conditions,
+            'handover': handover_checklist(requirement, pending_conditions) if wait_user and pending else '',
             'evidence': proof}
 
 
@@ -353,6 +365,23 @@ def git_root(root):
 # 提交时提示需关注发布影响的文件：iOS 工程与签名配置、Godot 工程与导出预设。
 RELEASE_SENSITIVE = ('.swift', '.m', '.mm', '.h', '.plist', '.entitlements', '.pbxproj', '.xcconfig',
                      '.gd', '.tscn', '.tres', '.godot', '.cfg')
+
+
+def _assert_delivery_gate(card, requirement):
+    """完整交付门禁：待用户验证，或完成卡人工 AC 未确认/未免除时拒绝。进行中阶段提交不调用。"""
+    if card['state'] == '进行中':
+        return
+    blockers = delivery_blockers(card)
+    if not blockers and card['state'] != '待用户验证':
+        return
+    ids = '、'.join(item['id'] for item in blockers) or '（仍有未确认条件）'
+    if card['state'] == '待用户验证':
+        raise ValueError(
+            f'{requirement} 待用户验证，不能作为完整交付提交；请先 --user-confirmed 确认：{ids}。'
+            '若用户已声明每个任务单独提交推送，保持进行中并用自动证据做阶段提交，勿先 --wait-user')
+    raise ValueError(
+        f'{requirement} 人工 AC 尚未用户确认或免除：{ids}；'
+        '请 --user-confirmed，或用户明确免除后 --confirm-ac 与 --waive-human')
 
 
 def git_check(root, requirement, result=None, evidence=None, evidence_inputs=None):
@@ -384,6 +413,7 @@ def git_check(root, requirement, result=None, evidence=None, evidence_inputs=Non
             raise ValueError('人工证据暂存内容与已核对工作区不一致')
     else:
         proof = verify_saved(root, card, staged=True)
+    _assert_delivery_gate(card, requirement)
     inputs = (checks.evidence_inputs(root, proof)
               if proof['kind'] == 'result' else proof['paths'])
     covered = checks.input_paths(root, inputs, set(names)) if inputs != [] else set()
@@ -504,7 +534,7 @@ def main():
                 emit('status', status(root, args.requirement))
             elif args.command == 'pr':
                 from diagnostics import pr_body
-                body = pr_body(root, args.requirement)
+                body = pr_body(root, args.requirement, allow_stage=args.allow_stage)
                 print(json.dumps(body, ensure_ascii=False, indent=2) if args.json else body['title'] + '\n\n' + body['body'])
             elif args.command == 'state':
                 emit('state', set_state(root, args.requirement, args.state, args.reason, args.blocked,
@@ -512,16 +542,20 @@ def main():
             else:
                 emit('complete', complete(root, args.requirement, args.result, args.evidence, args.wait_user,
                                           args.profile, args.confirm_ac, args.evidence_input,
-                                          args.user_confirmed, args.rerun, announce=progress))
+                                          args.user_confirmed, args.waive_human, args.rerun,
+                                          announce=progress))
         elif args.area == 'verify':
             checks = checks_module()
             if args.command == 'init':
-                path = checks.local_path(root, checks.CONFIG)
-                path.parent.mkdir(parents=True, exist_ok=True)
-                with path.open('x') as stream:
-                    json.dump({'schema_version': 2, 'profiles': {}}, stream, indent=2)
-                    stream.write('\n')
-                print('已创建空验证配置：' + str(path))
+                import setup_project
+                mode = setup_project.install_mode(root)
+                created = setup_project.seed_verification(root, mode)
+                if not created:
+                    path = checks.local_path(root, checks.CONFIG)
+                    if path.is_file():
+                        raise ValueError('验证配置已存在，未覆盖：' + str(path))
+                    raise ValueError('无法生成验证配置：请先安装对应模式 Skill，或检查示例文件')
+                print('已生成验证资产：\n  ' + '\n  '.join(created))
             elif args.command == 'suggest':
                 emit('suggest', checks.suggest(root, args.requirement))
             elif args.command == 'list':
@@ -563,6 +597,11 @@ def main():
                     print('提交前检查：pre-commit 只复核暂存内容的已绑定证据')
                 elif args.no_git_hook:
                     print('已移除 TeamFlow 管理的 pre-commit')
+        elif args.area == 'install':
+            import upgrade
+            result = upgrade.install(root, args.package, args.mode, args.plan, args.force)
+            print(json.dumps(result, ensure_ascii=False, indent=2) if args.json else
+                  upgrade.describe(result, args.plan))
         elif args.area == 'upgrade':
             import upgrade
             result = upgrade.upgrade(root, args.package, args.force, args.plan, args.mode)

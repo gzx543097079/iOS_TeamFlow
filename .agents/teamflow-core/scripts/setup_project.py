@@ -89,6 +89,16 @@ MODE_SKILLS = {'ios': ('iOS',), 'godot': ('Godot',), 'godot-ios': ('iOS', 'Godot
 IGNORE = '/logs/project-checks/'
 GODOT_IGNORE = '.godot/'
 TOOLCHAIN = '.agents/team/toolchain.json'
+# 安装时若目标不存在则从 Skill 示例生成；已有文件不覆盖（与 requirements/ 同类项目资产）。
+SEED_IOS = (
+    ('.agents/project-checks.json', '.agents/skills/iOS/assets/project-checks.example.json'),
+    ('.agents/design-tokens.json', '.agents/skills/iOS/assets/design-tokens.example.json'),
+    ('scripts/check_debug.py', '.agents/skills/iOS/assets/check_debug.py'),
+    ('scripts/check_release.py', '.agents/skills/iOS/assets/check_release.py'),
+)
+SEED_GODOT = (
+    ('.agents/project-checks.json', '.agents/skills/Godot/assets/project-checks.example.json'),
+)
 HOOK_MARK = '# teamflow:managed-hook'
 HOOK = '''#!/bin/sh
 {mark}
@@ -255,6 +265,43 @@ def hook_plan(project, remove=False):
     return path, HOOK.format(mark=HOOK_MARK)
 
 
+def seed_pairs(mode):
+    """按安装模式返回 (项目内目标, Skill 内示例) 列表。"""
+    if mode == 'ios':
+        return SEED_IOS
+    return SEED_GODOT
+
+
+def seed_plan(project, mode):
+    """仅计划生成尚不存在的验证配置与检查脚本骨架。"""
+    planned = {}
+    for dest, src in seed_pairs(mode):
+        target = safe(project, dest)
+        if target.exists():
+            continue
+        source = project / src
+        if not source.is_file():
+            continue
+        planned[dest] = source.read_bytes()
+    return planned
+
+
+def seed_verification(project, mode, dry_run=False):
+    """生成缺失的验证配置（类似创建 requirements/）；已有文件不覆盖。"""
+    project = project.expanduser().resolve()
+    mode = install_mode(project, mode)
+    planned = seed_plan(project, mode)
+    if dry_run:
+        return planned
+    for name, data in planned.items():
+        target = safe(project, name)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
+        if name.endswith('.py'):
+            target.chmod(target.stat().st_mode | 0o111)
+    return planned
+
+
 def setup(project, skill, dry_run=False, claude_link=False, mode=None, git_hook=False, remove_hook=False):
     """返回计划写入的文件；claude_link 额外让 Claude Code 把 Skill 识别为原生 Skill。"""
     project = project.expanduser().resolve()
@@ -279,7 +326,9 @@ def setup(project, skill, dry_run=False, claude_link=False, mode=None, git_hook=
         safe(project, '.claude/skills')
         if not link_ready and (link.exists() or link.is_symlink()):
             raise ValueError(link_name + ' 已存在且不是指向本项目 Skill 的软链接')
+    seeds = {} if source else seed_plan(project, mode)
     if dry_run:
+        planned.update(seeds)
         return planned
     for name, data in planned.items():
         if Path(name).is_absolute():
@@ -297,6 +346,9 @@ def setup(project, skill, dry_run=False, claude_link=False, mode=None, git_hook=
             path.write_text(content)
             path.chmod(0o755)
     safe(project, 'requirements').mkdir(exist_ok=True)
+    if not source:
+        seeds = seed_verification(project, mode)
+        planned.update(seeds)
     if enable_link and not link_ready:
         safe(project, '.claude/skills').mkdir(parents=True, exist_ok=True)
         link.symlink_to(link_target, target_is_directory=True)
@@ -338,7 +390,8 @@ def diagnose(project):
         config_ready = safe(project, '.agents/project-checks.json').is_file()
     except ValueError:
         config_ready = False
-    add('项目验证', config_ready, '工程就绪后配置实际构建/测试命令')
+    add('项目验证', config_ready,
+        '已生成验证配置' if config_ready else '安装或 setup 后将自动生成；也可 verify init')
     add('Xcode', bool(shutil.which('xcodebuild')), '只检查工具入口')
     if git_ready:
         items.extend(hook_status(project))

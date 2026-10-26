@@ -11,7 +11,7 @@ CORE_FILES = tuple(CORE + '/' + name for name in (
     'scripts/cli_output.py', 'scripts/cli_parser.py', 'scripts/check_history.py',
     'scripts/diagnostics.py', 'scripts/teamflow_common.py', 'scripts/requirement_model.py',
     'scripts/module_context.py', 'scripts/teamflow.py', 'scripts/project_checks.py', 'scripts/setup_project.py',
-    'scripts/upgrade.py',
+    'scripts/upgrade.py', 'scripts/install_teamflow.py',
     'references/WORKFLOW.md', 'references/ARTIFACTS.md', 'references/CHECKS.md', 'references/CHECKS-CONFIG.md', 'references/COMMANDS.md', 'references/REPAIR.md', 'references/BOUNDARIES.md', 'references/INSTALL.md',
     'references/MODULE-CONTEXT.md', 'references/VERSION', 'references/ARCHITECTURE.md', 'references/LOCALIZATION.md',
     'references/templates/requirement.md', 'references/templates/project-context.md', 'references/standards/comments.md',
@@ -31,7 +31,8 @@ GODOT_FILES = tuple(GODOT_SKILL + '/' + name for name in (
 ))
 REFERENCES = (
     'APP-RELEASE.md', 'APP-LIFECYCLE.md', 'PERFORMANCE.md', 'UI-REVIEW.md', 'LOGGING.md', 'EXISTING-PROJECT.md', 'ARCHITECTURE.md', 'LOCALIZATION.md', 'DESIGN-TOKENS.md',
-    'standards/ui.md', 'standards/ui-keyboard.md', 'standards/ui-paywall.md', 'standards/objective-c.md', 'standards/swift.md', 'standards/swiftui.md',
+    'standards/ui.md', 'standards/ui-details.md', 'standards/ui-keyboard.md', 'standards/ui-paywall.md',
+    'standards/objective-c.md', 'standards/swift.md', 'standards/swiftui.md',
     'templates/new-project.md', 'templates/feature.md', 'templates/app-release.md',
 )
 # 仅打包明确登记的通用文件，不打包项目接入记录、需求或日志。
@@ -46,6 +47,8 @@ FILES = (
     'tests/release_fixture.py', 'tests/test_consumer_release.py', 'tests/test_workflow.py', 'tests/test_project_checks.py', 'tests/test_teamflow.py', 'tests/test_module_context.py', SKILL + '/SKILL.md',
     SKILL + '/assets/logging/TFLogger.swift', SKILL + '/assets/logging/TFLogger.h', SKILL + '/assets/logging/TFLogger.m',
     SKILL + '/scripts/install_logging.py', SKILL + '/scripts/check_design_tokens.py', 'tests/test_design_tokens.py',
+    SKILL + '/assets/project-checks.example.json', SKILL + '/assets/design-tokens.example.json',
+    SKILL + '/assets/check_debug.py', SKILL + '/assets/check_release.py',
 ) + tuple(SKILL + '/references/' + name for name in REFERENCES) + CORE_FILES + GODOT_FILES + (
     'docs/GODOT.md', 'tests/test_godot_extension.py', 'tests/test_godot_export.py', 'tests/test_upgrade.py', 'tests/test_team.py', 'tests/test_token_budget.py',
 )
@@ -107,9 +110,11 @@ def package_mode(root, mode, output=None):
     entries = {name: name for name in FILES if name.startswith((CORE + '/',) + skills)}
     files = {name: (root / name).read_bytes() for name in entries}
     version = (root / CORE / 'references/VERSION').read_text().strip()
+    bootstrap = (root / CORE / 'scripts/install_teamflow.py').read_bytes()
     generated = {
         'AGENTS.md': setup_project.agents_content('', setup_project.block_for(mode)).encode(),
         'scripts/teamflow.py': setup_project.ENTRY.encode(),
+        'install_teamflow.py': bootstrap,
         upgrade.MANIFEST: upgrade.manifest_text(version, mode, files).encode(),
     }
     return write_package(root, 'teamflow-' + mode + '-v', entries, generated, output)

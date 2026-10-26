@@ -1,6 +1,6 @@
 # 安装与接入
 
-三种模式共用同一套工具和同一个 AGENTS 托管区块：iOS 原生、Godot、Godot + iOS。安装包以项目 Git 根为解压目标。
+三种模式共用同一套工具和同一个 AGENTS 托管区块：iOS 原生、Godot、Godot + iOS。推荐用命令一键接入，不必人工把 ZIP 整包解压进项目根。
 
 | 安装包 | 模式 | 内容 |
 | --- | --- | --- |
@@ -8,34 +8,45 @@
 | `teamflow-godot-v<版本>.zip` | Godot | `.agents/teamflow-core/`、`.agents/skills/Godot/` |
 | `teamflow-godot-ios-v<版本>.zip` | Godot + iOS | 核心与两个 Skill |
 
-每个包另含对应模式的 `AGENTS.md`、命令入口 `scripts/teamflow.py`、可选[宿主权限模板](#宿主权限)（默认不激活）和安装清单 `.agents/teamflow-core/references/MANIFEST.json`（升级时识别本地改动）。目录区分大小写：`iOS`、`Godot`。
+每个包另含根目录 `install_teamflow.py`、对应模式的 `AGENTS.md`、命令入口 `scripts/teamflow.py`、可选[宿主权限模板](#宿主权限)（默认不激活）和安装清单 `.agents/teamflow-core/references/MANIFEST.json`。目录区分大小写：`iOS`、`Godot`。Agent 接入与迁移总步骤写在仓库根 README；命令细节以本文件为准。
 
-## 新项目与已有项目
+## 一键安装（推荐）
 
-新项目解压即可使用，验证日志目录自带忽略规则：
-
-```sh
-unzip ~/Downloads/teamflow-ios-v1.6.4.zip -d .
-python3 scripts/teamflow.py doctor
-```
-
-已有 `AGENTS.md` 或 `scripts/` 的项目不覆盖解压，再由 setup 合并托管区块：
+在业务项目 Git 根、已下载安装包时：
 
 ```sh
-unzip -n ~/Downloads/teamflow-ios-v1.6.4.zip -d .
-python3 .agents/teamflow-core/scripts/teamflow.py setup --mode ios
+unzip -p ~/Downloads/teamflow-ios-v1.6.5.zip install_teamflow.py | python3 - ~/Downloads/teamflow-ios-v1.6.5.zip --mode ios
+# 项目内已有 scripts/teamflow.py 时也可用：
+python3 scripts/teamflow.py install ~/Downloads/teamflow-ios-v1.6.5.zip --mode ios
 ```
 
-setup 写入 AGENTS 托管区块和 `scripts/teamflow.py`，在 `.gitignore` 忽略验证日志（Godot 模式另忽略 `.godot/`），创建 `requirements/`；`--plan` 只输出 diff。它不初始化 Git、不提交，也不连接外部平台。不传 `--mode` 时沿用已有选择，首次默认 iOS 原生；所选模式缺少 Skill 时报错。
+`install` 写入核心与所选 Skill、刷新 AGENTS 入口与 `scripts/teamflow.py`、创建 `requirements/`、忽略验证日志，并在缺失时生成验证资产（不覆盖已有文件）：
+
+- 共用：`.agents/project-checks.json`
+- iOS：另生成 `.agents/design-tokens.json`、`scripts/check_debug.py`、`scripts/check_release.py`
+- Godot / Godot+iOS：从 Godot 示例生成 `project-checks.json`
+
+iOS 首次跑检查前写入 `.agents/team/ios-verify.json`（如 `{"scheme":"YourScheme"}`）或设置 `TEAMFLOW_IOS_SCHEME`。生成的日常 profile 已按「编译 + 设计变量 + manual 全量/Release」拆分，勿再改回单脚本全量。`--plan` 只预览；已安装时拒绝，需升级用 `upgrade`，或显式 `--force` 覆盖安装文件后重新接入。
+
+## setup
+
+已解压或仅需刷新入口时：
+
+```sh
+python3 scripts/teamflow.py setup --mode ios
+python3 scripts/teamflow.py verify init   # 仅补生成缺失的验证资产
+```
+
+setup 合并 AGENTS 托管区块、写入入口与 `.gitignore`、创建 `requirements/`，并调用与 `install` 相同的验证资产生成逻辑。不传 `--mode` 时沿用已有选择，首次默认 iOS 原生；所选模式缺少 Skill 时报错。不初始化 Git、不提交、不连接外部平台。
 
 ## 升级
 
 ```sh
-python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.6.4.zip --plan
-python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.6.4.zip
+python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.6.5.zip --plan
+python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.6.5.zip
 ```
 
-按安装清单替换未改动的核心与 Skill 文件，移除新版不再包含的文件，然后刷新入口。有本地改动时拒绝并列出文件，核对后可加 `--force`。`--mode` 同时切换模式，例如用 `teamflow-godot-ios` 包加 `--mode godot-ios` 给 Godot 项目补装 iOS Skill。`.agents/team/`、需求卡、验证配置和模块索引不触碰。已安装的项目不要用 `unzip -n` 升级。升级提交只含 TeamFlow 安装文件，不建卡，提交消息写明版本，例如“升级 TeamFlow 至 1.6.4”；与业务改动分开提交。升级后用新核心复核验证配置：输出“验证配置待迁移”或 `doctor` 报告「验证配置形态」时，在同一次升级任务中另建需求卡，按[迁移步骤](CHECKS-CONFIG.md#从全量脚本迁移)修改项目脚本与 `project-checks.json`，验收后单独提交，迁移完成才算升级完成。用户明确暂缓时在卡中记录原因，`doctor` 持续提示。
+按安装清单替换未改动的核心与 Skill 文件，移除新版不再包含的文件，然后刷新入口。有本地改动时拒绝并列出文件，核对后可加 `--force`。`--mode` 同时切换模式。`.agents/team/`、需求卡、验证配置和模块索引不触碰。不要用 `unzip -n` 升级。升级提交只含 TeamFlow 安装文件，不建卡，提交消息写明版本；与业务改动分开提交。输出“验证配置待迁移”或 `doctor` 报告「验证配置形态」时，Agent 须按仓库 README「验证配置迁移」在同一次升级任务中建卡迁移，细则见 [CHECKS-CONFIG](CHECKS-CONFIG.md#从全量脚本迁移)；用户明确暂缓时在卡中记录原因。
 
 ## 团队定制
 

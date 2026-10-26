@@ -136,7 +136,9 @@ class DeliveryTests(unittest.TestCase):
 
     def test_pr_body_comes_from_card(self):
         req = self.create('登录提示'); self.fill(req, done=False)
-        body = diagnostics.pr_body(self.root, req)
+        with self.assertRaisesRegex(ValueError, '正式 PR'):
+            diagnostics.pr_body(self.root, req)
+        body = diagnostics.pr_body(self.root, req, allow_stage=True)
         self.assertEqual('[阶段] 登录提示', body['title'])
         self.assertIn('- [ ] AC-01：错误时显示提示', body['body'])
         self.assertIn('- 未验证', body['body'])

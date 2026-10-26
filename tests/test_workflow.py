@@ -57,6 +57,7 @@ class WorkflowTests(unittest.TestCase):
             self.assertTrue({'tests-cli', 'tests-checks', 'tests-setup'} <= selected(core + name))
         self.assertEqual({'tests-cli', 'tests-setup'}, selected(core + 'cli_output.py'))
         self.assertEqual({'tests-cli', 'tests-setup', 'tests-docs'}, selected(core + 'cli_parser.py'))
+        self.assertEqual({'tests-package'}, selected(core + 'install_teamflow.py'))
         self.assertEqual({'tests-ios'}, selected('.agents/skills/iOS/scripts/check_design_tokens.py'))
 
     def test_tests_package_into_temporary_output_not_repository_dist(self):

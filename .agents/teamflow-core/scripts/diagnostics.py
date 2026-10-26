@@ -86,7 +86,9 @@ def doctor(root):
         if issues:
             checks.append({'item': '验证配置形态',
                            'status': '需处理' if any(i['status'] == '需处理' for i in issues) else '提示',
-                           'detail': [i['detail'] for i in issues] + ['迁移步骤见 CHECKS-CONFIG「从全量脚本迁移」']})
+                           'detail': [i['detail'] for i in issues]
+                                      + ['按仓库 README「验证配置迁移」执行；细则见 CHECKS-CONFIG「从全量脚本迁移」与「小任务耗时」'
+                                         '（日常=编译+模块测，全量/Release=manual）']})
     except FileNotFoundError:
         pass
     except (ValueError, OSError, KeyError, TypeError, subprocess.CalledProcessError) as error:
@@ -159,18 +161,28 @@ def format_report(report):
     return '\n'.join(lines)
 
 
-def pr_body(root, requirement):
-    """由需求卡生成 PR 描述：范围、AC 进度与证据摘要只取卡片现有内容，不另写状态。"""
+def pr_body(root, requirement, allow_stage=False):
+    """由需求卡生成 PR 描述：默认仅完整交付；--allow-stage 且用户明确阶段交付时才生成阶段 PR。"""
     import teamflow as flow
+    from requirement_model import delivery_blockers, accepted_human_ids
     card = parse_card(flow.requirement_path(root, requirement))
     summary, _ = requirement_summary(root, requirement)
+    blockers = delivery_blockers(card)
+    complete_ok = card['state'] == '完成' and not blockers
+    if not complete_ok and not allow_stage:
+        detail = '、'.join(item['id'] for item in blockers) if blockers else card['state_display']
+        raise ValueError(
+            '正式 PR 要求需求已完成且人工 AC 已用户确认或免除；当前：' + detail
+            + '。用户明确阶段交付时加 --allow-stage')
     lines = ['## 范围', '', card['scope'], '']
     if card['excluded'] and card['excluded'] != '无':
         lines += ['## 不包含', '', card['excluded'], '']
     lines += ['## 验收条件', '']
-    users = set(card['meta'].get('user_confirmed') or []) - stale_acceptance(card)
+    accepted = accepted_human_ids(card)
+    waived = set(card['meta'].get('human_waived') or []) - stale_acceptance(card)
     lines += [f"- [{'x' if item['done'] else ' '}] {item['id']}：{item['condition']}"
-              + ('（用户确认）' if item['id'] in users else '') for item in card['ac']]
+              + ('（已免除人工验收）' if item['id'] in waived else
+                 '（用户确认）' if item['id'] in accepted else '') for item in card['ac']]
     lines += ['', '## 验证', '']
     saved = card['evidence'] if isinstance(card['evidence'], dict) else {}
     if saved:
@@ -180,10 +192,12 @@ def pr_body(root, requirement):
         lines.append('- 未验证')
     if summary['pending_ac']:
         lines.append('- 未确认：' + '、'.join(item['id'] for item in summary['pending_ac']))
+    if blockers and allow_stage:
+        lines.append('- 阶段交付，待人工确认：' + '、'.join(item['id'] for item in blockers))
     lines += ['', 'Requirement: ' + requirement]
-    # 未完成的卡进入 PR 即为阶段交付，标题直接标明，评审与 CI 不把它当作完整交付。
-    title = card['title'] if card['state'] == '完成' else '[阶段] ' + card['title']
-    return {'requirement': requirement, 'title': title, 'body': '\n'.join(lines)}
+    title = card['title'] if complete_ok else '[阶段] ' + card['title']
+    return {'requirement': requirement, 'title': title, 'body': '\n'.join(lines),
+            'stage': not complete_ok}
 
 
 def historical_coverage(root, saved, commit, config, candidates):

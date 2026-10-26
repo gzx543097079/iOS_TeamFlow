@@ -164,6 +164,48 @@ def stale_acceptance(card):
     return {item['id'] for item in card['ac'] if item['done']} if proof and proof.get('requirement') != semantic else set()
 
 
+# 人工/视觉类 AC：条件含这些词时，完整交付须 user_confirmed 或 human_waived。
+HUMAN_AC = re.compile(
+    r'视觉|真机|截图|观感|界面效果|布局|间距|对齐|字号|颜色|预览|人工验收|肉眼|用户可见')
+
+
+def human_required_acs(card):
+    """须用户确认或明确免除的 AC（按条件关键词识别）。"""
+    return [item for item in card['ac'] if HUMAN_AC.search(item['condition'] or '')]
+
+
+def accepted_human_ids(card):
+    stale = stale_acceptance(card)
+    users = set(card['meta'].get('user_confirmed') or []) - stale
+    waived = set(card['meta'].get('human_waived') or []) - stale
+    return users | waived
+
+
+def delivery_blockers(card):
+    """阻止完整交付（完成态提交 / 正式 PR）的人工项；进行中阶段提交不使用本列表。"""
+    allowed = accepted_human_ids(card)
+    if card['state'] == '待用户验证':
+        return [item for item in card['ac'] if not item['done']]
+    blockers = []
+    for item in human_required_acs(card):
+        if not item['done'] or item['id'] not in allowed:
+            blockers.append(item)
+    return blockers
+
+
+def handover_checklist(requirement, pending_conditions):
+    """待用户确认时的固定交接表（Markdown）。"""
+    if not pending_conditions:
+        return ''
+    lines = ['## 待用户确认', '', '| 编号 | 条件 |', '| --- | --- |']
+    lines.extend(f"| {item['id']} | {item['condition']} |" for item in pending_conditions)
+    lines.append('')
+    lines.extend(f"- [ ] {item['id']}：{item['condition']}" for item in pending_conditions)
+    lines += ['', f'确认后执行：`python3 scripts/teamflow.py req complete {requirement} --user-confirmed AC-编号`',
+              '（可重复传入多个编号；用户明确免除人工验收时用 `--waive-human AC-编号` 并配合 `--confirm-ac`）']
+    return '\n'.join(lines)
+
+
 def parse_card(path):
     return parse_requirement(path.read_text(), path.stem)
 

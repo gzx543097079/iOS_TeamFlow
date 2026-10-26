@@ -23,7 +23,10 @@ def build_parser():
     creator.add_argument('--bug', action='store_true')
     req_sub.add_parser('list', parents=[output]).add_argument('--all', action='store_true', help='包含已完成和取消的需求')
     req_sub.add_parser('status', parents=[output], help='只读：状态、证据有效性、剩余 AC 与下一步').add_argument('requirement')
-    req_sub.add_parser('pr', parents=[output], help='只读：由需求卡生成 PR 描述').add_argument('requirement')
+    pr_cmd = req_sub.add_parser('pr', parents=[output], help='由需求卡生成 PR 描述；默认仅完整交付')
+    pr_cmd.add_argument('requirement')
+    pr_cmd.add_argument('--allow-stage', action='store_true',
+                        help='用户明确阶段交付时，允许未完成或待确认卡生成 [阶段] PR')
     state = req_sub.add_parser('state', parents=[output])
     state.add_argument('requirement')
     state.add_argument('--state', choices=[s for s in STATES if s not in ('完成', '待用户验证')], required=True)
@@ -44,6 +47,8 @@ def build_parser():
                       help='显式确认已实际核对的条件，可重复传入；验证证据有效后才写入')
     done.add_argument('--user-confirmed', action='append', metavar='AC-编号',
                       help='用户已在对话中明确确认的条件；勾选并记入头部 user_confirmed')
+    done.add_argument('--waive-human', action='append', metavar='AC-编号',
+                      help='用户明确免除人工验收的条件；须同时 --confirm-ac 勾选，记入 human_waived')
 
     verify = top.add_parser('verify')
     verify_sub = verify.add_subparsers(dest='command', required=True)
@@ -78,6 +83,13 @@ def build_parser():
     hook = installer.add_mutually_exclusive_group()
     hook.add_argument('--git-hook', action='store_true', help='安装本机 pre-commit，提交前复核覆盖暂存内容的已绑定证据')
     hook.add_argument('--no-git-hook', action='store_true', help='移除 TeamFlow 管理的 pre-commit')
+
+    installer_pkg = top.add_parser('install', parents=[output], help='从安装包一键接入（无需人工整包解压）')
+    installer_pkg.add_argument('package', type=Path, help='teamflow-*-vX.Y.Z.zip')
+    installer_pkg.add_argument('--mode', choices=['ios', 'godot', 'godot-ios'], default='ios',
+                               help='安装模式；默认 ios')
+    installer_pkg.add_argument('--plan', action='store_true', help='只读预览，不写文件')
+    installer_pkg.add_argument('--force', action='store_true', help='覆盖已安装的核心与 Skill 后重新接入')
 
     upgrader = top.add_parser('upgrade', parents=[output], help='用新版安装包升级核心与所选 Skill')
     upgrader.add_argument('package', type=Path, help='新版安装包 ZIP')

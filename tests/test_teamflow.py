@@ -241,6 +241,46 @@ class TeamFlowTests(unittest.TestCase):
         self.assertIn('AC-01：', pr_body(self.root, req)['body'])
         self.assertIn('（用户确认）', pr_body(self.root, req)['body'])
 
+    def test_delivery_gate_blocks_waiting_allows_in_progress_stage(self):
+        from diagnostics import pr_body
+        req = self.create()
+        card = self.fill(req, done=False)
+        card.write_text(card.read_text().replace('错误时显示提示', '视觉上间距正确'))
+        report = flow.complete(self.root, req, profile='change', wait_user=True)
+        self.assertEqual('待用户验证', report['state_key'])
+        self.assertTrue(report['handover'].startswith('## 待用户确认'))
+        self.assertIn('- [ ] AC-01：', report['handover'])
+        self.git('add', '-A')
+        with self.assertRaisesRegex(ValueError, '待用户验证'):
+            flow.git_check(self.root, req)
+        # 分任务：不 wait_user，进行中 + 自动证据可阶段提交
+        flow.complete(self.root, req, profile='change')
+        self.assertEqual('进行中', flow.parse_card(card)['state'])
+        self.git('add', '-A')
+        self.assertEqual(req, flow.git_check(self.root, req)['requirement'])
+        with self.assertRaisesRegex(ValueError, '正式 PR'):
+            pr_body(self.root, req)
+        stage = pr_body(self.root, req, allow_stage=True)
+        self.assertTrue(stage['title'].startswith('[阶段]'))
+        flow.complete(self.root, req, user_confirmed=['AC-01'])
+        self.git('add', '-A')
+        flow.git_check(self.root, req)
+        self.assertFalse(pr_body(self.root, req)['stage'])
+
+    def test_human_ac_needs_user_or_waive_before_complete_commit(self):
+        req = self.create()
+        card = self.fill(req, done=False)
+        card.write_text(card.read_text().replace('错误时显示提示', '截图显示布局对齐'))
+        flow.complete(self.root, req, profile='change', confirm_ac=['AC-01'])
+        self.assertEqual('完成', flow.parse_card(card)['state'])
+        self.git('add', '-A')
+        with self.assertRaisesRegex(ValueError, '人工 AC'):
+            flow.git_check(self.root, req)
+        flow.complete(self.root, req, confirm_ac=['AC-01'], waive_human=['AC-01'])
+        self.assertEqual(['AC-01'], flow.parse_card(card)['meta'].get('human_waived'))
+        self.git('add', '-A')
+        flow.git_check(self.root, req)
+
     def test_manual_proof_rejects_semantic_changes_without_writing(self):
         self.baseline()  # 工程配置已提交，人工证据范围内只剩文档改动
         req = self.create(); card = self.fill(req)

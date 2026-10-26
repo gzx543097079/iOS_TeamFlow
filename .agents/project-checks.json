@@ -209,6 +209,8 @@
             ".agents/teamflow-core/scripts/teamflow.py",
             ".agents/teamflow-core/scripts/setup_project.py",
             ".agents/teamflow-core/scripts/upgrade.py",
+            ".agents/teamflow-core/scripts/install_teamflow.py",
+            ".agents/skills/iOS/assets",
             ".agents/teamflow-core/assets",
             ".agents/teamflow-core/references/VERSION",
             "scripts/teamflow.py",

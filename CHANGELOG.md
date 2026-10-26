@@ -1,6 +1,14 @@
 # 版本记录
 
-## 未发布
+## 1.6.5
+
+来源：用户要求一键安装生成验证配置、人工验收双模式交付，以及精简入口与拆 UI 规范后提 PR 合并发布（REQ-20261026-f2c4 / a3e5 / 8c13 / 1d6f）。规则经源码 `workflow` / `workflow-release` 验证；消费项目配置迁移另议。
+
+- 新增 `install` / 包内 `install_teamflow.py`：从 ZIP 一键接入；缺失时生成 `.agents/project-checks.json`（iOS 另含 design-tokens 与 check 脚本骨架），已有文件不覆盖。
+- README 增加「用 AI 接入」与「验证配置迁移」；`doctor` / `upgrade` 提示指向该段；INSTALL/COMMANDS/GODOT 同步。
+- 双模式交付：默认完整交付须 `--wait-user` 勾选后 `--user-confirmed` 再提交/正式 PR；分任务阶段 commit/push 可用进行中+自动证据；`req pr --allow-stage` 生成阶段 PR。
+- 压缩 WORKFLOW（改动分级与双模式改表）；iOS `ui.md` 改为强制短清单，细则迁入 `ui-details.md`；CHECKS-CONFIG「小任务耗时」强化日常=编译+模块测、全量/Release=manual。
+- token 预算场景与窄路由对齐，并新增「SwiftUI 间距小改动」；REPAIR 补充入口体量约定。
 
 ## 1.6.4
 

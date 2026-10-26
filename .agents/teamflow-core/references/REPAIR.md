@@ -25,3 +25,7 @@ python3 scripts/teamflow.py req create --bug --title "缺陷标题"
 5. 改进失败或成本高于收益时停止并撤销本次可归因改动。
 
 流程改进授权不包含 commit、push、发布或任何 App 外部动作。删除兼容代码或旧入口必须由本次范围明确允许。
+
+## 控制入口体量
+
+冷启动只读 AGENTS 托管区块、所选 Skill 入口与 WORKFLOW。新增规则默认写入按任务才加载的专题；只有状态机、授权边界与按需读取总则进入 WORKFLOW。改 WORKFLOW 前先跑入口 token 预算；必要内容顶满时按约 10% 余量放宽护栏，不为过测试删要件。
