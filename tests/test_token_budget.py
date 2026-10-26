@@ -38,9 +38,9 @@ SCENARIOS = {
     'iOS UI 只读评审': (11400, 'ios', (
         IOS + 'references/UI-REVIEW.md', IOS + 'references/standards/ui.md',
         CORE + 'LOCALIZATION.md', IOS + 'references/LOCALIZATION.md')),
-    'iOS 验证配置建立、编辑或迁移': (7000, 'ios', (
+    'iOS 验证配置建立、编辑或迁移': (7700, 'ios', (
         CORE + 'CHECKS.md', CORE + 'CHECKS-CONFIG.md')),
-    'Godot + iOS 发布': (12100, 'godot-ios', (
+    'Godot + iOS 发布': (13310, 'godot-ios', (
         GODOT + 'references/IOS.md', IOS + 'references/APP-RELEASE.md', GODOT + 'references/CHECKS.md',
         GODOT + 'references/TEAM.md', CORE + 'CHECKS.md', CORE + 'BOUNDARIES.md')),
     '纯 Godot 发布': (10780, 'godot', (
