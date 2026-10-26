@@ -2,6 +2,12 @@
 
 ## 未发布
 
+来源：用户要求一键安装生成验证配置、勿手解压复制，并将迁移步骤写入 README 供 AI 自动执行（REQ-20261026-f2c4）。
+
+- 新增 `install` / 包内 `install_teamflow.py`：从 ZIP 一键接入；缺失时生成 `.agents/project-checks.json`（iOS 另含 design-tokens 与 check 脚本骨架），已有文件不覆盖。
+- README 增加「用 AI 接入」与「验证配置迁移」；`doctor` / `upgrade` 提示指向该段；INSTALL/COMMANDS/GODOT 同步。
+- token 预算场景与窄路由对齐，并新增「SwiftUI 间距小改动」；REPAIR 补充入口体量约定。
+
 ## 1.6.4
 
 来源：复核颜见 Login state 对话后，用户要求写明小改动与须扩大检查的判定，并提 PR 合并发布（REQ-20261026-9b7e / REQ-20261026-57fc）。规则经源码 `workflow` / `workflow-release` 验证；消费项目单测门禁另议。

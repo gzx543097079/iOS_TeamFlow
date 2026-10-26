@@ -516,12 +516,15 @@ def main():
         elif args.area == 'verify':
             checks = checks_module()
             if args.command == 'init':
-                path = checks.local_path(root, checks.CONFIG)
-                path.parent.mkdir(parents=True, exist_ok=True)
-                with path.open('x') as stream:
-                    json.dump({'schema_version': 2, 'profiles': {}}, stream, indent=2)
-                    stream.write('\n')
-                print('已创建空验证配置：' + str(path))
+                import setup_project
+                mode = setup_project.install_mode(root)
+                created = setup_project.seed_verification(root, mode)
+                if not created:
+                    path = checks.local_path(root, checks.CONFIG)
+                    if path.is_file():
+                        raise ValueError('验证配置已存在，未覆盖：' + str(path))
+                    raise ValueError('无法生成验证配置：请先安装对应模式 Skill，或检查示例文件')
+                print('已生成验证资产：\n  ' + '\n  '.join(created))
             elif args.command == 'suggest':
                 emit('suggest', checks.suggest(root, args.requirement))
             elif args.command == 'list':
@@ -563,6 +566,11 @@ def main():
                     print('提交前检查：pre-commit 只复核暂存内容的已绑定证据')
                 elif args.no_git_hook:
                     print('已移除 TeamFlow 管理的 pre-commit')
+        elif args.area == 'install':
+            import upgrade
+            result = upgrade.install(root, args.package, args.mode, args.plan, args.force)
+            print(json.dumps(result, ensure_ascii=False, indent=2) if args.json else
+                  upgrade.describe(result, args.plan))
         elif args.area == 'upgrade':
             import upgrade
             result = upgrade.upgrade(root, args.package, args.force, args.plan, args.mode)

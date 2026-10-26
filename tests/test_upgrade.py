@@ -176,6 +176,51 @@ class UpgradeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, '有效 ZIP'):
             upgrade.upgrade(self.root, broken)
 
+    def test_install_seeds_ios_verification_assets_once(self):
+        package = write_zip(self.packages / 'ios.zip', self.ios)
+        preview = upgrade.install(self.root, package, mode='ios', dry_run=True)
+        self.assertEqual('install', preview['kind'])
+        self.assertIn('.agents/project-checks.json', preview['seeded'])
+        result = upgrade.install(self.root, package, mode='ios')
+        checks = self.root / '.agents/project-checks.json'
+        tokens = self.root / '.agents/design-tokens.json'
+        debug = self.root / 'scripts/check_debug.py'
+        self.assertTrue(checks.is_file())
+        self.assertTrue(tokens.is_file())
+        self.assertTrue(debug.is_file())
+        self.assertIn('design-tokens', checks.read_text())
+        self.assertTrue((self.root / 'requirements').is_dir())
+        self.assertTrue((self.root / 'scripts/teamflow.py').is_file())
+        original = checks.read_text()
+        checks.write_text('{"schema_version": 2, "profiles": {"custom": {}}}')
+        debug.write_text('# custom\n')
+        with self.assertRaisesRegex(ValueError, '已安装'):
+            upgrade.install(self.root, package, mode='ios')
+        upgrade.install(self.root, package, mode='ios', force=True)
+        self.assertEqual('{"schema_version": 2, "profiles": {"custom": {}}}', checks.read_text())
+        self.assertEqual('# custom\n', debug.read_text())
+        self.assertNotEqual(original, checks.read_text())
+
+    def test_install_teamflow_bootstrap_from_zip_root(self):
+        package = release_archive('ios')
+        with zipfile.ZipFile(package) as stream:
+            self.assertIn('install_teamflow.py', stream.namelist())
+            bootstrap = stream.read('install_teamflow.py')
+        script = self.packages / 'install_teamflow.py'
+        script.write_bytes(bootstrap)
+        ran = subprocess.run([sys.executable, str(script), str(package), '--mode', 'ios',
+                              '--project', str(self.root)], capture_output=True, text=True)
+        self.assertEqual(0, ran.returncode, ran.stderr + ran.stdout)
+        self.assertTrue((self.root / '.agents/project-checks.json').is_file())
+        self.assertIn('已安装', ran.stdout)
+
+    def test_install_seeds_godot_checks(self):
+        package = write_zip(self.packages / 'godot.zip', self.godot)
+        upgrade.install(self.root, package, mode='godot')
+        config = json.loads((self.root / '.agents/project-checks.json').read_text())
+        self.assertIn('godot-check', config['profiles'])
+        self.assertFalse((self.root / '.agents/design-tokens.json').exists())
+
 
 if __name__ == '__main__':
     unittest.main()

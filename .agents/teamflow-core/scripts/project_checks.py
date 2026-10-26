@@ -86,6 +86,11 @@ def installed_files(root):
     entry = local_path(root, 'scripts/teamflow.py')
     if entry.is_file() and entry.read_text() == setup_project.ENTRY:
         result.add('scripts/teamflow.py')
+    bootstrap = Path(__file__).resolve().parent / 'install_teamflow.py'
+    root_bootstrap = local_path(root, 'install_teamflow.py')
+    if (bootstrap.is_file() and root_bootstrap.is_file()
+            and root_bootstrap.read_bytes() == bootstrap.read_bytes()):
+        result.add('install_teamflow.py')
     manifest = local_path(root, upgrade.MANIFEST)
     if manifest.is_file():
         result.add(upgrade.MANIFEST)

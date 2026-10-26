@@ -1,0 +1,59 @@
+{
+  "schema_version": 2,
+  "profiles": {
+    "change": {
+      "trigger": "covers",
+      "priority": 10,
+      "parallelism": 2,
+      "incremental": true,
+      "inputs": [
+        "App",
+        "scripts/check_debug.py",
+        ".agents/design-tokens.json",
+        ".agents/design-tokens-baseline.json",
+        ".agents/skills/iOS/scripts/check_design_tokens.py"
+      ],
+      "checks": {
+        "design-tokens": {
+          "argv": ["python3", ".agents/skills/iOS/scripts/check_design_tokens.py"],
+          "covers": ["App"],
+          "inputs": [
+            "App",
+            ".agents/design-tokens.json",
+            ".agents/design-tokens-baseline.json",
+            ".agents/skills/iOS/scripts/check_design_tokens.py"
+          ],
+          "timeout_seconds": 60
+        },
+        "debug": {
+          "argv": ["python3", "scripts/check_debug.py"],
+          "covers": ["App", "scripts/check_debug.py"],
+          "inputs": ["App", "scripts/check_debug.py"],
+          "timeout_seconds": 900
+        }
+      }
+    },
+    "full-test": {
+      "manual": true,
+      "inputs": ["App", "scripts/check_debug.py"],
+      "checks": {
+        "all-tests": {
+          "argv": ["python3", "scripts/check_debug.py", "--all-tests"],
+          "cache": false,
+          "timeout_seconds": 1800
+        }
+      }
+    },
+    "release": {
+      "manual": true,
+      "inputs": ["App", "scripts/check_release.py"],
+      "checks": {
+        "release": {
+          "argv": ["python3", "scripts/check_release.py"],
+          "cache": false,
+          "timeout_seconds": 1800
+        }
+      }
+    }
+  }
+}

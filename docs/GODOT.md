@@ -19,15 +19,14 @@ Godot 4.x + GDScript 与 iOS 原生使用同一套 TeamFlow 核心，按安装�
 | `teamflow-godot-v1.6.4.zip` | `godot` | Godot Skill，跳过 iOS 路由；不含 iOS Skill |
 | `teamflow-godot-ios-v1.6.4.zip` | `godot-ios` | Godot Skill，iOS 原生插件按路由加载原生规范 |
 
-新项目在 Git 根解压即可使用：
+推荐一键安装（不必人工整包解压进项目根）：
 
 ```sh
-unzip ~/Downloads/teamflow-godot-v1.6.4.zip -d .
-python3 scripts/teamflow.py setup      # 可选：在根 .gitignore 补上 .godot/
+unzip -p ~/Downloads/teamflow-godot-v1.6.4.zip install_teamflow.py | python3 - ~/Downloads/teamflow-godot-v1.6.4.zip --mode godot
 python3 scripts/teamflow.py doctor
 ```
 
-已有项目用 `unzip -n` 解压，再运行 `python3 .agents/teamflow-core/scripts/teamflow.py setup --mode godot`（或 `--mode godot-ios`）合并入口。重复运行 setup 时不传 mode 会沿用已选入口；后续加入 iOS 时运行 `python3 scripts/teamflow.py upgrade teamflow-godot-ios-v1.6.4.zip --mode godot-ios`，同版本也可以这样补装 iOS Skill 并切换入口。安装选择保存在 AGENTS 托管区块中，不另建状态配置。详见[安装说明](../.agents/teamflow-core/references/INSTALL.md)。
+会生成 `.agents/project-checks.json`（来自 Godot 示例，已有则不覆盖）。后续加入 iOS 时：`python3 scripts/teamflow.py upgrade teamflow-godot-ios-v1.6.4.zip --mode godot-ios`。详见[安装说明](../.agents/teamflow-core/references/INSTALL.md)与仓库 README「用 AI 接入」。
 
 团队协作建议先完成两件事：
 
@@ -41,7 +40,7 @@ python3 scripts/teamflow.py doctor                        # 核对本机引擎�
 
 项目根有 `project.godot` 或游戏位于子目录都可使用，Agent 必须先定位真实游戏根。之后统一使用 `python3 scripts/teamflow.py`。
 
-合并[检查配置示例](../.agents/skills/Godot/assets/project-checks.example.json)，修改 `game/` 为实际目录，并提供项目真实测试脚本。项目 `.gitignore` 忽略 `.godot/` 缓存，保留场景、源资源、导入配置和持久 UID。不要覆盖已有 profile 或把示例中的空测试当作项目验收。
+安装已写入的 `project-checks.json` 须把 `game/` 改为实际目录并提供真实测试脚本。项目 `.gitignore` 忽略 `.godot/` 缓存，保留场景、源资源、导入配置和持久 UID。不要把示例中的空测试当作项目验收。
 
 ```sh
 python3 scripts/teamflow.py req create --title "暂停后恢复本局游戏"

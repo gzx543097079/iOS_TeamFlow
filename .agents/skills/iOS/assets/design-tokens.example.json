@@ -1,0 +1,6 @@
+{
+  "sources": ["App"],
+  "modules": ["App/Shared/Theme"],
+  "rules": ["font", "corner-radius", "color", "spacing"],
+  "baseline": ".agents/design-tokens-baseline.json"
+}

@@ -17,25 +17,26 @@ GODOT = '.agents/skills/Godot/'
 # 2026-10-26：WORKFLOW 补齐改动分级后单文件与入口略超原上限，按约 10% 余量放宽。
 FILE_BUDGET = 3600
 ENTRY_BUDGET = 5100
-# 实现场景包含业务代码、注释、用户文本与视觉 AC；UIKit 使用 Swift。
-# 只读 UI 评审不修改业务代码。已有检查配置直接使用 CHECKS；配置建立、
-# 编辑或迁移另计 CHECKS-CONFIG，不把条件性引用算作所有任务的必读文件。
-IOS_UI_IMPLEMENTATION = (
-    CORE + 'ARCHITECTURE.md', IOS + 'references/ARCHITECTURE.md',
-    CORE + 'standards/comments.md', CORE + 'LOCALIZATION.md', IOS + 'references/LOCALIZATION.md',
-    IOS + 'references/standards/swift.md', IOS + 'references/standards/ui.md',
-    IOS + 'references/UI-REVIEW.md', CORE + 'CHECKS.md',
+# 窄路径：局部展示/缺陷按语言与 UI 专题 + CHECKS；不含架构双文档（仅架构调整时才读）。
+# 满配路径：新功能含输入/多语言/功能模板，仍不含默认架构双读。
+# 只读 UI 评审不修改业务代码。配置建立或迁移另计 CHECKS-CONFIG。
+IOS_UI_NARROW = (
+    IOS + 'references/standards/swift.md', IOS + 'references/standards/ui.md', CORE + 'CHECKS.md',
 )
-IOS_UI_REPAIR = IOS_UI_IMPLEMENTATION + (CORE + 'REPAIR.md', CORE + 'BOUNDARIES.md')
-IOS_UI_FEATURE = IOS_UI_IMPLEMENTATION + (
+IOS_UI_REPAIR = IOS_UI_NARROW + (CORE + 'REPAIR.md', CORE + 'BOUNDARIES.md',
+                                 CORE + 'standards/comments.md')
+IOS_UI_FEATURE = IOS_UI_NARROW + (
+    CORE + 'standards/comments.md', CORE + 'LOCALIZATION.md', IOS + 'references/LOCALIZATION.md',
     IOS + 'references/templates/feature.md', IOS + 'references/standards/ui-keyboard.md',
+    IOS + 'references/UI-REVIEW.md',
 )
 SWIFTUI = (IOS + 'references/standards/swiftui.md',)
 SCENARIOS = {
-    'iOS UIKit UI 缺陷修复并提交': (19400, 'ios', IOS_UI_REPAIR),
-    'iOS SwiftUI UI 缺陷修复并提交': (20200, 'ios', IOS_UI_REPAIR + SWIFTUI),
-    'iOS UIKit 新功能（含输入与多语言）': (20200, 'ios', IOS_UI_FEATURE),
-    'iOS SwiftUI 新功能（含输入与多语言）': (21000, 'ios', IOS_UI_FEATURE + SWIFTUI),
+    'iOS SwiftUI 间距小改动': (11000, 'ios', IOS_UI_NARROW + SWIFTUI),
+    'iOS UIKit UI 缺陷修复并提交': (14000, 'ios', IOS_UI_REPAIR),
+    'iOS SwiftUI UI 缺陷修复并提交': (15000, 'ios', IOS_UI_REPAIR + SWIFTUI),
+    'iOS UIKit 新功能（含输入与多语言）': (19000, 'ios', IOS_UI_FEATURE),
+    'iOS SwiftUI 新功能（含输入与多语言）': (20000, 'ios', IOS_UI_FEATURE + SWIFTUI),
     'iOS UI 只读评审': (12900, 'ios', (
         IOS + 'references/UI-REVIEW.md', IOS + 'references/standards/ui.md',
         CORE + 'LOCALIZATION.md', IOS + 'references/LOCALIZATION.md')),

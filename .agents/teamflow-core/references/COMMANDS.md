@@ -41,16 +41,21 @@ python3 scripts/teamflow.py req complete REQ-20260101-a3f9 \
 
 `git check` 的人工证据仅支持 `.md`、`.rst`、`.txt` 文档/记录，仍核对文件范围和暂存快照；这些扩展名不是语义证明，脚本或业务数据即使使用文本扩展名也必须执行实际适用检查。
 
-## 升级与提交前检查
+## 安装、升级与提交前检查
 
 ```sh
+unzip -p ~/Downloads/teamflow-ios-v1.6.4.zip install_teamflow.py | python3 - ~/Downloads/teamflow-ios-v1.6.4.zip --mode ios
+python3 scripts/teamflow.py install ~/Downloads/teamflow-ios-v1.6.4.zip --mode ios
 python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.6.4.zip --plan
 python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.6.4.zip
+python3 scripts/teamflow.py verify init
 python3 scripts/teamflow.py setup --git-hook
 python3 scripts/teamflow.py setup --no-git-hook
 ```
 
-- `upgrade` 按安装清单替换当前模式的核心与 Skill，移除新版不再包含的旧文件。有本地改动或包不含当前模式时拒绝；`--force` 覆盖本地改动，`--mode` 同时切换模式。不触碰 `.agents/team/`、需求卡和项目配置；完成后用新核心复核验证配置形态，旧形态时报告“验证配置待迁移”（`--json` 为 `config_migration`），处理见 [INSTALL](INSTALL.md#升级)。
+- `install` / 包内 `install_teamflow.py`：从 ZIP 一键接入，写入核心与 Skill、刷新入口，并在缺失时生成验证配置与检查脚本骨架（不覆盖已有）。已安装时请用 `upgrade`；`--force` 覆盖安装文件后重新接入。见 [INSTALL](INSTALL.md#一键安装推荐) 与仓库 README。
+- `upgrade` 按安装清单替换当前模式的核心与 Skill，移除新版不再包含的旧文件。有本地改动或包不含当前模式时拒绝；`--force` 覆盖本地改动，`--mode` 同时切换模式。不触碰 `.agents/team/`、需求卡和项目配置；旧形态时报告“验证配置待迁移”，Agent 按 README「验证配置迁移」处理。
+- `verify init` 按当前模式补生成缺失的验证资产；已存在的文件不覆盖。
 - `setup --git-hook` 为本机安装 pre-commit，提交前通过 `git hook` 复核覆盖暂存内容且仍有效的需求证据（自动或文档人工证据，不限定 profile）；仅含 `.md`/`.rst` 文档（不含需求卡）的暂存直接放行；缺失或失效直接报错，不自动跑测试；`--no-git-hook` 只移除 TeamFlow 管理的 Hook。规则见 [INSTALL](INSTALL.md#提交前检查可选)。
 - `git check` 暂存了验证配置时，列出命令或范围有变化、但未经本次证据执行的其他 profile，需人工核对后再提交。
 

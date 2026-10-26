@@ -23,7 +23,40 @@ TeamFlow 是一套面向 AI Agent 辅助开发的中文工作流。它把需求�
 | `teamflow-godot-v1.6.4.zip` | Godot 游戏 | 共用核心、Godot 开发专题 |
 | `teamflow-godot-ios-v1.6.4.zip` | Godot 游戏及其 iOS 导出、原生插件 | 共用核心、Godot 与 iOS 专题 |
 
-安装包可从 [GitHub Releases](https://github.com/gzx543097079/iOS_TeamFlow/releases) 获取。新项目选择对应模式；已有项目的接入、升级和定制说明见[安装与升级指南](.agents/teamflow-core/references/INSTALL.md)。
+安装包可从 [GitHub Releases](https://github.com/gzx543097079/iOS_TeamFlow/releases) 获取。命令细节见[安装与升级指南](.agents/teamflow-core/references/INSTALL.md)。
+
+## 用 AI 接入（推荐）
+
+在业务项目的 Git 根执行。Agent 应直接运行命令，不要让用户手工把 ZIP 整包解压复制进仓库。
+
+**首次安装**（已下载对应模式的安装包时，把路径换成实际文件）：
+
+```sh
+unzip -p ~/Downloads/teamflow-ios-v1.6.4.zip install_teamflow.py | python3 - ~/Downloads/teamflow-ios-v1.6.4.zip --mode ios
+python3 scripts/teamflow.py doctor
+```
+
+Godot 用 `teamflow-godot-v…zip` 与 `--mode godot`；Godot + iOS 用 `teamflow-godot-ios-v…zip` 与 `--mode godot-ios`。
+
+安装会写入核心与 Skill、创建 `requirements/`，并在缺失时生成 `.agents/project-checks.json`（iOS 另含设计变量配置与 `scripts/check_debug.py` / `check_release.py` 骨架）。已有验证配置不会被覆盖。iOS 接着写入 `.agents/team/ios-verify.json`（例如 `{"scheme":"YourScheme"}`），再按需 `setup --git-hook`。
+
+**已安装后的升级**：
+
+```sh
+python3 scripts/teamflow.py upgrade ~/Downloads/teamflow-ios-v1.6.4.zip
+python3 scripts/teamflow.py doctor
+```
+
+## 验证配置迁移
+
+`upgrade` / `doctor` 出现「验证配置待迁移」或「验证配置形态」需处理时，**Agent 必须在同一次升级任务中自动执行**，不要只提示用户手工改：
+
+1. `req create --title "迁移验证配置为按模块日常检查"`，范围写明拆日常/发布、补 covers；不改业务功能代码除非迁移必需。
+2. 按 [CHECKS-CONFIG 从全量脚本迁移](.agents/teamflow-core/references/CHECKS-CONFIG.md#从全量脚本迁移)：日常 profile = 编译 + 按模块测（iOS 可保留 design-tokens）；`manual: true` 放全套测试与 Release；声明 check `covers`（建议 `trigger: "covers"`）。
+3. 用新日常 profile 跑通 `verify run` / `req complete`，`doctor` 不再报该需处理项后单独提交迁移；升级安装文件与迁移配置分开提交。
+4. 用户明确暂缓时才阻塞并在卡中记录原因；否则不得在未迁移时宣称升级完成。
+
+行为类改动不得按「小改动」免定向测；无模块测时在交接表标未验证，并尽快补 `-only-testing` 或模块 check。
 
 ## 文件结构
 

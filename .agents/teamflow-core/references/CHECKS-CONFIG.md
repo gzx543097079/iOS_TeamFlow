@@ -47,11 +47,11 @@
 }
 ```
 
-示例须替换为项目实际命令和完整依赖。测试已包含构建时不重复 build；产物检查须在构建后执行。只升级 TeamFlow 不会拆开既有大脚本：项目需提供日常和发布入口，将 Release 构建移入显式 profile。不要未经核对直接开启 Xcode 测试并行或并发使用同一 DerivedData。
+新项目由 `install` / `setup` / `verify init` 从模式示例生成 `project-checks.json`（及 iOS 检查脚本骨架），已有文件不覆盖；生成后按实际工程目录与 scheme 调整。示例须替换为项目实际命令和完整依赖。测试已包含构建时不重复 build；产物检查须在构建后执行。只升级 TeamFlow 不会拆开既有大脚本：项目需提供日常和发布入口，将 Release 构建移入显式 profile。不要未经核对直接开启 Xcode 测试并行或并发使用同一 DerivedData。
 
 ## 从全量脚本迁移
 
-升级不改写项目脚本和验证配置；`upgrade` 输出“验证配置待迁移”或 `doctor` 报告「验证配置形态」时，按 [INSTALL](INSTALL.md#升级) 另建卡迁移：
+升级不改写项目脚本和验证配置；`upgrade` 输出“验证配置待迁移”或 `doctor` 报告「验证配置形态」时，Agent 按仓库 README「验证配置迁移」另建卡执行：
 
 1. 读懂现有脚本的步骤与产物依赖，给脚本加日常与发布入口（如 `--scope change|release`）；依赖构建产物的核对与其构建留在同一入口。
 2. 日常 profile 按独立步骤拆成多个 check（如编译、静态检查、启动检查），各配 `covers` 与完整 `inputs`。依赖整个源码目录的全套单元/UI 测试命中即整项执行，日常改为编译加按模块测试（如 `-only-testing`，inputs 含该模块依赖的共享目录），全套测试放入 `manual` profile，并在项目规则或 CI 中约定运行时机（如提 PR 前）。

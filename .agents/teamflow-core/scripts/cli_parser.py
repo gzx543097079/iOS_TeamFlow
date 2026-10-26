@@ -79,6 +79,13 @@ def build_parser():
     hook.add_argument('--git-hook', action='store_true', help='安装本机 pre-commit，提交前复核覆盖暂存内容的已绑定证据')
     hook.add_argument('--no-git-hook', action='store_true', help='移除 TeamFlow 管理的 pre-commit')
 
+    installer_pkg = top.add_parser('install', parents=[output], help='从安装包一键接入（无需人工整包解压）')
+    installer_pkg.add_argument('package', type=Path, help='teamflow-*-vX.Y.Z.zip')
+    installer_pkg.add_argument('--mode', choices=['ios', 'godot', 'godot-ios'], default='ios',
+                               help='安装模式；默认 ios')
+    installer_pkg.add_argument('--plan', action='store_true', help='只读预览，不写文件')
+    installer_pkg.add_argument('--force', action='store_true', help='覆盖已安装的核心与 Skill 后重新接入')
+
     upgrader = top.add_parser('upgrade', parents=[output], help='用新版安装包升级核心与所选 Skill')
     upgrader.add_argument('package', type=Path, help='新版安装包 ZIP')
     upgrader.add_argument('--plan', action='store_true', help='只读预览，不写文件')

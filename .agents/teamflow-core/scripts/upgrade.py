@@ -117,11 +117,59 @@ def manifest_text(version, package, files):
     return json.dumps(data, ensure_ascii=False, indent=2) + '\n'
 
 
+def _refresh_entry(root, mode):
+    entry = safe(root, CORE + '/scripts/teamflow.py')
+    refreshed = subprocess.run([sys.executable, str(entry), '--project', str(root), 'setup', '--mode', mode],
+                               capture_output=True, text=True)
+    if refreshed.returncode:
+        raise ValueError('文件已写入，但刷新入口失败：' + refreshed.stderr.strip())
+    return entry
+
+
+def _config_migration(entry, root):
+    doctor = subprocess.run([sys.executable, str(entry), '--project', str(root), 'doctor', '--json'],
+                            capture_output=True, text=True)
+    try:
+        return next((i for i in json.loads(doctor.stdout)['checks'] if i['item'] == '验证配置形态'), None)
+    except (ValueError, KeyError, TypeError):
+        return None
+
+
+def install(root, package_zip, mode=None, dry_run=False, force=False):
+    """从安装包一键接入：写入核心与 Skill、刷新入口，并在缺失时生成验证配置。"""
+    root = root.expanduser().resolve()
+    mode = mode or 'ios'
+    if mode not in setup_project.MODES:
+        raise ValueError('安装模式必须为 ' + '、'.join(setup_project.MODES))
+    installed = safe(root, CORE + '/references/VERSION')
+    if installed.is_file() and not force:
+        raise ValueError('项目已安装 TeamFlow ' + installed.read_text().strip()
+                         + '；请用 upgrade 升级，或加 --force 覆盖安装文件后重新接入')
+    package = read_package(package_zip)
+    files = mode_files(package, mode)
+    actions = {'add': sorted(files), 'update': [], 'remove': [], 'unchanged': [], 'conflict': []}
+    will_seed = [dest for dest, src in setup_project.seed_pairs(mode)
+                 if not safe(root, dest).exists() and src in package['files']]
+    result = {'project': str(root), 'mode': mode, 'from': None, 'to': package['version'],
+              'actions': actions, 'seeded': will_seed, 'blocked': False, 'kind': 'install'}
+    if dry_run:
+        return result
+    for name, data in files.items():
+        target = safe(root, name)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
+    safe(root, MANIFEST).write_text(manifest_text(package['version'], mode, files))
+    _refresh_entry(root, mode)
+    result['seeded'] = [name for name in will_seed if safe(root, name).is_file()]
+    return result
+
+
 def upgrade(root, package_zip, force=False, dry_run=False, mode=None):
     result = plan(root, package_zip, mode)
     actions = result['actions']
     files = result.pop('files')
     result['blocked'] = bool(actions['conflict']) and not force
+    result['kind'] = 'upgrade'
     if dry_run:
         return result
     if result['blocked']:
@@ -144,45 +192,45 @@ def upgrade(root, package_zip, force=False, dry_run=False, mode=None):
             parent.rmdir()
             parent = parent.parent
     safe(root, MANIFEST).write_text(manifest_text(result['to'], result['mode'], files))
-    # 入口文本可能随版本变化，由新核心刷新；未指定模式时沿用已有选择。
-    entry = safe(root, CORE + '/scripts/teamflow.py')
-    refreshed = subprocess.run([sys.executable, str(entry), '--project', str(root), 'setup', '--mode', result['mode']],
-                               capture_output=True, text=True)
-    if refreshed.returncode:
-        raise ValueError('文件已升级，但刷新入口失败：' + refreshed.stderr.strip())
-    # 用新核心复核验证配置形态；旧形态不阻断升级，但须在本次升级任务中迁移。
-    doctor = subprocess.run([sys.executable, str(entry), '--project', str(root), 'doctor', '--json'],
-                            capture_output=True, text=True)
-    try:
-        item = next((i for i in json.loads(doctor.stdout)['checks'] if i['item'] == '验证配置形态'), None)
-    except (ValueError, KeyError, TypeError):
-        item = None
+    entry = _refresh_entry(root, result['mode'])
+    item = _config_migration(entry, root)
     if item:
         result['config_migration'] = item
     return result
 
 
 CONFLICT_HINT = '把定制移到 .agents/team/ 后重试，或核对后加 --force 覆盖'
+MIGRATE_HINT = '下一步：按仓库 README「验证配置迁移」在本次任务中建卡迁移；步骤见 CHECKS-CONFIG「从全量脚本迁移」'
 
 
 def describe(result, dry_run=False):
     actions = result['actions']
+    kind = result.get('kind') or 'upgrade'
     counts = '，'.join(f'{label} {len(actions[key])}' for key, label in (
         ('add', '新增'), ('update', '更新'), ('remove', '移除'), ('conflict', '覆盖本地改动'),
-        ('unchanged', '未变')) if actions[key])
-    head = ('升级预览' if dry_run else '已升级') + f'（{setup_project.MODE_LABELS[result["mode"]]}）：' \
-        f'{result["from"]} → {result["to"]}'
+        ('unchanged', '未变')) if actions.get(key))
+    if kind == 'install':
+        head = ('安装预览' if dry_run else '已安装') + f'（{setup_project.MODE_LABELS[result["mode"]]}）' \
+            + (f'：{result["to"]}' if result.get('to') else '')
+    else:
+        head = ('升级预览' if dry_run else '已升级') + f'（{setup_project.MODE_LABELS[result["mode"]]}）：' \
+            f'{result["from"]} → {result["to"]}'
     lines = [head, counts or '无变化']
+    if result.get('seeded'):
+        lines.append('将生成验证资产：' if dry_run else '已生成验证资产：')
+        lines.extend('  + ' + name for name in result['seeded'])
     if dry_run:
         for key, label in (('add', '+'), ('update', '~'), ('remove', '-'), ('conflict', '!')):
-            lines.extend(f'  {label} {name}' for name in actions[key])
-        if result['blocked']:
+            lines.extend(f'  {label} {name}' for name in actions.get(key, []))
+        if result.get('blocked'):
             lines.append('! 为本地改动，直接升级会被拒绝：' + CONFLICT_HINT)
     elif result.get('config_migration'):
         item = result['config_migration']
         lines.append(f"文件已升级，验证配置待迁移（{item['status']}）：")
         lines.extend('  ' + detail for detail in item['detail'])
-        lines.append('下一步：按 INSTALL「升级」在本次升级任务中另建卡迁移项目脚本与验证配置')
+        lines.append(MIGRATE_HINT)
+    elif kind == 'install':
+        lines.append('下一步：iOS 配置 .agents/team/ios-verify.json 的 scheme 后运行 python3 scripts/teamflow.py doctor')
     else:
         lines.append('下一步：python3 scripts/teamflow.py doctor')
     if result.get('host_permissions'):

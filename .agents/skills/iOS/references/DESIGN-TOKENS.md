@@ -24,7 +24,7 @@
 
 ## 接入与存量
 
-在 `project-checks.json` 日常 profile 加一项，几秒完成，不需构建：
+`install` / `setup` / `verify init` 会在缺失时生成 `.agents/design-tokens.json` 与日常 profile 中的 design-tokens 检查；已有文件不覆盖。也可手工在 `project-checks.json` 日常 profile 加一项，几秒完成，不需构建：
 
 ```json
 "design-tokens": {
