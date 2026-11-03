@@ -1,5 +1,16 @@
 # 版本记录
 
+## 1.6.7
+
+来源：用户要求精炼重复规则、补充单人使用说明并发布（REQ-20261103-c55d / REQ-20261103-06b0）。未在真实消费项目中实测，不声称提速。
+
+- 精炼 WORKFLOW、CHECKS-CONFIG、BOUNDARIES 中与 CHECKS、COMMANDS 重复的表述，改为引用。
+- WORKFLOW 与 REVIEW 增加要求：卡片、提交说明、交接和 PR 描述只写事实、范围与证据，不写铺垫和套话。
+- 数据迁移与恢复从 ARCHITECTURE 拆为 `DATA-MIGRATION.md`，普通架构任务不再读取；iOS Skill 增加持久化变化的路由。
+- `validate_workflow` 新增共用核心参考文档同句重复检查。
+- `docs/TRIAL.md` 的用户明确纠正记录增加固定字段与复核点。
+- README 调整为个人开发者定位，新增「单人使用」一节。
+
 ## 1.6.6
 
 来源：审查修正后拆分 UI 取证与收紧日常路径，用户要求定版发布（REQ-20261026-fe0c / REQ-20261026-c726）。不声称消费项目未迁移 covers 时墙钟自动下降。
