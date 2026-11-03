@@ -119,6 +119,21 @@ def command_errors(root, names):
     return errors
 
 
+def duplicate_errors(root, names):
+    """共用核心参考文档中，同一句规则不得在多个文件重复出现；重复处应改为引用。"""
+    seen = {}
+    for name in names:
+        if not name.startswith(CORE + '/references/') or not name.endswith('.md'):
+            continue
+        text = re.sub(r'```.*?```', '', (root / name).read_text(), flags=re.S)
+        for sentence in re.split(r'[。；\n]', text):
+            key = re.sub(r'[\s`*|>#\-]', '', sentence)
+            if len(key) >= 20 and not key.startswith(('[', '(')):
+                seen.setdefault(key, set()).add(name)
+    return [f'共用文档重复同一句规则：{"、".join(sorted(files))}（{key[:30]}…）'
+            for key, files in seen.items() if len(files) > 1]
+
+
 def validate(root):
     root = Path(root).resolve()
     errors = []
@@ -137,6 +152,7 @@ def validate(root):
             elif anchor and target.suffix == '.md' and anchor not in anchors(target):
                 errors.append(f'{name} 的锚点不存在：{target.name}#{anchor}')
     errors += mode_link_errors(root, links)
+    errors += duplicate_errors(root, documents)
     errors += command_errors(root, [name for name in documents if name not in ('CHANGELOG.md', 'docs/TRIAL.md')
                                     and not name.startswith('requirements/')])
     for directory in (SKILL, GODOT_SKILL):
