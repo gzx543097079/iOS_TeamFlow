@@ -32,6 +32,6 @@ Control／Container 管理游戏界面；按实际方向、窗口尺寸和设备
 
 问题按 P0（无法继续游戏、进度丢失、卡死）、P1（明显困难或违反平台要求，发布前修）、P2（有绕过办法）、P3（细节，少列）分级，每条写明场景或节点路径、影响和建议。原生 iOS 界面：取证用 [UI-EVIDENCE](../../iOS/references/UI-EVIDENCE.md)，评审用 [UI-REVIEW](../../iOS/references/UI-REVIEW.md)；普通改样式不要预读评审。
 
-涉及持久化数据变化时使用[共用迁移原则](../../../teamflow-core/references/ARCHITECTURE.md#数据迁移与恢复)，以旧版存档的真实或项目内合成样本验证，不以重装清空存档证明升级成功。
+涉及持久化数据变化时使用[共用迁移原则](../../../teamflow-core/references/DATA-MIGRATION.md)，以旧版存档的真实或项目内合成样本验证，不以重装清空存档证明升级成功。
 
 依据：[Godot 场景组织](https://docs.godotengine.org/en/stable/tutorials/best_practices/scene_organization.html)、[版本控制](https://docs.godotengine.org/en/stable/tutorials/best_practices/version_control_systems.html)。实施时查询与锁定引擎版本相符的文档。

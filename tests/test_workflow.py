@@ -133,6 +133,20 @@ class WorkflowTests(unittest.TestCase):
                     doc.write_text(bad + '\n')
                     self.assertEqual(1, len(validate_workflow.command_errors(ROOT, [str(doc)])))
 
+    def test_duplicate_rule_sentence_in_core_references_is_rejected(self):
+        core = package_release.CORE + '/references/'
+        names = [core + 'WORKFLOW.md', core + 'CHECKS.md']
+        self.assertEqual([], validate_workflow.duplicate_errors(ROOT, names))
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            sentence = '同一条规则不应当在两个共用文档里各写一遍。'
+            for name in names:
+                (root / name).parent.mkdir(parents=True, exist_ok=True)
+                (root / name).write_text('# 标题\n\n' + sentence + '\n')
+            errors = validate_workflow.duplicate_errors(root, names)
+            self.assertEqual(1, len(errors))
+            self.assertIn('WORKFLOW.md', errors[0])
+
     def test_heading_slug_matches_github(self):
         self.assertEqual('显式-git-动作', validate_workflow.slug('显式 Git 动作'))
         self.assertEqual('授权与停止', validate_workflow.slug('授权与停止'))

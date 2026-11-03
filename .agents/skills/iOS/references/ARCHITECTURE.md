@@ -1,6 +1,6 @@
 # iOS 架构补充
 
-职责、依赖、复用、抽取迁移和数据恢复统一遵循[共用架构规则](../../../teamflow-core/references/ARCHITECTURE.md)。本文件仅补充原生 iOS 约束。
+职责、依赖、复用和抽取迁移统一遵循[共用架构规则](../../../teamflow-core/references/ARCHITECTURE.md)；数据迁移与恢复见[共用迁移原则](../../../teamflow-core/references/DATA-MIGRATION.md)。本文件仅补充原生 iOS 约束。
 
 MVC、MVVM、TCA、Clean 等按确认的模式实施，不统一强制 MVVM。明确采用 MVVM 时，View/Controller 负责渲染、布局和输入转发，ViewModel 处理展示状态、业务意图和结果转换，Model/服务负责数据与业务规则；ViewModel 不持有视图或导航控制器。若实现必须偏离已确认架构，先说明原因、影响和替代方案并取得相应决定，再实施依赖该决定的部分。
 
