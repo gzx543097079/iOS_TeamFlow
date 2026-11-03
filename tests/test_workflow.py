@@ -27,6 +27,17 @@ class WorkflowTests(unittest.TestCase):
             self.assertIn(str(test.relative_to(ROOT)), names)
         self.assertIn(package_release.CORE + '/scripts/teamflow.py', names)
 
+    def test_code_relationship_guidance_is_packaged_for_every_mode(self):
+        import zipfile
+        guidance = package_release.CORE + '/references/CODE-RELATIONSHIPS.md'
+        with tempfile.TemporaryDirectory() as directory:
+            for mode in ('ios', 'godot', 'godot-ios'):
+                with self.subTest(mode=mode):
+                    archive = package_release.package_mode(ROOT, mode, directory)
+                    with zipfile.ZipFile(archive) as contents:
+                        self.assertIn(guidance, contents.namelist())
+                        self.assertIn(b'CODE-RELATIONSHIPS.md', contents.read(package_release.CORE + '/references/WORKFLOW.md'))
+
     def test_release_profile_is_explicit_only(self):
         import json
         config = json.loads((ROOT / '.agents/project-checks.json').read_text())

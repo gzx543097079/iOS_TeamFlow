@@ -28,7 +28,7 @@
 
 ## 模块路由（项目较大时按需建立）
 
-仅在启用模块索引时保留此节：链接 `.agents/project-modules.json` 及已有架构资料，不复制模块字段、动态结果或实现摘要。建立、检查与更新遵循 `.agents/teamflow-core/references/MODULE-CONTEXT.md`。
+仅在启用模块索引或存在相关架构资料时保留此节：链接 `.agents/project-modules.json`、已有架构资料及按需建立的代码关系图，不复制模块字段、动态结果或实现摘要。模块索引遵循 `.agents/teamflow-core/references/MODULE-CONTEXT.md`，关系图遵循 `.agents/teamflow-core/references/CODE-RELATIONSHIPS.md`。
 
 ## 已知限制（有实际发现才填写）
 
